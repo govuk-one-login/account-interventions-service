@@ -1,19 +1,4 @@
-# GDS Node.js boilerplate
 
-This is a skeleton Node.js app running on [Express] with [Nunjucks] as a template engine.
-
-It includes:
-- Grunt for compliation of sass/js
-- [GOV.UK Frontend]
-- [Browserify] with babelify and Nunjucksify
-- Mocha for testing
-- Middleware to set correlation headers
-- i18n language support
-- [Snyk]
-- [StandardJS] for linting
-- [nvm] (optional) for nodejs version
-
-To get started clone the repo and run
 
 ``` bash
 $ npm install
