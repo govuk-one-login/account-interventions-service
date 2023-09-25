@@ -30,6 +30,9 @@ Parameters:
     Type: String
     Default: account-interventions-service-core
 
+Conditions:
+  UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
+
 Globals:
   Function:
     Runtime: nodejs18.x
@@ -55,3 +58,36 @@ Resources:
       CodeUri: ../../../dist/handlers/intervention-history-handler
       Timeout: 10
       Handler: intervention-history-handler.handle
+      Role: !GetAtt InterventionHistoryWriterFunctionRole.Arn
+
+  InterventionHistoryWriterFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:  !Sub '${AWS::StackName}-InterventionHistoryWriterFunctionRole'
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+  InterventionHistoryWriterFunctionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-InterventionHistoryWriterFunctionPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:PutItem"
+            Resource:
+              - Fn::ImportValue: !Sub "${CoreStackName}-AccountInterventionsHistoryDynamoDBTableArn"
+      Roles:
+        - !Ref InterventionHistoryWriterFunctionRole

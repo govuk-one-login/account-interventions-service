@@ -5,6 +5,6 @@ resolve_s3 = true
 s3_prefix = "ais-main"
 region = "eu-west-2"
 confirm_changeset = true
-capabilities = "CAPABILITY_IAM"
+capabilities = "CAPABILITY_NAMED_IAM"
 parameter_overrides = "Environment=\"dev\" VpcStackName=\"vpc\" PermissionsBoundary=\"none\" CoreStackName=\"ais-core\""
 image_repositories = []
