@@ -5,15 +5,39 @@
   "private": true,
   "license": "MIT",
   "engines": {
-    "node": "18.17.0"
+    "node": ">=18"
   },
+  "packageManager": "^yarn@1.22.19",
   "scripts": {
-
+    "test": "echo no test files yet",
+    "lint": "yarn lint:code",
+    "lint:code": "eslint --ext .ts .",
+    "lint:code:fix": "yarn lint:code --fix",
+    "audit:fix": "yarn-audit-fix"
   },
   "dependencies": {
 
   },
   "devDependencies": {
-
+    "@types/node": "^18.17.17",
+    "@types/webpack": "^5.28.2",
+    "@typescript-eslint/eslint-plugin": "^6.6.0",
+    "@typescript-eslint/parser": "^6.6.0",
+    "clean-webpack-plugin": "^4.0.0",
+    "eslint": "^8.49.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-tsdoc": "^0.2.17",
+    "eslint-plugin-unicorn": "^48.0.1",
+    "prettier": "^3.0.3",
+    "ts-loader": "^9.4.4",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "yarn-audit-fix": "^10.0.1",
+    "ts-jest": "^29.1.1",
+    "jest": "^29.6.4",
+    "jest-extended": "^4.0.1"
   }
 }
