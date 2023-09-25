@@ -1,0 +1,23 @@
+{% from "components/footer/macro.njk" import govukFooter %}
+
+{% extends "template.njk" %}
+
+{% block pageTitle %}GDS Node.js boilerplate{% endblock %}
+
+{% block head %}
+  {% include "common/templates/includes/head.njk" %}
+{% endblock %}
+
+{% block footer %}
+  {{
+    govukFooter({
+      meta: {
+        html: 'Built by the <a href="#" class="govuk-footer__link">Government Digital Service</a>'
+      }
+    })
+  }}
+{% endblock %}
+
+{% block bodyEnd %}
+  {% include "common/templates/includes/scripts.njk" %}
+{% endblock %}
