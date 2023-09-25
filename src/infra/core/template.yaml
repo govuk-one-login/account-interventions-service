@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: >-
+  Data layer template for the account interventions service solution
+
+Parameters:
+  Environment:
+    Description: The name of the environment to deploy to
+    Type: String
+    AllowedValues:
+      - dev
+      - build
+      - staging
+      - integration
+      - production
+    Default: dev
+
+Resources:
+  AccountInterventionsHistoryDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${AWS::StackName}-interventions-history'
+      AttributeDefinitions:
+        - AttributeName: AccountId
+          AttributeType: S
+        - AttributeName: CreatedAt
+          AttributeType: N
+      KeySchema:
+        - AttributeName: AccountId
+          KeyType: HASH  # partition key
+        - AttributeName: CreatedAt
+          KeyType: RANGE # sort key
+      BillingMode: PAY_PER_REQUEST
+
+Outputs:
+  AccountInterventionsHistoryDynamoDBTableName:
+    Description: "The name of the Intervention History DynamoDB database"
+    Value: !Ref AccountInterventionsHistoryDynamoDBTable
+    Export:
+      Name: !Sub ${AWS::StackName}-AccountInterventionsHistoryDynamoDBTableName
+
+  AccountInterventionsHistoryDynamoDBTableArn:
+    Description: "The ARN of the VC Intervention History DynamoDB database"
+    Value: !GetAtt AccountInterventionsHistoryDynamoDBTable.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-AccountInterventionsHistoryDynamoDBTableArn
