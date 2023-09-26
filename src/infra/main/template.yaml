@@ -33,6 +33,19 @@ Parameters:
 Conditions:
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
 
+Mappings:
+  EnvConfig:
+    dev:
+      LambdaLogLevel: DEBUG
+    build:
+      LambdaLogLevel: INFO
+    staging:
+      LambdaLogLevel: INFO
+    integration:
+      LambdaLogLevel: INFO
+    production:
+      LambdaLogLevel: INFO
+
 Globals:
   Function:
     Runtime: nodejs18.x
@@ -40,6 +53,9 @@ Globals:
       - arm64
     Tracing: Active
     AutoPublishAlias: latest
+    Environment:
+      Variables:
+        LOG_LEVEL: !FindInMap [ EnvConfig, !Ref Environment, LambdaLogLevel ]
     VpcConfig:
       SubnetIds:
         - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdA

@@ -24,6 +24,7 @@
     "package": "rimraf .aws-sam && yarn package:sam && yarn package:sam:fix"
   },
   "dependencies": {
+    "@aws-lambda-powertools/logger": "^1.13.1",
     "@aws-sdk/client-dynamodb": "^3.418.0"
   },
   "devDependencies": {
@@ -32,6 +33,7 @@
     "@types/webpack": "^5.28.2",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
+    "aws-crt": "^1.18.0",
     "aws-lambda": "^1.0.7",
     "clean-webpack-plugin": "^4.0.0",
     "eslint": "^8.49.0",
@@ -44,7 +46,6 @@
     "prettier": "^3.0.3",
     "rimraf": "^5.0.1",
     "run-script-os": "^1.1.6",
-    "aws-crt": "^1.18.0",
     "ts-jest": "^29.1.1",
     "ts-loader": "^9.4.4",
     "ts-node": "^10.9.1",
