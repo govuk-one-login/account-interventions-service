@@ -9,10 +9,10 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
   const command = new PutItemCommand({
     TableName: 'ais-core-interventions-history',
     Item: {
-      AccountId: {
+      pk: {
         S: 'testAccountID',
       },
-      CreatedAt: {
+      sk: {
         N: Math.floor(Date.now() / 1000).toString(),
       },
     },

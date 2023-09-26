@@ -29,6 +29,22 @@ Parameters:
     Description: The name of the Core VC Storage stack
     Type: String
     Default: account-interventions-service-core
+  ProductTagValue:
+    Description: Value for the Product Tag
+    Type: String
+    Default: GOV.UK One Login
+  SystemTagValue:
+    Description: Value for the System Tag
+    Type: String
+    Default: Account Interventions Service
+  OwnerTagValue:
+    Description: Value for the Owner Tag
+    Type: String
+    Default: PLACEHOLDER
+  SourceTagValue:
+    Description: Value for the Source Tag
+    Type: String
+    Default: govuk-one-login/account-interventions-service/src/infra/main/template.yaml
 
 Conditions:
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
@@ -75,6 +91,13 @@ Resources:
       Timeout: 10
       Handler: intervention-history-handler.handle
       Role: !GetAtt InterventionHistoryWriterFunctionRole.Arn
+      Tags:
+        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
 
   InterventionHistoryWriterFunctionRole:
     Type: AWS::IAM::Role
@@ -92,6 +115,17 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
 
   InterventionHistoryWriterFunctionPolicy:
     Type: AWS::IAM::Policy
