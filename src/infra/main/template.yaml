@@ -1,0 +1,143 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: >-
+  Main template for the account interventions service solution
+
+Parameters:
+  Environment:
+    Description: The name of the environment to deploy to
+    Type: String
+    AllowedValues:
+      - dev
+      - build
+      - staging
+      - integration
+      - production
+    Default: dev
+  VpcStackName:
+    Description: The name of the stack that defines the VPC
+    Type: String
+    Default: vpc
+    AllowedPattern: ^[a-z0-9-]+$
+    ConstraintDescription: must be a valid organization ID, made of lowercase letters and numbers
+  PermissionsBoundary:
+    Description: The ARN of the permissions boundary to apply when creating IAM roles
+    Type: String
+    Default: none
+  CoreStackName:
+    Description: The name of the Core VC Storage stack
+    Type: String
+    Default: account-interventions-service-core
+  ProductTagValue:
+    Description: Value for the Product Tag
+    Type: String
+    Default: GOV.UK One Login
+  SystemTagValue:
+    Description: Value for the System Tag
+    Type: String
+    Default: Account Interventions Service
+  OwnerTagValue:
+    Description: Value for the Owner Tag
+    Type: String
+    Default: PLACEHOLDER
+  SourceTagValue:
+    Description: Value for the Source Tag
+    Type: String
+    Default: govuk-one-login/account-interventions-service/src/infra/main/template.yaml
+
+Conditions:
+  UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
+
+Mappings:
+  EnvConfig:
+    dev:
+      LambdaLogLevel: DEBUG
+    build:
+      LambdaLogLevel: INFO
+    staging:
+      LambdaLogLevel: INFO
+    integration:
+      LambdaLogLevel: INFO
+    production:
+      LambdaLogLevel: INFO
+
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    Architectures:
+      - arm64
+    Tracing: Active
+    AutoPublishAlias: latest
+    Environment:
+      Variables:
+        LOG_LEVEL: !FindInMap [ EnvConfig, !Ref Environment, LambdaLogLevel ]
+    VpcConfig:
+      SubnetIds:
+        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdA
+        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdB
+        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdC
+      SecurityGroupIds:
+        - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
+
+Resources:
+  InterventionHistoryWriterFunction:
+    Type: AWS::Serverless::Function
+    # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
+    # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-InterventionHistoryWriterFunction'
+      CodeUri: ../../../dist/handlers/intervention-history-handler
+      Timeout: 10
+      Handler: intervention-history-handler.handle
+      Role: !GetAtt InterventionHistoryWriterFunctionRole.Arn
+      Tags:
+        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
+  InterventionHistoryWriterFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:  !Sub '${AWS::StackName}-InterventionHistoryWriterFunctionRole'
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  InterventionHistoryWriterFunctionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-InterventionHistoryWriterFunctionPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:PutItem"
+            Resource:
+              - Fn::ImportValue: !Sub "${CoreStackName}-AccountInterventionsHistoryDynamoDBTableArn"
+      Roles:
+        - !Ref InterventionHistoryWriterFunctionRole

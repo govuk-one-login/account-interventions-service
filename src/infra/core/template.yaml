@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: >-
+  Data layer template for the account interventions service solution
+
+Parameters:
+  Environment:
+    Description: The name of the environment to deploy to
+    Type: String
+    AllowedValues:
+      - dev
+      - build
+      - staging
+      - integration
+      - production
+    Default: dev
+  ProductTagValue:
+    Description: Value for the Product Tag
+    Type: String
+    Default: GOV.UK One Login
+  SystemTagValue:
+    Description: Value for the System Tag
+    Type: String
+    Default: Account Interventions Service
+  OwnerTagValue:
+    Description: Value for the Owner Tag
+    Type: String
+    Default: PLACEHOLDER
+  SourceTagValue:
+    Description: Value for the Source Tag
+    Type: String
+    Default: govuk-one-login/account-interventions-service/src/infra/main/template.yaml
+
+Resources:
+  AccountInterventionsHistoryDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${AWS::StackName}-interventions-history'
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: N
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH  # partition key
+        - AttributeName: sk
+          KeyType: RANGE # sort key
+      BillingMode: PAY_PER_REQUEST
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+Outputs:
+  AccountInterventionsHistoryDynamoDBTableName:
+    Description: "The name of the Intervention History DynamoDB database"
+    Value: !Ref AccountInterventionsHistoryDynamoDBTable
+    Export:
+      Name: !Sub ${AWS::StackName}-AccountInterventionsHistoryDynamoDBTableName
+
+  AccountInterventionsHistoryDynamoDBTableArn:
+    Description: "The ARN of the VC Intervention History DynamoDB database"
+    Value: !GetAtt AccountInterventionsHistoryDynamoDBTable.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-AccountInterventionsHistoryDynamoDBTableArn
