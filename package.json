@@ -34,7 +34,7 @@
     "@types/aws-lambda": "^8.10.124",
     "@types/node": "^18.18.4",
     "@types/webpack": "^5.28.3",
-    "@typescript-eslint/eslint-plugin": "^6.7.4",
+    "@typescript-eslint/eslint-plugin": "^6.7.5",
     "@typescript-eslint/parser": "^6.7.4",
     "aws-crt": "^1.18.0",
     "aws-lambda": "^1.0.7",
