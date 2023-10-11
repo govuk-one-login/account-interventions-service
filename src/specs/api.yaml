@@ -1,0 +1,226 @@
+---
+openapi: 3.0.3
+
+info:
+  title: "Account Intervention Status API"
+  description: |-
+    An API that provides methods to query the OneLogin Account Interventions Service 
+    for the current intervention state of a User's Account.
+
+    This solution was created as part of the Interventions initiative.
+
+    __N.B__
+     - Recommend HTTP client __Timeout__ settings of `5 seconds` to handle requests where backend services experience cold starts.
+     - Method calls can be __throttled__, upon HTTP 429, suggest retrying using exponential backoff.
+
+  version: 0.0.1
+  contact:
+    name: Government Digital Service - Accounts Bravo Team
+    email: todo@digital.cabinet-office.gov.uk # TODO
+  license:
+    name: "MIT"
+    url: "https://github.com/govuk-one-login/account-interventions-service/blob/main/LICENCE.md"
+
+servers:
+  - url: "https://{environment}.account.gov.uk" # TODO
+    description: defaults to dev environment
+    variables:
+      environment:
+        default: credential-store.dev # TODO
+        enum: # TODO
+          - credential-store.dev
+          - credential-store.build
+          - credential-store.staging
+          - credential-store.integration
+          - credential-store             # Production
+
+paths:
+  /ais/{userId}:
+    get:
+      summary: "Get User Account Intervention Status"
+      description: "Returns the state of the latest intervention applied on a user's account"
+      operationId: "ais"
+      tags:
+        - Status
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: "Ok"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterventionStatusResponse"
+        "429":
+          $ref: "#/components/responses/Throttled"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "504":
+          $ref: "#/components/responses/GatewayTimeout"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
+
+components:
+  schemas:
+    InterventionMetadata:
+      title: "Intervention Metadata Schema"
+      description: "Information about the current intervention"
+      type: "object"
+      readOnly: true
+      required:
+        - updatedAt
+        - appliedAt
+        - sentAt
+        - description
+      properties:
+        updatedAt:
+          description: A timestamp (ms) when the status was last updated to the database.
+          type: integer
+          format: int64
+          example: 1696969322935 # 2023-10-10T20:22:02.925Z
+        appliedAt:
+          description: A timestamp (ms) when the Intervention was Applied to the User's Account.
+          type: integer
+          format: int64
+          example: 1696869005821 # 2023-10-09T16:30:05.821Z
+        sentAt:
+          description: A timestamp (ms) when the Intervention was sent by Fraud Analyst/Risk Engine.
+          type: integer
+          format: int64
+          example: 1696869003456 # 2023-10-09T16:30:03.456Z
+        description:
+          description: The specific intervention currently applied to the account.
+          type: string
+          example: AIS_USER_PASSWORD_RESET_AND_IDENTITY_VERIFIED
+          enum:
+            - AIS_ACCOUNT_SUSPENDED
+            - AIS_ACCOUNT_UNSUSPENDED
+            - AIS_ACCOUNT_BLOCKED
+            - AIS_ACCOUNT_UNBLOCKED
+            - AIS_USER_PASSWORD_RESET
+            - AIS_USER_IDENTITY_VERIFIED
+            - AIS_USER_PASSWORD_RESET_AND_IDENTITY_VERIFIED
+        reprovedIdentityAt:
+          description: |
+            A timestamp (ms) of when the User performed the reprove identity action to unsuspend their account.
+          type: integer
+          format: int64
+          example: 1696969322935 # 2023-10-10T20:22:02.925Z
+        resetPasswordAt:
+          description: |
+            A timestamp (ms) of when the User performed the password reset action to unsuspend their account.
+          type: integer
+          format: int64
+          example: 1696875903456 # 2023-10-09T18:25:03.789Z
+    AccountState:
+      title: "Account State Schema"
+      description: "Current state of the User's Account and whether user actions have been requested"
+      type: "object"
+      readOnly: true
+      required:
+        - blocked
+        - suspended
+        - reproveIdentity
+        - resetPassword
+      properties:
+        blocked:
+          type: boolean
+          example: false
+          description: |
+            Indicates that the Account is **BLOCKED** and therefore permanently suspended.  
+            **N.B.** Overrides any other AccountState attributes.  
+            If this value is `true` the user should be completely **BLOCKED** from accessing their account 
+            and is normally never expected to regain access.
+        suspended:
+          type: boolean
+          example: false
+          description: |
+            Indicates that the Account is **SUSPENDED**.  
+            - If this value is `true` but `reproveIdentity` **AND** `resetPassword` are both set to `false` then the  
+            Account is **SUSPENDED** and does NOT require the User to perform any actions.  
+            - If this value is `true` but `reproveIdentity` **OR** `resetPassword` is `true` then the Account 
+            is **SUSPENDED** and requires the User to perform an action to unsuspend their account.  
+            - If this value is `true` but `reproveIdentity` **AND** `resetPassword` are `true` then the Account 
+            is **SUSPENDED** and requires the User to perform multiple actions to unsuspend their account.
+        reproveIdentity:
+          type: boolean
+          example: false
+          description: |
+            Indicates that the Account is **SUSPENDED** and requires the User to reprove their identity as a 
+            prerequisite to being able to regain access to their account.
+        resetPassword:
+          type: boolean
+          example: false
+          description: |
+            Indicates that the Account is **SUSPENDED** and requires the User to reset their password as a 
+            prerequisite to being able to regain access to their account.
+    InterventionStatusResponse:
+      title: "Account Intervention Status Schema"
+      description: "The Intervention Status of the User's OneLogin Account"
+      type: "object"
+      readOnly: true
+      required:
+        - intervention
+        - state
+      properties:
+        intervention:
+          $ref: "#/components/schemas/InterventionMetadata"
+        state:
+          $ref: "#/components/schemas/AccountState"
+    Error:
+      title: "Error Schema"
+      type: "object"
+      properties:
+        message:
+          type: "string"
+          example: "error message"
+  parameters:
+    UserId:
+      name: userId
+      in: path
+      description: "A public subject identifier, used only by GOV.UK Account and Account Management."
+      required: true
+      example: "urn:fdc:gov.uk:2022:JG0RJI1pYbnanbvPs-j4j5-a-PFcmhry9Qu9NCEp5d4"
+      schema:
+        type: string
+        pattern: ^[^,\s]+$
+  responses:
+    Throttled:
+      description: "Throttled"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ServerError:
+      description: "Server Error"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    BadGateway:
+      description: "Bad Gateway"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    GatewayTimeout:
+      description: "Gateway Timeout"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    UnexpectedError:
+      description: "Unexpected Error"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+tags:
+  - name: Status
+    description: |-
+      Provides information on an account's intervention status.
+
+      Expected users are the **GDS Internal** teams ONLY.
