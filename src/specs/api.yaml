@@ -95,6 +95,7 @@ components:
           type: string
           example: AIS_USER_PASSWORD_RESET_AND_IDENTITY_VERIFIED
           enum:
+            - AIS_NO_INTERVENTION
             - AIS_ACCOUNT_SUSPENDED
             - AIS_ACCOUNT_UNSUSPENDED
             - AIS_ACCOUNT_BLOCKED
