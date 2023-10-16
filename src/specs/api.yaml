@@ -115,6 +115,12 @@ components:
           type: integer
           format: int64
           example: 1696875903456 # 2023-10-09T18:25:03.789Z
+        accountDeletedAt:
+          description: |
+            A timestamp (ms) of when the account was deleted.
+          type: integer
+          format: int64
+          example: 1696969359935 # 2023-10-10T20:59:02.925Z
     AccountState:
       title: "Account State Schema"
       description: "Current state of the User's Account and whether user actions have been requested"
@@ -157,6 +163,15 @@ components:
           description: |
             Indicates that the Account is **SUSPENDED** and requires the User to reset their password as a 
             prerequisite to being able to regain access to their account.
+    AuditLevel:
+      title: "Audit Level Schema"
+      description: "Indicates if normal or enhanced downstream auditing is required for this account"
+      type: string
+      example: standard
+      enum:
+        - standard
+        - enhanced
+      default: standard
     InterventionStatusResponse:
       title: "Account Intervention Status Schema"
       description: "The Intervention Status of the User's OneLogin Account"
@@ -170,6 +185,8 @@ components:
           $ref: "#/components/schemas/InterventionMetadata"
         state:
           $ref: "#/components/schemas/AccountState"
+        auditLevel:
+          $ref: "#/components/schemas/AuditLevel"
     Error:
       title: "Error Schema"
       type: "object"
