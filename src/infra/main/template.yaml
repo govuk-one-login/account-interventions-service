@@ -72,6 +72,8 @@ Globals:
     Environment:
       Variables:
         LOG_LEVEL: !FindInMap [ EnvConfig, !Ref Environment, LambdaLogLevel ]
+        POWERTOOLS_SERVICE_NAME: !Ref AWS::StackName
+        CLOUDWATCH_METRICS_NAMESPACE: !Ref SystemTagValue
     VpcConfig:
       SubnetIds:
         - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdA
@@ -81,16 +83,21 @@ Globals:
         - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
 
 Resources:
-  InterventionHistoryWriterFunction:
+  AISSampleLambdaFunction:
     Type: AWS::Serverless::Function
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
     Properties:
       FunctionName: !Sub '${AWS::StackName}-InterventionHistoryWriterFunction'
-      CodeUri: ../../../dist/handlers/intervention-history-handler
+      CodeUri: ../../../dist/handlers/sample-lambda-handler
       Timeout: 10
-      Handler: intervention-history-handler.handle
-      Role: !GetAtt InterventionHistoryWriterFunctionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
+          METRIC_SERVICE_NAME: !Sub "${AWS::StackName}-SampleLambda"
+      Handler: sample-lambda-handler.handle
+      Role: !GetAtt AISSampleLambdaHandlerRole.Arn
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
         Product: !Ref ProductTagValue
@@ -99,10 +106,10 @@ Resources:
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
 
-  InterventionHistoryWriterFunctionRole:
+  AISSampleLambdaHandlerRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName:  !Sub '${AWS::StackName}-InterventionHistoryWriterFunctionRole'
+      RoleName:  !Sub '${AWS::StackName}-AISSampleLambdaHandlerRole'
       PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -127,17 +134,20 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-  InterventionHistoryWriterFunctionPolicy:
+  AISSampleLambdaHandlerPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-InterventionHistoryWriterFunctionPolicy"
+      PolicyName: !Sub "${AWS::StackName}-AISSampleLambdaHandlerPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
               - "dynamodb:PutItem"
+              - "dynamodb:Query"
+              - "dynamodb:DeleteItem"
+              - "dynamodb:UpdateItem"
             Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountInterventionsHistoryDynamoDBTableArn"
+              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
       Roles:
-        - !Ref InterventionHistoryWriterFunctionRole
+        - !Ref AISSampleLambdaHandlerRole

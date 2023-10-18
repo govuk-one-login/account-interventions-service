@@ -1,10 +1,11 @@
 version = 0.1
 [default.deploy.parameters]
-stack_name = "ais-core"
+stack_name = "ais-core-ch"
 resolve_s3 = true
-s3_prefix = "ais-core"
+s3_prefix = "ais-core-ch"
 region = "eu-west-2"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "Environment=\"dev\""
+parameter_overrides = "Environment=\"dev\" ProductTagValue=\"GOV.UK One Login\" SystemTagValue=\"Account Interventions Service\" OwnerTagValue=\"PLACEHOLDER\" SourceTagValue=\"govuk-one-login/account-interventions-service/src/infra/main/template.yaml\""
 image_repositories = []
+disable_rollback = true

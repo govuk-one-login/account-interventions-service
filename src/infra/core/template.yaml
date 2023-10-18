@@ -33,20 +33,16 @@ Parameters:
     Default: govuk-one-login/account-interventions-service/src/infra/main/template.yaml
 
 Resources:
-  AccountInterventionsHistoryDynamoDBTable:
+  AccountStatusTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub '${AWS::StackName}-interventions-history'
+      TableName: !Sub '${AWS::StackName}-account-status'
       AttributeDefinitions:
         - AttributeName: pk
           AttributeType: S
-        - AttributeName: sk
-          AttributeType: N
       KeySchema:
         - AttributeName: pk
           KeyType: HASH  # partition key
-        - AttributeName: sk
-          KeyType: RANGE # sort key
       BillingMode: PAY_PER_REQUEST
       Tags:
         - Key: Product
@@ -60,15 +56,16 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-Outputs:
-  AccountInterventionsHistoryDynamoDBTableName:
-    Description: "The name of the Intervention History DynamoDB database"
-    Value: !Ref AccountInterventionsHistoryDynamoDBTable
-    Export:
-      Name: !Sub ${AWS::StackName}-AccountInterventionsHistoryDynamoDBTableName
 
-  AccountInterventionsHistoryDynamoDBTableArn:
-    Description: "The ARN of the VC Intervention History DynamoDB database"
-    Value: !GetAtt AccountInterventionsHistoryDynamoDBTable.Arn
+Outputs:
+  AccountStatusTableName:
+    Description: "The name of the Intervention History DynamoDB database"
+    Value: !Ref AccountStatusTable
     Export:
-      Name: !Sub ${AWS::StackName}-AccountInterventionsHistoryDynamoDBTableArn
+      Name: !Sub ${AWS::StackName}-AccountStatusTableName
+
+  AccountStatusTableArn:
+    Description: "The ARN of the VC Intervention History DynamoDB database"
+    Value: !GetAtt AccountStatusTable.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-AccountStatusTableArn
