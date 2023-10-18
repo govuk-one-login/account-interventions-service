@@ -141,3 +141,195 @@ Resources:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountInterventionsHistoryDynamoDBTableArn"
       Roles:
         - !Ref InterventionHistoryWriterFunctionRole
+
+ #### TxMA ####
+  TxMAIngressEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: AWS KMS key for encrypting the contents of messages in TxMA SQS queues
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: kms:*
+            Resource:
+              - "*"
+          - Effect: Allow
+            Principal:
+              Service: sqs.amazonaws.com
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: "*"
+            Condition:
+              ArnLike:
+                aws:SourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:*"
+#          - Effect: Allow
+#            Principal:
+#              Service: sns.amazonaws.com
+#            Action:
+#              - "kms:Decrypt"
+#              - "kms:GenerateDataKey"
+#            Resource: "*"
+#            Condition:
+#              ArnEquals:
+#                aws:SourceArn:
+          ## how is the sns topic receiving the msg? is it from sns or..?
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-TxMAIngressEncryptionKey"
+
+  TxMAIngressEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-TxMAIngressEncryptionKey"
+      TargetKeyId: !GetAtt TxMAIngressEncryptionKey.Arn
+
+  TxMAIngressQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue"
+      MessageRetentionPeriod: 1209600
+      KmsMasterKeyId: !GetAtt TxMAIngressEncryptionKey.Arn
+      RedriveAllowPolicy:
+        redrivePermission: denyAll
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt TxMAIngressDLQ.Arn
+#          Fn::GetAtt:
+#            - "TxMAIngressDLQ"
+#            - "Arn"
+        maxReceiveCount: 3
+      VisibilityTimeout: 5
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+#  TxMAIngressQueueNameSSM:
+#    Type: AWS::SSM::Parameter
+#    Properties:
+#      Description: The Name of the TxMA Ingress Queue
+#      Name: !Sub "/${AWS::StackName}/SQS/TxMAIngressQueue/Name"
+#      Type: String
+#      Value: !GetAtt TxMAIngressQueue.QueueName
+#      Tags:
+#        Environment: !Ref Environment
+#        Product: !Ref ProductTagValue
+#        System: !Ref SystemTagValue
+#        Owner: !Ref OwnerTagValue
+#        Source: !Ref SourceTagValue
+
+  TxMAIngressQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    DependsOn: TxMAIngressQueue
+    Properties:
+      Queues:
+        - !Ref TxMAIngressQueue
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt TxMAIngressQueue.Arn
+            Principal:
+              Service: sns.amazonaws.com
+#            Condition:
+#              ArnEquals:
+#                aws:SourceArn:
+##is sns permissions needed?
+
+  TxMAIngressDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-TxMAIngressDLQ"
+      KmsMasterKeyId: !Ref TxMAIngressEncryptionKeyAlias
+      VisibilityTimeout: 0
+      MessageRetentionPeriod: 1209600
+      RedriveAllowPolicy:
+        redrivePermission: byQueue
+        sourceQueueArns:
+          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-TxMAIngressQueue"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+#  TxMAIngressDLQNameSSM:
+#    Type: AWS::SSM::Parameter
+#    Properties:
+#      Description: The Name of the TxMA Ingress DLQ
+#      Name: !Sub "/${AWS::StackName}/SQS/TxMAIngressDLQ/Name"
+#      Type: String
+#      Value: !GetAtt TxMAIngressDLQ.QueueName
+#      Tags:
+#        Environment: !Ref Environment
+#        Product: !Ref ProductTagValue
+#        System: !Ref SystemTagValue
+#        Owner: !Ref OwnerTagValue
+#        Source: !Ref SourceTagValue
+
+### ALARMS ###
+#  TxMAIngressQueueProcessingSlowlyArn:
+#    Type: AWS::CloudWatch::Alarm
+#    Properties:
+#      ActionsEnabled: true
+#      AlarmActions:
+#        - !Ref AlertingSNSLowAlertNotificationTopicARN
+#      AlarmDescription: "The TxMA Ingress Queue is processing slowly."
+#      Namespace: !Ref MainCloudWatchMetricNamespace
+#      MetricName: TXMA_INGRESS_QUEUE_PROCESSING_SLOWLY
+#      ComparisonOperator: GreaterThanOrEqualToThreshold
+#      Statistic: SampleCount
+#      Threshold: 1
+#      EvaluationPeriods: 1
+#      Period: 60
+#      TreatMissingData: notBreaching
+#      Dimensions:
+#        - Name: service
+#          Value:
+#
+#  TxMAIngressQueueProcessingTooSlowlyArn:
+#    Type: AWS::CloudWatch::Alarm
+#    Properties:
+#      ActionsEnabled: true
+#      AlarmActions:
+#        - !Ref AlertingSNSHighAlertNotificationTopicARN
+#      AlarmDescription: "The TxMA Ingress Queue is processing slowly."
+#      Namespace: !Ref MainCloudWatchMetricNamespace
+#      MetricName: TXMA_INGRESS_QUEUE_PROCESSING_TOO_SLOWLY
+#      ComparisonOperator: GreaterThanOrEqualToThreshold
+#      Statistic: SampleCount
+#      Threshold: 1
+#      EvaluationPeriods: 5
+#      Period: 60
+#      TreatMissingData: notBreaching
+#      Dimensions:
+#        - Name: service
+#          Value:
