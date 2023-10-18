@@ -1,5 +1,5 @@
 import logger from '../commons/logger';
-import { LOGS_PREFIX_INVALID_CONFIG, RegexpStepFunctionArn } from '../data-types/constants';
+import { LOGS_PREFIX_INVALID_CONFIG } from '../data-types/constants';
 import { InvalidEnvironmentVariableError } from '../data-types/errors';
 
 /**
@@ -42,35 +42,5 @@ export class AppConfigService {
       throw new InvalidEnvironmentVariableError(message);
     }
     return process.env[environmentVariable] as string;
-  }
-
-  private validateNumberEnvVars(environmentVariable: string): number {
-    const environmentVariableValue = Number.parseInt(this.validateConfiguration(environmentVariable));
-    if (Number.isNaN(environmentVariableValue) || environmentVariableValue <= 0) {
-      const message = `${LOGS_PREFIX_INVALID_CONFIG} Environment variable ${environmentVariable} is not a number.`;
-      logger.error(message);
-      throw new InvalidEnvironmentVariableError(message);
-    }
-    return environmentVariableValue;
-  }
-
-  private validateStepFunctionArn(environmentVariable: string) {
-    const stepFunctionArn = this.validateConfiguration(environmentVariable);
-    if (!RegexpStepFunctionArn.test(stepFunctionArn)) {
-      const message = `${LOGS_PREFIX_INVALID_CONFIG} Environment variable ${environmentVariable} is not a valid Step Function ARN (${stepFunctionArn}).`;
-      logger.error(message);
-      throw new InvalidEnvironmentVariableError(message);
-    }
-    return stepFunctionArn;
-  }
-
-  private validateIsHTTPSUrl(environmentVariable: string) {
-    const url = this.validateConfiguration(environmentVariable);
-    if (!url.startsWith('https://')) {
-      const message = `${LOGS_PREFIX_INVALID_CONFIG} Environment variable ${environmentVariable} is not a valid HTTPS URL (${url}).`;
-      logger.error(message);
-      throw new InvalidEnvironmentVariableError(message);
-    }
-    return url;
   }
 }
