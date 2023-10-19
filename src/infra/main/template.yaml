@@ -151,3 +151,122 @@ Resources:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
       Roles:
         - !Ref AISSampleLambdaHandlerRole
+
+  InterventionProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-InterventionProcessorFunction"
+      Description: "A Lambda function for executing InterventionProcessor flow."
+      CodeUri: ../../../dist/interventions-processor-handler
+      Timeout: 60
+      Handler: interventions-processor-handler.handler
+      Role: !GetAtt InterventionProcessorFunctionRole.Arn
+      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt InterventionProcessorQueue.Arn
+            BatchSize: 10
+      Environment:
+        Variables:
+          METRIC_SERVICE_NAME: "InterventionProcessorFunction"
+          VC_TABLE_NAME: "InterventionStatus"
+            #Fn::ImportValue: !Sub "${CoreStackName}-InterventionStatus"
+      Tags:
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
+
+  InterventionProcessorFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AWS::StackName}-InterventionProcessorFunctionRole"
+      Description: !Sub "The role assumed by ${AWS::StackName}-InterventionProcessorFunction"
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+      Policies:
+        - PolicyName: !Sub "${AWS::StackName}-InterventionProcessorFunctionRolePolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sqs:ReceiveMessage"
+                  - "sqs:DeleteMessage"
+                  - "sqs:GetQueueAttributes"
+                Resource: "TBD" #!GetAtt TxMAIngressQueue.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  InterventionProcessorFunctionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-InterventionProcessorFunctionPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource:
+              - !GetAtt InterventionProcessorFunctionLogGroup.Arn
+          - Effect: Allow
+            Action:
+              - "dynamodb:UpdateItem"
+              - "dynamodb:Query"
+            Resource:
+              - "TBD"  #Fn::ImportValue: !Sub "${CoreStackName}-InterventionStatusDynamoDBArn"
+          - Effect: "Allow"
+            Action:
+              - "cloudwatch:PutMetricData"
+            Resource:
+              - "*"
+            Condition:
+              StringEquals:
+                cloudwatch:namespace: !Ref SystemTagValue
+      Roles:
+        - !Ref InterventionProcessorFunctionRole
+
+  InterventionProcessorFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${InterventionProcessorFunction}"
+      RetentionInDays: 30
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "/aws/lambda/${InterventionProcessorFunction}"
