@@ -34,6 +34,11 @@ export class AppConfigService {
     return this.validateConfiguration('AWS_REGION');
   }
 
+  public get maxRetentionSeconds(): number {
+    const retentionSecond = Number.parseInt(this.validateConfiguration('DELETED_ACCOUNT_STATUS_RETENTION_SECONDS'));
+    return retentionSecond;
+  }
+
   /**
    * A method for validating environment variables.
    *
