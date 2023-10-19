@@ -32,7 +32,8 @@
     "@aws-lambda-powertools/metrics": "^1.14.0",
     "@aws-lambda-powertools/tracer": "^1.14.0",
     "@aws-sdk/client-dynamodb": "^3.438.0",
-    "@aws-sdk/util-dynamodb": "^3.433.0"
+    "@aws-sdk/util-dynamodb": "^3.433.0",
+    "@smithy/node-http-handler": "^2.1.7"
   },
   "devDependencies": {
     "@stoplight/spectral-cli": "^6.11.0",
@@ -62,8 +63,6 @@
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4",
     "yaml-cfn": "^0.3.2",
-    "yarn-audit-fix": "^10.0.1",
-    "aws-sdk-client-mock": "^3.0.0",
-    "aws-sdk-client-mock-jest": "^3.0.0"
+    "yarn-audit-fix": "^10.0.1"
   }
 }
