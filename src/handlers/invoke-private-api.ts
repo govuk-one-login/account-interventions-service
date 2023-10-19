@@ -1,4 +1,5 @@
 import { AppConfigService } from '../services/app-config-service';
+import logger from '../commons/logger';
 
 const appConfig = AppConfigService.getInstance();
 
@@ -8,7 +9,8 @@ export const handle = async () => {
   const endpoint = appConfig.endpoint;
   const httpRequestMethod = appConfig.httpRequestMethod;
 
-  const url = `${baseUrl}/${endpoint}/${userId}`;
+  const url = `${baseUrl}${endpoint}/${userId}`;
+  logger.info(`invoking the url: ${url}`);
 
   const responseJson = await fetch(url, {
     method: httpRequestMethod,

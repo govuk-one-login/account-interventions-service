@@ -50,7 +50,9 @@ export class AppConfigService {
   }
 
   public get endpoint() {
-    return this.validateConfiguration('END_POINT');
+    const endpoint = this.validateConfiguration('END_POINT');
+    const prefix = endpoint.charAt(0) === '/' ? "" : '/';
+    return prefix + endpoint;
   }
 
   public get httpRequestMethod() {
