@@ -699,7 +699,12 @@ Resources:
       FunctionName: !Sub '${AWS::StackName}-StatusRetrieverFunction'
       CodeUri: ../../../dist/handlers/status-retriever-handler
       Timeout: 10
-      Handler: status-retriever-handler.handler
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
+          METRIC_SERVICE_NAME: !Sub "${AWS::StackName}-StatusRetriever"
+      Handler: status-retriever-handler.handle
       Role: !GetAtt StatusRetrieverFunctionRole.Arn
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
