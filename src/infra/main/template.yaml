@@ -165,7 +165,7 @@ Resources:
       Environment:
         Variables:
           TABLE_NAME:
-            Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
+            Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
           DELETED_ACCOUNT_STATUS_RETENTION_SECONDS: 63072000
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
