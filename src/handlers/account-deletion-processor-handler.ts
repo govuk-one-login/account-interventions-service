@@ -1,7 +1,7 @@
 import { DynamoDBClient, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
 import logger from '../commons/logger';
 import { LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
-import { AppConfigService } from '../services/app-config-services' ;
+import { AppConfigService } from '../services/app-config-service' ;
 
 const dynamodbClient = new DynamoDBClient();
 const appConfig = AppConfigService.getInstance();
