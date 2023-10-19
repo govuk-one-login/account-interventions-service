@@ -41,6 +41,22 @@ export class AppConfigService {
     return this.validateIsHTTPSUrl('TXMA_QUEUE_URL');
   }
 
+  public get userId() {
+    return this.validateConfiguration('USER_ID');
+  }
+
+  public get baseUrl() {
+    return this.validateConfiguration("BASE_URL");
+  }
+
+  public get endpoint() {
+    return this.validateConfiguration('END_POINT');
+  }
+
+  public get httpRequestMethod() {
+    return this.validateConfiguration('HTTP_REQUEST_METHOD');
+  }
+
   /**
    * A method for validating environment variables.
    *
