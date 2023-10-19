@@ -19,3 +19,12 @@
 <!-- Please specify if changes were deployed and tested in the AWS Account and how, include evidence where relevant -->
 
 ## Checklists
+- [ ] Did not commit any not-required changes to the `src/infra/**/samconfig.toml`
+- [ ] Tested changes and included test evidence in the PR, if appropriate
+- [ ] Included all required tags and other properties for any new resources in the SAM template
+- [ ] Ensured that any new resources in the SAM Template follow appropriate naming conventions
+- [ ] Ensured that naming of new resources is compatible with deploying multiple stacks with custom stack names during development
+- [ ] Ensured that no log lines include PII or other sensitive data
+- [ ] Implemented unit testing for any new logic implemented, if appropriate
+- [ ] Ensured that all commits in this PR are signed
+- [ ] Ensured appropriate code coverage is maintained by unit tests

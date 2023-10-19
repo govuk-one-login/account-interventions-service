@@ -7,3 +7,7 @@ module.exports = {
   setupFilesAfterEnv: ['jest-extended/all'],
   transformIgnorePatterns: ['node_modules/'],
 };
+process.env['CLOUDWATCH_METRICS_NAMESPACE'] = 'test_namespace';
+process.env['METRIC_SERVICE_NAME'] = 'test';
+process.env['TABLE_NAME'] = 'table_name';
+process.env['AWS_REGION'] = 'aws_region'

@@ -93,7 +93,7 @@ components:
         description:
           description: The specific intervention currently applied to the account.
           type: string
-          example: AIS_USER_PASSWORD_RESET_AND_IDENTITY_VERIFIED
+          example: AIS_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFIED
           enum:
             - AIS_NO_INTERVENTION
             - AIS_ACCOUNT_SUSPENDED
@@ -101,8 +101,8 @@ components:
             - AIS_ACCOUNT_BLOCKED
             - AIS_ACCOUNT_UNBLOCKED
             - AIS_USER_PASSWORD_RESET
-            - AIS_USER_IDENTITY_VERIFIED
-            - AIS_USER_PASSWORD_RESET_AND_IDENTITY_VERIFIED
+            - AIS_USER_IDENTITY_REVERIFIED
+            - AIS_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFIED
         reprovedIdentityAt:
           description: |
             A timestamp (ms) of when the User performed the reprove identity action to unsuspend their account.
