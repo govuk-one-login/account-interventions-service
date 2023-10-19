@@ -46,7 +46,7 @@ export class AppConfigService {
   }
 
   public get baseUrl() {
-    return this.validateConfiguration("BASE_URL");
+    return this.validateConfiguration('BASE_URL');
   }
 
   public get endpoint() {
