@@ -14,7 +14,6 @@ import { logAndPublishMetric } from '../commons/metrics';
 import { AppConfigService } from './app-config-service';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import tracer from '../commons/tracer';
-import { StateDetails } from '../data-types/interfaces';
 
 export class DynamoDbService {
   private dynamoClient: DynamoDBClient;
@@ -80,25 +79,17 @@ export class DynamoDbService {
     return { UserId: userId, StatusCode: response.$metadata.httpStatusCode };
   }
 
-  public async putItemForUserId(userId: string, newState: StateDetails) {
+  public async putItemForUserId(userId: string, partialInput: Partial<UpdateItemCommandInput>) {
     const commandInput: UpdateItemCommandInput = {
       TableName: this.tableName,
       Key: { pk: { S: userId } },
-      ExpressionAttributeNames: {
-        '#B': 'blocked',
-        '#S': 'suspended',
-        '#RP': 'resetPassword',
-        '#RI': 'reproveIdentity',
-      },
-      ExpressionAttributeValues: {
-        ':b': { BOOL: newState.blocked },
-        ':s': { BOOL: newState.suspended },
-        ':rp': { BOOL: newState.resetPassword },
-        ':ri': { BOOL: newState.reproveIdentity },
-      },
-      UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri',
+      ...partialInput,
     };
+    console.log('command input::');
+    logger.debug(JSON.stringify(commandInput));
+    console.log('formed command input');
     const command = new UpdateItemCommand(commandInput);
+    console.log('sent command');
     const response = await this.dynamoClient.send(command);
     logger.debug(JSON.stringify(response));
     return response;
