@@ -6,8 +6,8 @@ import { AppConfigService } from '../services/app-config-service' ;
 const dynamodbClient = new DynamoDBClient();
 const appConfig = AppConfigService.getInstance();
 
-export const handler = async (event: { pk: string }): Promise<void> => {
-  const pk = event.pk;
+export const handler = async (user_id: { pk: string }): Promise<void> => {
+  const pk = user_id.pk;
   const ttl = Date.now() + appConfig.maxRetentionSeconds * 1000;
 
   const parameters = {
