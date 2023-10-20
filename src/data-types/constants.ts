@@ -70,8 +70,9 @@ export const buildPartialUpdateAccountStateCommand = (
       base['ExpressionAttributeNames']['#AA'] = 'appliedAt';
       base['ExpressionAttributeValues'][':aa'] = { N: `${getCurrentTimestamp().milliseconds}` };
       base['ExpressionAttributeNames']['#H'] = 'history';
+      base['ExpressionAttributeValues'][':empty_list'] = { L: [] };
       base['ExpressionAttributeValues'][':h'] = { L: [{ S: 'some history' }] };
-      base['UpdateExpression'] += ', #INT = :int, #AA = :aa, #H = list_append(:h, #H)';
+      base['UpdateExpression'] += ', #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
     } else throw new Error('intervention received did not have an interventionName field');
   }
   console.log(base);
