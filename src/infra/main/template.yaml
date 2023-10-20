@@ -48,6 +48,7 @@ Parameters:
 
 Conditions:
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
+  IsInternal: !Or [ !Equals [!Ref Environment, dev], !Equals [!Ref Environment, build],!Equals [ !Ref Environment, staging]]
 
 Mappings:
   EnvConfig:
@@ -152,12 +153,70 @@ Resources:
       Roles:
         - !Ref AISSampleLambdaHandlerRole
 
+  SQSEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: AWS KMS key for encrypting the contents of messages in SQS queues
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: kms:*
+            Resource:
+              - "*"
+          - Effect: Allow
+            Principal:
+              Service: sqs.amazonaws.com
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: "*"
+            Condition:
+              ArnLike:
+                aws:SourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:*"
+          - Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: "*"
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !If
+                  - IsInternal
+                  - !Ref AccountDeletionProcessorSNSTopic
+                  - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-SQSEncryptionKey"
+
+  SQSEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-SQSEncryptionKey"
+      TargetKeyId: !GetAtt SQSEncryptionKey.Arn
+
   AccountDeletionProcessorFunction:
     Type: AWS::Serverless::Function
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
     Properties:
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
+      Description: "A lambda function that updates the VCs account status"
       CodeUri: ../../../dist/handlers/account-deletion-processor-handler
       Timeout: 10
       Handler: account-deletion-processor-handler.handler
@@ -180,6 +239,20 @@ Resources:
           ACCOUNT_STATUS_TABLE_NAME:
             Fn::ImportValue: !Sub "${CoreStackName}-AccountInterventionsHistoryDynamoDBTableArn"
           DELETED_ACCOUNT_STATUS_RETENTION_SECONDS: 63072000
+      Events:
+        SNSEvent:
+          Type: SNS
+          Properties:
+            RedrivePolicy: !Sub "{ \"deadLetterTargetArn\": \"arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorDLQ\" }"
+            SqsSubscription:
+              BatchSize: 1
+              Enabled: true
+              QueueArn: !GetAtt AccountDeletionProcessorQueue.Arn
+              QueueUrl: !Ref AccountDeletionProcessorQueue
+            Topic: !If
+              - IsInternal
+              - !Ref AccountDeletionProcessorSNSTopic
+              - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
         Product: !Ref ProductTagValue
@@ -187,6 +260,18 @@ Resources:
         Environment: !Ref Environment
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
+
+  AccountDeletionProcessorResourcePolicy:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AccountDeletionProcessorFunction
+      Action: lambda:InvokeFunction
+      Principal: sns.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !If
+        - IsInternal
+        - !Ref AccountDeletionProcessorSNSTopic
+        - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
 
   AccountDeletionProcessorFunctionRole:
     Type: AWS::IAM::Role
@@ -348,42 +433,121 @@ Resources:
       Roles:
         - !Ref AccountDeletionProcessorFunctionRole
 
- #### TxMA ####
-  TxMAIngressEncryptionKey:
+  AccountDeletionProcessorQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-AccountDeletionProcessorQueue"
+      MessageRetentionPeriod: 1209600
+      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
+      RedriveAllowPolicy:
+        redrivePermission: denyAll
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt AccountDeletionProcessorDLQ.Arn
+        maxReceiveCount: 60
+      VisibilityTimeout: 60
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  AccountDeletionProcessorQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref AccountDeletionProcessorQueue
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt AccountDeletionProcessorQueue.Arn
+            Principal:
+              Service: sns.amazonaws.com
+            Condition:
+              ArnEquals:
+                aws:SourceArn:
+                  - !If
+                    - IsInternal
+                    - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
+                    - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN]
+
+  AccountDeletionProcessorDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-AccountDeletionProcessorDLQ"
+      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
+      VisibilityTimeout: 60
+      MessageRetentionPeriod: 1209600
+      RedriveAllowPolicy:
+        redrivePermission: byQueue
+        sourceQueueArns:
+          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorQueue"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  AccountDeletionProcessorSNSTopic:
+    Condition: IsInternal
+    Type: AWS::SNS::Topic
+    Properties:
+      KmsMasterKeyId: !Ref AccountDeletionProcessorSNSKmsKey
+      TopicName: !Sub "${AWS::StackName}-AccountDeletionProcessorSNSTopic"
+      TracingConfig: "Active"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  AccountDeletionProcessorSNSKmsKey:
     Type: AWS::KMS::Key
     Properties:
-      Description: AWS KMS key for encrypting the contents of messages in TxMA SQS queues
       EnableKeyRotation: true
       KeyPolicy:
-        Version: "2012-10-17"
+        Version: 2012-10-17
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
-            Action: kms:*
-            Resource:
-              - "*"
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: "kms:*"
+            Resource: "*"
           - Effect: Allow
             Principal:
-              Service: sqs.amazonaws.com
+              Service:
+                - "sns.amazonaws.com"
             Action:
               - "kms:Decrypt"
               - "kms:GenerateDataKey"
             Resource: "*"
             Condition:
-              ArnLike:
-                aws:SourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:*"
-#          - Effect: Allow
-#            Principal:
-#              Service: sns.amazonaws.com
-#            Action:
-#              - "kms:Decrypt"
-#              - "kms:GenerateDataKey"
-#            Resource: "*"
-#            Condition:
-#              ArnEquals:
-#                aws:SourceArn:
-          ## how is the sns topic receiving the msg? is it from sns or..?
+              ArnEquals:
+                aws:SourceArn:
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-AccountDeletionProcessorFunction"
+                  - !If
+                    - IsInternal
+                    - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
+                    - !Ref AWS::NoValue
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -395,30 +559,26 @@ Resources:
           Value: !Ref OwnerTagValue
         - Key: Source
           Value: !Ref SourceTagValue
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-TxMAIngressEncryptionKey"
 
-  TxMAIngressEncryptionKeyAlias:
+  AccountDeletionProcessorSNSKmsKeyAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub "alias/${AWS::StackName}-TxMAIngressEncryptionKey"
-      TargetKeyId: !GetAtt TxMAIngressEncryptionKey.Arn
+      AliasName: !Sub "alias/${AWS::StackName}-AccountDeletionProcessorSNSKmsKey"
+      TargetKeyId: !GetAtt AccountDeletionProcessorSNSKmsKey.Arn
 
+ #### TxMA ####
   TxMAIngressQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue"
       MessageRetentionPeriod: 1209600
-      KmsMasterKeyId: !GetAtt TxMAIngressEncryptionKey.Arn
+      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
       RedriveAllowPolicy:
         redrivePermission: denyAll
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt TxMAIngressDLQ.Arn
-#          Fn::GetAtt:
-#            - "TxMAIngressDLQ"
-#            - "Arn"
         maxReceiveCount: 3
-      VisibilityTimeout: 5
+      VisibilityTimeout: 60
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -430,20 +590,6 @@ Resources:
           Value: !Ref OwnerTagValue
         - Key: Source
           Value: !Ref SourceTagValue
-
-#  TxMAIngressQueueNameSSM:
-#    Type: AWS::SSM::Parameter
-#    Properties:
-#      Description: The Name of the TxMA Ingress Queue
-#      Name: !Sub "/${AWS::StackName}/SQS/TxMAIngressQueue/Name"
-#      Type: String
-#      Value: !GetAtt TxMAIngressQueue.QueueName
-#      Tags:
-#        Environment: !Ref Environment
-#        Product: !Ref ProductTagValue
-#        System: !Ref SystemTagValue
-#        Owner: !Ref OwnerTagValue
-#        Source: !Ref SourceTagValue
 
   TxMAIngressQueuePolicy:
     Type: AWS::SQS::QueuePolicy
@@ -459,16 +605,12 @@ Resources:
             Resource: !GetAtt TxMAIngressQueue.Arn
             Principal:
               Service: sns.amazonaws.com
-#            Condition:
-#              ArnEquals:
-#                aws:SourceArn:
-##is sns permissions needed?
 
   TxMAIngressDLQ:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${AWS::StackName}-TxMAIngressDLQ"
-      KmsMasterKeyId: !Ref TxMAIngressEncryptionKeyAlias
+      KmsMasterKeyId: !Ref SQSEncryptionKeyAlias
       VisibilityTimeout: 0
       MessageRetentionPeriod: 1209600
       RedriveAllowPolicy:
@@ -487,55 +629,3 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-#  TxMAIngressDLQNameSSM:
-#    Type: AWS::SSM::Parameter
-#    Properties:
-#      Description: The Name of the TxMA Ingress DLQ
-#      Name: !Sub "/${AWS::StackName}/SQS/TxMAIngressDLQ/Name"
-#      Type: String
-#      Value: !GetAtt TxMAIngressDLQ.QueueName
-#      Tags:
-#        Environment: !Ref Environment
-#        Product: !Ref ProductTagValue
-#        System: !Ref SystemTagValue
-#        Owner: !Ref OwnerTagValue
-#        Source: !Ref SourceTagValue
-
-### ALARMS ###
-#  TxMAIngressQueueProcessingSlowlyArn:
-#    Type: AWS::CloudWatch::Alarm
-#    Properties:
-#      ActionsEnabled: true
-#      AlarmActions:
-#        - !Ref AlertingSNSLowAlertNotificationTopicARN
-#      AlarmDescription: "The TxMA Ingress Queue is processing slowly."
-#      Namespace: !Ref MainCloudWatchMetricNamespace
-#      MetricName: TXMA_INGRESS_QUEUE_PROCESSING_SLOWLY
-#      ComparisonOperator: GreaterThanOrEqualToThreshold
-#      Statistic: SampleCount
-#      Threshold: 1
-#      EvaluationPeriods: 1
-#      Period: 60
-#      TreatMissingData: notBreaching
-#      Dimensions:
-#        - Name: service
-#          Value:
-#
-#  TxMAIngressQueueProcessingTooSlowlyArn:
-#    Type: AWS::CloudWatch::Alarm
-#    Properties:
-#      ActionsEnabled: true
-#      AlarmActions:
-#        - !Ref AlertingSNSHighAlertNotificationTopicARN
-#      AlarmDescription: "The TxMA Ingress Queue is processing slowly."
-#      Namespace: !Ref MainCloudWatchMetricNamespace
-#      MetricName: TXMA_INGRESS_QUEUE_PROCESSING_TOO_SLOWLY
-#      ComparisonOperator: GreaterThanOrEqualToThreshold
-#      Statistic: SampleCount
-#      Threshold: 1
-#      EvaluationPeriods: 5
-#      Period: 60
-#      TreatMissingData: notBreaching
-#      Dimensions:
-#        - Name: service
-#          Value:
