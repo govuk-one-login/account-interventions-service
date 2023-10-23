@@ -94,6 +94,7 @@ export const handle = async (): Promise<void> => {
   //   resetPassword: false,
   //   reproveIdentity: false,
   // }
+  const service = new DynamoDatabaseService('ais-core-ch-account-status');
 
   console.log('============= Suspend --> Blocked =============');
   const result1 = AccountStateEvents.applyEventTransition(
@@ -101,6 +102,7 @@ export const handle = async (): Promise<void> => {
     accumulatorSuspendedState,
   );
   logger.debug(JSON.stringify(result1));
+  await service.updateUserStatus('test1', result1);
 
   console.log('=====================================================');
 
@@ -111,6 +113,8 @@ export const handle = async (): Promise<void> => {
     accumulatorNeedsPswReset,
   );
   logger.debug(JSON.stringify(result2));
+  await service.updateUserStatus('test2', result2);
+
   console.log('=====================================================');
 
   console.log('============= PswReset --> IdReset =============');
@@ -120,9 +124,7 @@ export const handle = async (): Promise<void> => {
     accumulatorNeedsPswReset,
   );
   logger.debug(JSON.stringify(result3));
-  console.log('=====================================================');
+  await service.updateUserStatus('test3', result3);
 
-  const service = new DynamoDatabaseService('ais-core-ch-account-status');
-  const response = await service.updateUserStatus('nweTestUser', result1);
-  console.log(response);
+  console.log('=====================================================');
 };

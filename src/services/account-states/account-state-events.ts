@@ -5,14 +5,15 @@ import {
   UserLedActionTransitionConfigurations,
 } from '../../data-types/interfaces';
 import { interventionsConfig, userLedActionsConfigurations } from './config';
-import { AccountStateEventEnum, buildPartialUpdateAccountStateCommand } from '../../data-types/constants';
+import { AccountStateEventEnum } from '../../data-types/constants';
+import { buildPartialUpdateAccountStateCommand } from '../../commons/build-partial-update-state-command';
 
 export class AccountStateEvents {
   private static readonly interventionConfigurations: InterventionTransitionConfigurations = interventionsConfig;
   private static readonly userLedActionConfiguration: UserLedActionTransitionConfigurations =
     userLedActionsConfigurations;
 
-  static getInterventionEnumFromStateDetail(accountState: StateDetails) {
+  private static getInterventionEnumFromStateDetail(accountState: StateDetails) {
     for (const key of Object.keys(AccountStateEvents.interventionConfigurations)) {
       const state = (AccountStateEvents.interventionConfigurations[key] as InterventionEventDetails).state;
       if (JSON.stringify(state) === JSON.stringify(accountState)) return key as AccountStateEventEnum;
@@ -42,11 +43,9 @@ export class AccountStateEvents {
         throw new Error('this user action is not allowed on the current account state');
       const newState = Object.assign({ ...currentAccountStateDetails }, userActionEventObject.state);
       newState.suspended = newState.resetPassword || newState.reproveIdentity;
-      newState.blocked = false;
       stateChange = newState;
     } else {
       const currentState = AccountStateEvents.interventionConfigurations[accountStateEventEnum];
-
       if (!currentState) throw new Error('selected current state does not exist in current config');
       if (!currentState.allowedTransitions.includes(proposedTransition))
         throw new Error(
@@ -62,7 +61,6 @@ export class AccountStateEvents {
       throw new Error('new state is the same as current state');
 
     const newState = Object.assign({ ...currentAccountStateDetails }, stateChange);
-    console.log();
     return buildPartialUpdateAccountStateCommand(newState, proposedTransition, interventionName);
   }
 }
