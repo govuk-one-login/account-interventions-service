@@ -7,11 +7,19 @@ export interface StateDetails {
   reproveIdentity: boolean;
 }
 
-export interface TransitionConfiguration {
-  [key: string]: EventDetails;
+export interface InterventionTransitionConfigurations {
+  [key: string]: InterventionEventDetails;
 }
 
-export interface EventDetails {
+export interface UserLedActionTransitionConfigurations {
+  [key: string]: UserLedActionEventDetails;
+}
+export interface UserLedActionEventDetails {
+  code: number;
+  state: { resetPassword?: boolean; reproveIdentity?: boolean };
+  allowedFromStates: AccountStateEventEnum[];
+}
+export interface InterventionEventDetails {
   code: number;
   state: StateDetails;
   allowedTransitions: AccountStateEventEnum[];

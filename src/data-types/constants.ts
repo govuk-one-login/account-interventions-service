@@ -1,4 +1,4 @@
-import { EventDetails } from './interfaces';
+import { StateDetails } from './interfaces';
 import { UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 
@@ -13,6 +13,7 @@ export enum MetricNames {
 
 //enum with the names of all events we may receive (fraud intervention  + user actions)?
 export enum AccountStateEventEnum {
+  NO_EXISTING_INTERVENTIONS = 'NO_EXISTING_INTERVENTIONS',
   FRAUD_SUSPEND_ACCOUNT = 'FRAUD_SUSPEND_ACCOUNT',
   FRAUD_UNSUSPEND_ACCOUNT = 'FRAUD_UNSUSPEND_ACCOUNT',
   FRAUD_BLOCK_ACCOUNT = 'FRAUD_BLOCK_ACCOUNT',
@@ -35,22 +36,24 @@ export enum AISInterventionTypes {
 }
 
 export const buildPartialUpdateAccountStateCommand = (
-  newState: EventDetails,
+  newState: StateDetails,
   eventName: AccountStateEventEnum,
+  interventionName?: string,
 ): Partial<UpdateItemCommandInput> => {
   const base: Record<string, any> = {
+    // this is inefficient, cause we update everything even though just one field may differ from current
     ExpressionAttributeNames: {
       '#B': 'blocked',
       '#S': 'suspended',
       '#RP': 'resetPassword',
       '#RI': 'reproveIdentity',
       '#UA': 'updatedAt',
-    },
+    }, //can we maybe always include all the attribute names for all columns as a default?
     ExpressionAttributeValues: {
-      ':b': { BOOL: newState.state.blocked },
-      ':s': { BOOL: newState.state.suspended },
-      ':rp': { BOOL: newState.state.resetPassword },
-      ':ri': { BOOL: newState.state.reproveIdentity },
+      ':b': { BOOL: newState.blocked },
+      ':s': { BOOL: newState.suspended },
+      ':rp': { BOOL: newState.resetPassword },
+      ':ri': { BOOL: newState.reproveIdentity },
       ':ua': { N: `${getCurrentTimestamp().milliseconds}` },
     },
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
@@ -64,9 +67,9 @@ export const buildPartialUpdateAccountStateCommand = (
     base['ExpressionAttributeValues'][':rpswda'] = { N: `${getCurrentTimestamp().milliseconds}` };
     base['UpdateExpression'] += ', #RPswdA = :rpswda';
   } else {
-    if (newState.interventionName) {
+    if (interventionName) {
       base['ExpressionAttributeNames']['#INT'] = 'intervention';
-      base['ExpressionAttributeValues'][':int'] = { S: newState.interventionName };
+      base['ExpressionAttributeValues'][':int'] = { S: interventionName };
       base['ExpressionAttributeNames']['#AA'] = 'appliedAt';
       base['ExpressionAttributeValues'][':aa'] = { N: `${getCurrentTimestamp().milliseconds}` };
       base['ExpressionAttributeNames']['#H'] = 'history';
@@ -75,6 +78,5 @@ export const buildPartialUpdateAccountStateCommand = (
       base['UpdateExpression'] += ', #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
     } else throw new Error('intervention received did not have an interventionName field');
   }
-  console.log(base);
   return base;
 };

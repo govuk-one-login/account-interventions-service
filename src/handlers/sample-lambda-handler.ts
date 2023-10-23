@@ -53,20 +53,76 @@ export const handle = async (): Promise<void> => {
   //   event_timestamp_ms: 1697617747484
   // }
 
-  const currentAccumulatorSuspendedState = {
+  const accumulatorSuspendedState = {
     blocked: false,
     suspended: true,
     resetPassword: false,
     reproveIdentity: false,
   };
 
-  const result = AccountStateEvents.applyEventTransition(
-    currentAccumulatorSuspendedState,
+  const accumulatorNeedsPswReset = {
+    blocked: false,
+    suspended: true,
+    resetPassword: true,
+    reproveIdentity: false,
+  };
+
+  // const accNeedsIDReset = {
+  //   blocked: false,
+  //   suspended: true,
+  //   resetPassword: false,
+  //   reproveIdentity: true,
+  // };
+  //
+  // const accNeedsIDResetAdnPswReset = {
+  //   blocked: false,
+  //   suspended: true,
+  //   resetPassword: true,
+  //   reproveIdentity: true,
+  // };
+  //
+  // const accIsBlocked = {
+  //   blocked: true,
+  //   suspended: false,
+  //   resetPassword: false,
+  //   reproveIdentity: false,
+  // }
+  //
+  // const accNoIntervention = {
+  //   blocked: false,
+  //   suspended: false,
+  //   resetPassword: false,
+  //   reproveIdentity: false,
+  // }
+
+  console.log('============= Suspend --> Blocked =============');
+  const result1 = AccountStateEvents.applyEventTransition(
     AccountStateEventEnum.FRAUD_BLOCK_ACCOUNT,
+    accumulatorSuspendedState,
   );
-  logger.debug(JSON.stringify(result));
+  logger.debug(JSON.stringify(result1));
+
+  console.log('=====================================================');
+
+  console.log('============= PswReset --> Unsuspended =============');
+
+  const result2 = AccountStateEvents.applyEventTransition(
+    AccountStateEventEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+    accumulatorNeedsPswReset,
+  );
+  logger.debug(JSON.stringify(result2));
+  console.log('=====================================================');
+
+  console.log('============= PswReset --> IdReset =============');
+
+  const result3 = AccountStateEvents.applyEventTransition(
+    AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
+    accumulatorNeedsPswReset,
+  );
+  logger.debug(JSON.stringify(result3));
+  console.log('=====================================================');
 
   const service = new DynamoDatabaseService('ais-core-ch-account-status');
-  const response = await service.putItemForUserId('nweTestUser', result);
+  const response = await service.updateUserStatus('nweTestUser', result1);
   console.log(response);
 };

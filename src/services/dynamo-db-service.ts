@@ -79,7 +79,7 @@ export class DynamoDbService {
     return { UserId: userId, StatusCode: response.$metadata.httpStatusCode };
   }
 
-  public async putItemForUserId(userId: string, partialInput: Partial<UpdateItemCommandInput>) {
+  public async updateUserStatus(userId: string, partialInput: Partial<UpdateItemCommandInput>) {
     const commandInput: UpdateItemCommandInput = {
       TableName: this.tableName,
       Key: { pk: { S: userId } },
