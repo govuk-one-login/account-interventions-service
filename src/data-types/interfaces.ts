@@ -80,3 +80,21 @@ export interface TransitionConfigurationInterface {
     [key: string]: number[];
   };
 }
+
+export interface TransformedResponseFromDynamoDb {
+  intervention: {
+    updatedAt: number;
+    appliedAt: number;
+    sentAt: number;
+    description: string;
+    reprovedIdentityAt: number;
+    resetPasswordAt: number;
+  }
+  state: {
+    blocked: boolean;
+    suspended: boolean;
+    reproveIdentity: boolean;
+    resetPassword: boolean;
+  }
+  auditLevel: string;
+}

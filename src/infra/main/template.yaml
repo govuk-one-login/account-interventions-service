@@ -751,7 +751,8 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - "dynamodb:QueryItem"
+              - "dynamodb:Query"
+              - "dynamodb:GetItem"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
       Roles:
