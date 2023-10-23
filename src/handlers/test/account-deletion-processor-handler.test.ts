@@ -3,15 +3,17 @@ import { DynamoDBClient, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
 import logger from '../../commons/logger';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
-import { SNSEvent, SNSMessage, SNSEventRecord } from 'aws-lambda';
+import {  SQSEvent, SQSRecord } from 'aws-lambda';
 import { ContextExamples } from '@aws-lambda-powertools/commons';
-const mockContext = ContextExamples.helloworldContext;
 
 jest.mock('../../services/app-config-service');
 jest.mock('../../commons/logger');
 
 describe('Account Deletion Processor', () => {
-  let testEvent: Partial<SNSEvent>;
+  let mockEvent: SQSEvent;
+  let mockRecord: SQSRecord;
+  const mockContext = ContextExamples.helloworldContext;
+
   const updateItem = [
     {
       level: 'INFO',
@@ -23,9 +25,23 @@ describe('Account Deletion Processor', () => {
   ] as any;
 
   beforeEach(() => {
-    testEvent = {
-      Records: [{ Sns: { Message: JSON.stringify({ pk: 'abc' }) } as SNSMessage } as SNSEventRecord],
-    };
+    mockRecord = {
+      messageId: "",
+      receiptHandle: "",
+      body: JSON.stringify({ Message: JSON.stringify({ user_id: 'hello' }) }),
+      attributes: {
+        ApproximateReceiveCount: "",
+        SentTimestamp: "",
+        SenderId: "",
+        ApproximateFirstReceiveTimestamp: ""
+      },
+      messageAttributes: {},
+      md5OfBody: "",
+      eventSource: "",
+      eventSourceARN: "",
+      awsRegion: "",
+    }
+    mockEvent = { Records: [ mockRecord ] };
     jest.useFakeTimers();
     jest.setSystemTime(new Date(Date.UTC(2023, 2, 18)));
   });
@@ -34,7 +50,7 @@ describe('Account Deletion Processor', () => {
     jest.clearAllMocks();
   });
 
-  it('should update the item in DynamoDB and log info', async () => {
+  it('should update the status of the userId in DynamoDB and log info', async () => {
     const parameters = {
       TableName: 'table_name',
       Key: {
@@ -57,10 +73,10 @@ describe('Account Deletion Processor', () => {
 
     const loggerInfoSpy = jest.spyOn(logger, 'info');
 
-    await handler(testEvent as SQSEvent, mockContext);
+    await handler(mockEvent, mockContext);
 
     expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, parameters);
-    expect(loggerInfoSpy).toHaveBeenCalledWith(`Sensitive info - Account marked as deleted`);
+    expect(loggerInfoSpy).toHaveBeenCalledWith(`Sensitive info - Account hello marked as deleted`);
   });
 });
 
