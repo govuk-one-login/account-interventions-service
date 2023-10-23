@@ -10,3 +10,7 @@ export interface CurrentTimeDescriptor {
   milliseconds: number;
   seconds: number;
 }
+
+export interface DeleteStatusUpdateSNSMessage {
+  user_id: string;
+}
