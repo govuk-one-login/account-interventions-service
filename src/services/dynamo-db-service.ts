@@ -88,7 +88,7 @@ export class DynamoDbService {
     logger.debug(JSON.stringify(response));
     return response;
   }
-  
+
   public async updateDeleteStatus(userId: string) {
     const ttl = Date.now() + appConfig.maxRetentionSeconds * 1000;
     const commandInput: UpdateItemCommandInput = {
