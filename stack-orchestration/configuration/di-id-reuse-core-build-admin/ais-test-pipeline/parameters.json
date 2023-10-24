@@ -1,0 +1,86 @@
+[
+  {
+    "ParameterKey": "AllowedAccounts",
+    "ParameterValue": "922902741880"
+  },
+  {
+    "ParameterKey": "ArtifactSourceBucketArn",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
+    "ParameterValue": "None"
+  },
+  {
+    "ParameterKey": "AWSOrganizationId",
+    "ParameterValue": "o-pjzf8d99ys,o-dpp53lco28"
+  },
+  {
+    "ParameterKey": "BuildNotificationStackName",
+    "ParameterValue": "build-notifications"
+  },
+  {
+    "ParameterKey": "ContainerSignerKmsKeyArn",
+    "ParameterValue": "arn:aws:kms:eu-west-2:688341086169:key/419d450c-6d5e-476b-a4de-e94b29a97518"
+  },
+  {
+    "ParameterKey": "CustomKmsKeyArns",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "build"
+  },
+  {
+    "ParameterKey": "GitHubRepositoryName",
+    "ParameterValue": "di-id-reuse-storage"
+  },
+  {
+    "ParameterKey": "IncludePromotion",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "InvokableLambdaAccounts",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "LogRetentionDays",
+    "ParameterValue": "7"
+  },
+  {
+    "ParameterKey": "RequireManualApproval",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "RequireTestContainerSignatureValidation",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "SAMStackName",
+    "ParameterValue": "id-reuse-storage"
+  },
+  {
+    "ParameterKey": "SigningProfileArn",
+    "ParameterValue": "arn:aws:signer:eu-west-2:688341086169:/signing-profiles/SigningProfile_kbj97jMWIt2N"
+  },
+  {
+    "ParameterKey": "SigningProfileVersionArn",
+    "ParameterValue": "arn:aws:signer:eu-west-2:688341086169:/signing-profiles/SigningProfile_kbj97jMWIt2N/1zo4Hwf3ub"
+  },
+  {
+    "ParameterKey": "SlackNotificationType",
+    "ParameterValue": "Failures"
+  },
+  {
+    "ParameterKey": "TestImageRepositoryUri",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "TestReportFormat",
+    "ParameterValue": "JUNITXML"
+  },
+  {
+    "ParameterKey": "VpcStackName",
+    "ParameterValue": "vpc"
+  }
+]
