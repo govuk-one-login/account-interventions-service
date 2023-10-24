@@ -1,6 +1,4 @@
 import {
-  AttributeValue,
-  DeleteItemCommand,
   DynamoDBClient,
   QueryCommand,
   QueryCommandInput,
@@ -9,8 +7,7 @@ import {
   UpdateItemCommandInput,
 } from '@aws-sdk/client-dynamodb';
 import logger from '../commons/logger';
-import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
-import { logAndPublishMetric } from '../commons/metrics';
+import { LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
 import { AppConfigService } from './app-config-service';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import tracer from '../commons/tracer';
@@ -31,8 +28,6 @@ export class DynamoDbService {
   }
 
   public async retrieveRecordsByUserId(userId: string) {
-    const items: Record<string, AttributeValue>[] = [];
-    let lastEvaluatedKey;
     logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db, with ID : ${userId}`);
     const parameters: QueryCommandInput = {
       TableName: this.tableName,
@@ -41,42 +36,8 @@ export class DynamoDbService {
       ExpressionAttributeValues: { ':id_value': { S: userId } },
     };
 
-    do {
-      if (lastEvaluatedKey) {
-        parameters.ExclusiveStartKey = lastEvaluatedKey;
-        logAndPublishMetric(MetricNames.DB_QUERY_HAS_LEK);
-        logger.debug('Non-null LastEvaluatedKey has been received');
-      }
-      const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
-      if (response === undefined) {
-        const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
-        logger.error(errorMessage);
-        logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
-        throw new Error(errorMessage);
-      } else {
-        for (const item of response.Items!) {
-          items.push(item);
-        }
-        lastEvaluatedKey = response.LastEvaluatedKey ?? undefined;
-      }
-    } while (lastEvaluatedKey);
-    return items;
-  }
-
-  public async deleteRecordByUserId(userId: string) {
-    const command = new DeleteItemCommand({
-      TableName: this.tableName,
-      Key: { pk: { S: userId } },
-    });
-
-    const response = await this.dynamoClient.send(command);
-    if (!response) {
-      const errorMessage = 'DynamoDB may have failed to delete items, returned a null response.';
-      logger.error(errorMessage);
-      logAndPublishMetric(MetricNames.DB_DELETE_ERROR_NO_RESPONSE);
-      throw new Error(errorMessage);
-    }
-    return { UserId: userId, StatusCode: response.$metadata.httpStatusCode };
+    const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
+    return response.Items;
   }
 
   public async updateUserStatus(userId: string, partialInput: Partial<UpdateItemCommandInput>) {

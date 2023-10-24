@@ -166,7 +166,7 @@ Resources:
         SQSEvent:
           Type: SQS
           Properties:
-            Queue: !GetAtt InterventionProcessorQueue.Arn
+            Queue: !GetAtt TxMAIngressQueue.Arn #Ingress queue
             BatchSize: 1
             FunctionResponseTypes:
               - ReportBatchItemFailures
