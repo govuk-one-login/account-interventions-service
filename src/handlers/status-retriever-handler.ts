@@ -27,6 +27,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
       
   try {
     const response = await dynamoDBServiceInstance.retrieveRecordsByUserId(userId);
+    console.log(response)
 
     if (!response || response.length < 1) {
     logger.debug('Requested account is not suspended');
