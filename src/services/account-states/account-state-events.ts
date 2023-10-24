@@ -18,9 +18,16 @@ export class AccountStateEvents {
       const state = (AccountStateEvents.interventionConfigurations[key] as InterventionEventDetails).state;
       if (JSON.stringify(state) === JSON.stringify(accountState)) return key as AccountStateEventEnum;
     }
-    throw new Error('no intervention could be found in current config for this state');
+    throw new Error('no intervention could be found in current config for this code');
   }
 
+  static getInterventionEnumFromCode(code: number) {
+    for (const key of Object.keys(AccountStateEvents.interventionConfigurations)) {
+      const code_ = (AccountStateEvents.interventionConfigurations[key] as InterventionEventDetails).code;
+      if (code === code_) return key as AccountStateEventEnum;
+    }
+    throw new Error('no intervention could be found in current config for this state');
+  }
   static applyEventTransition(proposedTransition: AccountStateEventEnum, currentAccountStateDetails?: StateDetails) {
     if (!currentAccountStateDetails)
       currentAccountStateDetails = {

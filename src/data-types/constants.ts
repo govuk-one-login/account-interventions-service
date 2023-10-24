@@ -7,7 +7,6 @@ export enum MetricNames {
   DB_QUERY_ERROR_NO_RESPONSE = 'DB_QUERY_ERROR_NO_RESPONSE',
 }
 
-//enum with the names of all events we may receive (fraud intervention  + user actions)?
 export enum AccountStateEventEnum {
   NO_EXISTING_INTERVENTIONS = 'NO_EXISTING_INTERVENTIONS',
   FRAUD_SUSPEND_ACCOUNT = 'FRAUD_SUSPEND_ACCOUNT',
