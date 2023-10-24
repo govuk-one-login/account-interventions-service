@@ -2,7 +2,7 @@ import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { DynamoDbService } from '../dynamo-db-service';
 import { logAndPublishMetric } from '../../commons/metrics';
-import logger from "../../commons/logger";
+import logger from '../../commons/logger';
 import 'aws-sdk-client-mock-jest';
 
 jest.mock('@aws-lambda-powertools/logger');
@@ -10,7 +10,6 @@ jest.mock('../../commons/metrics');
 jest.mock('@smithy/node-http-handler');
 
 describe('Dynamo DB Service', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -33,14 +32,14 @@ describe('Dynamo DB Service', () => {
       sk: 'SflKxwRJSMeKKF2QT4f_1H3NllL',
       content: 'content',
       timestamp: '1684912313',
-    }
+    },
   ] as any;
 
   it('should get all items successfully', async () => {
     const mockedQueryCommand = mockClient(DynamoDBClient).on(QueryCommand);
     mockedQueryCommand.resolvesOnce({ Items: vcs });
 
-    const allVCS = await (new DynamoDbService('abc')).retrieveRecordsByUserId('abc');
+    const allVCS = await new DynamoDbService('abc').retrieveRecordsByUserId('abc');
 
     expect(allVCS).toHaveLength(3);
     expect(allVCS).toEqual(vcs);
@@ -54,10 +53,8 @@ describe('Dynamo DB Service', () => {
       ExpressionAttributeValues: { ':id_value': { S: 'abc' } },
     };
     const ddbMock = mockClient(DynamoDBClient);
-    ddbMock.on(QueryCommand).resolves(
-      { Items: vcs }
-    );
-    await (new DynamoDbService('abc')).retrieveRecordsByUserId('abc');
+    ddbMock.on(QueryCommand).resolves({ Items: vcs });
+    await new DynamoDbService('abc').retrieveRecordsByUserId('abc');
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, QueryCommandInput);
   });
 
@@ -68,9 +65,10 @@ describe('Dynamo DB Service', () => {
     const loggerErrorSpy = jest.spyOn(logger, 'error');
     await expect((new DynamoDbService('abc')).retrieveRecordsByUserId('abc')).rejects.toThrowError(
       expect.objectContaining({
-        message: 'DynamoDB may have failed to query, returned a null response.'
-      }));
+        message: 'DynamoDB may have failed to query, returned a null response.',
+      }),
+    );
     expect(loggerErrorSpy).toHaveBeenCalledWith('DynamoDB may have failed to query, returned a null response.');
     expect(logAndPublishMetric).toHaveBeenCalledWith('DB_QUERY_ERROR_NO_RESPONSE');
   });
-}); 
+});

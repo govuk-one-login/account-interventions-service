@@ -1,17 +1,17 @@
 import { handler } from '../account-deletion-processor-handler';
 import { DynamoDBClient, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
-import { DynamoDbService } from "../../services/dynamo-db-service";
+import { DynamoDbService as DynamoDatabaseService } from '../../services/dynamo-db-service';
 import logger from '../../commons/logger';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
-import type { SQSEvent, SQSRecord } from "aws-lambda";
+import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { ContextExamples } from '@aws-lambda-powertools/commons';
 
 jest.mock('../../services/dynamo-db-service');
 jest.mock('../../services/app-config-service');
 jest.mock('../../commons/logger');
 
-const mockDynamoDBServiceRetrieveRecords = DynamoDbService.prototype.retrieveRecordsByUserId as jest.Mock;
+const mockDynamoDBServiceRetrieveRecords = DynamoDatabaseService.prototype.retrieveRecordsByUserId as jest.Mock;
 
 describe('Account Deletion Processor', () => {
   let mockEvent: SQSEvent;
@@ -30,37 +30,37 @@ describe('Account Deletion Processor', () => {
 
   beforeEach(() => {
     mockRecord = {
-      messageId: "",
-      receiptHandle: "",
+      messageId: '',
+      receiptHandle: '',
       body: JSON.stringify({ Message: JSON.stringify({ user_id: 'hello' }) }),
       attributes: {
-        ApproximateReceiveCount: "",
-        SentTimestamp: "",
-        SenderId: "",
-        ApproximateFirstReceiveTimestamp: ""
+        ApproximateReceiveCount: '',
+        SentTimestamp: '',
+        SenderId: '',
+        ApproximateFirstReceiveTimestamp: '',
       },
       messageAttributes: {},
-      md5OfBody: "",
-      eventSource: "",
-      eventSourceARN: "",
-      awsRegion: "",
-    }
-    mockEvent = { Records: [ mockRecord ] };
+      md5OfBody: '',
+      eventSource: '',
+      eventSourceARN: '',
+      awsRegion: '',
+    };
+    mockEvent = { Records: [mockRecord] };
     jest.useFakeTimers();
     jest.setSystemTime(new Date(Date.UTC(2023, 2, 18)));
   });
-  mockDynamoDBServiceRetrieveRecords.mockReturnValue([ "1","2" ]);
+  mockDynamoDBServiceRetrieveRecords.mockReturnValue(['1', '2']);
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   it('does nothing if SQS event contains no record', async () => {
-    mockDynamoDBServiceRetrieveRecords.mockReturnValue([])
+    mockDynamoDBServiceRetrieveRecords.mockReturnValue([]);
     mockEvent = { Records: [] };
     const loggerErrorSpy = jest.spyOn(logger, 'error');
     await handler(mockEvent, mockContext);
-    expect(loggerErrorSpy).toHaveBeenCalledWith("The event does not contain any records.");
+    expect(loggerErrorSpy).toHaveBeenCalledWith('The event does not contain any records.');
   });
 
   it('should update the status of the userId in DynamoDB and log info', async () => {
