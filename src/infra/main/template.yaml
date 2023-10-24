@@ -166,7 +166,7 @@ Resources:
         SQSEvent:
           Type: SQS
           Properties:
-            Queue: !GetAtt TxMAIngressQueue.Arn #Ingress queue
+            Queue: !GetAtt TxMAIngressQueue.Arn
             BatchSize: 1
             FunctionResponseTypes:
               - ReportBatchItemFailures
@@ -211,7 +211,7 @@ Resources:
                   - "sqs:ReceiveMessage"
                   - "sqs:DeleteMessage"
                   - "sqs:GetQueueAttributes"
-                Resource: "TBD" #!GetAtt TxMAIngressQueue.Arn
+                Resource: !GetAtt TxMAIngressQueue.Arn
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue

@@ -7,10 +7,13 @@ import {
   UpdateItemCommandInput,
 } from '@aws-sdk/client-dynamodb';
 import logger from '../commons/logger';
-import { LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
+import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
 import { AppConfigService } from './app-config-service';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import tracer from '../commons/tracer';
+import { unmarshall } from '@aws-sdk/util-dynamodb';
+import { logAndPublishMetric } from '../commons/metrics';
+import { StateDetails } from '../data-types/interfaces';
 
 export class DynamoDbService {
   private dynamoClient: DynamoDBClient;
@@ -34,10 +37,17 @@ export class DynamoDbService {
       KeyConditionExpression: '#pk = :id_value',
       ExpressionAttributeNames: { '#pk': 'pk' },
       ExpressionAttributeValues: { ':id_value': { S: userId } },
+      ProjectionExpression: 'blocked, suspended, resetPassword, reproveIdentity',
     };
 
     const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
-    return response.Items;
+    if (!response.Items) {
+      const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
+      logger.error(errorMessage);
+      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
+      throw new Error(errorMessage);
+    }
+    return response.Items[0] ? (unmarshall(response.Items[0]) as StateDetails) : undefined;
   }
 
   public async updateUserStatus(userId: string, partialInput: Partial<UpdateItemCommandInput>) {
