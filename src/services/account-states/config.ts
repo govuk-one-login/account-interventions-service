@@ -102,7 +102,7 @@ export const interventionsConfig: InterventionTransitionConfigurations = {
       AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
       AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
     ],
-    interventionName: AISInterventionTypes.AIS_FORCE_USER_PASSWORD_RESET,
+    interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
   },
   FRAUD_FORCED_USER_IDENTITY_REVERIFICATION: {
     code: 5,
@@ -138,7 +138,7 @@ export const interventionsConfig: InterventionTransitionConfigurations = {
       AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
       AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
     ],
-    interventionName: AISInterventionTypes.AIS_FORCE_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
+    interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
   },
 };
 
