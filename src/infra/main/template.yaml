@@ -178,7 +178,6 @@ Resources:
             Condition:
               ArnLike:
                 aws:SourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:*"
-
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
