@@ -221,7 +221,7 @@ Resources:
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
     Properties:
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
-      Description: "A lambda function that updates the VCs account status"
+      Description: "A lambda function that updates an account status indicating that the account has been deleted"
       CodeUri: ../../../dist/handlers/account-deletion-processor-handler
       Timeout: 10
       Handler: account-deletion-processor-handler.handler

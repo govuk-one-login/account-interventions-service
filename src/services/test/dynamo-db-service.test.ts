@@ -63,7 +63,7 @@ describe('Dynamo DB Service', () => {
     // @ts-ignore
     mockedQueryCommand.resolvesOnce(undefined);
     const loggerErrorSpy = jest.spyOn(logger, 'error');
-    await expect((new DynamoDbService('abc')).retrieveRecordsByUserId('abc')).rejects.toThrowError(
+    await expect(new DynamoDbService('abc').retrieveRecordsByUserId('abc')).rejects.toThrowError(
       expect.objectContaining({
         message: 'DynamoDB may have failed to query, returned a null response.',
       }),
