@@ -18,8 +18,3 @@ export enum AISInterventionTypes {
   AIS_USER_IDENTITY_VERIFIED = 'AIS_USER_IDENTITY_VERIFIED',
   AIS_USER_PASSWORD_RESET_AND_IDENTITY_VERIFIED = 'AIS_USER_PASSWORD_RESET_AND_IDENTITY_VERIFIED', //pragma: allowlist secret
 }
-const AWS_ARN_PREFIX = '^arn:aws:';
-
-export const RegexpStepFunctionArn = new RegExp(
-  `${AWS_ARN_PREFIX}states:\\w+(?:-\\w+)+:\\d{12}:stateMachine:[\\w\\-.]+(?:[\\w\\-.]+)?$`,
-);
