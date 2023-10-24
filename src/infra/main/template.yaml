@@ -88,7 +88,7 @@ Resources:
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
     Properties:
-      FunctionName: !Sub '${AWS::StackName}-InterventionHistoryWriterFunction'
+      FunctionName: !Sub '${AWS::StackName}-AISSampleLambdaFunction'
       CodeUri: ../../../dist/handlers/sample-lambda-handler
       Timeout: 10
       Environment:
