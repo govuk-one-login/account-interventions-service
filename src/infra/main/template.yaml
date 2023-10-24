@@ -45,18 +45,7 @@ Parameters:
     Description: Value for the Source Tag
     Type: String
     Default: govuk-one-login/account-interventions-service/src/infra/main/template.yaml
-  AlertingSNSLowAlertNotificationTopicARN:
-    Description: "The ARN of the Alerting SNS Low Alert Notification Topic"
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: "/infra-alerting/SNS/LowAlertNotificationTopic/ARN"
-  AlertingSNSHighAlertNotificationTopicARN:
-    Description: "The ARN of the Alerting SNS High Alert Notification topic"
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: "/infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
-  MainCloudWatchMetricNamespace:
-    Description: "The namespace of the Main CloudWatch metric"
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: "/id-reuse-storage-main/CloudWatch/Metric/Namespace" #pragma: allowlist secret
+
 Conditions:
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
 
@@ -163,7 +152,127 @@ Resources:
       Roles:
         - !Ref AISSampleLambdaHandlerRole
 
- #### TxMA ####
+  InterventionProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-InterventionProcessorFunction"
+      Description: "A Lambda function for processing the interventions."
+      CodeUri: ../../../dist/interventions-processor-handler
+      Timeout: 60
+      Handler: interventions-processor-handler.handler
+      Role: !GetAtt InterventionProcessorFunctionRole.Arn
+      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt TxMAIngressQueue.Arn #Ingress queue
+            BatchSize: 1
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+      Environment:
+        Variables:
+          METRIC_SERVICE_NAME: "InterventionProcessorFunction"
+          VC_TABLE_NAME:
+            Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
+      Tags:
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
+
+  InterventionProcessorFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AWS::StackName}-InterventionProcessorFunctionRole"
+      Description: !Sub "The role assumed by ${AWS::StackName}-InterventionProcessorFunction"
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+
+      Policies:
+        - PolicyName: !Sub "${AWS::StackName}-InterventionProcessorFunctionRolePolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sqs:ReceiveMessage"
+                  - "sqs:DeleteMessage"
+                  - "sqs:GetQueueAttributes"
+                Resource: "TBD" #!GetAtt TxMAIngressQueue.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  InterventionProcessorFunctionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-InterventionProcessorFunctionPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource:
+              - !GetAtt InterventionProcessorFunctionLogGroup.Arn
+          - Effect: Allow
+            Action:
+              - "dynamodb:UpdateItem"
+              - "dynamodb:Query"
+            Resource:
+              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
+          - Effect: "Allow"
+            Action:
+              - "cloudwatch:PutMetricData"
+            Resource:
+              - "*"
+            Condition:
+              StringEquals:
+                cloudwatch:namespace: !Ref SystemTagValue
+      Roles:
+        - !Ref InterventionProcessorFunctionRole
+
+  InterventionProcessorFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${InterventionProcessorFunction}"
+      RetentionInDays: 30
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "/aws/lambda/${InterventionProcessorFunction}"
+  #### TxMA ####
   TxMAIngressEncryptionKey:
     Type: AWS::KMS::Key
     Properties:
@@ -232,19 +341,19 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-#  TxMAIngressQueueNameSSM:
-#    Type: AWS::SSM::Parameter
-#    Properties:
-#      Description: The Name of the TxMA Ingress Queue
-#      Name: !Sub "/${AWS::StackName}/SQS/TxMAIngressQueue/Name"
-#      Type: String
-#      Value: !GetAtt TxMAIngressQueue.QueueName
-#      Tags:
-#        Environment: !Ref Environment
-#        Product: !Ref ProductTagValue
-#        System: !Ref SystemTagValue
-#        Owner: !Ref OwnerTagValue
-#        Source: !Ref SourceTagValue
+  #  TxMAIngressQueueNameSSM:
+  #    Type: AWS::SSM::Parameter
+  #    Properties:
+  #      Description: The Name of the TxMA Ingress Queue
+  #      Name: !Sub "/${AWS::StackName}/SQS/TxMAIngressQueue/Name"
+  #      Type: String
+  #      Value: !GetAtt TxMAIngressQueue.QueueName
+  #      Tags:
+  #        Environment: !Ref Environment
+  #        Product: !Ref ProductTagValue
+  #        System: !Ref SystemTagValue
+  #        Owner: !Ref OwnerTagValue
+  #        Source: !Ref SourceTagValue
 
   TxMAIngressQueuePolicy:
     Type: AWS::SQS::QueuePolicy
@@ -284,21 +393,21 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-#  TxMAIngressDLQNameSSM:
-#    Type: AWS::SSM::Parameter
-#    Properties:
-#      Description: The Name of the TxMA Ingress DLQ
-#      Name: !Sub "/${AWS::StackName}/SQS/TxMAIngressDLQ/Name"
-#      Type: String
-#      Value: !GetAtt TxMAIngressDLQ.QueueName
-#      Tags:
-#        Environment: !Ref Environment
-#        Product: !Ref ProductTagValue
-#        System: !Ref SystemTagValue
-#        Owner: !Ref OwnerTagValue
-#        Source: !Ref SourceTagValue
+  #  TxMAIngressDLQNameSSM:
+  #    Type: AWS::SSM::Parameter
+  #    Properties:
+  #      Description: The Name of the TxMA Ingress DLQ
+  #      Name: !Sub "/${AWS::StackName}/SQS/TxMAIngressDLQ/Name"
+  #      Type: String
+  #      Value: !GetAtt TxMAIngressDLQ.QueueName
+  #      Tags:
+  #        Environment: !Ref Environment
+  #        Product: !Ref ProductTagValue
+  #        System: !Ref SystemTagValue
+  #        Owner: !Ref OwnerTagValue
+  #        Source: !Ref SourceTagValue
 
-### ALARMS ###
+  ### ALARMS ###
 
   TxMAIngressQueueProcessingSlowlyArn:
     Type: AWS::CloudWatch::Alarm
