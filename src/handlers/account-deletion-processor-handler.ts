@@ -4,7 +4,6 @@ import { LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
 import { AppConfigService } from '../services/app-config-service';
 import type { Context, SNSMessage, SQSEvent, SQSRecord } from 'aws-lambda';
 import { DeleteStatusUpdateSNSMessage } from '../data-types/interfaces';
-// import { logAndPublishMetric } from '../commons/metrics';
 
 const appConfig = AppConfigService.getInstance();
 const ddbService = new DynamoDatabaseService(appConfig.tableName);
@@ -22,8 +21,6 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
   }).filter((prom) => prom !== undefined);
   await Promise.all(updateVCsByIdPromises);
 };
-
-// let user_id: string;
 
 function getUserId(record: SQSRecord) {
   let messageBody: SNSMessage;
