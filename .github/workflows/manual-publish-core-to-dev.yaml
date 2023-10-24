@@ -8,6 +8,9 @@ on:
       - ".github/workflows/manual-publish-core-to-dev.yaml"
     branches:
       - main
+  pull_request:
+    paths:
+      - ".github/workflows/manual-publish-core-to-dev.yaml"
   workflow_dispatch:
     inputs:
       gitRef:
