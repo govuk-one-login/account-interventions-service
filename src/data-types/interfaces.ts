@@ -32,12 +32,12 @@ export interface CurrentTimeDescriptor {
   seconds: number;
 }
 
-export interface InterventionRequest {
+export interface TxMAEvent {
   event_name: string;
   timestamp: number;
   component_id: string;
   user: User;
-  extension: Extension;
+  extension?: Extension;
 }
 
 interface User {

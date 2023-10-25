@@ -8,9 +8,9 @@ export const handle = async (): Promise<void> => {
   // const fraudInterventionEvent = {
   //   timestamp: 1234,
   //   event_timestamp_ms: 1234000,
-  //   event_name: 'TICF_ACCOUNT_INTERVENTION',
+  //   event_name: "TICF_ACCOUNT_INTERVENTION",
   //   component_id: "TICF_CRI",
-  //   user: { user_id: userId },
+  //   user: { user_id: "AIS-test-user-id" },
   //   extension: {
   //     intervention: {
   //       intervention_code: 1,

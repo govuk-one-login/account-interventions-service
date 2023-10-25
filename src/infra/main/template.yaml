@@ -25,6 +25,10 @@ Parameters:
     Description: The ARN of the permissions boundary to apply when creating IAM roles
     Type: String
     Default: none
+  CodeSigningConfigArn:
+    Description: Asserts that lambdas are signed when deployed.
+    Type: String
+    Default: none
   CoreStackName:
     Description: The name of the Core VC Storage stack
     Type: String
@@ -48,6 +52,7 @@ Parameters:
 
 Conditions:
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
+  UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
 
 Mappings:
   EnvConfig:
@@ -158,7 +163,7 @@ Resources:
       FunctionName: !Sub "${AWS::StackName}-InterventionProcessorFunction"
       Description: "A Lambda function for processing the interventions."
       CodeUri: ../../../dist/interventions-processor-handler
-      Timeout: 60
+      Timeout: 5
       Handler: interventions-processor-handler.handler
       Role: !GetAtt InterventionProcessorFunctionRole.Arn
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
@@ -173,7 +178,7 @@ Resources:
       Environment:
         Variables:
           METRIC_SERVICE_NAME: "InterventionProcessorFunction"
-          VC_TABLE_NAME:
+          TABLE_NAME:
             Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
       Tags:
         Product: !Ref ProductTagValue
@@ -200,18 +205,6 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-
-      Policies:
-        - PolicyName: !Sub "${AWS::StackName}-InterventionProcessorFunctionRolePolicy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "sqs:ReceiveMessage"
-                  - "sqs:DeleteMessage"
-                  - "sqs:GetQueueAttributes"
-                Resource: !GetAtt TxMAIngressQueue.Arn
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -237,6 +230,17 @@ Resources:
               - "logs:PutLogEvents"
             Resource:
               - !GetAtt InterventionProcessorFunctionLogGroup.Arn
+          - Effect: Allow
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+            Resource: !GetAtt TxMAIngressQueue.Arn
+          - Effect: Allow
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: !GetAtt TxMAIngressEncryptionKey.Arn
           - Effect: Allow
             Action:
               - "dynamodb:UpdateItem"
@@ -272,6 +276,7 @@ Resources:
           Value: !Ref SourceTagValue
         - Key: Name
           Value: !Sub "/aws/lambda/${InterventionProcessorFunction}"
+
   #### TxMA ####
   TxMAIngressEncryptionKey:
     Type: AWS::KMS::Key
@@ -409,40 +414,40 @@ Resources:
 
   ### ALARMS ###
 
-  TxMAIngressQueueProcessingSlowlyArn:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "The TxMA Ingress Queue is processing slowly."
-      Namespace: !Ref MainCloudWatchMetricNamespace
-      MetricName: TXMA_INGRESS_QUEUE_PROCESSING_SLOWLY
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Statistic: SampleCount
-      Threshold: 1
-      EvaluationPeriods: 1
-      Period: 60
-      TreatMissingData: notBreaching
-      Dimensions:
-        - Name: QueueName
-          Value: !Ref AlertingSNSLowAlertNotificationTopicARN
-
-  TxMAIngressQueueProcessingTooSlowlyArn:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "The TxMA Ingress Queue is processing slowly."
-      Namespace: !Ref MainCloudWatchMetricNamespace
-      MetricName: TXMA_INGRESS_QUEUE_PROCESSING_TOO_SLOWLY
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Statistic: SampleCount
-      Threshold: 1
-      EvaluationPeriods: 5
-      Period: 60
-      TreatMissingData: notBreaching
-      Dimensions:
-        - Name: QueueName
-          Value: !Ref AlertingSNSHighAlertNotificationTopicARN
+#  TxMAIngressQueueProcessingSlowlyArn:
+#    Type: AWS::CloudWatch::Alarm
+#    Properties:
+#      ActionsEnabled: true
+#      AlarmActions:
+#        - !Ref AlertingSNSLowAlertNotificationTopicARN
+#      AlarmDescription: "The TxMA Ingress Queue is processing slowly."
+#      Namespace: !Ref MainCloudWatchMetricNamespace
+#      MetricName: TXMA_INGRESS_QUEUE_PROCESSING_SLOWLY
+#      ComparisonOperator: GreaterThanOrEqualToThreshold
+#      Statistic: SampleCount
+#      Threshold: 1
+#      EvaluationPeriods: 1
+#      Period: 60
+#      TreatMissingData: notBreaching
+#      Dimensions:
+#        - Name: QueueName
+#          Value: !Ref AlertingSNSLowAlertNotificationTopicARN
+#
+#  TxMAIngressQueueProcessingTooSlowlyArn:
+#    Type: AWS::CloudWatch::Alarm
+#    Properties:
+#      ActionsEnabled: true
+#      AlarmActions:
+#        - !Ref AlertingSNSHighAlertNotificationTopicARN
+#      AlarmDescription: "The TxMA Ingress Queue is processing slowly."
+#      Namespace: !Ref MainCloudWatchMetricNamespace
+#      MetricName: TXMA_INGRESS_QUEUE_PROCESSING_TOO_SLOWLY
+#      ComparisonOperator: GreaterThanOrEqualToThreshold
+#      Statistic: SampleCount
+#      Threshold: 1
+#      EvaluationPeriods: 5
+#      Period: 60
+#      TreatMissingData: notBreaching
+#      Dimensions:
+#        - Name: QueueName
+#          Value: !Ref AlertingSNSHighAlertNotificationTopicARN
