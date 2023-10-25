@@ -1,6 +1,6 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBClient, QueryCommand, UpdateItemCommand, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
-import { DynamoDbService } from '../dynamo-db-service';
+import { DynamoDbService as DynamoDatabaseService } from '../dynamo-db-service';
 import { logAndPublishMetric } from '../../commons/metrics';
 import logger from '../../commons/logger';
 import 'aws-sdk-client-mock-jest';
@@ -9,12 +9,9 @@ jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
 jest.mock('@smithy/node-http-handler');
 
-// const mockDynamoDBServiceUpdateDeleteStatus = DynamoDatabaseService.prototype.updateDeleteStatus as jest.Mock;
-
 describe('Dynamo DB Service', () => {
   const tableName = 'table_name';
-  let dynamoDBService: DynamoDbService;
-  const ddbMock = mockClient(DynamoDBClient);
+  let dynamoDBService: DynamoDatabaseService;
 
   beforeAll(() => {
     jest.useFakeTimers();
@@ -23,7 +20,7 @@ describe('Dynamo DB Service', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    dynamoDBService = new DynamoDbService(tableName);
+    dynamoDBService = new DynamoDatabaseService(tableName);
   });
 
   const vcs = [
@@ -48,6 +45,7 @@ describe('Dynamo DB Service', () => {
   ] as any;
 
   it('should check the parameters are being called correctly', async () => {
+    const ddbMock = mockClient(DynamoDBClient);
     const QueryCommandInput = {
       TableName: 'abc',
       KeyConditionExpression: '#pk = :id_value',
@@ -55,7 +53,7 @@ describe('Dynamo DB Service', () => {
       ExpressionAttributeValues: { ':id_value': { S: 'abc' } },
     };
     ddbMock.on(QueryCommand).resolves({ Items: vcs });
-    await new DynamoDbService('abc').retrieveRecordsByUserId('abc');
+    await new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc');
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, QueryCommandInput);
   });
 
@@ -64,7 +62,7 @@ describe('Dynamo DB Service', () => {
     // @ts-ignore
     mockedQueryCommand.resolvesOnce();
     const loggerErrorSpy = jest.spyOn(logger, 'error');
-    await expect(new DynamoDbService('abc').retrieveRecordsByUserId('abc')).rejects.toThrowError(
+    await expect(new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc')).rejects.toThrowError(
       expect.objectContaining({
         message: 'DynamoDB may have failed to query, returned a null response.',
       }),
@@ -84,10 +82,11 @@ describe('Dynamo DB Service', () => {
       },
       ExpressionAttributeValues: {
         ':isAccountDeleted': { BOOL: true },
-        ':ttl': { N: 'NaN' },
+        ':ttl': { N: '1685417145000' },
       },
       ConditionExpression: 'attribute_exists(pk)',
     };
+    const ddbMock = mockClient(DynamoDBClient);
     await dynamoDBService.updateDeleteStatus('hello');
     expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, commandInput);
   });
