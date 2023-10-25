@@ -221,20 +221,6 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-#  TxMAIngressQueueNameSSM:
-#    Type: AWS::SSM::Parameter
-#    Properties:
-#      Description: The Name of the TxMA Ingress Queue
-#      Name: !Sub "/${AWS::StackName}/SQS/TxMAIngressQueue/Name"
-#      Type: String
-#      Value: !GetAtt TxMAIngressQueue.QueueName
-#      Tags:
-#        Environment: !Ref Environment
-#        Product: !Ref ProductTagValue
-#        System: !Ref SystemTagValue
-#        Owner: !Ref OwnerTagValue
-#        Source: !Ref SourceTagValue
-
   TxMAIngressQueuePolicy:
     Type: AWS::SQS::QueuePolicy
     DependsOn: TxMAIngressQueue
@@ -272,19 +258,4 @@ Resources:
           Value: !Ref OwnerTagValue
         - Key: Source
           Value: !Ref SourceTagValue
-
-#  TxMAIngressDLQNameSSM:
-#    Type: AWS::SSM::Parameter
-#    Properties:
-#      Description: The Name of the TxMA Ingress DLQ
-#      Name: !Sub "/${AWS::StackName}/SQS/TxMAIngressDLQ/Name"
-#      Type: String
-#      Value: !GetAtt TxMAIngressDLQ.QueueName
-#      Tags:
-#        Environment: !Ref Environment
-#        Product: !Ref ProductTagValue
-#        System: !Ref SystemTagValue
-#        Owner: !Ref OwnerTagValue
-#        Source: !Ref SourceTagValue
-
 

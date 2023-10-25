@@ -1,11 +1,10 @@
 version = 0.1
 [default.deploy.parameters]
-stack_name = "ais-main-jl"
+stack_name = "ais-main"
 resolve_s3 = true
-s3_prefix = "ais-main-jl"
+s3_prefix = "ais-main"
 region = "eu-west-2"
 confirm_changeset = true
 capabilities = "CAPABILITY_NAMED_IAM"
-parameter_overrides = "Environment=\"dev\" VpcStackName=\"vpc\" PermissionsBoundary=\"none\" CoreStackName=\"ais-core-jl\" ProductTagValue=\"GOV.UK One Login\" SystemTagValue=\"Account Interventions Service\" OwnerTagValue=\"PLACEHOLDER\" SourceTagValue=\"govuk-one-login/account-interventions-service/src/infra/main/template.yaml\""
+parameter_overrides = "Environment=\"dev\" VpcStackName=\"vpc\" PermissionsBoundary=\"none\" CoreStackName=\"ais-core\""
 image_repositories = []
-profile = "dev-jl"
