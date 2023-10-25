@@ -18,23 +18,21 @@
 #        run: echo "This workflow is designed for testing new workflows from feature branches that have not yet been merged into the main branch."
 
 ---
-name: "Verify & Publish Main SAM Template to Dev Env"
+name: "Verify & Publish Main SAM Template"
 
 on:
   push:
-    paths:
-      - "src/**"
-      - "!src/infra/core/**" # excluded with !
-      - ".github/workflows/manual-publish-main-to-dev.yaml"
     branches:
       - main
+    paths:
+      - "src/**"
+      - "!src/infra/core/**" # excluded with !"
+      - "package.json"
+      - "yarn.lock"
+      - ".node-version"
+      - "tsconfig.json"
+      - ".github/workflows/merge-main-to-main.yaml"
   workflow_dispatch:
-    inputs:
-      gitRef:
-        description: "Input branch name, commit SHA, or tag"
-        required: true
-        type: string
-        default: main
 
 permissions:
   id-token: write
@@ -91,7 +89,7 @@ jobs:
       - name: "Deploy SAM app"
         uses: alphagov/di-devplatform-upload-action@1db904c002e0f98dbcb5ab453ceb1b71de5f7dd3 # pin@v2
         with:
-          artifact-bucket-name: ${{ secrets.DEV_MAIN_ARTIFACT_BUCKET_NAME }}
+          artifact-bucket-name: ${{ secrets.DEV_MAIN_ARTIFACT_BUCKET_NAME}}
           signing-profile-name: ${{ secrets.DEV_SIGNING_PROFILE_NAME }}
           working-directory: ./src/infra/main/
           template-file: template.yaml
