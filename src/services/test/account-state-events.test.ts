@@ -579,4 +579,16 @@ describe('account-state-service', () => {
       });
     });
   });
+
+  describe('get intervention enum from code method', () => {
+    it('should return the right intervention enum given the corresponding code', () => {
+      const result = AccountStateEvents.getInterventionEnumFromCode(2);
+      expect(result).toEqual(AccountStateEventEnum.FRAUD_UNSUSPEND_ACCOUNT);
+    });
+    it('should throw if the no intervention can be found with the given code', () => {
+      expect(() => AccountStateEvents.getInterventionEnumFromCode(111)).toThrow(
+        new Error('no intervention could be found in current config for this state'),
+      );
+    });
+  });
 });
