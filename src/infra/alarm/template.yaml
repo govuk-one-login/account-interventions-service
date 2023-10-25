@@ -21,18 +21,10 @@ Parameters:
     Description: "The ARN of the Alerting SNS High Alert Notification topic"
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
-  MainSQSTxMAIngressQueueName:
-    Description: "The name of the Main SQS TxMA Ingress Queue"
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: "/ais/SQS/TxMAIngressQueue/Name" #pragma: allowlist secret
-  MainSQSTxMAIngressDLQName:
-    Description: "The name of the Main SQS TxMA Ingress DLQ" #pragma: allowlist secret
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: "/ais/SQS/TxMAIngressDLQ/Name" #pragma: allowlist secret
-  MainCloudWatchMetricNamespace:
-    Description: "The namespace of the Main CloudWatch metric"
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: "/ais/CloudWatch/Metric/Namespace" #pragma: allowlist secret
+#  MainSQSTxMAIngressQueueName:
+#    Description: "The name of the Main SQS TxMA Ingress queue"
+#    Type: AWS::SSM::Parameter::Value<String>
+#    Default: "/account-interventions-service/SQS/TxMAQueue/Name" #pragma: allowlist secret
 
 #
 # CloudWatch Alarms for SQS Queues
@@ -46,7 +38,7 @@ Resources:
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "The TxMA Ingress Queue is processing slowly."
-      Namespace: !Ref MainCloudWatchMetricNamespace
+      Namespace: AWS/SQS
       MetricName: TXMA_INGRESS_QUEUE_PROCESSING_SLOWLY
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: SampleCount
@@ -54,9 +46,6 @@ Resources:
       EvaluationPeriods: 1
       Period: 60
       TreatMissingData: notBreaching
-      Dimensions:
-        - Name: QueueName
-          Value: !Ref MainSQSTxMAIngressQueueName
 
   TxMAIngressQueueProcessingTooSlowly:
     Type: AWS::CloudWatch::Alarm
@@ -65,7 +54,7 @@ Resources:
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
       AlarmDescription: "The TxMA Ingress Queue is processing slowly."
-      Namespace: !Ref MainCloudWatchMetricNamespace
+      Namespace: AWS/SQS
       MetricName: TXMA_INGRESS_QUEUE_PROCESSING_TOO_SLOWLY
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: SampleCount
@@ -73,6 +62,3 @@ Resources:
       EvaluationPeriods: 1
       Period: 60
       TreatMissingData: notBreaching
-      Dimensions:
-        - Name: QueueName
-          Value: !Ref MainSQSTxMAIngressQueueName
