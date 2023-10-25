@@ -89,12 +89,12 @@ export interface TransformedResponseFromDynamoDb {
     description: string;
     reprovedIdentityAt: number;
     resetPasswordAt: number;
-  }
+  };
   state: {
     blocked: boolean;
     suspended: boolean;
     reproveIdentity: boolean;
     resetPassword: boolean;
-  }
+  };
   auditLevel: string;
 }

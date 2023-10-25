@@ -1,11 +1,10 @@
 import type { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { AppConfigService } from '../services/app-config-service';
-import { DynamoDbService as DynamoDatabaseService } from '../services/dynamo-db-service'
+import { DynamoDbService as DynamoDatabaseService } from '../services/dynamo-db-service';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
 import { AISInterventionTypes, MetricNames } from '../data-types/constants';
-// import { AttributeValue } from '@aws-sdk/client-dynamodb';
-import { TransformedResponseFromDynamoDb } from '../data-types/interfaces';
+import { TransformedResponseFromDynamoDatabase } from '../data-types/interfaces';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 
 const appConfig = AppConfigService.getInstance();
@@ -22,43 +21,42 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'Invalid Request.' }),
-    }
+    };
   }
-      
+
   try {
     const response = await dynamoDBServiceInstance.retrieveRecordsByUserId(userId);
-    console.log(response)
-
-    if (!response || response.length < 1) {
-    logger.debug('Requested account is not suspended');
-    logAndPublishMetric(AISInterventionTypes.AIS_NO_INTERVENTION);
+    if (!response || response.length === 0) {
+      logger.debug('Requested account is not suspended');
+      logAndPublishMetric(AISInterventionTypes.AIS_NO_INTERVENTION);
       return {
         statusCode: 200,
         body: JSON.stringify({ message: 'No suspension.' }),
-      }
+      };
     }
     for (const item of response) {
       const toObject = unmarshall(item);
       const toResponse = transformedResponse(toObject);
-      return { 
+      return {
         statusCode: 200,
-        body: JSON.stringify({ toResponse }),
-      }
+        body: JSON.stringify({ message: toResponse }),
+      };
     }
   } catch (error) {
     logger.error('A problem occured with the query', { error });
     logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Unable to retrieve records.' }),
-    }
   }
   return {
     statusCode: 500,
-    body: JSON.stringify({ message: 'Unexpected error occured' }),
-  }
-}
+    body: JSON.stringify({ message: 'Unable to retrieve records.' }),
+  };
+};
 
+/**
+ * Helper function to remove whitespace from the user id
+ * @param userId - Obtained from APIGateway
+ * @returns the userId that is passed in, trimmed of any whitespace
+ */
 function eventValidation(userId: string) {
   if (userId.trim() === '') {
     logger.error('Attribute invalid: user_id is empty.');
@@ -66,22 +64,27 @@ function eventValidation(userId: string) {
   return userId.trim();
 }
 
-function transformedResponse(item: Record<string, any>): TransformedResponseFromDynamoDb {
+/**
+ * Helper function to transform the data from dynamodb
+ * @param item - recieved from dynamodb
+ * @returns transformed object
+ */
+function transformedResponse(item: Record<string, any>): TransformedResponseFromDynamoDatabase {
   return item = {
     intervention: {
       updatedAt: Number(item['updatedAt']),
       appliedAt: Number(item['appliedAt']),
       sentAt: Number(item['sentAt']),
-      description: String(item['description']),
+      description: String(item['intervention']),
       reprovedIdentityAt: Number(item['reprovedIdentityAt']),
-      resetPasswordAt: Number(item['resetPasswordAt'])
+      resetPasswordAt: Number(item['resetPasswordAt']),
     },
     state: {
       blocked: Boolean(item['blocked']),
       suspended: Boolean(item['suspended']),
+      resetPassword: Boolean(item['resetPassword']),
       reproveIdentity: Boolean(item['reproveIdentity']),
-      resetPassword: Boolean(item['resetPassword'])
     },
     auditLevel: String(item['auditLevel']),
   };
-};
+}
