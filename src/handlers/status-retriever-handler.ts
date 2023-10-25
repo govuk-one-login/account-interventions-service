@@ -50,7 +50,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
     logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: 'Unable to retrieve records', error }),
+      body: JSON.stringify({ message: 'Unable to retrieve records.' }),
     }
   }
   return {
