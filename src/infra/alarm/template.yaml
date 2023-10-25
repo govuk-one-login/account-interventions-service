@@ -24,11 +24,11 @@ Parameters:
   MainSQSTxMAIngressQueueName:
     Description: "The name of the Main SQS TxMA Ingress Queue"
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/id-reuse-storage-main/SQS/TxMAIngressQueue/Name"
+    Default: "/id-reuse-storage-main/SQS/TxMAIngressQueue/Name" #pragma: allowlist secret
   MainSQSTxMAIngressDLQName:
-    Description: "The name of the Main SQS TxMA Ingress DLQ"
+    Description: "The name of the Main SQS TxMA Ingress DLQ" #pragma: allowlist secret
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/id-reuse-storage-main/SQS/TxMAIngressDLQ/Name"
+    Default: "/id-reuse-storage-main/SQS/TxMAIngressDLQ/Name" #pragma: allowlist secret
   MainCloudWatchMetricNamespace:
     Description: "The namespace of the Main CloudWatch metric"
     Type: AWS::SSM::Parameter::Value<String>
@@ -38,7 +38,7 @@ Parameters:
 #
 
 Resources:
-  TxMAIngressQueueProcessingSlowlyArn:
+  TxMAIngressQueueProcessingSlowly:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -49,15 +49,15 @@ Resources:
       MetricName: TXMA_INGRESS_QUEUE_PROCESSING_SLOWLY
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: SampleCount
-      Threshold: 1
+      Threshold: 60
       EvaluationPeriods: 1
       Period: 60
       TreatMissingData: notBreaching
       Dimensions:
         - Name: QueueName
-          Value: !Ref AlertingSNSLowAlertNotificationTopicARN
+          Value: !Ref MainSQSTxMAIngressQueueName
 
-  TxMAIngressQueueProcessingTooSlowlyArn:
+  TxMAIngressQueueProcessingTooSlowly:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -68,10 +68,10 @@ Resources:
       MetricName: TXMA_INGRESS_QUEUE_PROCESSING_TOO_SLOWLY
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: SampleCount
-      Threshold: 1
-      EvaluationPeriods: 5
+      Threshold: 600
+      EvaluationPeriods: 1
       Period: 60
       TreatMissingData: notBreaching
       Dimensions:
         - Name: QueueName
-          Value: !Ref AlertingSNSHighAlertNotificationTopicARN
+          Value: !Ref MainSQSTxMAIngressQueueName
