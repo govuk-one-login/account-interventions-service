@@ -72,7 +72,7 @@ function eventValidation(userId: string) {
 function transformedResponse(item: Record<string, any>): TransformedResponseFromDynamoDatabase {
   return item = {
     intervention: {
-      updatedAt: Number(item['updatedAt']),
+      updatedAt: Number(item['updatedAt'] ?? Date.now()),
       appliedAt: Number(item['appliedAt']),
       sentAt: Number(item['sentAt']),
       description: String(item['intervention']),
