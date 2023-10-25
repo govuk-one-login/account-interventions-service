@@ -208,7 +208,7 @@ Resources:
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt TxMAIngressDLQ.Arn
         maxReceiveCount: 3
-      VisibilityTimeout: 5
+      VisibilityTimeout: 60
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
