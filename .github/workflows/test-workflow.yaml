@@ -41,7 +41,7 @@ jobs:
     with:
       gitRef: ${{ inputs.gitRef }}
     secrets:
-      githubActionsRoleARN: ${{ secrets.CORE_GH_ACTIONS_ROLE_ARN }}
+      githubActionsRoleARN: ${{ secrets.DEV_CORE_GH_ACTIONS_ROLE_ARN }}
 
   publish_artifacts:
     name: "Publish Image & Template"
@@ -55,14 +55,14 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e1e17a757e536f70e52b5a12b2e8d1d1c60e04ef # pin@v1-node16
         with:
-          role-to-assume: ${{ secrets.CORE_GH_ACTIONS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.DEV_CORE_GH_ACTIONS_ROLE_ARN }}
           aws-region: eu-west-2
 
       - name: "Deploy SAM app"
         uses: alphagov/di-devplatform-upload-action@1db904c002e0f98dbcb5ab453ceb1b71de5f7dd3 # pin@v2
         with:
-          artifact-bucket-name: ${{ secrets.CORE_ARTIFACT_BUCKET_NAME }}
-          signing-profile-name: ${{ secrets.SIGNING_PROFILE_NAME }}
+          artifact-bucket-name: ${{ secrets.DEV_CORE_ARTIFACT_BUCKET_NAME }}
+          signing-profile-name: ${{ secrets.DEV_SIGNING_PROFILE_NAME }}
           working-directory: ./src/infra/core/
           template-file: template.yaml
 
