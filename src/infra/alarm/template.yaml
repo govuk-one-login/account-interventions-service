@@ -6,7 +6,7 @@ Description: >-
 
 Parameters:
   CoreStackName:
-    Description: The name of the AIS Stack
+    Description: The name of the Account Interventions Service's Stack
     Type: String
     Default: ais
   SystemTagValue:
