@@ -153,7 +153,7 @@ Resources:
         - !Ref AISSampleLambdaHandlerRole
 
  #### TxMA ####
-  TxMAIngressEncryptionKey:
+  SQSEncryptionKey:
     Type: AWS::KMS::Key
     Properties:
       Description: AWS KMS key for encrypting the contents of messages in TxMA SQS queues
@@ -189,20 +189,20 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
         - Key: Name
-          Value: !Sub "${AWS::StackName}-TxMAIngressEncryptionKey"
+          Value: !Sub "${AWS::StackName}-SQSEncryptionKey"
 
-  TxMAIngressEncryptionKeyAlias:
+  SQSEncryptionKeyAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub "alias/${AWS::StackName}-TxMAIngressEncryptionKey"
-      TargetKeyId: !GetAtt TxMAIngressEncryptionKey.Arn
+      AliasName: !Sub "alias/${AWS::StackName}-SQSEncryptionKey"
+      TargetKeyId: !GetAtt SQSEncryptionKey.Arn
 
   TxMAIngressQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue"
       MessageRetentionPeriod: 1209600
-      KmsMasterKeyId: !GetAtt TxMAIngressEncryptionKey.Arn
+      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
       RedriveAllowPolicy:
         redrivePermission: denyAll
       RedrivePolicy:
@@ -240,7 +240,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${AWS::StackName}-TxMAIngressDLQ"
-      KmsMasterKeyId: !Ref TxMAIngressEncryptionKeyAlias
+      KmsMasterKeyId: !Ref SQSEncryptionKeyAlias
       VisibilityTimeout: 0
       MessageRetentionPeriod: 1209600
       RedriveAllowPolicy:
