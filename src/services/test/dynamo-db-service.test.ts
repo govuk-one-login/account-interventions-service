@@ -1,18 +1,57 @@
 import { mockClient } from 'aws-sdk-client-mock';
-import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
-import { DynamoDbService } from '../dynamo-db-service';
+import { handler } from '../../handlers/account-deletion-processor-handler';
+import { DynamoDBClient, QueryCommand, UpdateItemCommand, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
+import { DynamoDbService as DynamoDatabaseService } from '../dynamo-db-service';
 import { logAndPublishMetric } from '../../commons/metrics';
 import logger from '../../commons/logger';
 import 'aws-sdk-client-mock-jest';
+import { ContextExamples } from '@aws-lambda-powertools/commons';
+import { SQSEvent, SQSRecord } from 'aws-lambda';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
 jest.mock('@smithy/node-http-handler');
 
 describe('Dynamo DB Service', () => {
+  let mockEvent: SQSEvent;
+  let mockRecord: SQSRecord;
+  const mockContext = ContextExamples.helloworldContext;
+
+  beforeAll(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(Date.UTC(2023, 4, 30)));
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRecord = {
+      messageId: '',
+      receiptHandle: '',
+      body: JSON.stringify({ Message: JSON.stringify({ user_id: 'hello' }) }),
+      attributes: {
+        ApproximateReceiveCount: '',
+        SentTimestamp: '',
+        SenderId: '',
+        ApproximateFirstReceiveTimestamp: '',
+      },
+      messageAttributes: {},
+      md5OfBody: '',
+      eventSource: '',
+      eventSourceARN: '',
+      awsRegion: '',
+    };
+    mockEvent = { Records: [mockRecord] };
   });
+
+  const updateItem = [
+    {
+      level: 'INFO',
+      message: 'Sensitive info - Account hello marked as deleted',
+      service: 'ais-main-jl',
+      timestamp: '2023-10-19T10:33:24.378Z',
+      xray_trace_id: '1-653105f3-59092ab132456943679e5b36',
+    },
+  ] as any;
 
   const vcs = [
     {
@@ -39,7 +78,7 @@ describe('Dynamo DB Service', () => {
     const mockedQueryCommand = mockClient(DynamoDBClient).on(QueryCommand);
     mockedQueryCommand.resolvesOnce({ Items: vcs });
 
-    const allVCS = await new DynamoDbService('abc').retrieveRecordsByUserId('abc');
+    const allVCS = await new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc');
 
     expect(allVCS).toHaveLength(3);
     expect(allVCS).toEqual(vcs);
@@ -54,21 +93,48 @@ describe('Dynamo DB Service', () => {
     };
     const ddbMock = mockClient(DynamoDBClient);
     ddbMock.on(QueryCommand).resolves({ Items: vcs });
-    await new DynamoDbService('abc').retrieveRecordsByUserId('abc');
+    await new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc');
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, QueryCommandInput);
   });
 
   it('should throw an error if response is undefined', async () => {
     const mockedQueryCommand = mockClient(DynamoDBClient).on(QueryCommand);
     // @ts-ignore
-    mockedQueryCommand.resolvesOnce(undefined);
+    mockedQueryCommand.resolvesOnce();
     const loggerErrorSpy = jest.spyOn(logger, 'error');
-    await expect(new DynamoDbService('abc').retrieveRecordsByUserId('abc')).rejects.toThrowError(
+    await expect(new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc')).rejects.toThrowError(
       expect.objectContaining({
         message: 'DynamoDB may have failed to query, returned a null response.',
       }),
     );
     expect(loggerErrorSpy).toHaveBeenCalledWith('DynamoDB may have failed to query, returned a null response.');
     expect(logAndPublishMetric).toHaveBeenCalledWith('DB_QUERY_ERROR_NO_RESPONSE');
+  });
+
+  it('should update the status of the userId in DynamoDB and log info', async () => {
+    const commandInput: UpdateItemCommandInput = {
+      TableName: 'table_name',
+      Key: { pk: { S: 'abc' } },
+      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl',
+      ExpressionAttributeNames: {
+        '#isAccountDeleted': 'isAccountDeleted',
+        '#ttl': 'ttl',
+      },
+      ExpressionAttributeValues: {
+        ':isAccountDeleted': { BOOL: true },
+        ':ttl': { N: '123' },
+      },
+      ConditionExpression: 'attribute_exists(pk)',
+    };
+
+    const ddbMock = mockClient(DynamoDBClient);
+    ddbMock.on(UpdateItemCommand).resolves(updateItem);
+
+    const loggerInfoSpy = jest.spyOn(logger, 'info');
+
+    await handler(mockEvent, mockContext);
+
+    expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, commandInput);
+    expect(loggerInfoSpy).toHaveBeenCalledWith(`Sensitive info - Account hello marked as deleted`);
   });
 });
