@@ -33,6 +33,7 @@ Parameters:
     Description: "The namespace of the Main CloudWatch metric"
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/ais/CloudWatch/Metric/Namespace" #pragma: allowlist secret
+
 #
 # CloudWatch Alarms for SQS Queues
 #
