@@ -45,18 +45,6 @@ Parameters:
     Description: Value for the Source Tag
     Type: String
     Default: govuk-one-login/account-interventions-service/src/infra/main/template.yaml
-  AlertingSNSLowAlertNotificationTopicARN:
-    Description: "The ARN of the Alerting SNS Low Alert Notification Topic"
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: "/infra-alerting/SNS/LowAlertNotificationTopic/ARN"
-  AlertingSNSHighAlertNotificationTopicARN:
-    Description: "The ARN of the Alerting SNS High Alert Notification topic"
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: "/infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
-  MainCloudWatchMetricNamespace:
-    Description: "The namespace of the Main CloudWatch metric"
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: "/id-reuse-storage-main/CloudWatch/Metric/Namespace" #pragma: allowlist secret  
 Conditions:
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
 
@@ -298,42 +286,4 @@ Resources:
 #        Owner: !Ref OwnerTagValue
 #        Source: !Ref SourceTagValue
 
-### ALARMS ###
 
-  TxMAIngressQueueProcessingSlowlyArn:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "The TxMA Ingress Queue is processing slowly."
-      Namespace: !Ref MainCloudWatchMetricNamespace
-      MetricName: TXMA_INGRESS_QUEUE_PROCESSING_SLOWLY
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Statistic: SampleCount
-      Threshold: 1
-      EvaluationPeriods: 1
-      Period: 60
-      TreatMissingData: notBreaching
-      Dimensions:
-        - Name: QueueName
-          Value: !Ref AlertingSNSLowAlertNotificationTopicARN
-
-  TxMAIngressQueueProcessingTooSlowlyArn:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "The TxMA Ingress Queue is processing slowly."
-      Namespace: !Ref MainCloudWatchMetricNamespace
-      MetricName: TXMA_INGRESS_QUEUE_PROCESSING_TOO_SLOWLY
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Statistic: SampleCount
-      Threshold: 1
-      EvaluationPeriods: 5
-      Period: 60
-      TreatMissingData: notBreaching
-      Dimensions:
-        - Name: QueueName
-          Value: !Ref AlertingSNSHighAlertNotificationTopicARN

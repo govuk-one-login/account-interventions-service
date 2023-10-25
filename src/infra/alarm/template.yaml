@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: >-
+  Alarm AIS storage stack for ID Reuse.
+
+Parameters:
+  CoreStackName:
+    Description: The name of the AIS Stack
+    Type: String
+    Default: ais
+  SystemTagValue:
+    Description: Value for the System Tag
+    Type: String
+    Default: AIS
+  AlertingSNSLowAlertNotificationTopicARN:
+    Description: "The ARN of the Alerting SNS Low Alert Notification topic"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/infra-alerting/SNS/LowAlertNotificationTopic/ARN" #pragma: allowlist secret
+  AlertingSNSHighAlertNotificationTopicARN:
+    Description: "The ARN of the Alerting SNS High Alert Notification topic"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
+  MainSQSTxMAIngressQueueName:
+    Description: "The name of the Main SQS TxMA Ingress Queue"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/id-reuse-storage-main/SQS/TxMAIngressQueue/Name"
+  MainSQSTxMAIngressDLQName:
+    Description: "The name of the Main SQS TxMA Ingress DLQ"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/id-reuse-storage-main/SQS/TxMAIngressDLQ/Name"
+  MainCloudWatchMetricNamespace:
+    Description: "The namespace of the Main CloudWatch metric"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/id-reuse-storage-main/CloudWatch/Metric/Namespace" #pragma: allowlist secret
+#
+# CloudWatch Alarms for SQS Queues
+#
+
+Resources:
+  TxMAIngressQueueProcessingSlowlyArn:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "The TxMA Ingress Queue is processing slowly."
+      Namespace: !Ref MainCloudWatchMetricNamespace
+      MetricName: TXMA_INGRESS_QUEUE_PROCESSING_SLOWLY
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: SampleCount
+      Threshold: 1
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref AlertingSNSLowAlertNotificationTopicARN
+
+  TxMAIngressQueueProcessingTooSlowlyArn:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "The TxMA Ingress Queue is processing slowly."
+      Namespace: !Ref MainCloudWatchMetricNamespace
+      MetricName: TXMA_INGRESS_QUEUE_PROCESSING_TOO_SLOWLY
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: SampleCount
+      Threshold: 1
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref AlertingSNSHighAlertNotificationTopicARN
