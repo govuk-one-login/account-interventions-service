@@ -26,16 +26,6 @@ describe('Dynamo DB Service', () => {
     dynamoDBService = new DynamoDbService(tableName);
   });
 
-  // const updateItem = [
-  //   {
-  //     level: 'INFO',
-  //     message: 'Sensitive info - Account hello marked as deleted',
-  //     service: 'ais-main-jl',
-  //     timestamp: '2023-10-19T10:33:24.378Z',
-  //     xray_trace_id: '1-653105f3-59092ab132456943679e5b36',
-  //   },
-  // ] as any;
-
   const vcs = [
     {
       pk: 'urn:fdc:gov.uk:2022:JG0RJI1pYbnanbvPs-j4j5-a-PFcmhry9Qu9RGA9A4i',
@@ -64,7 +54,6 @@ describe('Dynamo DB Service', () => {
       ExpressionAttributeNames: { '#pk': 'pk' },
       ExpressionAttributeValues: { ':id_value': { S: 'abc' } },
     };
-    // const ddbMock = mockClient(DynamoDBClient);
     ddbMock.on(QueryCommand).resolves({ Items: vcs });
     await new DynamoDbService('abc').retrieveRecordsByUserId('abc');
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, QueryCommandInput);
