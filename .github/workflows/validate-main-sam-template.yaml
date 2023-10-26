@@ -1,0 +1,46 @@
+---
+name: Validate Main SAM Template
+
+# Triggered when:
+#   - a file, listed below, is pushed to any branch other than `main`, i.e. a feature branch.
+#   - invoked by another workflow.
+on:
+  workflow_call:
+    inputs:
+      gitRef:
+        required: false
+        type: string
+        default: ${{ github.ref }}
+    secrets:
+      githubActionsRoleARN:
+        description: 'The GitHub actions role ARN passed from the caller workflow'
+        required: false
+
+jobs:
+  validate_sam_template:
+    name: SAM Checks
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      SAM_CLI_TELEMETRY: 0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3
+        with:
+          ref: ${{ inputs.gitRef || github.ref }}
+
+      - name: Set up SAM CLI
+        uses: aws-actions/setup-sam@f0b2399474464ed9f03a03ee90d1a82b7d680ad6 # pin@v2
+        with:
+          use-installer: true
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@e1e17a757e536f70e52b5a12b2e8d1d1c60e04ef # pin@v1-node16
+        with:
+          role-to-assume: ${{ secrets.githubActionsRoleARN || secrets.DEV_MAIN_GH_ACTIONS_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: SAM Validate
+        run: sam validate --lint -t src/infra/main/template.yaml
