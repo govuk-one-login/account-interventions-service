@@ -1,7 +1,8 @@
 import { StateDetails } from '../data-types/interfaces';
 import { UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { getCurrentTimestamp } from './get-current-timestamp';
-import { AccountStateEventEnum } from '../data-types/constants';
+import { AccountStateEventEnum, MetricNames } from '../data-types/constants';
+import { logAndPublishMetric } from './metrics';
 
 export const buildPartialUpdateAccountStateCommand = (
   newState: StateDetails,
@@ -34,16 +35,18 @@ export const buildPartialUpdateAccountStateCommand = (
     base['ExpressionAttributeValues'][':rpswda'] = { N: `${getCurrentTimestamp().milliseconds}` };
     base['UpdateExpression'] += ', #RPswdA = :rpswda';
   } else {
-    if (interventionName) {
-      base['ExpressionAttributeNames']['#INT'] = 'intervention';
-      base['ExpressionAttributeValues'][':int'] = { S: interventionName };
-      base['ExpressionAttributeNames']['#AA'] = 'appliedAt';
-      base['ExpressionAttributeValues'][':aa'] = { N: `${getCurrentTimestamp().milliseconds}` };
-      base['ExpressionAttributeNames']['#H'] = 'history';
-      base['ExpressionAttributeValues'][':empty_list'] = { L: [] };
-      base['ExpressionAttributeValues'][':h'] = { L: [{ S: interventionName }] };
-      base['UpdateExpression'] += ', #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
-    } else throw new Error('intervention received did not have an interventionName field');
+    if (!interventionName) {
+      logAndPublishMetric(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
+      throw new Error('intervention received did not have an interventionName field');
+    }
+    base['ExpressionAttributeNames']['#INT'] = 'intervention';
+    base['ExpressionAttributeValues'][':int'] = { S: interventionName };
+    base['ExpressionAttributeNames']['#AA'] = 'appliedAt';
+    base['ExpressionAttributeValues'][':aa'] = { N: `${getCurrentTimestamp().milliseconds}` };
+    base['ExpressionAttributeNames']['#H'] = 'history';
+    base['ExpressionAttributeValues'][':empty_list'] = { L: [] };
+    base['ExpressionAttributeValues'][':h'] = { L: [{ S: interventionName }] };
+    base['UpdateExpression'] += ', #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
   }
   return base;
 };

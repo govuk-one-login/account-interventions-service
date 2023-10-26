@@ -4,3 +4,10 @@ export class InvalidEnvironmentVariableError extends Error {
     this.name = 'InvalidEnvironmentVariableError';
   }
 }
+
+export class StateTransitionErrorIgnored extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'StateTransitionErrorIgnoredError';
+  }
+}

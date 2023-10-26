@@ -14,11 +14,10 @@ export const interventionsConfig: InterventionTransitionConfigurations = {
       reproveIdentity: false,
     },
     allowedTransitions: [
-      AccountStateEventEnum.FRAUD_SUSPEND_ACCOUNT,
-      AccountStateEventEnum.FRAUD_UNSUSPEND_ACCOUNT,
       AccountStateEventEnum.FRAUD_BLOCK_ACCOUNT,
-      AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
+      AccountStateEventEnum.FRAUD_SUSPEND_ACCOUNT,
       AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
+      AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
       AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
     ],
   },
@@ -33,14 +32,12 @@ export const interventionsConfig: InterventionTransitionConfigurations = {
     interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
     allowedTransitions: [
       AccountStateEventEnum.FRAUD_UNSUSPEND_ACCOUNT,
-      AccountStateEventEnum.FRAUD_SUSPEND_ACCOUNT,
       AccountStateEventEnum.FRAUD_BLOCK_ACCOUNT,
       AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
       AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
       AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
     ],
   },
-  // we have an issue, this action leads to the same state as unblock!! --> not an issue as this duplicate states always has the same allowed transitions
   FRAUD_UNSUSPEND_ACCOUNT: {
     code: 2,
     state: {
@@ -98,7 +95,6 @@ export const interventionsConfig: InterventionTransitionConfigurations = {
       AccountStateEventEnum.FRAUD_BLOCK_ACCOUNT,
       AccountStateEventEnum.FRAUD_UNSUSPEND_ACCOUNT,
       AccountStateEventEnum.FRAUD_SUSPEND_ACCOUNT,
-      AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET, //need to check case where it is the same
       AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
       AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
     ],
@@ -117,7 +113,6 @@ export const interventionsConfig: InterventionTransitionConfigurations = {
       AccountStateEventEnum.FRAUD_UNSUSPEND_ACCOUNT,
       AccountStateEventEnum.FRAUD_SUSPEND_ACCOUNT,
       AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
-      AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
       AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
     ],
     interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
@@ -136,13 +131,12 @@ export const interventionsConfig: InterventionTransitionConfigurations = {
       AccountStateEventEnum.FRAUD_SUSPEND_ACCOUNT,
       AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
       AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
-      AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
     ],
     interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
   },
 };
 
-export const userLedActionsConfigurations: UserLedActionTransitionConfigurations = {
+export const userLedActionsConfig: UserLedActionTransitionConfigurations = {
   IPV_IDENTITY_ISSUED: {
     code: 8,
     state: {

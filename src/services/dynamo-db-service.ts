@@ -56,13 +56,7 @@ export class DynamoDbService {
       Key: { pk: { S: userId } },
       ...partialInput,
     };
-    console.log('command input::');
-    logger.debug(JSON.stringify(commandInput));
-    console.log('formed command input');
     const command = new UpdateItemCommand(commandInput);
-    console.log('sent command');
-    const response = await this.dynamoClient.send(command);
-    logger.debug(JSON.stringify(response));
-    return response;
+    return await this.dynamoClient.send(command);
   }
 }

@@ -7,6 +7,7 @@ import { validateEvent, validateInterventionEvent } from '../services/validate-e
 import { AccountStateEvents } from '../services/account-states/account-state-events';
 import { DynamoDbService as DynamoDatabaseService } from '../services/dynamo-db-service';
 import { AppConfigService } from '../services/app-config-service';
+import { StateTransitionErrorIgnored } from '../data-types/errors';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
@@ -26,7 +27,6 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
   for (const record of event.Records) {
     try {
       const recordBody: TxMAEvent = JSON.parse(record.body);
-      console.log(recordBody);
       if (!validateEvent(recordBody)) {
         logger.debug('Invalid intervention request.');
         logAndPublishMetric(MetricNames.INTERVENTION_INVALID);
@@ -59,7 +59,10 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
         await service.updateUserStatus(recordBody.user.user_id, statusResult);
       }
     } catch (error) {
-      logger.debug(JSON.stringify(error));
+      if (error instanceof StateTransitionErrorIgnored) {
+        logger.warn('StateTransitionError caught, message will not be retried');
+        continue;
+      }
       itemFailures.push({
         itemIdentifier: record.messageId,
       });
