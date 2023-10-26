@@ -14,7 +14,7 @@ import { AppConfigService } from './app-config-service';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import tracer from '../commons/tracer';
 import { StateDetails } from '../data-types/interfaces';
-import {getCurrentTimestamp} from "../commons/get-current-timestamp";
+import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 
 const appConfig = AppConfigService.getInstance();
 
