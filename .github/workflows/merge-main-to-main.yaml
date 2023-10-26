@@ -22,7 +22,7 @@ permissions:
 jobs:
   validate_deployment:
     name: Deployment Template Checks
-    uses: ./.github/workflows/validate-sam-template.yaml
+    uses: ./.github/workflows/validate-main-sam-template.yaml
     with:
       gitRef: ${{ inputs.gitRef }}
     secrets:
