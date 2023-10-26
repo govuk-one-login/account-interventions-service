@@ -4,21 +4,20 @@ import logger from '../commons/logger';
 interface CustomEvent {
   userId?: string;
   headers?: {
-    [key: string]: string
-  }
+    [key: string]: string;
+  };
 }
 
 const appConfig = AppConfigService.getInstance();
 
 export const handle = async (event: CustomEvent) => {
-
   const userId = event.userId || appConfig.userId;
   
   if (!userId) {
     return {
       statusCode: 400,
-      message: "UserId is required. Provide by either adding userId to event, or providing as an environment variable."
-    }
+      message: 'UserId is required. Provide by either adding userId to event, or providing as an environment variable.'
+    };
   }
   
   const headers = event.headers || { 'Content-Type': 'application/json' };
@@ -34,15 +33,15 @@ export const handle = async (event: CustomEvent) => {
     headers,
   });
 
-  logger.debug("response json:", { responsePromise, isEmpty: Object.keys(responsePromise).length === 0 });
+  logger.debug('response json:', { responsePromise, isEmpty: Object.keys(responsePromise).length === 0 });
 
   const response = await responsePromise.json();
-  logger.debug("parsed response:", { response });
+  logger.debug('parsed response:', { response });
 
   if (Object.keys(response).length === 0 || !response.ok) {
     return {
       statusCode: response.status || 400,
-      message: "Request didn't return a valid response"
+      message: "Request didn't return a valid response",
     }
   }
 

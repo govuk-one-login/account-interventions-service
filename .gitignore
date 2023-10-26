@@ -65,6 +65,7 @@ public/
 .idea/
 dist/
 .DS_Store
+dist/
 
 # Test specific
 **/test-report.html

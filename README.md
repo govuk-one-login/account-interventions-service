@@ -103,3 +103,12 @@ declarations in order to find the handler files, i.e. the webpack entry files, t
 3. Uses the function resource's `Handler` value as the file to use as a webpack entry.
 4. Per web pack entry, finds the function's handler file in the `src/handlers` folder.
 5. Runs the webpack process and writes the bundle in to the `dist` folder in the locations expected by the SAM template.
+
+### Testing the Private Api Gateway endpoint
+Deployments to the dev environment will create a lambda that can be used to invoke the private api gateway. This lambda is called: `{stack-name}-InvokePrivateAPIGatewayFunction`. Since this lambda is created within the application's VPC, it meets the required security measures so it is able to successfully invoke the endpoint.
+
+#### How to use the InvokePrivateAPIGatewayFunction lambda:
+The environment variables contain the configurations for the baseurl, endpoint and the http request method. These values are generated automatically, but they can also be updated if required. Note that at the moment the lambda is not set up to work for a post request, so changes to the lambda will need to be made if post requests become a requirement.
+The endpoint also requires a userId as a path parameter. This lambda allows you to set the userId in two ways:
+1. Update the environment variable: USER_ID
+2. Pass the userId in the lambda's event body in this format: `{ "userId": "<the-userId>" }`
