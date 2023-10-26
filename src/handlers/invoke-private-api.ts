@@ -12,14 +12,14 @@ const appConfig = AppConfigService.getInstance();
 
 export const handle = async (event: CustomEvent) => {
   const userId = event.userId || appConfig.userId;
-  
+
   if (!userId) {
     return {
       statusCode: 400,
-      message: 'UserId is required. Provide by either adding userId to event, or providing as an environment variable.'
+      message: 'UserId is required. Provide by either adding userId to event, or providing as an environment variable.',
     };
   }
-  
+
   const headers = event.headers || { 'Content-Type': 'application/json' };
   const baseUrl = appConfig.baseUrl;
   const endpoint = appConfig.endpoint;
@@ -42,7 +42,7 @@ export const handle = async (event: CustomEvent) => {
     return {
       statusCode: response.status || 400,
       message: "Request didn't return a valid response",
-    }
+    };
   }
 
   return {
