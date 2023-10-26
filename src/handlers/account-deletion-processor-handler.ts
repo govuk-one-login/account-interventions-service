@@ -15,11 +15,11 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
     return;
   }
 
-  const updateVCsByIdPromises = event.Records.map((record) => {
+  const updateRecordsByIdPromises = event.Records.map((record) => {
     const userId = getUserId(record);
     return userId ? updateDeleteStatusId(userId) : undefined;
   }).filter((prom) => prom !== undefined);
-  await Promise.all(updateVCsByIdPromises);
+  await Promise.all(updateRecordsByIdPromises);
 };
 
 function getUserId(record: SQSRecord) {
