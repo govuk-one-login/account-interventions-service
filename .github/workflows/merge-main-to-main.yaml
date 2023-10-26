@@ -26,7 +26,7 @@ jobs:
     with:
       gitRef: ${{ inputs.gitRef }}
     secrets:
-      githubActionsRoleARN: ${{ secrets.DEV_MAIN_GH_ACTIONS_ROLE_ARN }}
+      githubActionsRoleARN: ${{ secrets.MAIN_GH_ACTIONS_ROLE_ARN }}
 
   acceptance_checks:
     name: Acceptance Checks
@@ -64,14 +64,14 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e1e17a757e536f70e52b5a12b2e8d1d1c60e04ef # pin@v1-node16
         with:
-          role-to-assume: ${{ secrets.DEV_MAIN_GH_ACTIONS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.MAIN_GH_ACTIONS_ROLE_ARN }}
           aws-region: eu-west-2
 
       - name: "Deploy SAM app"
         uses: alphagov/di-devplatform-upload-action@1db904c002e0f98dbcb5ab453ceb1b71de5f7dd3 # pin@v2
         with:
-          artifact-bucket-name: ${{ secrets.DEV_MAIN_ARTIFACT_BUCKET_NAME}}
-          signing-profile-name: ${{ secrets.DEV_SIGNING_PROFILE_NAME }}
+          artifact-bucket-name: ${{ secrets.MAIN_ARTIFACT_BUCKET_NAME}}
+          signing-profile-name: ${{ secrets.SIGNING_PROFILE_NAME }}
           working-directory: ./src/infra/main/
           template-file: template.yaml
 

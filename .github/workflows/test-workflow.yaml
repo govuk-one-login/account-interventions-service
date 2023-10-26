@@ -1,70 +1,18 @@
-#---
-#name: 'Test Workflow'
-#
-#on:
-#  workflow_dispatch:
-#
-#permissions:
-#  id-token: write
-#  contents: read
-#
-#jobs:
-#  test_workflow:
-#    name: 'Test Workflow'
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 60
-#    steps:
-#      - name: Step Placeholder
-#        run: echo "This workflow is designed for testing new workflows from feature branches that have not yet been merged into the main branch."
-
 ---
-name: "Publish Core SAM Template"
+name: 'Test Workflow'
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "src/infra/core/**"
-      - ".github/workflows/merge-core-to-main.yaml"
-  workflow_dispatch:
-
+ workflow_dispatch:
 
 permissions:
-  id-token: write
-  contents: read
+ id-token: write
+ contents: read
 
 jobs:
-  validate_deployment:
-    name: Deployment Template Checks
-    uses: ./.github/workflows/validate-core-sam-template.yaml
-    with:
-      gitRef: ${{ inputs.gitRef }}
-    secrets:
-      githubActionsRoleARN: ${{ secrets.CORE_GH_ACTIONS_ROLE_ARN }}
-
-  publish_artifacts:
-    name: "Publish Image & Template"
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3
-        with:
-          ref: ${{ inputs.gitRef }}
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e1e17a757e536f70e52b5a12b2e8d1d1c60e04ef # pin@v1-node16
-        with:
-          role-to-assume: ${{ secrets.CORE_GH_ACTIONS_ROLE_ARN }}
-          aws-region: eu-west-2
-
-      - name: "Deploy SAM app"
-        uses: alphagov/di-devplatform-upload-action@1db904c002e0f98dbcb5ab453ceb1b71de5f7dd3 # pin@v2
-        with:
-          artifact-bucket-name: ${{ secrets.CORE_ARTIFACT_BUCKET_NAME }}
-          signing-profile-name: ${{ secrets.SIGNING_PROFILE_NAME }}
-          working-directory: ./src/infra/core/
-          template-file: template.yaml
-
-      - name: "Delegated Deployment via AWS CodeDeploy"
-        run: echo "Deployment has been delegated to AWS CodeDeploy"
+ test_workflow:
+   name: 'Test Workflow'
+   runs-on: ubuntu-latest
+   timeout-minutes: 60
+   steps:
+     - name: Step Placeholder
+       run: echo "This workflow is designed for testing new workflows from feature branches that have not yet been merged into the main branch."
