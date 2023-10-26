@@ -727,7 +727,7 @@ Resources:
       Timeout: 10
       Environment:
         Variables:
-          USER_ID: defaultUserId
+          USER_ID: ""
           BASE_URL: !Join
             - ""
             - - https://
