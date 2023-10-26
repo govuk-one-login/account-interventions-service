@@ -12,7 +12,7 @@ Parameters:
   SystemTagValue:
     Description: Value for the System Tag
     Type: String
-    Default: AIS
+    Default: Account Interventions Service
   AlertingSNSLowAlertNotificationTopicARN:
     Description: "The ARN of the Alerting SNS Low Alert Notification topic"
     Type: AWS::SSM::Parameter::Value<String>
@@ -21,10 +21,6 @@ Parameters:
     Description: "The ARN of the Alerting SNS High Alert Notification topic"
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
-#  MainSQSTxMAIngressQueueName:
-#    Description: "The name of the Main SQS TxMA Ingress queue"
-#    Type: AWS::SSM::Parameter::Value<String>
-#    Default: "/account-interventions-service/SQS/TxMAQueue/Name" #pragma: allowlist secret
 
 #
 # CloudWatch Alarms for SQS Queues
