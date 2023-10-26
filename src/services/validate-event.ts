@@ -5,15 +5,15 @@ import { MetricNames } from '../data-types/constants';
 
 export function validateEvent(interventionRequest: TxMAEvent): boolean {
   if (!interventionRequest.timestamp || Number.isNaN(interventionRequest.timestamp)) {
-    console.log('event has no timestamp or timestamp is not a number');
+    logger.debug('event has no timestamp or timestamp is not a number');
     return false;
   }
   if (!interventionRequest.user?.user_id) {
-    console.log('event event did not have user id field');
+    logger.debug('event event did not have user id field');
     return false;
   }
   if (!interventionRequest.event_name) {
-    console.log('event did not have event name field');
+    logger.debug('event did not have event name field');
     return false;
   }
   return true;
@@ -26,7 +26,7 @@ export function validateInterventionEvent(interventionRequest: TxMAEvent): boole
     !interventionRequest.extension.intervention.intervention_code
   ) {
     logger.debug('Invalid intervention request.');
-    logAndPublishMetric(MetricNames.INTERVENTION_INVALID);
+    logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
     return false;
   }
   return true;

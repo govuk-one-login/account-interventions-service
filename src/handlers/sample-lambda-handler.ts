@@ -1,6 +1,6 @@
 import logger from '../commons/logger';
 import { AccountStateEvents } from '../services/account-states/account-state-events';
-import { AccountStateEventEnum } from '../data-types/constants';
+import { EventsEnum } from '../data-types/constants';
 import { DynamoDbService as DynamoDatabaseService } from '../services/dynamo-db-service';
 
 export const handle = async (): Promise<void> => {
@@ -97,10 +97,7 @@ export const handle = async (): Promise<void> => {
   const service = new DynamoDatabaseService('ais-core-ch-account-status');
 
   console.log('============= Suspend --> Blocked =============');
-  const result1 = AccountStateEvents.applyEventTransition(
-    AccountStateEventEnum.FRAUD_BLOCK_ACCOUNT,
-    accumulatorSuspendedState,
-  );
+  const result1 = AccountStateEvents.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accumulatorSuspendedState);
   logger.debug(JSON.stringify(result1));
   await service.updateUserStatus('test1', result1);
 
@@ -109,7 +106,7 @@ export const handle = async (): Promise<void> => {
   console.log('============= PswReset --> Unsuspended =============');
 
   const result2 = AccountStateEvents.applyEventTransition(
-    AccountStateEventEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+    EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
     accumulatorNeedsPswReset,
   );
   logger.debug(JSON.stringify(result2));
@@ -120,7 +117,7 @@ export const handle = async (): Promise<void> => {
   console.log('============= PswReset --> IdReset =============');
 
   const result3 = AccountStateEvents.applyEventTransition(
-    AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
+    EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
     accumulatorNeedsPswReset,
   );
   logger.debug(JSON.stringify(result3));

@@ -1,4 +1,4 @@
-import { AccountStateEventEnum, AISInterventionTypes } from './constants';
+import { EventsEnum, AISInterventionTypes } from './constants';
 
 export interface StateDetails {
   blocked: boolean;
@@ -17,12 +17,12 @@ export interface UserLedActionTransitionConfigurations {
 export interface UserLedActionEventDetails {
   code: number;
   state: { resetPassword?: boolean; reproveIdentity?: boolean };
-  allowedFromStates: AccountStateEventEnum[];
+  allowedFromStates: EventsEnum[];
 }
 export interface InterventionEventDetails {
   code: number;
   state: StateDetails;
-  allowedTransitions: AccountStateEventEnum[];
+  allowedTransitions: EventsEnum[];
   interventionName?: AISInterventionTypes;
 }
 

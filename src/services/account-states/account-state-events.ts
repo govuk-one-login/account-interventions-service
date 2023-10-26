@@ -5,7 +5,7 @@ import {
   UserLedActionTransitionConfigurations,
 } from '../../data-types/interfaces';
 import { interventionsConfig, userLedActionsConfig } from './config';
-import { AccountStateEventEnum, MetricNames } from '../../data-types/constants';
+import { EventsEnum, MetricNames } from '../../data-types/constants';
 import { buildPartialUpdateAccountStateCommand } from '../../commons/build-partial-update-state-command';
 import { logAndPublishMetric } from '../../commons/metrics';
 import { StateTransitionErrorIgnored } from '../../data-types/errors';
@@ -17,7 +17,7 @@ export class AccountStateEvents {
   private static getInterventionEnumFromStateDetail(accountState: StateDetails) {
     for (const key of Object.keys(AccountStateEvents.interventionConfigurations)) {
       const state = (AccountStateEvents.interventionConfigurations[key] as InterventionEventDetails).state;
-      if (JSON.stringify(state) === JSON.stringify(accountState)) return key as AccountStateEventEnum;
+      if (JSON.stringify(state) === JSON.stringify(accountState)) return key as EventsEnum;
     }
     logAndPublishMetric(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
     throw new StateTransitionErrorIgnored('no intervention could be found in current config for this state');
@@ -26,12 +26,12 @@ export class AccountStateEvents {
   static getInterventionEnumFromCode(code: number) {
     for (const key of Object.keys(AccountStateEvents.interventionConfigurations)) {
       const code_ = (AccountStateEvents.interventionConfigurations[key] as InterventionEventDetails).code;
-      if (code === code_) return key as AccountStateEventEnum;
+      if (code === code_) return key as EventsEnum;
     }
     logAndPublishMetric(MetricNames.NO_INTERVENTION_FOUND_FOR_THIS_CODE);
-    throw new StateTransitionErrorIgnored('no intervention could be found in current config for this code');
+    throw new StateTransitionErrorIgnored(`no intervention could be found in current config for code ${code}`);
   }
-  static applyEventTransition(proposedTransition: AccountStateEventEnum, currentAccountStateDetails?: StateDetails) {
+  static applyEventTransition(proposedTransition: EventsEnum, currentAccountStateDetails?: StateDetails) {
     if (!currentAccountStateDetails)
       currentAccountStateDetails = {
         blocked: false,
@@ -42,16 +42,18 @@ export class AccountStateEvents {
     const accountStateEventEnum = AccountStateEvents.getInterventionEnumFromStateDetail(currentAccountStateDetails);
 
     if (accountStateEventEnum === proposedTransition) {
-      logAndPublishMetric(MetricNames.DUPLICATE_EVENT_RECEIVED);
-      throw new StateTransitionErrorIgnored('proposed transition is the same as current account state');
+      logAndPublishMetric(MetricNames.TRANSITION_SAME_AS_CURRENT_STATE);
+      throw new StateTransitionErrorIgnored(
+        `proposed transition ${proposedTransition} is the same as current account state ${accountStateEventEnum}`,
+      );
     }
 
     let stateChange;
     let interventionName: string | undefined;
 
     if (
-      proposedTransition === AccountStateEventEnum.AUTH_PASSWORD_RESET_SUCCESSFUL ||
-      proposedTransition === AccountStateEventEnum.IPV_IDENTITY_ISSUED
+      proposedTransition === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL ||
+      proposedTransition === EventsEnum.IPV_IDENTITY_ISSUED
     ) {
       const userActionEventObject = AccountStateEvents.userLedActionConfiguration[proposedTransition];
       if (!userActionEventObject) {
@@ -72,7 +74,7 @@ export class AccountStateEvents {
     } else {
       const currentState = AccountStateEvents.interventionConfigurations[accountStateEventEnum];
       if (!currentState) {
-        logAndPublishMetric(MetricNames.ENUM_NOT_FOUND_IN_CURRENT_CONFIG);
+        logAndPublishMetric(MetricNames.INTERVENTION_EVENT_NOT_FOUND_IN_CURRENT_CONFIG);
         throw new StateTransitionErrorIgnored(
           `current state enum ${accountStateEventEnum} does not exist in current config`,
         );
@@ -87,7 +89,7 @@ export class AccountStateEvents {
       const newState = AccountStateEvents.interventionConfigurations[proposedTransition];
       if (!newState) {
         logAndPublishMetric(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
-        throw new StateTransitionErrorIgnored('selected new state does not exist in current config');
+        throw new StateTransitionErrorIgnored('new state does not exist in current config');
       }
       interventionName = newState.interventionName;
       stateChange = newState.state;

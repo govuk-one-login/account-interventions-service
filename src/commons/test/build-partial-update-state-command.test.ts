@@ -1,5 +1,5 @@
 import { StateDetails } from '../../data-types/interfaces';
-import { AccountStateEventEnum, MetricNames } from '../../data-types/constants';
+import { EventsEnum, MetricNames } from '../../data-types/constants';
 import { buildPartialUpdateAccountStateCommand } from '../build-partial-update-state-command';
 import { logAndPublishMetric } from '../metrics';
 
@@ -22,7 +22,7 @@ describe('build-partial-upadte-state-command', () => {
       resetPassword: true,
       reproveIdentity: true,
     };
-    const userAction = AccountStateEventEnum.AUTH_PASSWORD_RESET_SUCCESSFUL;
+    const userAction = EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL;
     const expectedOutput = {
       ExpressionAttributeNames: {
         '#B': 'blocked',
@@ -52,7 +52,7 @@ describe('build-partial-upadte-state-command', () => {
       resetPassword: true,
       reproveIdentity: true,
     };
-    const intervention = AccountStateEventEnum.FRAUD_BLOCK_ACCOUNT;
+    const intervention = EventsEnum.FRAUD_BLOCK_ACCOUNT;
     expect(() => buildPartialUpdateAccountStateCommand(state, intervention)).toThrow(
       new Error('intervention received did not have an interventionName field'),
     );

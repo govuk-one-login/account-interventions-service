@@ -1,6 +1,6 @@
 import { Context, SQSBatchItemFailure, SQSBatchResponse, SQSEvent } from 'aws-lambda';
 import logger from '../commons/logger';
-import { AccountStateEventEnum, MetricNames, TICF_ACCOUNT_INTERVENTION } from '../data-types/constants';
+import { EventsEnum, MetricNames, TICF_ACCOUNT_INTERVENTION } from '../data-types/constants';
 import { logAndPublishMetric } from '../commons/metrics';
 import { TxMAEvent } from '../data-types/interfaces';
 import { validateEvent, validateInterventionEvent } from '../services/validate-event';
@@ -8,6 +8,7 @@ import { AccountStateEvents } from '../services/account-states/account-state-eve
 import { DynamoDbService as DynamoDatabaseService } from '../services/dynamo-db-service';
 import { AppConfigService } from '../services/app-config-service';
 import { StateTransitionErrorIgnored } from '../data-types/errors';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
@@ -16,7 +17,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
   logger.addContext(context);
 
   if (event.Records.length === 0) {
-    logger.debug('Received no records.');
+    logger.warn('Received no records.');
     logAndPublishMetric(MetricNames.INTERVENTION_EVENT_INVALID);
     return {
       batchItemFailures: [],
@@ -28,11 +29,11 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
     try {
       const recordBody: TxMAEvent = JSON.parse(record.body);
       if (!validateEvent(recordBody)) {
-        logger.debug('Invalid intervention request.');
-        logAndPublishMetric(MetricNames.INTERVENTION_INVALID);
+        logger.warn('Invalid event received.');
+        logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
         continue;
       }
-      const now = Math.floor(Date.now() / 1000);
+      const now = getCurrentTimestamp().milliseconds;
       if (now < recordBody.timestamp) {
         logger.debug(`Timestamp is in the future (sec): ${recordBody.timestamp}`);
         logAndPublishMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
@@ -40,7 +41,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
           itemIdentifier: record.messageId,
         });
       } else {
-        let intervention: AccountStateEventEnum;
+        let intervention: EventsEnum;
         logger.debug('event is valid, starting processing');
         if (recordBody.event_name === TICF_ACCOUNT_INTERVENTION) {
           if (!validateInterventionEvent(recordBody)) continue;
@@ -48,7 +49,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
             recordBody.extension!.intervention.intervention_code,
           );
         } else {
-          intervention = recordBody.event_name as AccountStateEventEnum;
+          intervention = recordBody.event_name as EventsEnum;
         }
         logger.debug('identified event: ' + intervention);
         const itemFromDB = await service.retrieveRecordsByUserId(recordBody.user.user_id);

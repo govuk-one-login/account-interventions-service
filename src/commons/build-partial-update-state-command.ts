@@ -1,12 +1,12 @@
 import { StateDetails } from '../data-types/interfaces';
 import { UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { getCurrentTimestamp } from './get-current-timestamp';
-import { AccountStateEventEnum, MetricNames } from '../data-types/constants';
+import { EventsEnum, MetricNames } from '../data-types/constants';
 import { logAndPublishMetric } from './metrics';
 
 export const buildPartialUpdateAccountStateCommand = (
   newState: StateDetails,
-  eventName: AccountStateEventEnum,
+  eventName: EventsEnum,
   interventionName?: string,
 ): Partial<UpdateItemCommandInput> => {
   const base: Record<string, any> = {
@@ -26,11 +26,11 @@ export const buildPartialUpdateAccountStateCommand = (
     },
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
   };
-  if (eventName === AccountStateEventEnum.IPV_IDENTITY_ISSUED) {
+  if (eventName === EventsEnum.IPV_IDENTITY_ISSUED) {
     base['ExpressionAttributeNames']['#RIdA'] = 'reprovedIdentityAt';
     base['ExpressionAttributeValues'][':rida'] = { N: `${getCurrentTimestamp().milliseconds}` };
     base['UpdateExpression'] += ', #RIdA = :rida';
-  } else if (eventName === AccountStateEventEnum.AUTH_PASSWORD_RESET_SUCCESSFUL) {
+  } else if (eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL) {
     base['ExpressionAttributeNames']['#RPswdA'] = 'resetPasswordAt';
     base['ExpressionAttributeValues'][':rpswda'] = { N: `${getCurrentTimestamp().milliseconds}` };
     base['UpdateExpression'] += ', #RPswdA = :rpswda';

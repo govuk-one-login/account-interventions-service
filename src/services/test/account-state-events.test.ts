@@ -1,5 +1,5 @@
 import { AccountStateEvents } from '../account-states/account-state-events';
-import { AccountStateEventEnum, MetricNames } from '../../data-types/constants';
+import { EventsEnum, MetricNames } from '../../data-types/constants';
 import { StateTransitionErrorIgnored } from '../../data-types/errors';
 import { logAndPublishMetric } from '../../commons/metrics';
 
@@ -321,12 +321,12 @@ describe('account-state-service', () => {
   describe('Successful state transitions', () => {
     describe('from no intervention', () => {
       it.each([
-        [AccountStateEventEnum.FRAUD_BLOCK_ACCOUNT, undefined, blockAccountUpdate],
-        [AccountStateEventEnum.FRAUD_SUSPEND_ACCOUNT, undefined, suspendAccountUpdate],
-        [AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET, undefined, passwordResetRequiredUpdate],
-        [AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, undefined, idResetRequiredUpdate],
+        [EventsEnum.FRAUD_BLOCK_ACCOUNT, undefined, blockAccountUpdate],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, undefined, suspendAccountUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, undefined, passwordResetRequiredUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, undefined, idResetRequiredUpdate],
         [
-          AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
           undefined,
           pswAndIdResetRequiredUpdate,
         ],
@@ -338,12 +338,12 @@ describe('account-state-service', () => {
 
     describe('from unsuspended', () => {
       it.each([
-        [AccountStateEventEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay, blockAccountUpdate],
-        [AccountStateEventEnum.FRAUD_SUSPEND_ACCOUNT, accountIsOkay, suspendAccountUpdate],
-        [AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsOkay, passwordResetRequiredUpdate],
-        [AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsOkay, idResetRequiredUpdate],
+        [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay, blockAccountUpdate],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountIsOkay, suspendAccountUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsOkay, passwordResetRequiredUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsOkay, idResetRequiredUpdate],
         [
-          AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
           accountIsOkay,
           pswAndIdResetRequiredUpdate,
         ],
@@ -355,15 +355,15 @@ describe('account-state-service', () => {
 
     describe('from suspended no user action', () => {
       it.each([
-        [AccountStateEventEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsSuspended, unsuspendAccountUpdate],
-        [AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsSuspended, passwordResetRequiredUpdate],
-        [AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsSuspended, idResetRequiredUpdate],
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsSuspended, unsuspendAccountUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsSuspended, passwordResetRequiredUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsSuspended, idResetRequiredUpdate],
         [
-          AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
           accountIsSuspended,
           pswAndIdResetRequiredUpdate,
         ],
-        [AccountStateEventEnum.FRAUD_BLOCK_ACCOUNT, accountIsSuspended, blockAccountUpdate],
+        [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsSuspended, blockAccountUpdate],
       ])('%p', (intervention, retrievedAccountState, command) => {
         const partialCommand = AccountStateEvents.applyEventTransition(intervention, retrievedAccountState);
         expect(logAndPublishMetric).not.toHaveBeenCalled();
@@ -373,17 +373,13 @@ describe('account-state-service', () => {
 
     describe('from suspended psw reset required', () => {
       it.each([
-        [AccountStateEventEnum.FRAUD_BLOCK_ACCOUNT, accountNeedsPswReset, blockAccountUpdate],
-        [AccountStateEventEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsPswReset, unsuspendAccountUpdate],
-        [AccountStateEventEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsPswReset, suspendAccountUpdate],
+        [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountNeedsPswReset, blockAccountUpdate],
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsPswReset, unsuspendAccountUpdate],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsPswReset, suspendAccountUpdate],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountNeedsPswReset, pswResetSuccessfulUpdateUnsuspended],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountNeedsPswReset, idResetRequiredUpdate],
         [
-          AccountStateEventEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
-          accountNeedsPswReset,
-          pswResetSuccessfulUpdateUnsuspended,
-        ],
-        [AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountNeedsPswReset, idResetRequiredUpdate],
-        [
-          AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
           accountNeedsPswReset,
           pswAndIdResetRequiredUpdate,
         ],
@@ -396,15 +392,15 @@ describe('account-state-service', () => {
     describe('from suspended id reset required', () => {
       it.each([
         [
-          AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
           accountNeedsIDReset,
           pswAndIdResetRequiredUpdate,
         ],
-        [AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountNeedsIDReset, passwordResetRequiredUpdate],
-        [AccountStateEventEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsIDReset, suspendAccountUpdate],
-        [AccountStateEventEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsIDReset, unsuspendAccountUpdate],
-        [AccountStateEventEnum.IPV_IDENTITY_ISSUED, accountNeedsIDReset, idResetSuccessfulUpdateUnsuspended],
-        [AccountStateEventEnum.FRAUD_BLOCK_ACCOUNT, accountNeedsIDReset, blockAccountUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountNeedsIDReset, passwordResetRequiredUpdate],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsIDReset, suspendAccountUpdate],
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsIDReset, unsuspendAccountUpdate],
+        [EventsEnum.IPV_IDENTITY_ISSUED, accountNeedsIDReset, idResetSuccessfulUpdateUnsuspended],
+        [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountNeedsIDReset, blockAccountUpdate],
       ])('%p', (intervention, retrievedAccountState, command) => {
         const partialCommand = AccountStateEvents.applyEventTransition(intervention, retrievedAccountState);
         expect(partialCommand).toEqual(command);
@@ -413,25 +409,13 @@ describe('account-state-service', () => {
 
     describe('from suspended psw & id reset required', () => {
       it.each([
-        [AccountStateEventEnum.FRAUD_BLOCK_ACCOUNT, accountNeedsIDResetAdnPswReset, blockAccountUpdate],
-        [
-          AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
-          accountNeedsIDResetAdnPswReset,
-          idResetRequiredUpdate,
-        ],
-        [
-          AccountStateEventEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
-          accountNeedsIDResetAdnPswReset,
-          pswResetSuccessfulUpdateSuspended,
-        ],
-        [
-          AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
-          accountNeedsIDResetAdnPswReset,
-          passwordResetRequiredUpdate,
-        ],
-        [AccountStateEventEnum.IPV_IDENTITY_ISSUED, accountNeedsIDResetAdnPswReset, idResetSuccessfulUpdateSuspended],
-        [AccountStateEventEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsIDResetAdnPswReset, unsuspendAccountUpdate],
-        [AccountStateEventEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsIDResetAdnPswReset, suspendAccountUpdate],
+        [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountNeedsIDResetAdnPswReset, blockAccountUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountNeedsIDResetAdnPswReset, idResetRequiredUpdate],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountNeedsIDResetAdnPswReset, pswResetSuccessfulUpdateSuspended],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountNeedsIDResetAdnPswReset, passwordResetRequiredUpdate],
+        [EventsEnum.IPV_IDENTITY_ISSUED, accountNeedsIDResetAdnPswReset, idResetSuccessfulUpdateSuspended],
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsIDResetAdnPswReset, unsuspendAccountUpdate],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsIDResetAdnPswReset, suspendAccountUpdate],
       ])('%p', (intervention, retrievedAccountState, command) => {
         const partialCommand = AccountStateEvents.applyEventTransition(intervention, retrievedAccountState);
         expect(partialCommand).toEqual(command);
@@ -439,7 +423,7 @@ describe('account-state-service', () => {
     });
 
     describe('from blocked', () => {
-      it.each([[AccountStateEventEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsBlocked, unblockAccountUpdate]])(
+      it.each([[EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsBlocked, unblockAccountUpdate]])(
         '%p',
         (intervention, retrievedAccountState, command) => {
           const partialCommand = AccountStateEvents.applyEventTransition(intervention, retrievedAccountState);
@@ -450,55 +434,52 @@ describe('account-state-service', () => {
   });
 
   describe('Unsuccessful state transitions', () => {
-    const duplicateInterventionErrorMessage = 'proposed transition is the same as current account state';
-
+    const duplicateInterventionErrorMessage = 'proposed transition x is the same as current account state x';
+    const re = /x/gi;
     describe('received intervention is the same as current account state', () => {
       it.each([
-        [AccountStateEventEnum.FRAUD_SUSPEND_ACCOUNT, accountIsSuspended],
-        [AccountStateEventEnum.FRAUD_BLOCK_ACCOUNT, accountIsBlocked],
-        [AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountNeedsPswReset],
-        [AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountNeedsIDReset],
-        [
-          AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
-          accountNeedsIDResetAdnPswReset,
-        ],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountIsSuspended],
+        [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsBlocked],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountNeedsPswReset],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountNeedsIDReset],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountNeedsIDResetAdnPswReset],
       ])('%p', (intervention, retrievedAccountState) => {
         expect(() => AccountStateEvents.applyEventTransition(intervention, retrievedAccountState)).toThrow(
-          new StateTransitionErrorIgnored(duplicateInterventionErrorMessage),
+          new StateTransitionErrorIgnored(duplicateInterventionErrorMessage.replaceAll(re, intervention)),
         );
       });
     });
 
     describe('received intervention is not allowed on current account state', () => {
       it.each([
-        [AccountStateEventEnum.FRAUD_UNBLOCK_ACCOUNT, undefined],
-        [AccountStateEventEnum.FRAUD_UNSUSPEND_ACCOUNT, undefined],
-        [AccountStateEventEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, undefined],
-        [AccountStateEventEnum.IPV_IDENTITY_ISSUED, undefined],
+        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, undefined],
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, undefined],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, undefined],
+        [EventsEnum.IPV_IDENTITY_ISSUED, undefined],
 
-        [AccountStateEventEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsOkay],
-        [AccountStateEventEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsOkay],
-        [AccountStateEventEnum.IPV_IDENTITY_ISSUED, accountIsOkay],
+        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsOkay],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsOkay],
+        [EventsEnum.IPV_IDENTITY_ISSUED, accountIsOkay],
 
-        [AccountStateEventEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsSuspended],
-        [AccountStateEventEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsSuspended],
-        [AccountStateEventEnum.IPV_IDENTITY_ISSUED, accountIsSuspended],
+        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsSuspended],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsSuspended],
+        [EventsEnum.IPV_IDENTITY_ISSUED, accountIsSuspended],
 
-        [AccountStateEventEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsPswReset],
-        [AccountStateEventEnum.IPV_IDENTITY_ISSUED, accountNeedsPswReset],
+        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsPswReset],
+        [EventsEnum.IPV_IDENTITY_ISSUED, accountNeedsPswReset],
 
-        [AccountStateEventEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsIDReset],
-        [AccountStateEventEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountNeedsIDReset],
+        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsIDReset],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountNeedsIDReset],
 
-        [AccountStateEventEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsIDResetAdnPswReset],
+        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsIDResetAdnPswReset],
 
-        [AccountStateEventEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsBlocked],
-        [AccountStateEventEnum.IPV_IDENTITY_ISSUED, accountIsBlocked],
-        [AccountStateEventEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsBlocked],
-        [AccountStateEventEnum.FRAUD_SUSPEND_ACCOUNT, accountIsBlocked],
-        [AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsBlocked],
-        [AccountStateEventEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsBlocked],
-        [AccountStateEventEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountIsBlocked],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsBlocked],
+        [EventsEnum.IPV_IDENTITY_ISSUED, accountIsBlocked],
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsBlocked],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountIsBlocked],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsBlocked],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsBlocked],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountIsBlocked],
       ])('%p applied on account state: %p', (intervention, retrievedAccountState) => {
         expect(() => AccountStateEvents.applyEventTransition(intervention, retrievedAccountState)).toThrow();
       });
@@ -513,7 +494,7 @@ describe('account-state-service', () => {
           resetPassword: true,
         };
         expect(() =>
-          AccountStateEvents.applyEventTransition(AccountStateEventEnum.FRAUD_BLOCK_ACCOUNT, unexpectedAccountState),
+          AccountStateEvents.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, unexpectedAccountState),
         ).toThrow(new StateTransitionErrorIgnored('no intervention could be found in current config for this state'));
         expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
       });
@@ -523,11 +504,11 @@ describe('account-state-service', () => {
   describe('get intervention enum from code method', () => {
     it('should return the right intervention enum given the corresponding code', () => {
       const result = AccountStateEvents.getInterventionEnumFromCode(2);
-      expect(result).toEqual(AccountStateEventEnum.FRAUD_UNSUSPEND_ACCOUNT);
+      expect(result).toEqual(EventsEnum.FRAUD_UNSUSPEND_ACCOUNT);
     });
     it('should throw if the no intervention can be found with the given code', () => {
       expect(() => AccountStateEvents.getInterventionEnumFromCode(111)).toThrow(
-        new StateTransitionErrorIgnored('no intervention could be found in current config for this code'),
+        new StateTransitionErrorIgnored('no intervention could be found in current config for code 111'),
       );
     });
   });
