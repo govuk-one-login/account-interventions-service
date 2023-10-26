@@ -72,5 +72,5 @@ $ ./provisioner.sh {AWS_ACCOUNT} {STACK_NAME} {STACK_TEMPLATE} {TEMPLATE_VERSION
 
 Example:
 ```
-./provisioner.sh di-id-reuse-core-dev-admin id-reuse-core-pipeline sam-deploy-pipeline v2.5.0
+./provisioner.sh di-id-reuse-core-dev-admin ais-core-pipeline sam-deploy-pipeline v2.5.0
 ```
