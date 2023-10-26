@@ -23,22 +23,19 @@ describe('Dynamo DB Service', () => {
     dynamoDBService = new DynamoDatabaseService(tableName);
   });
 
-  const vcs = [
+  const records = [
     {
       pk: 'urn:fdc:gov.uk:2022:JG0RJI1pYbnanbvPs-j4j5-a-PFcmhry9Qu9RGA9A4i',
-      sk: 'SflKxwRJSMeKKF2QT4f_0GUcjhK',
       content: 'content',
       timestamp: '1684912310',
     },
     {
       pk: 'urn:fdc:gov.uk:2022:JG0RJI1pYbnanbvPs-j4j5-a-PFcmhry9Qu9RGA9A4i',
-      sk: 'SflKxwRJSMeKKF2QT4f_13x4q7s',
       content: 'content',
       timestamp: '1684912310',
     },
     {
       pk: 'urn:fdc:gov.uk:2022:JG0RJI1pYbnanbvPs-j4j5-a-PFcmhry9Qu9RGA9A4i',
-      sk: 'SflKxwRJSMeKKF2QT4f_1H3NllL',
       content: 'content',
       timestamp: '1684912313',
     },
@@ -52,7 +49,7 @@ describe('Dynamo DB Service', () => {
       ExpressionAttributeNames: { '#pk': 'pk' },
       ExpressionAttributeValues: { ':id_value': { S: 'abc' } },
     };
-    ddbMock.on(QueryCommand).resolves({ Items: vcs });
+    ddbMock.on(QueryCommand).resolves({ Items: records });
     await new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc');
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, QueryCommandInput);
   });
@@ -71,6 +68,56 @@ describe('Dynamo DB Service', () => {
     expect(logAndPublishMetric).toHaveBeenCalledWith('DB_QUERY_ERROR_NO_RESPONSE');
   });
 
+  it('should throw a logger debug if non-null LEK has been received', async () => {
+    const mockedQueryCommand = mockClient(DynamoDBClient).on(QueryCommand);
+    //@ts-ignore
+    mockedQueryCommand.resolvesOnce({
+      ConsumedCapacity: {
+        TableName: 'VCStorage',
+        CapacityUnits: Number('single'),
+      },
+      Count: 3,
+      Items: [
+        {pk: {S: 'userId1'}},
+        {pk: {S: 'userId1'}},
+        {pk: {S: 'userId1'}}
+      ],
+      ScannedCount: 3,
+      LastEvaluatedKey: {
+        pk: {
+          S: 'userId1'
+        }
+      }
+    }).resolvesOnce({
+      ConsumedCapacity: {},
+      Count: 3,
+      Items: [
+        {pk: {S: 'userId1'}},
+        {pk: {S: 'userId1'}},
+        {pk: {S: 'userId1'}}
+      ],
+      ScannedCount: 3,
+      LastEvaluatedKey: {
+        pk: {
+          S: 'userId1'
+        }
+      }
+    }).resolvesOnce(
+      {
+        ConsumedCapacity: {},
+        Count: 2,
+        Items: [
+          {pk: {S: 'userId1'}},
+          {pk: {S: 'userId1'}},
+        ],
+        ScannedCount: 2,
+      }
+    );
+    await expect((new DynamoDatabaseService('table_name')).retrieveRecordsByUserId('userId1')).resolves.toHaveLength(8);
+    expect(logAndPublishMetric).toHaveBeenCalledWith('DB_QUERY_HAS_LEK');
+    expect(logAndPublishMetric).toHaveBeenCalledTimes(2)
+  });
+
   it('should update the status of the userId in DynamoDB and log info', async () => {
     const commandInput: UpdateItemCommandInput = {
       TableName: 'table_name',
@@ -82,7 +129,7 @@ describe('Dynamo DB Service', () => {
       },
       ExpressionAttributeValues: {
         ':isAccountDeleted': { BOOL: true },
-        ':ttl': { N: '1685417145000' },
+        ':ttl': { N: '1685417145' },
       },
       ConditionExpression: 'attribute_exists(pk)',
     };
