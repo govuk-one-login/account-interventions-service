@@ -147,7 +147,6 @@ Resources:
               - "dynamodb:Query"
               - "dynamodb:DeleteItem"
               - "dynamodb:UpdateItem"
-              - "dynamodb:PutObject"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
       Roles:
