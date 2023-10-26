@@ -108,7 +108,6 @@ export class DynamoDbService {
     };
     const command = new UpdateItemCommand(commandInput);
     const response = await this.dynamoClient.send(command);
-    logger.debug(JSON.stringify(response));
     return response;
   }
 }
