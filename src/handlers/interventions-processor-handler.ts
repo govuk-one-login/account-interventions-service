@@ -54,7 +54,6 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
         logger.debug('identified event: ' + intervention);
         const itemFromDB = await service.retrieveRecordsByUserId(recordBody.user.user_id);
         logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
-        //THIS COULD THROW and shouldn't be retried
         const statusResult = AccountStateEvents.applyEventTransition(intervention, itemFromDB);
         logger.debug('processed requested event, sending update request to dynamo db');
         await service.updateUserStatus(recordBody.user.user_id, statusResult);

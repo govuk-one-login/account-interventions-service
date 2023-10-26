@@ -17,7 +17,13 @@ export class AccountStateEvents {
   private static getInterventionEnumFromStateDetail(accountState: StateDetails) {
     for (const key of Object.keys(AccountStateEvents.interventionConfigurations)) {
       const state = (AccountStateEvents.interventionConfigurations[key] as InterventionEventDetails).state;
-      if (JSON.stringify(state) === JSON.stringify(accountState)) return key as EventsEnum;
+      if (
+        accountState.blocked === state.blocked &&
+        accountState.suspended === state.suspended &&
+        accountState.reproveIdentity === state.reproveIdentity &&
+        accountState.resetPassword === state.resetPassword
+      )
+        return key as EventsEnum;
     }
     logAndPublishMetric(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
     throw new StateTransitionErrorIgnored('no intervention could be found in current config for this state');

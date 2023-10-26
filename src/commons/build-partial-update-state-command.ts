@@ -9,6 +9,7 @@ export const buildPartialUpdateAccountStateCommand = (
   eventName: EventsEnum,
   interventionName?: string,
 ): Partial<UpdateItemCommandInput> => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const base: Record<string, any> = {
     ExpressionAttributeNames: {
       '#B': 'blocked',

@@ -1,0 +1,13 @@
+{
+  "timestamp": 1234,
+  "event_timestamp_ms": 1234000,
+  "event_name": "TICF_ACCOUNT_INTERVENTION",
+  "component_id": "TICF_CRI",
+  "user": { "user_id": "urn:fdc:gov.uk:2022:USER_ONE" },
+  "extension": {
+    "intervention": {
+      "intervention_code": 3,
+      "intervention_reason": "something"
+    }
+  }
+}
