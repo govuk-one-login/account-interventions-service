@@ -1,0 +1,16 @@
+name: "Ensure SHA Pinned Actions"
+
+on:
+  push:
+    paths:
+      - ".github/workflows/*"
+
+jobs:
+  harden_security:
+    name: Harden Security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3
+      - name: Ensure SHA Pinned Actions
+        uses: zgosalvez/github-actions-ensure-sha-pinned-actions@21991cec25093947ff3f62e4c223df0260c39944 # pin@v2.1.2

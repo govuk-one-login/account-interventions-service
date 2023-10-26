@@ -1,5 +1,5 @@
 ---
-name: "Publish Core SAM Template"
+name: "Verify & Publish Core SAM Template"
 
 on:
   push:
