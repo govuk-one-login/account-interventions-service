@@ -50,8 +50,8 @@ jobs:
       - name: Run yarn lint
         run: yarn lint
 
-      - name: Run sam validate
-        run: yarn lint:iac
+      - name: Run sam validate - main
+        uses: .github/workflows/validate-main-sam-template.yaml
 
       - name: Run unit tests with coverage report
         run: yarn test:unit
