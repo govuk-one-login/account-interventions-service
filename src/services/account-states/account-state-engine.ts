@@ -37,6 +37,7 @@ export class AccountStateEngine {
     logAndPublishMetric(MetricNames.NO_INTERVENTION_FOUND_FOR_THIS_CODE);
     throw new StateTransitionError(`no intervention could be found in current config for code ${code}`);
   }
+
   static applyEventTransition(proposedTransition: EventsEnum, currentAccountStateDetails?: StateDetails) {
     if (!currentAccountStateDetails)
       currentAccountStateDetails = {
