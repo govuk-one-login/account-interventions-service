@@ -5,14 +5,6 @@ Description: >-
   Alarm template for the Account Interventions Service (AIS) solution.
 
 Parameters:
-  CoreStackName:
-    Description: The name of the Core Account Interventions Service Stack.
-    Type: String
-    Default: ais-core
-  SystemTagValue:
-    Description: Value for the System Tag
-    Type: String
-    Default: Account Interventions Service
   AlertingSNSLowAlertNotificationTopicARN:
     Description: "The ARN of the Alerting SNS Low Alert Notification topic"
     Type: AWS::SSM::Parameter::Value<String>
