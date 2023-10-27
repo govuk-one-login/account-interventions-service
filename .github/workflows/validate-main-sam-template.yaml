@@ -29,5 +29,9 @@ jobs:
     env:
       SAM_CLI_TELEMETRY: 0
     steps:
+      - name: Checkout
+        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3
+        with:
+          ref: ${{ inputs.gitRef || github.ref }}
       - name: SAM Validate
         run: sam validate --lint -t src/infra/main/template.yaml
