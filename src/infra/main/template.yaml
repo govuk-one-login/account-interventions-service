@@ -237,7 +237,7 @@ Resources:
   TxMAIngressQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue"
+      QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue" #test commit
       MessageRetentionPeriod: 1209600
       KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
       RedriveAllowPolicy:
