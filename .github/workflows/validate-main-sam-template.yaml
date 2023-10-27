@@ -8,6 +8,8 @@ on:
   pull_request:
     paths:
       - src/infra/main/template.yaml
+      - .github/workflows/valida-main-sam-template.yaml
+
   workflow_call:
     inputs:
       gitRef:
