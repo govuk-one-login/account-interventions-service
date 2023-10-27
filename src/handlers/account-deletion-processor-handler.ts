@@ -57,5 +57,6 @@ async function updateDeleteStatusId(userId: string) {
     logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Account ${userId} marked as deleted`);
   } catch (error) {
     logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} Error updating account ${userId}`, { error });
+    throw new Error('Failed to update the account status.');
   }
 }

@@ -123,7 +123,7 @@ describe('Account Deletion Processor', () => {
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     const loggerErrorSpy = jest.spyOn(logger, 'error');
-    await handler(mockEvent, mockContext);
+    await expect (handler(mockEvent, mockContext)).rejects.toThrowError('Failed to update the account status.');
     expect(loggerErrorSpy).toHaveBeenCalledWith(`Sensitive info - Error updating account hello`, { error: 'Error' });
   });
 
