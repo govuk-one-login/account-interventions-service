@@ -1,0 +1,81 @@
+---
+name: "Validate & Publish Main SAM Template to Dev Env"
+
+on:
+  push:
+    paths:
+      - "src/**"
+      - "!src/infra/core/**" # excluded with !
+      - ".github/workflows/manual-publish-main-to-dev.yaml"
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      gitRef:
+        description: "Input branch name, commit SHA, or tag"
+        required: true
+        type: string
+        default: main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  validate_deployment:
+    name: Deployment Template Checks
+    uses: ./.github/workflows/validate-main-sam-template.yaml
+    with:
+      gitRef: ${{ inputs.gitRef }}
+    secrets:
+      githubActionsRoleARN: ${{ secrets.DEV_MAIN_GH_ACTIONS_ROLE_ARN }}
+
+  acceptance_checks:
+    name: Acceptance Checks
+    uses: ./.github/workflows/acceptance-checks.yaml
+    secrets: inherit # pragma: allowlist secret
+    with:
+      gitRef: ${{ inputs.gitRef }}
+
+  publish_artifacts:
+    name: "Publish Image & Template"
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs:
+      - validate_deployment
+      - acceptance_checks
+    steps:
+      - uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3
+        with:
+          ref: ${{ inputs.gitRef }}
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # pin@v3
+        with:
+          node-version-file: '.node-version'
+
+      - name: Run yarn install
+        run: yarn install --frozen-lockfile
+
+      - name: Run yarn build
+        run: yarn build
+
+      - name: Run yarn package
+        run: yarn package
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@e1e17a757e536f70e52b5a12b2e8d1d1c60e04ef # pin@v1-node16
+        with:
+          role-to-assume: ${{ secrets.DEV_MAIN_GH_ACTIONS_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: "Deploy SAM app"
+        uses: alphagov/di-devplatform-upload-action@1db904c002e0f98dbcb5ab453ceb1b71de5f7dd3 # pin@v2
+        with:
+          artifact-bucket-name: ${{ secrets.DEV_MAIN_ARTIFACT_BUCKET_NAME }}
+          signing-profile-name: ${{ secrets.DEV_SIGNING_PROFILE_NAME }}
+          working-directory: ./src/infra/main/
+          template-file: template.yaml
+
+      - name: "Delegated Deployment via AWS CodeDeploy"
+        run: echo "Deployment has been delegated to AWS CodeDeploy"

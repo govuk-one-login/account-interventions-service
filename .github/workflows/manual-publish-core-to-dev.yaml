@@ -1,0 +1,56 @@
+---
+name: "Validate & Publish Core SAM Template to Dev Env"
+
+on:
+  push:
+    paths:
+      - "src/infra/core/**"
+      - ".github/workflows/manual-publish-core-to-dev.yaml"
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      gitRef:
+        description: "Input branch name, commit SHA, or tag."
+        required: true
+        type: string
+        default: main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  validate_deployment:
+    name: Deployment Template Checks
+    uses: ./.github/workflows/validate-core-sam-template.yaml
+    with:
+      gitRef: ${{ inputs.gitRef }}
+    secrets:
+      githubActionsRoleARN: ${{ secrets.DEV_CORE_GH_ACTIONS_ROLE_ARN }}
+
+  publish_artifacts:
+    name: "Publish Image & Template"
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3
+        with:
+          ref: ${{ inputs.gitRef }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@e1e17a757e536f70e52b5a12b2e8d1d1c60e04ef # pin@v1-node16
+        with:
+          role-to-assume: ${{ secrets.DEV_CORE_GH_ACTIONS_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: "Deploy SAM app"
+        uses: alphagov/di-devplatform-upload-action@1db904c002e0f98dbcb5ab453ceb1b71de5f7dd3 # pin@v2
+        with:
+          artifact-bucket-name: ${{ secrets.DEV_CORE_ARTIFACT_BUCKET_NAME }}
+          signing-profile-name: ${{ secrets.DEV_SIGNING_PROFILE_NAME }}
+          working-directory: ./src/infra/core/
+          template-file: template.yaml
+
+      - name: "Delegated Deployment via AWS CodeDeploy"
+        run: echo "Deployment has been delegated to AWS CodeDeploy"

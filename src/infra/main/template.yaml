@@ -160,7 +160,7 @@ Resources:
               - "logs:CreateLogStream"
               - "logs:PutLogEvents"
             Resource:
-              - !GetAtt InterventionProcessorFunctionLogGroup.Arn
+              - !GetAtt InterventionProcessorFunctionRole.Arn
           - Effect: Allow
             Action:
               - "sqs:ReceiveMessage"
@@ -171,7 +171,7 @@ Resources:
             Action:
               - "kms:Decrypt"
               - "kms:GenerateDataKey"
-            Resource: !GetAtt TxMAIngressEncryptionKey.Arn
+            Resource: !GetAtt SQSEncryptionKey.Arn
           - Effect: Allow
             Action:
               - "dynamodb:UpdateItem"
@@ -189,27 +189,8 @@ Resources:
       Roles:
         - !Ref InterventionProcessorFunctionRole
 
-  InterventionProcessorFunctionLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/lambda/${InterventionProcessorFunction}"
-      RetentionInDays: 30
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-        - Key: Name
-          Value: !Sub "/aws/lambda/${InterventionProcessorFunction}"
-
-  #### TxMA ####
-  TxMAIngressEncryptionKey:
+ #### TxMA ####
+  SQSEncryptionKey:
     Type: AWS::KMS::Key
     Properties:
       Description: AWS KMS key for encrypting the contents of messages in TxMA SQS queues
@@ -245,20 +226,20 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
         - Key: Name
-          Value: !Sub "${AWS::StackName}-TxMAIngressEncryptionKey"
+          Value: !Sub "${AWS::StackName}-SQSEncryptionKey"
 
-  TxMAIngressEncryptionKeyAlias:
+  SQSEncryptionKeyAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub "alias/${AWS::StackName}-TxMAIngressEncryptionKey"
-      TargetKeyId: !GetAtt TxMAIngressEncryptionKey.Arn
+      AliasName: !Sub "alias/${AWS::StackName}-SQSEncryptionKey"
+      TargetKeyId: !GetAtt SQSEncryptionKey.Arn
 
   TxMAIngressQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue"
       MessageRetentionPeriod: 1209600
-      KmsMasterKeyId: !GetAtt TxMAIngressEncryptionKey.Arn
+      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
       RedriveAllowPolicy:
         redrivePermission: denyAll
       RedrivePolicy:
@@ -296,7 +277,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${AWS::StackName}-TxMAIngressDLQ"
-      KmsMasterKeyId: !Ref TxMAIngressEncryptionKeyAlias
+      KmsMasterKeyId: !Ref SQSEncryptionKeyAlias
       VisibilityTimeout: 0
       MessageRetentionPeriod: 1209600
       RedriveAllowPolicy:
