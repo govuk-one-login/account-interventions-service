@@ -32,7 +32,7 @@ Parameters:
   CoreStackName:
     Description: The name of the Core VC Storage stack
     Type: String
-    Default: account-interventions-service-core
+    Default: ais-core
   ProductTagValue:
     Description: Value for the Product Tag
     Type: String
@@ -260,7 +260,6 @@ Resources:
 
   TxMAIngressQueuePolicy:
     Type: AWS::SQS::QueuePolicy
-    DependsOn: TxMAIngressQueue
     Properties:
       Queues:
         - !Ref TxMAIngressQueue
