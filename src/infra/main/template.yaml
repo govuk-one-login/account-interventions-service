@@ -151,3 +151,111 @@ Resources:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
       Roles:
         - !Ref AISSampleLambdaHandlerRole
+
+ #### TxMA ####
+  SQSEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: AWS KMS key for encrypting the contents of messages in TxMA SQS queues
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: kms:*
+            Resource:
+              - "*"
+          - Effect: Allow
+            Principal:
+              Service: sqs.amazonaws.com
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: "*"
+            Condition:
+              ArnLike:
+                aws:SourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:*"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-SQSEncryptionKey"
+
+  SQSEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-SQSEncryptionKey"
+      TargetKeyId: !GetAtt SQSEncryptionKey.Arn
+
+  TxMAIngressQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue"
+      MessageRetentionPeriod: 1209600
+      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
+      RedriveAllowPolicy:
+        redrivePermission: denyAll
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt TxMAIngressDLQ.Arn
+        maxReceiveCount: 3
+      VisibilityTimeout: 60
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  TxMAIngressQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    DependsOn: TxMAIngressQueue
+    Properties:
+      Queues:
+        - !Ref TxMAIngressQueue
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt TxMAIngressQueue.Arn
+            Principal:
+              Service: sns.amazonaws.com
+
+  TxMAIngressDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-TxMAIngressDLQ"
+      KmsMasterKeyId: !Ref SQSEncryptionKeyAlias
+      VisibilityTimeout: 0
+      MessageRetentionPeriod: 1209600
+      RedriveAllowPolicy:
+        redrivePermission: byQueue
+        sourceQueueArns:
+          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-TxMAIngressQueue"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+

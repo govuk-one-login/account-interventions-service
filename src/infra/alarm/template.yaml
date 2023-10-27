@@ -1,0 +1,60 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: >-
+  Alarm template for the Account Interventions Service (AIS) solution.
+
+Parameters:
+  CoreStackName:
+    Description: The name of the Core Account Interventions Service Stack.
+    Type: String
+    Default: ais-core
+  SystemTagValue:
+    Description: Value for the System Tag
+    Type: String
+    Default: Account Interventions Service
+  AlertingSNSLowAlertNotificationTopicARN:
+    Description: "The ARN of the Alerting SNS Low Alert Notification topic"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/infra-alerting/SNS/LowAlertNotificationTopic/ARN" #pragma: allowlist secret
+  AlertingSNSHighAlertNotificationTopicARN:
+    Description: "The ARN of the Alerting SNS High Alert Notification topic"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
+
+#
+# CloudWatch Alarms for SQS Queues
+#
+
+Resources:
+  TxMAIngressQueueProcessingSlowly:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "The TxMA Ingress Queue is processing slowly."
+      Namespace: AWS/SQS
+      MetricName: TXMA_INGRESS_QUEUE_PROCESSING_SLOWLY
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: SampleCount
+      Threshold: 60
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+
+  TxMAIngressQueueProcessingTooSlowly:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "The TxMA Ingress Queue is processing slowly."
+      Namespace: AWS/SQS
+      MetricName: TXMA_INGRESS_QUEUE_PROCESSING_TOO_SLOWLY
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: SampleCount
+      Threshold: 600
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
