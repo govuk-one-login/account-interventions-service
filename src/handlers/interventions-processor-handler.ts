@@ -7,7 +7,7 @@ import { validateEvent, validateInterventionEvent } from '../services/validate-e
 import { AccountStateEvents } from '../services/account-states/account-state-events';
 import { DynamoDbService as DynamoDatabaseService } from '../services/dynamo-db-service';
 import { AppConfigService } from '../services/app-config-service';
-import { StateTransitionErrorIgnored } from '../data-types/errors';
+import { StateTransitionError } from '../data-types/errors';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 
 const appConfig = AppConfigService.getInstance();
@@ -59,7 +59,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
         await service.updateUserStatus(recordBody.user.user_id, statusResult);
       }
     } catch (error) {
-      if (error instanceof StateTransitionErrorIgnored) {
+      if (error instanceof StateTransitionError) {
         logger.warn('StateTransitionError caught, message will not be retried');
         continue;
       }

@@ -5,7 +5,7 @@ export class InvalidEnvironmentVariableError extends Error {
   }
 }
 
-export class StateTransitionErrorIgnored extends Error {
+export class StateTransitionError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'StateTransitionErrorIgnoredError';

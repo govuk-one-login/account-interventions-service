@@ -1,6 +1,6 @@
 import { AccountStateEvents } from '../account-states/account-state-events';
 import { EventsEnum, MetricNames } from '../../data-types/constants';
-import { StateTransitionErrorIgnored } from '../../data-types/errors';
+import { StateTransitionError } from '../../data-types/errors';
 import { logAndPublishMetric } from '../../commons/metrics';
 
 const accountIsSuspended = {
@@ -445,7 +445,7 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountNeedsIDResetAdnPswReset],
       ])('%p', (intervention, retrievedAccountState) => {
         expect(() => AccountStateEvents.applyEventTransition(intervention, retrievedAccountState)).toThrow(
-          new StateTransitionErrorIgnored(duplicateInterventionErrorMessage.replaceAll(re, intervention)),
+          new StateTransitionError(duplicateInterventionErrorMessage.replaceAll(re, intervention)),
         );
       });
     });
@@ -495,7 +495,7 @@ describe('account-state-service', () => {
         };
         expect(() =>
           AccountStateEvents.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, unexpectedAccountState),
-        ).toThrow(new StateTransitionErrorIgnored('no intervention could be found in current config for this state'));
+        ).toThrow(new StateTransitionError('no intervention could be found in current config for this state'));
         expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
       });
     });
@@ -508,7 +508,7 @@ describe('account-state-service', () => {
     });
     it('should throw if the no intervention can be found with the given code', () => {
       expect(() => AccountStateEvents.getInterventionEnumFromCode(111)).toThrow(
-        new StateTransitionErrorIgnored('no intervention could be found in current config for code 111'),
+        new StateTransitionError('no intervention could be found in current config for code 111'),
       );
     });
   });

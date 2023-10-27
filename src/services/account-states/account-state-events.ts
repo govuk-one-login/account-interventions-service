@@ -8,7 +8,7 @@ import { interventionsConfig, userLedActionsConfig } from './config';
 import { EventsEnum, MetricNames } from '../../data-types/constants';
 import { buildPartialUpdateAccountStateCommand } from '../../commons/build-partial-update-state-command';
 import { logAndPublishMetric } from '../../commons/metrics';
-import { StateTransitionErrorIgnored } from '../../data-types/errors';
+import { StateTransitionError } from '../../data-types/errors';
 
 export class AccountStateEvents {
   private static readonly interventionConfigurations: InterventionTransitionConfigurations = interventionsConfig;
@@ -26,7 +26,7 @@ export class AccountStateEvents {
         return key as EventsEnum;
     }
     logAndPublishMetric(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
-    throw new StateTransitionErrorIgnored('no intervention could be found in current config for this state');
+    throw new StateTransitionError('no intervention could be found in current config for this state');
   }
 
   static getInterventionEnumFromCode(code: number) {
@@ -35,7 +35,7 @@ export class AccountStateEvents {
       if (code === code_) return key as EventsEnum;
     }
     logAndPublishMetric(MetricNames.NO_INTERVENTION_FOUND_FOR_THIS_CODE);
-    throw new StateTransitionErrorIgnored(`no intervention could be found in current config for code ${code}`);
+    throw new StateTransitionError(`no intervention could be found in current config for code ${code}`);
   }
   static applyEventTransition(proposedTransition: EventsEnum, currentAccountStateDetails?: StateDetails) {
     if (!currentAccountStateDetails)
@@ -49,7 +49,7 @@ export class AccountStateEvents {
 
     if (accountStateEventEnum === proposedTransition) {
       logAndPublishMetric(MetricNames.TRANSITION_SAME_AS_CURRENT_STATE);
-      throw new StateTransitionErrorIgnored(
+      throw new StateTransitionError(
         `proposed transition ${proposedTransition} is the same as current account state ${accountStateEventEnum}`,
       );
     }
@@ -64,13 +64,13 @@ export class AccountStateEvents {
       const userActionEventObject = AccountStateEvents.userLedActionConfiguration[proposedTransition];
       if (!userActionEventObject) {
         logAndPublishMetric(MetricNames.USER_ACTION_EVENT_DOES_NOT_EXIST_IN_CURRENT_CONFIG);
-        throw new StateTransitionErrorIgnored(
+        throw new StateTransitionError(
           `received user action ${proposedTransition} event does not exist in current config`,
         );
       }
       if (!userActionEventObject.allowedFromStates.includes(accountStateEventEnum)) {
         logAndPublishMetric(MetricNames.STATE_TRANSITION_NOT_ALLOWED);
-        throw new StateTransitionErrorIgnored(
+        throw new StateTransitionError(
           `this user action ${proposedTransition} is not allowed on the current account state ${accountStateEventEnum}`,
         );
       }
@@ -81,13 +81,11 @@ export class AccountStateEvents {
       const currentState = AccountStateEvents.interventionConfigurations[accountStateEventEnum];
       if (!currentState) {
         logAndPublishMetric(MetricNames.INTERVENTION_EVENT_NOT_FOUND_IN_CURRENT_CONFIG);
-        throw new StateTransitionErrorIgnored(
-          `current state enum ${accountStateEventEnum} does not exist in current config`,
-        );
+        throw new StateTransitionError(`current state enum ${accountStateEventEnum} does not exist in current config`);
       }
       if (!currentState.allowedTransitions.includes(proposedTransition)) {
         logAndPublishMetric(MetricNames.STATE_TRANSITION_NOT_ALLOWED);
-        throw new StateTransitionErrorIgnored(
+        throw new StateTransitionError(
           `this intervention ${proposedTransition} is now allowed on the current account state ${accountStateEventEnum}`,
         );
       }
@@ -95,7 +93,7 @@ export class AccountStateEvents {
       const newState = AccountStateEvents.interventionConfigurations[proposedTransition];
       if (!newState) {
         logAndPublishMetric(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
-        throw new StateTransitionErrorIgnored('new state does not exist in current config');
+        throw new StateTransitionError('new state does not exist in current config');
       }
       interventionName = newState.interventionName;
       stateChange = newState.state;
