@@ -51,7 +51,13 @@ jobs:
         run: yarn lint
 
       - name: Run sam validate - main
-        uses: .github/workflows/validate-main-sam-template.yaml
+        uses: ./.github/workflows/validate-main-sam-template.yaml
+
+      - name: Run sam validate - core
+        uses: ./.github/workflows/validate-core-sam-template.yaml
+
+      - name: Run sam validate - alarms
+        uses: ./.github/workflows/validate-alarm-sam-template.yaml
 
       - name: Run unit tests with coverage report
         run: yarn test:unit
