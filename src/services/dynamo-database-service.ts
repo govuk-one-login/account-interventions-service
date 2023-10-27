@@ -4,7 +4,8 @@ import {
   QueryCommandInput,
   QueryCommandOutput,
   UpdateItemCommand,
-  UpdateItemCommandInput, UpdateItemCommandOutput,
+  UpdateItemCommandInput,
+  UpdateItemCommandOutput,
 } from '@aws-sdk/client-dynamodb';
 import logger from '../commons/logger';
 import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
