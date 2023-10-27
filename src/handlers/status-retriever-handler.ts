@@ -39,7 +39,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
       const toResponse = transformedResponse(toObject);
       return {
         statusCode: 200,
-        body: JSON.stringify({ message: toResponse }),
+        body: JSON.stringify({ intervention: toResponse }),
       };
     }
   } catch (error) {
@@ -71,14 +71,12 @@ function eventValidation(userId: string) {
  */
 function transformedResponse(item: Record<string, any>): TransformedResponseFromDynamoDatabase {
   return item = {
-    intervention: {
       updatedAt: Number(item['updatedAt'] ?? Date.now()),
       appliedAt: Number(item['appliedAt']),
       sentAt: Number(item['sentAt']),
       description: String(item['intervention']),
       reprovedIdentityAt: Number(item['reprovedIdentityAt']),
       resetPasswordAt: Number(item['resetPasswordAt']),
-    },
     state: {
       blocked: Boolean(item['blocked']),
       suspended: Boolean(item['suspended']),

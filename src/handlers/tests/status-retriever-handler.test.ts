@@ -140,14 +140,12 @@ const nullUpdatedAt = {
 }
 
 const mockedAccount = {
-  intervention: {
     updatedAt: 123455,
     appliedAt: 12345685809,
     sentAt: 123456789,
     description: mockedRecord.intervention,
     reprovedIdentityAt: 849473,
     resetPasswordAt: 5847392,
-  },
   state: {
     blocked: false,
     suspended: true,
@@ -158,14 +156,12 @@ const mockedAccount = {
 };
 
 const updatedTime = {
-  intervention: {
     updatedAt: 1685404800000,
     appliedAt: 12345685809,
     sentAt: 123456789,
     description: mockedRecord.intervention,
     reprovedIdentityAt: 849473,
     resetPasswordAt: 5847392,
-  },
   state: {
     blocked: false,
     suspended: true,
@@ -194,7 +190,7 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce([marshall(mockedRecord)]);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(JSON.stringify({ message: mockedAccount }));
+    expect(response.body).toEqual(JSON.stringify({ intervention: mockedAccount }));
   });
 
   it('will return a message if user ID cannot be found in the database', async () => {
@@ -223,6 +219,6 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce([marshall(nullUpdatedAt)]);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(JSON.stringify({ message: updatedTime }))
+    expect(response.body).toEqual(JSON.stringify({ intervention: updatedTime }));
   })
 });

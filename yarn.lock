@@ -5906,6 +5906,11 @@ pure-rand@^6.0.0:
   resolved "https://registry.yarnpkg.com/pure-rand/-/pure-rand-6.0.4.tgz#50b737f6a925468679bff00ad20eade53f37d5c7"
   integrity sha512-LA0Y9kxMYv47GIPJy6MI84fqTd2HmYZI83W/kM/SkKfDlajnZYfmXFTxkbY+xSBPkLJxltMa9hIkmdc29eguMA==
 
+pyyaml@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/pyyaml/-/pyyaml-0.0.1.tgz#d174fc90d5570026f0a4fe48e5a364f9d34a0809"
+  integrity sha512-JtAUzqb5VR+h5rEwoc5X848rDvSLFhhCOXYGObC+mn9HoQRQ6j/kLPLlMKUBEJZMJhN6hzCSkvKHVGNaX5w9eQ==
+
 querystring@0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/querystring/-/querystring-0.2.0.tgz#b209849203bb25df820da756e747005878521620"
