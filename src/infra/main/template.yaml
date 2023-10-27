@@ -593,7 +593,6 @@ Resources:
 
   TxMAIngressQueuePolicy:
     Type: AWS::SQS::QueuePolicy
-    DependsOn: TxMAIngressQueue
     Properties:
       Queues:
         - !Ref TxMAIngressQueue
