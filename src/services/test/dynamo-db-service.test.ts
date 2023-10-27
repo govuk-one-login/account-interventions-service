@@ -73,7 +73,7 @@ describe('Dynamo DB Service', () => {
     //@ts-ignore
     mockedQueryCommand.resolvesOnce({
       ConsumedCapacity: {
-        TableName: 'VCStorage',
+        TableName: 'table_name',
         CapacityUnits: Number('single'),
       },
       Count: 3,
