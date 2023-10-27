@@ -5,7 +5,7 @@ import { logAndPublishMetric } from '../commons/metrics';
 import { TxMAEvent } from '../data-types/interfaces';
 import { validateEvent, validateInterventionEvent } from '../services/validate-event';
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
-import { DynamoDbService as DynamoDatabaseService } from '../services/dynamo-db-service';
+import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { AppConfigService } from '../services/app-config-service';
 import { StateTransitionError } from '../data-types/errors';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';

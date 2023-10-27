@@ -4,7 +4,7 @@ import {
   QueryCommandInput,
   QueryCommandOutput,
   UpdateItemCommand,
-  UpdateItemCommandInput,
+  UpdateItemCommandInput, UpdateItemCommandOutput,
 } from '@aws-sdk/client-dynamodb';
 import logger from '../commons/logger';
 import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
@@ -15,7 +15,7 @@ import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { logAndPublishMetric } from '../commons/metrics';
 import { StateDetails } from '../data-types/interfaces';
 
-export class DynamoDbService {
+export class DynamoDatabaseService {
   private dynamoClient: DynamoDBClient;
   private readonly tableName: string;
 
@@ -50,7 +50,10 @@ export class DynamoDbService {
     return response.Items[0] ? (unmarshall(response.Items[0]) as StateDetails) : undefined;
   }
 
-  public async updateUserStatus(userId: string, partialInput: Partial<UpdateItemCommandInput>) {
+  public async updateUserStatus(
+    userId: string,
+    partialInput: Partial<UpdateItemCommandInput>,
+  ): Promise<UpdateItemCommandOutput> {
     const commandInput: UpdateItemCommandInput = {
       TableName: this.tableName,
       Key: { pk: { S: userId } },
