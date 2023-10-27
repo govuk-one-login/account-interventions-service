@@ -5,6 +5,9 @@ name: Validate Core SAM Template
 #   - a file, listed below, is pushed to any branch other than `main`, i.e. a feature branch.
 #   - invoked by another workflow.
 on:
+  pull_request:
+    paths:
+      - src/infra/alarm/template.yaml
   workflow_call:
     inputs:
       gitRef:
