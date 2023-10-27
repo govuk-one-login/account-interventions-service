@@ -1,4 +1,4 @@
-import { AccountStateEvents } from '../account-states/account-state-events';
+import { AccountStateEngine } from '../account-states/account-state-engine';
 import { EventsEnum, MetricNames } from '../../data-types/constants';
 import { StateTransitionError } from '../../data-types/errors';
 import { logAndPublishMetric } from '../../commons/metrics';
@@ -331,7 +331,7 @@ describe('account-state-service', () => {
           pswAndIdResetRequiredUpdate,
         ],
       ])('%p', (intervention, retrievedAccountState, command) => {
-        const partialCommand = AccountStateEvents.applyEventTransition(intervention, retrievedAccountState);
+        const partialCommand = AccountStateEngine.applyEventTransition(intervention, retrievedAccountState);
         expect(partialCommand).toEqual(command);
       });
     });
@@ -348,7 +348,7 @@ describe('account-state-service', () => {
           pswAndIdResetRequiredUpdate,
         ],
       ])('%p', (intervention, retrievedAccountState, command) => {
-        const partialCommand = AccountStateEvents.applyEventTransition(intervention, retrievedAccountState);
+        const partialCommand = AccountStateEngine.applyEventTransition(intervention, retrievedAccountState);
         expect(partialCommand).toEqual(command);
       });
     });
@@ -365,7 +365,7 @@ describe('account-state-service', () => {
         ],
         [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsSuspended, blockAccountUpdate],
       ])('%p', (intervention, retrievedAccountState, command) => {
-        const partialCommand = AccountStateEvents.applyEventTransition(intervention, retrievedAccountState);
+        const partialCommand = AccountStateEngine.applyEventTransition(intervention, retrievedAccountState);
         expect(logAndPublishMetric).not.toHaveBeenCalled();
         expect(partialCommand).toEqual(command);
       });
@@ -384,7 +384,7 @@ describe('account-state-service', () => {
           pswAndIdResetRequiredUpdate,
         ],
       ])('%p', (intervention, retrievedAccountState, command) => {
-        const partialCommand = AccountStateEvents.applyEventTransition(intervention, retrievedAccountState);
+        const partialCommand = AccountStateEngine.applyEventTransition(intervention, retrievedAccountState);
         expect(partialCommand).toEqual(command);
       });
     });
@@ -402,7 +402,7 @@ describe('account-state-service', () => {
         [EventsEnum.IPV_IDENTITY_ISSUED, accountNeedsIDReset, idResetSuccessfulUpdateUnsuspended],
         [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountNeedsIDReset, blockAccountUpdate],
       ])('%p', (intervention, retrievedAccountState, command) => {
-        const partialCommand = AccountStateEvents.applyEventTransition(intervention, retrievedAccountState);
+        const partialCommand = AccountStateEngine.applyEventTransition(intervention, retrievedAccountState);
         expect(partialCommand).toEqual(command);
       });
     });
@@ -417,7 +417,7 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsIDResetAdnPswReset, unsuspendAccountUpdate],
         [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsIDResetAdnPswReset, suspendAccountUpdate],
       ])('%p', (intervention, retrievedAccountState, command) => {
-        const partialCommand = AccountStateEvents.applyEventTransition(intervention, retrievedAccountState);
+        const partialCommand = AccountStateEngine.applyEventTransition(intervention, retrievedAccountState);
         expect(partialCommand).toEqual(command);
       });
     });
@@ -426,7 +426,7 @@ describe('account-state-service', () => {
       it.each([[EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsBlocked, unblockAccountUpdate]])(
         '%p',
         (intervention, retrievedAccountState, command) => {
-          const partialCommand = AccountStateEvents.applyEventTransition(intervention, retrievedAccountState);
+          const partialCommand = AccountStateEngine.applyEventTransition(intervention, retrievedAccountState);
           expect(partialCommand).toEqual(command);
         },
       );
@@ -444,7 +444,7 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountNeedsIDReset],
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountNeedsIDResetAdnPswReset],
       ])('%p', (intervention, retrievedAccountState) => {
-        expect(() => AccountStateEvents.applyEventTransition(intervention, retrievedAccountState)).toThrow(
+        expect(() => AccountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(
           new StateTransitionError(duplicateInterventionErrorMessage.replaceAll(re, intervention)),
         );
       });
@@ -481,7 +481,7 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsBlocked],
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountIsBlocked],
       ])('%p applied on account state: %p', (intervention, retrievedAccountState) => {
-        expect(() => AccountStateEvents.applyEventTransition(intervention, retrievedAccountState)).toThrow();
+        expect(() => AccountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow();
       });
     });
 
@@ -494,7 +494,7 @@ describe('account-state-service', () => {
           resetPassword: true,
         };
         expect(() =>
-          AccountStateEvents.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, unexpectedAccountState),
+          AccountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, unexpectedAccountState),
         ).toThrow(new StateTransitionError('no intervention could be found in current config for this state'));
         expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
       });
@@ -503,11 +503,11 @@ describe('account-state-service', () => {
 
   describe('get intervention enum from code method', () => {
     it('should return the right intervention enum given the corresponding code', () => {
-      const result = AccountStateEvents.getInterventionEnumFromCode(2);
+      const result = AccountStateEngine.getInterventionEnumFromCode(2);
       expect(result).toEqual(EventsEnum.FRAUD_UNSUSPEND_ACCOUNT);
     });
     it('should throw if the no intervention can be found with the given code', () => {
-      expect(() => AccountStateEvents.getInterventionEnumFromCode(111)).toThrow(
+      expect(() => AccountStateEngine.getInterventionEnumFromCode(111)).toThrow(
         new StateTransitionError('no intervention could be found in current config for code 111'),
       );
     });

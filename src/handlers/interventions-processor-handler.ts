@@ -4,7 +4,7 @@ import { EventsEnum, MetricNames, TICF_ACCOUNT_INTERVENTION } from '../data-type
 import { logAndPublishMetric } from '../commons/metrics';
 import { TxMAEvent } from '../data-types/interfaces';
 import { validateEvent, validateInterventionEvent } from '../services/validate-event';
-import { AccountStateEvents } from '../services/account-states/account-state-events';
+import { AccountStateEngine } from '../services/account-states/account-state-engine';
 import { DynamoDbService as DynamoDatabaseService } from '../services/dynamo-db-service';
 import { AppConfigService } from '../services/app-config-service';
 import { StateTransitionError } from '../data-types/errors';
@@ -45,7 +45,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
         logger.debug('event is valid, starting processing');
         if (recordBody.event_name === TICF_ACCOUNT_INTERVENTION) {
           if (!validateInterventionEvent(recordBody)) continue;
-          intervention = AccountStateEvents.getInterventionEnumFromCode(
+          intervention = AccountStateEngine.getInterventionEnumFromCode(
             recordBody.extension!.intervention.intervention_code,
           );
         } else {
@@ -54,7 +54,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
         logger.debug('identified event: ' + intervention);
         const itemFromDB = await service.retrieveRecordsByUserId(recordBody.user.user_id);
         logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
-        const statusResult = AccountStateEvents.applyEventTransition(intervention, itemFromDB);
+        const statusResult = AccountStateEngine.applyEventTransition(intervention, itemFromDB);
         logger.debug('processed requested event, sending update request to dynamo db');
         await service.updateUserStatus(recordBody.user.user_id, statusResult);
       }
