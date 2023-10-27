@@ -2,13 +2,13 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 
 Description: >-
-  Account Interventions Service's Alarm stack for ID Reuse.
+  Alarm template for the Account Interventions Service (AIS) solution.
 
 Parameters:
   CoreStackName:
-    Description: The name of the Account Interventions Service's Stack
+    Description: The name of the Core Account Interventions Service Stack.
     Type: String
-    Default: ais
+    Default: ais-core
   SystemTagValue:
     Description: Value for the System Tag
     Type: String
