@@ -35,7 +35,7 @@ export interface CurrentTimeDescriptor {
 export interface TxMAEvent {
   event_name: string;
   timestamp: number;
-  component_id: string;
+  component_id?: string;
   user: User;
   extension?: Extension;
 }
