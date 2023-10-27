@@ -29,7 +29,6 @@ export class AppConfigService {
   public get cloudWatchMetricsWorkSpace(): string {
     return this.validateConfiguration('CLOUDWATCH_METRICS_NAMESPACE');
   }
-  //test commint
   public get awsRegion(): string {
     return this.validateConfiguration('AWS_REGION');
   }

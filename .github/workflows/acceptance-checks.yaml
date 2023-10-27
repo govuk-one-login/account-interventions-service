@@ -52,6 +52,8 @@ jobs:
 
       - name: Run sam validate - main
         uses: ./.github/workflows/validate-main-sam-template.yaml
+        with:
+          gitRef: ${{ inputs.gitRef }}
 
       - name: Run sam validate - core
         uses: ./.github/workflows/validate-core-sam-template.yaml
