@@ -50,18 +50,25 @@ Conditions:
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   IsInternal: !Or [ !Equals [!Ref Environment, dev], !Equals [!Ref Environment, build],!Equals [ !Ref Environment, staging]]
 
-Mappings:
-  EnvConfig:
-    dev:
-      LambdaLogLevel: DEBUG
-    build:
-      LambdaLogLevel: INFO
-    staging:
-      LambdaLogLevel: INFO
-    integration:
-      LambdaLogLevel: INFO
-    production:
-      LambdaLogLevel: INFO
+## Mappings for dev and build will point to the internal SNS topic.
+
+#Mappings:
+#  EnvConfig:
+#    dev:
+#      LambdaLogLevel: DEBUG
+#      AccountDeletionProcessorSNSTopicARN: ""
+#    build:
+#      LambdaLogLevel: INFO
+#      AccountDeletionProcessorSNSTopicARN: ""
+#    staging:
+#      LambdaLogLevel: INFO
+#      AccountDeletionProcessorSNSTopicARN: ""
+#    integration:
+#      LambdaLogLevel: INFO
+#      AccountDeletionProcessorSNSTopicARN: ""
+#    production:
+#      LambdaLogLevel: INFO
+#      AccountDeletionProcessorSNSTopicARN: ""
 
 Globals:
   Function:
@@ -216,29 +223,17 @@ Resources:
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
     Properties:
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
-      Description: "A lambda function that updates the VCs account status"
+      Description: "A lambda function that updates an account status indicating that the account has been deleted"
       CodeUri: ../../../dist/handlers/account-deletion-processor-handler
       Timeout: 60
       Handler: account-deletion-processor-handler.handler
       Role: !GetAtt AccountDeletionProcessorFunctionRole.Arn
       Environment:
         Variables:
-          ACCOUNT_STATUS_TABLE_NAME:
-            Fn::ImportValue: !Sub "${CoreStackName}-  AccountDeletionProcessorFunction:
-    Type: AWS::Serverless::Function
-    # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
-    # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
-    Properties:
-      FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
-      CodeUri: ../../../dist/handlers/account-deletion-processor-handler
-      Timeout: 10
-      Handler: account-deletion-processor-handler.handler
-      Role: !GetAtt AccountDeletionProcessorFunctionRole.Arn
-      Environment:
-        Variables:
-          ACCOUNT_STATUS_TABLE_NAME:
-            Fn::ImportValue: !Sub "${CoreStackName}-AccountInterventionsHistoryDynamoDBTableArn"
+          TABLE_NAME:
+            Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
           DELETED_ACCOUNT_STATUS_RETENTION_SECONDS: 63072000
+          METRIC_SERVICE_NAME: !Sub "${AWS::StackName}-AccountDeletionProcessorFunction"
       Events:
         SNSEvent:
           Type: SNS
@@ -252,7 +247,7 @@ Resources:
             Topic: !If
               - IsInternal
               - !Ref AccountDeletionProcessorSNSTopic
-              - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
+#              - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
         Product: !Ref ProductTagValue
@@ -271,7 +266,7 @@ Resources:
       SourceArn: !If
         - IsInternal
         - !Ref AccountDeletionProcessorSNSTopic
-        - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
+#        - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
 
   AccountDeletionProcessorFunctionRole:
     Type: AWS::IAM::Role
@@ -289,6 +284,17 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionRolePolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sqs:ReceiveMessage"
+                  - "sqs:DeleteMessage"
+                  - "sqs:GetQueueAttributes"
+                Resource: !GetAtt AccountDeletionProcessorQueue.Arn 
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -310,126 +316,22 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - "dynamodb:UpdateItem"
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
             Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-  AccountDeletionProcessorFunction:
-    Type: AWS::Serverless::Function
-    # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
-    # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
-    Properties:
-      FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
-      CodeUri: ../../../dist/handlers/account-deletion-processor-handler
-      Timeout: 10
-      Handler: account-deletion-processor-handler.handler
-      Role: !GetAtt AccountDeletionProcessorFunctionRole.Arn
-      Environment:
-        Variables:
-          ACCOUNT_STATUS_TABLE_NAME:
-            Fn::ImportValue: !Sub "${CoreStackName}-AccountInterventionsHistoryDynamoDBTableArn"
-          DELETED_ACCOUNT_STATUS_RETENTION_SECONDS: 63072000
-      Tags:
-        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
-        Product: !Ref ProductTagValue
-        System: !Ref SystemTagValue
-        Environment: !Ref Environment
-        Owner: !Ref OwnerTagValue
-        Source: !Ref SourceTagValue
-
-  AccountDeletionProcessorFunctionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName:  !Sub '${AWS::StackName}-AccountDeletionProcessorFunctionRole'
-      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AccountDeletionProcessorFunction}:*'
           - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
             Action:
-              - "sts:AssumeRole"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-
-  AccountDeletionProcessorFunctionPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionPolicy"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
+              - "kms:GenerateDataKey"
+              - "kms:Decrypt"
+            Resource:
+              - !GetAtt SQSEncryptionKey.Arn
+              - !GetAtt AccountDeletionProcessorSNSKmsKey.Arn
           - Effect: Allow
             Action:
               - "dynamodb:UpdateItem"
             Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountInterventionsHistoryDynamoDBTableArn"
-      Roles:
-        - !Ref AccountDeletionProcessorFunctionRole
-  "
-      Roles:
-        - !Ref AccountDeletionProcessorFunctionRole
-  Arn"
-          DELETED_ACCOUNT_STATUS_RETENTION_SECONDS: 63072000
-      Tags:
-        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
-        Product: !Ref ProductTagValue
-        System: !Ref SystemTagValue
-        Environment: !Ref Environment
-        Owner: !Ref OwnerTagValue
-        Source: !Ref SourceTagValue
-
-  AccountDeletionProcessorFunctionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName:  !Sub '${AWS::StackName}-AccountDeletionProcessorFunctionRole'
-      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-
-  AccountDeletionProcessorFunctionPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionPolicy"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "dynamodb:UpdateItem"
-            Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountInterventionsHistoryDynamoDBTableArn"
+              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
       Roles:
         - !Ref AccountDeletionProcessorFunctionRole
 
@@ -476,7 +378,7 @@ Resources:
                   - !If
                     - IsInternal
                     - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
-                    - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN]
+#                    - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN]
 
   AccountDeletionProcessorDLQ:
     Type: AWS::SQS::Queue
@@ -571,7 +473,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue"
-      MessageRetentionPeriod: 1209600
+      MessageRetentionPeriod: 1209600 #Two Years in seconds
       KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
       RedriveAllowPolicy:
         redrivePermission: denyAll
