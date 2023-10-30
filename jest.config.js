@@ -11,4 +11,4 @@ process.env['CLOUDWATCH_METRICS_NAMESPACE'] = 'test_namespace';
 process.env['METRIC_SERVICE_NAME'] = 'test';
 process.env['TABLE_NAME'] = 'table_name';
 process.env['AWS_REGION'] = 'aws_region';
-process.env['DELETED_ACCOUNT_STATUS_RETENTION_SECONDS'] = '12345';
+process.env['DELETED_ACCOUNT_RETENTION_SECONDS'] = '12345';

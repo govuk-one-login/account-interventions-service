@@ -10,7 +10,7 @@ const ddbService = new DynamoDatabaseService(appConfig.tableName);
 
 export const handler = async (event: SQSEvent, context: Context): Promise<void> => {
   logger.addContext(context);
-  if (!event.Records[0] || event.Records.length === 0) {
+  if (!event.Records[0]) {
     logger.error('The event does not contain any records.');
     return;
   }

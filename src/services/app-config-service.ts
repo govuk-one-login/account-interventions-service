@@ -35,7 +35,7 @@ export class AppConfigService {
   }
 
   public get maxRetentionSeconds(): number {
-    const retentionSecond = this.validateNumberEnvVars('DELETED_ACCOUNT_STATUS_RETENTION_SECONDS');
+    const retentionSecond = this.validateNumberEnvVars('DELETED_ACCOUNT_RETENTION_SECONDS');
     return retentionSecond;
   }
 

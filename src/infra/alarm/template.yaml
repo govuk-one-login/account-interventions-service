@@ -5,6 +5,10 @@ Description: >-
   Alarm template for the Account Interventions Service (AIS) solution.
 
 Parameters:
+  CoreStackName:
+    Description: The name of the Core Account Interventions Service Stack.
+    Type: String
+    Default: ais-core
   SystemTagValue:
     Description: Value for the System Tag
     Type: String
