@@ -7,6 +7,7 @@ import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import { validateEvent, validateInterventionEvent } from '../../services/validate-event';
 import { AccountStateEngine } from '../../services/account-states/account-state-engine';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
+import {ValidationError} from "../../data-types/errors";
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -37,7 +38,7 @@ describe('delete-data-handler', () => {
         event_name: 'event',
         extension: {
           intervention: {
-            intervention_code: 1,
+            intervention_code: '01',
             intervention_reason: 'reason',
           },
         },
@@ -115,7 +116,7 @@ describe('delete-data-handler', () => {
           event_name: 'event',
           extension: {
             intervention: {
-              intervention_code: 1,
+              intervention_code: '01',
               intervention_reason: 'reason',
             },
           },
@@ -143,11 +144,12 @@ describe('delete-data-handler', () => {
     });
 
     it('should ignore the event if body is invalid', async () => {
-      eventValidationMock.mockReturnValueOnce(false);
+      eventValidationMock.mockImplementationOnce(() => {
+        throw new ValidationError('invalid event');
+      });
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
     });
 
     it('should fail if dynamo operation errors', async () => {

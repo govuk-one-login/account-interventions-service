@@ -49,7 +49,7 @@ interface Extension {
 }
 
 interface Intervention {
-  intervention_code: number;
+  intervention_code: string;
   intervention_reason: string;
   cms_id?: string;
   requester_id?: string;

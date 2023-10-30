@@ -48,6 +48,12 @@ export class DynamoDatabaseService {
       logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
       throw new Error(errorMessage);
     }
+    if (response.Items.length > 1) {
+      const errorMessage = 'DynamoDB returned more than one element.';
+      logger.error(errorMessage);
+      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
+      throw new Error(errorMessage);
+    }
     return response.Items[0] ? (unmarshall(response.Items[0]) as StateDetails) : undefined;
   }
 

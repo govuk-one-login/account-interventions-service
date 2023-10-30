@@ -2,10 +2,15 @@ import { TxMAEvent } from '../../data-types/interfaces';
 import { validateEvent, validateInterventionEvent } from '../validate-event';
 import logger from '../../commons/logger';
 import { logAndPublishMetric } from '../../commons/metrics';
+import { ValidationError } from '../../data-types/errors';
 
 jest.mock('../../commons/metrics');
 jest.mock('@aws-lambda-powertools/logger');
 describe('event-validation', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should return true as event is valid', () => {
     const TxMAEvent: TxMAEvent = {
       timestamp: 87_298_174,
@@ -15,13 +20,13 @@ describe('event-validation', () => {
       event_name: 'event',
       extension: {
         intervention: {
-          intervention_code: 1,
+          intervention_code: '01',
           intervention_reason: 'reason',
         },
       },
     };
-    expect(validateEvent(TxMAEvent)).toEqual(true);
-    expect(validateInterventionEvent(TxMAEvent)).toEqual(true);
+    expect(validateEvent(TxMAEvent)).toBeUndefined();
+    expect(validateInterventionEvent(TxMAEvent)).toBeUndefined();
   });
 
   it('should return false as intervention is invalid', () => {
@@ -39,8 +44,8 @@ describe('event-validation', () => {
         },
       },
     };
-    expect(validateEvent(TxMAEvent)).toEqual(true);
-    expect(validateInterventionEvent(TxMAEvent)).toEqual(false);
+    expect(validateEvent(TxMAEvent)).toBeUndefined();
+    expect(() => validateInterventionEvent(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
     expect(logger.debug).toHaveBeenCalledWith('Invalid intervention request.');
     expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
@@ -54,14 +59,14 @@ describe('event-validation', () => {
       event_name: 'event',
       extension: {
         intervention: {
-          intervention_code: 1,
+          intervention_code: '01',
           intervention_reason: 'reason',
         },
       },
     };
-    expect(validateEvent(TxMAEvent)).toEqual(false);
-    expect(validateInterventionEvent(TxMAEvent)).toEqual(true);
-    expect(logger.debug).toHaveBeenCalledWith('event event did not have user id field');
+    expect(() => validateEvent(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
+    expect(validateInterventionEvent(TxMAEvent)).toBeUndefined();
+    expect(logger.debug).toHaveBeenCalledWith('event has failed initial validation');
     expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
 });

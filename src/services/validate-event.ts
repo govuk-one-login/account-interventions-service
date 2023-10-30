@@ -2,32 +2,30 @@ import { TxMAEvent } from '../data-types/interfaces';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
 import { MetricNames } from '../data-types/constants';
+import { ValidationError } from '../data-types/errors';
 
-export function validateEvent(interventionRequest: TxMAEvent): boolean {
-  if (!interventionRequest.timestamp || Number.isNaN(interventionRequest.timestamp)) {
-    logger.debug('event has no timestamp or timestamp is not a number');
-    return false;
+export function validateEvent(interventionRequest: TxMAEvent): void {
+  if (
+    !interventionRequest.timestamp ||
+    Number.isNaN(interventionRequest.timestamp) ||
+    !interventionRequest.user?.user_id ||
+    !interventionRequest.event_name
+  ) {
+    logger.debug('event has failed initial validation');
+    logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
+    throw new ValidationError('Invalid intervention event.');
   }
-  if (!interventionRequest.user?.user_id) {
-    logger.debug('event event did not have user id field');
-    return false;
-  }
-  if (!interventionRequest.event_name) {
-    logger.debug('event did not have event name field');
-    return false;
-  }
-  return true;
 }
 
-export function validateInterventionEvent(interventionRequest: TxMAEvent): boolean {
+export function validateInterventionEvent(interventionRequest: TxMAEvent): void {
   if (
     !interventionRequest.extension ||
     !interventionRequest.extension.intervention ||
-    !interventionRequest.extension.intervention.intervention_code
+    !interventionRequest.extension.intervention.intervention_code ||
+    Number.isNaN(Number.parseInt(interventionRequest.extension.intervention.intervention_code))
   ) {
     logger.debug('Invalid intervention request.');
     logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
-    return false;
+    throw new ValidationError('Invalid intervention event.');
   }
-  return true;
 }
