@@ -8,7 +8,7 @@ on:
   pull_request:
     paths:
       - src/infra/alarm/template.yaml
-      - .github/workflows/valida-alarm-sam-template.yaml
+      - .github/workflows/validate-alarm-sam-template.yaml
   workflow_call:
     inputs:
       gitRef:
