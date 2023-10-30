@@ -79,7 +79,7 @@ export class AccountStateEngine {
       newState.suspended = newState.resetPassword || newState.reproveIdentity;
       stateChange = newState;
     } else {
-      const currentState = AccountStateEngine.interventionConfigurations[accountStateEventEnum];
+      const currentState = AccountStateEngine.interventionConfigurations[accountStateEventEnum]!;
       if (!currentState) {
         logAndPublishMetric(MetricNames.INTERVENTION_EVENT_NOT_FOUND_IN_CURRENT_CONFIG);
         throw new StateTransitionError(`current state enum ${accountStateEventEnum} does not exist in current config`);
@@ -93,7 +93,7 @@ export class AccountStateEngine {
 
       const newStateDetails = AccountStateEngine.interventionConfigurations[proposedTransition];
       if (!newStateDetails) {
-        logAndPublishMetric(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
+        logAndPublishMetric(MetricNames.INTERVENTION_EVENT_NOT_FOUND_IN_CURRENT_CONFIG);
         throw new StateTransitionError(`this intervention: ${proposedTransition} cannot be found in current config`);
       }
       interventionName = newStateDetails.interventionName;

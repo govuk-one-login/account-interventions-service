@@ -7,7 +7,7 @@ import { validateEvent, validateInterventionEvent } from '../services/validate-e
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { AppConfigService } from '../services/app-config-service';
-import { StateTransitionError, ValidationError } from '../data-types/errors';
+import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 
 const appConfig = AppConfigService.getInstance();
@@ -50,9 +50,10 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
   } catch (error) {
     if (error instanceof StateTransitionError) {
       logger.warn('StateTransitionError caught, message will not be retried');
-    }
-    if (error instanceof ValidationError) {
+    } else if (error instanceof ValidationError) {
       logger.warn('ValidationError caught, message will not be retried');
+    } else if (error instanceof TooManyRecordsError) {
+      logger.warn('TooManyRecordsError caught, message will not be retried');
     } else {
       itemFailures.push({
         itemIdentifier: record.messageId,

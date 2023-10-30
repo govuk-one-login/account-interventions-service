@@ -15,6 +15,7 @@ import tracer from '../commons/tracer';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { logAndPublishMetric } from '../commons/metrics';
 import { StateDetails } from '../data-types/interfaces';
+import { TooManyRecordsError } from '../data-types/errors';
 
 export class DynamoDatabaseService {
   private dynamoClient: DynamoDBClient;
@@ -53,7 +54,7 @@ export class DynamoDatabaseService {
       const errorMessage = 'DynamoDB returned more than one element.';
       logger.error(errorMessage);
       logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
-      throw new Error(errorMessage);
+      throw new TooManyRecordsError(errorMessage);
     }
     return response.Items[0] ? (unmarshall(response.Items[0]) as StateDetails) : undefined;
   }

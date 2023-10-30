@@ -524,6 +524,7 @@ describe('account-state-service', () => {
         writable: true,
         value: userLedActionsConfig,
       });
+      jest.clearAllMocks();
     });
     const invalidInterventionConfigWithoutCode = {
       FRAUD_SUSPEND_ACCOUNT: {
@@ -553,8 +554,8 @@ describe('account-state-service', () => {
           EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
           EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
         ],
+        code: 2,
       },
-      code: 2,
     };
     const invalidInterventionConfigMissingKey = {
       FRAUD_SUSPEND_ACCOUNT: {
@@ -601,6 +602,7 @@ describe('account-state-service', () => {
       expect(() => {
         AccountStateEngine.getInterventionEnumFromCode(2);
       }).toThrow(new Error('no intervention could be found in current config for code 2'));
+      expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.NO_INTERVENTION_FOUND_FOR_THIS_CODE);
     });
     it('applyEventTransition should throw if current state cannot be found in current intervention config', () => {
       Object.defineProperty(AccountStateEngine, 'interventionConfigurations', {
@@ -610,6 +612,7 @@ describe('account-state-service', () => {
       expect(() => {
         AccountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNBLOCK_ACCOUNT, sampleStateDetail);
       }).toThrow(new Error('no intervention could be found in current config for this state'));
+      expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
     });
     it('applyEventTransition should throw if received user action is not found in current user action config', () => {
       Object.defineProperty(AccountStateEngine, 'userLedActionConfiguration', {
@@ -619,6 +622,9 @@ describe('account-state-service', () => {
       expect(() => {
         AccountStateEngine.applyEventTransition(EventsEnum.IPV_IDENTITY_ISSUED, sampleStateDetail);
       }).toThrow(new Error('received user action IPV_IDENTITY_ISSUED event does not exist in current config'));
+      expect(logAndPublishMetric).toHaveBeenLastCalledWith(
+        MetricNames.USER_ACTION_EVENT_DOES_NOT_EXIST_IN_CURRENT_CONFIG,
+      );
     });
     it('applyEventTransition should throw if received intervention cannot be found in current intervention config', () => {
       Object.defineProperty(AccountStateEngine, 'interventionConfigurations', {
@@ -628,6 +634,7 @@ describe('account-state-service', () => {
       expect(() => {
         AccountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, sampleStateDetail);
       }).toThrow(new Error('this intervention: FRAUD_UNSUSPEND_ACCOUNT cannot be found in current config'));
+      expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_EVENT_NOT_FOUND_IN_CURRENT_CONFIG);
     });
   });
 });

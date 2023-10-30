@@ -8,7 +8,7 @@ export class InvalidEnvironmentVariableError extends Error {
 export class StateTransitionError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'StateTransitionErrorIgnoredError';
+    this.name = 'StateTransitionError';
   }
 }
 
@@ -16,5 +16,12 @@ export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'ValidationErrorIgnoredError';
+  }
+}
+
+export class TooManyRecordsError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'TooManyRecordsError';
   }
 }

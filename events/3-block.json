@@ -6,7 +6,7 @@
   "user": { "user_id": "urn:fdc:gov.uk:2022:USER_ONE" },
   "extension": {
     "intervention": {
-      "intervention_code": 3,
+      "intervention_code": "03",
       "intervention_reason": "something"
     }
   }
