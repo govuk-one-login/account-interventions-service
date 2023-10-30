@@ -26,6 +26,14 @@
     "package:sam:fix:linux": "sed -i -e \"s|\\.+\\/.*[a-zA-Z0-9_-]+\\/\\(.*\\)|\\1|g\" .aws-sam/build/template.yaml",
     "package": "rimraf .aws-sam && yarn package:sam && yarn package:sam:fix"
   },
+  "dependencies": {
+    "@aws-lambda-powertools/commons": "^1.14.0",
+    "@aws-lambda-powertools/logger": "^1.14.0",
+    "@aws-lambda-powertools/metrics": "^1.14.0",
+    "@aws-lambda-powertools/tracer": "^1.14.0",
+    "@aws-sdk/client-dynamodb": "^3.430.0",
+    "@aws-sdk/util-dynamodb": "^3.433.0"
+  },
   "devDependencies": {
     "@stoplight/spectral-cli": "^6.11.0",
     "@types/aws-lambda": "^8.10.125",
@@ -55,12 +63,6 @@
     "webpack-cli": "^5.1.4",
     "yaml-cfn": "^0.3.2",
     "yarn-audit-fix": "^10.0.1",
-    "@aws-lambda-powertools/commons": "^1.14.0",
-    "@aws-lambda-powertools/logger": "^1.14.0",
-    "@aws-lambda-powertools/metrics": "^1.14.0",
-    "@aws-lambda-powertools/tracer": "^1.14.0",
-    "@aws-sdk/client-dynamodb": "^3.430.0",
-    "@aws-sdk/util-dynamodb": "^3.433.0",
     "aws-sdk-client-mock": "^3.0.0",
     "aws-sdk-client-mock-jest": "^3.0.0"
   }
