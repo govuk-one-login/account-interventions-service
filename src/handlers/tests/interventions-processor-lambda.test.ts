@@ -20,7 +20,7 @@ const mockUpdateRecords = DynamoDatabaseService.prototype.updateUserStatus as je
 const eventValidationMock = validateEvent as jest.Mock;
 const interventionEventValidationMock = validateInterventionEvent as jest.Mock;
 
-describe('delete-data-handler', () => {
+describe('intervention processor handler', () => {
   let mockEvent: SQSEvent;
   let mockRecord: SQSRecord;
   const mockContext = ContextExamples.helloworldContext;
