@@ -50,25 +50,23 @@ Conditions:
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   IsInternal: !Or [ !Equals [!Ref Environment, dev], !Equals [!Ref Environment, build],!Equals [ !Ref Environment, staging]]
 
-## Mappings for dev and build will point to the internal SNS topic.
-
-#Mappings:
-#  EnvConfig:
-#    dev:
-#      LambdaLogLevel: DEBUG
-#      AccountDeletionProcessorSNSTopicARN: ""
-#    build:
-#      LambdaLogLevel: INFO
-#      AccountDeletionProcessorSNSTopicARN: ""
-#    staging:
-#      LambdaLogLevel: INFO
-#      AccountDeletionProcessorSNSTopicARN: ""
-#    integration:
-#      LambdaLogLevel: INFO
-#      AccountDeletionProcessorSNSTopicARN: ""
-#    production:
-#      LambdaLogLevel: INFO
-#      AccountDeletionProcessorSNSTopicARN: ""
+Mappings:
+  EnvConfig:
+    dev:
+      LambdaLogLevel: DEBUG
+      AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #This will point to the internal SNS topic
+    build:
+      LambdaLogLevel: INFO
+      AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #This will point to the internal SNS topic
+    staging:
+      LambdaLogLevel: INFO
+      AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
+    integration:
+      LambdaLogLevel: INFO
+      AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
+    production:
+      LambdaLogLevel: INFO
+      AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
 
 Globals:
   Function:
@@ -79,7 +77,7 @@ Globals:
     AutoPublishAlias: latest
     Environment:
       Variables:
-#        LOG_LEVEL: !FindInMap [ EnvConfig, !Ref Environment, LambdaLogLevel ]
+        LOG_LEVEL: !FindInMap [ EnvConfig, !Ref Environment, LambdaLogLevel ]
         POWERTOOLS_SERVICE_NAME: !Ref AWS::StackName
         CLOUDWATCH_METRICS_NAMESPACE: !Ref SystemTagValue
     VpcConfig:
@@ -160,6 +158,67 @@ Resources:
       Roles:
         - !Ref AISSampleLambdaHandlerRole
 
+  AccountDeletionProcessorSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      KmsMasterKeyId: !Ref AccountDeletionProcessorSNSKmsKey
+      TopicName: !Sub "${AWS::StackName}-AccountDeletionProcessorSNSTopic"
+      TracingConfig: "Active"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  AccountDeletionProcessorSNSKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: "kms:*"
+            Resource: "*"
+          - Effect: Allow
+            Principal:
+              Service:
+                - "sns.amazonaws.com"
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: "*"
+            Condition:
+              ArnEquals:
+                aws:SourceArn:
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-AccountDeletionProcessorFunction"
+                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  AccountDeletionProcessorSNSKmsKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-AccountDeletionProcessorSNSKmsKey"
+      TargetKeyId: !GetAtt AccountDeletionProcessorSNSKmsKey.Arn
+
   SQSEncryptionKey:
     Type: AWS::KMS::Key
     Properties:
@@ -194,19 +253,19 @@ Resources:
             Condition:
               ArnEquals:
                 aws:SourceArn: !Ref AccountDeletionProcessorSNSTopic
-        Tags:
-          - Key: Product
-            Value: !Ref ProductTagValue
-          - Key: System
-            Value: !Ref SystemTagValue
-          - Key: Environment
-            Value: !Ref Environment
-          - Key: Owner
-            Value: !Ref OwnerTagValue
-          - Key: Source
-            Value: !Ref SourceTagValue
-          - Key: Name
-            Value: !Sub "${AWS::StackName}-SQSEncryptionKey"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-SQSEncryptionKey"
 
   SQSEncryptionKeyAlias:
     Type: AWS::KMS::Alias
@@ -222,7 +281,7 @@ Resources:
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
       Description: "A lambda function that updates an account status indicating that the account has been deleted"
       CodeUri: ../../../dist/handlers/account-deletion-processor-handler
-      Timeout: 60
+      Timeout: 10
       Handler: account-deletion-processor-handler.handler
       Role: !GetAtt AccountDeletionProcessorFunctionRole.Arn
       Environment:
@@ -241,7 +300,7 @@ Resources:
               Enabled: true
               QueueArn: !GetAtt AccountDeletionProcessorQueue.Arn
               QueueUrl: !Ref AccountDeletionProcessorQueue
-            Topic: !GetAtt AccountDeletionProcessorSNSTopic.Arn
+            Topic: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
 #            Topic: !If
 #              - IsInternal
 #              - !Ref AccountDeletionProcessorSNSTopic
@@ -261,7 +320,7 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: sns.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
-      SourceArn: !GetAtt AccountDeletionProcessorSNSTopic.Arn
+      SourceArn: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
 #      SourceArn: !If
 #        - IsInternal
 #        - !Ref AccountDeletionProcessorSNSTopic
@@ -345,7 +404,7 @@ Resources:
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt AccountDeletionProcessorDLQ.Arn
         maxReceiveCount: 60
-      VisibilityTimeout: 60
+      VisibilityTimeout: 10
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -373,7 +432,7 @@ Resources:
               Service: sns.amazonaws.com
             Condition:
               ArnEquals:
-                aws:SourceArn: !GetAtt AccountDeletionProcessorSNSTopic.Arn
+                aws:SourceArn: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
 #                  - !If
 #                    - IsInternal
 #                    - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
@@ -384,7 +443,7 @@ Resources:
     Properties:
       QueueName: !Sub "${AWS::StackName}-AccountDeletionProcessorDLQ"
       KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
-      VisibilityTimeout: 60
+      VisibilityTimeout: 10
       MessageRetentionPeriod: 1209600
       RedriveAllowPolicy:
         redrivePermission: byQueue
@@ -402,70 +461,6 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-  AccountDeletionProcessorSNSTopic:
-    Condition: IsInternal
-    Type: AWS::SNS::Topic
-    Properties:
-      KmsMasterKeyId: !Ref AccountDeletionProcessorSNSKmsKey
-      TopicName: !Sub "${AWS::StackName}-AccountDeletionProcessorSNSTopic"
-      TracingConfig: "Active"
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-
-  AccountDeletionProcessorSNSKmsKey:
-    Type: AWS::KMS::Key
-    Properties:
-      EnableKeyRotation: true
-      KeyPolicy:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            Action: "kms:*"
-            Resource: "*"
-          - Effect: Allow
-            Principal:
-              Service:
-                - "sns.amazonaws.com"
-            Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: "*"
-            Condition:
-              ArnEquals:
-                aws:SourceArn:
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-AccountDeletionProcessorFunction"
-                  - !If
-                    - IsInternal
-                    - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
-                    - !Ref AWS::NoValue
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-
-  AccountDeletionProcessorSNSKmsKeyAlias:
-    Type: AWS::KMS::Alias
-    Properties:
-      AliasName: !Sub "alias/${AWS::StackName}-AccountDeletionProcessorSNSKmsKey"
-      TargetKeyId: !GetAtt AccountDeletionProcessorSNSKmsKey.Arn
 
  #### TxMA ####
   TxMAIngressQueue:
@@ -479,7 +474,7 @@ Resources:
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt TxMAIngressDLQ.Arn
         maxReceiveCount: 3
-      VisibilityTimeout: 60
+      VisibilityTimeout: 10
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
