@@ -1,11 +1,11 @@
 [
   {
     "ParameterKey": "AllowedAccounts",
-    "ParameterValue": "406416508755"
+    "ParameterValue": "922902741880"
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
-    "ParameterValue": "arn:aws:s3:::ais-main-pipeline-artifactpromotionbucket-16d4c7szcc2hi"
+    "ParameterValue": "none"
   },
   {
     "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
@@ -29,7 +29,7 @@
   },
   {
     "ParameterKey": "Environment",
-    "ParameterValue": "staging"
+    "ParameterValue": "build"
   },
   {
     "ParameterKey": "GitHubRepositoryName",
@@ -61,7 +61,7 @@
   },
   {
     "ParameterKey": "SAMStackName",
-    "ParameterValue": "ais-main"
+    "ParameterValue": "ais-alarm"
   },
   {
     "ParameterKey": "SigningProfileArn",

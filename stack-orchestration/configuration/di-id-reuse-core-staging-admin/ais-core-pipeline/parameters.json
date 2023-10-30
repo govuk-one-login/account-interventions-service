@@ -36,6 +36,10 @@
     "ParameterValue": "none"
   },
   {
+    "ParameterKey": "OneLoginRepositoryName",
+    "ParameterValue": "account-interventions-service"
+  },
+  {
     "ParameterKey": "IncludePromotion",
     "ParameterValue": "Yes"
   },
