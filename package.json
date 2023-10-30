@@ -39,7 +39,7 @@
     "@types/webpack": "^5.28.3",
     "@typescript-eslint/eslint-plugin": "^6.8.0",
     "@typescript-eslint/parser": "^6.8.0",
-    "aws-crt": "^1.18.1",
+    "aws-crt": "^1.18.3",
     "aws-lambda": "^1.0.7",
     "clean-webpack-plugin": "^4.0.0",
     "eslint": "^8.51.0",
