@@ -70,13 +70,13 @@ function eventValidation(userId: string) {
  * @returns transformed object
  */
 function transformedResponse(item: Record<string, any>): TransformedResponseFromDynamoDatabase {
-  return item = {
-      updatedAt: Number(item['updatedAt'] ?? Date.now()),
-      appliedAt: Number(item['appliedAt']),
-      sentAt: Number(item['sentAt']),
-      description: String(item['intervention']),
-      reprovedIdentityAt: Number(item['reprovedIdentityAt']),
-      resetPasswordAt: Number(item['resetPasswordAt']),
+  return (item = {
+    updatedAt: Number(item['updatedAt'] ?? Date.now()),
+    appliedAt: Number(item['appliedAt']),
+    sentAt: Number(item['sentAt']),
+    description: String(item['intervention']),
+    reprovedIdentityAt: Number(item['reprovedIdentityAt']),
+    resetPasswordAt: Number(item['resetPasswordAt']),
     state: {
       blocked: Boolean(item['blocked']),
       suspended: Boolean(item['suspended']),
@@ -84,5 +84,5 @@ function transformedResponse(item: Record<string, any>): TransformedResponseFrom
       reproveIdentity: Boolean(item['reproveIdentity']),
     },
     auditLevel: String(item['auditLevel']),
-  };
+  });
 }

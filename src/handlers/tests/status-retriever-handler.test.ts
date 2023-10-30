@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-null, unicorn/numeric-separators-style */
 import type { APIGatewayEvent } from 'aws-lambda';
 import { ContextExamples } from '@aws-lambda-powertools/commons';
 import { handle } from '../status-retriever-handler';
@@ -30,22 +31,22 @@ const testEvent: APIGatewayEvent = {
     protocol: 'HTTP/1.1',
     httpMethod: 'POST',
     identity: {
-    accessKey: null,
-    accountId: null,
-    apiKey: null,
-    apiKeyId: null,
-    caller: null,
-    clientCert: null,
-    cognitoAuthenticationProvider: null,
-    cognitoAuthenticationType: null,
-    cognitoIdentityId: null,
-    cognitoIdentityPoolId: null,
-    principalOrgId: null,
-    sourceIp: '127.0.0.1',
-    userArn: null,
-    userAgent: 'Custom User Agent String',
-    user: null
-  },
+      accessKey: null,
+      accountId: null,
+      apiKey: null,
+      apiKeyId: null,
+      caller: null,
+      clientCert: null,
+      cognitoAuthenticationProvider: null,
+      cognitoAuthenticationType: null,
+      cognitoIdentityId: null,
+      cognitoIdentityPoolId: null,
+      principalOrgId: null,
+      sourceIp: '127.0.0.1',
+      userArn: null,
+      userAgent: 'Custom User Agent String',
+      user: null,
+    },
     path: '/prod/path/to/resource',
     stage: 'prod',
     requestId: 'c6af9ac6-7b61-11e6-9a41-93e8deadbeef',
@@ -54,7 +55,7 @@ const testEvent: APIGatewayEvent = {
     resourceId: '123456',
     resourcePath: '/{proxy+}',
   },
-  resource: '/{proxy+}'
+  resource: '/{proxy+}',
 };
 
 const invalidTestEvent: APIGatewayEvent = {
@@ -78,22 +79,22 @@ const invalidTestEvent: APIGatewayEvent = {
     protocol: 'HTTP/1.1',
     httpMethod: 'POST',
     identity: {
-    accessKey: null,
-    accountId: null,
-    apiKey: null,
-    apiKeyId: null,
-    caller: null,
-    clientCert: null,
-    cognitoAuthenticationProvider: null,
-    cognitoAuthenticationType: null,
-    cognitoIdentityId: null,
-    cognitoIdentityPoolId: null,
-    principalOrgId: null,
-    sourceIp: '127.0.0.1',
-    userArn: null,
-    userAgent: 'Custom User Agent String',
-    user: null
-  },
+      accessKey: null,
+      accountId: null,
+      apiKey: null,
+      apiKeyId: null,
+      caller: null,
+      clientCert: null,
+      cognitoAuthenticationProvider: null,
+      cognitoAuthenticationType: null,
+      cognitoIdentityId: null,
+      cognitoIdentityPoolId: null,
+      principalOrgId: null,
+      sourceIp: '127.0.0.1',
+      userArn: null,
+      userAgent: 'Custom User Agent String',
+      user: null,
+    },
     path: '/prod/path/to/resource',
     stage: 'prod',
     requestId: 'c6af9ac6-7b61-11e6-9a41-93e8deadbeef',
@@ -102,7 +103,7 @@ const invalidTestEvent: APIGatewayEvent = {
     resourceId: '123456',
     resourcePath: '/{proxy+}',
   },
-  resource: '/{proxy+}'
+  resource: '/{proxy+}',
 };
 
 const mockedRecord = {
@@ -120,7 +121,7 @@ const mockedRecord = {
   auditLevel: 'standard',
   ttl: 1234567890,
   history: ['some intervention'],
-}
+};
 
 const nullUpdatedAt = {
   pk: 'testUserID',
@@ -137,37 +138,37 @@ const nullUpdatedAt = {
   auditLevel: 'standard',
   ttl: 1234567890,
   history: ['some intervention'],
-}
+};
 
 const mockedAccount = {
-    updatedAt: 123455,
-    appliedAt: 12345685809,
-    sentAt: 123456789,
-    description: mockedRecord.intervention,
-    reprovedIdentityAt: 849473,
-    resetPasswordAt: 5847392,
+  updatedAt: 123455,
+  appliedAt: 12345685809,
+  sentAt: 123456789,
+  description: mockedRecord.intervention,
+  reprovedIdentityAt: 849473,
+  resetPasswordAt: 5847392,
   state: {
     blocked: false,
     suspended: true,
     resetPassword: false,
     reproveIdentity: false,
-    },
+  },
   auditLevel: 'standard',
 };
 
 const updatedTime = {
-    updatedAt: 1685404800000,
-    appliedAt: 12345685809,
-    sentAt: 123456789,
-    description: mockedRecord.intervention,
-    reprovedIdentityAt: 849473,
-    resetPasswordAt: 5847392,
+  updatedAt: 1685404800000,
+  appliedAt: 12345685809,
+  sentAt: 123456789,
+  description: mockedRecord.intervention,
+  reprovedIdentityAt: 849473,
+  resetPasswordAt: 5847392,
   state: {
     blocked: false,
     suspended: true,
     resetPassword: false,
     reproveIdentity: false,
-    },
+  },
   auditLevel: 'standard',
 };
 
@@ -180,13 +181,13 @@ describe('status-retriever-handler', () => {
     jest.setSystemTime(new Date(Date.UTC(2023, 4, 30)));
   });
 
-  afterEach(() => { 
+  afterEach(() => {
     jest.clearAllMocks();
     jest.resetAllMocks();
   });
 
   it('will return the correct response from the database if the user ID matches', async () => {
-    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters?['userId']: 'testUserID');
+    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'testUserID');
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce([marshall(mockedRecord)]);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
@@ -212,7 +213,7 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockReturnValueOnce('There was a problem with the query operation');
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(500);
-    expect(response.body).toEqual(JSON.stringify({ message: 'Unable to retrieve records.'}));
+    expect(response.body).toEqual(JSON.stringify({ message: 'Unable to retrieve records.' }));
   });
 
   it('will return the correct updatedAt field if the field is returned as null', async () => {
@@ -220,5 +221,5 @@ describe('status-retriever-handler', () => {
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual(JSON.stringify({ intervention: updatedTime }));
-  })
+  });
 });
