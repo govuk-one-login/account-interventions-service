@@ -38,12 +38,12 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
       const accountStatus = transformResponseFromDynamoDatabase(unmarshalledObject);
 
       if (identifyAccountStateIsNotSuspended(accountStatus) === true) {
-          logAndPublishMetric(MetricNames.ACCOUNT_NOT_SUSPENDED);
-          return {
-            statusCode: 200,
-            body: JSON.stringify({ message: 'No suspension.' }),
-          };
-        } 
+        logAndPublishMetric(MetricNames.ACCOUNT_NOT_SUSPENDED);
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ message: 'No suspension.' }),
+        };
+      }
 
       return {
         statusCode: 200,
@@ -101,5 +101,5 @@ function transformResponseFromDynamoDatabase(item: Record<string, any>): Transfo
  * @returns boolean, true if all items in the state object are false, false if not.
  */
 function identifyAccountStateIsNotSuspended(accountItem: TransformedResponseFromDynamoDatabase) {
-  return Object.values(accountItem.state).every(item => item === false);
+  return Object.values(accountItem.state).every((item) => item === false);
 }
