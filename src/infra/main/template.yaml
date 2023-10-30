@@ -288,7 +288,7 @@ Resources:
         Variables:
           TABLE_NAME:
             Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
-          DELETED_ACCOUNT_STATUS_RETENTION_SECONDS: 63072000 #2 Years in Seconds
+          DELETED_ACCOUNT_RETENTION_SECONDS: 63072000 #2 Years in Seconds
           METRIC_SERVICE_NAME: !Sub "${AWS::StackName}-AccountDeletionProcessorFunction"
       Events:
         SNSEvent:
