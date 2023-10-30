@@ -218,7 +218,7 @@ Resources:
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
       Description: "A lambda function that updates the VCs account status"
       CodeUri: ../../../dist/handlers/account-deletion-processor-handler
-      Timeout: 10
+      Timeout: 60
       Handler: account-deletion-processor-handler.handler
       Role: !GetAtt AccountDeletionProcessorFunctionRole.Arn
       Environment:
