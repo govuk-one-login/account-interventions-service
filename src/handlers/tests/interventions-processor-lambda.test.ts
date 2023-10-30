@@ -7,7 +7,7 @@ import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import { validateEvent, validateInterventionEvent } from '../../services/validate-event';
 import { AccountStateEngine } from '../../services/account-states/account-state-engine';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
-import {ValidationError} from "../../data-types/errors";
+import { ValidationError } from '../../data-types/errors';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
