@@ -18,10 +18,10 @@ export class AccountStateEngine {
     for (const key of Object.keys(AccountStateEngine.interventionConfigurations)) {
       const state = (AccountStateEngine.interventionConfigurations[key] as InterventionEventDetails).state;
       if (
-        accountState.blocked === state.blocked &&
-        accountState.suspended === state.suspended &&
-        accountState.reproveIdentity === state.reproveIdentity &&
-        accountState.resetPassword === state.resetPassword
+        accountState.blocked === state?.blocked &&
+        accountState.suspended === state?.suspended &&
+        accountState.reproveIdentity === state?.reproveIdentity &&
+        accountState.resetPassword === state?.resetPassword
       )
         return key as EventsEnum;
     }
@@ -91,13 +91,13 @@ export class AccountStateEngine {
         );
       }
 
-      const newState = AccountStateEngine.interventionConfigurations[proposedTransition];
-      if (!newState) {
-        logAndPublishMetric(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
-        throw new StateTransitionError('new state does not exist in current config');
+      const newStateDetails = AccountStateEngine.interventionConfigurations[proposedTransition];
+      if (!newStateDetails) {
+        logAndPublishMetric(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
+        throw new StateTransitionError(`this intervention: ${proposedTransition} cannot be found in current config`);
       }
-      interventionName = newState.interventionName;
-      stateChange = newState.state;
+      interventionName = newStateDetails.interventionName;
+      stateChange = newStateDetails.state;
     }
 
     const newState = Object.assign({ ...currentAccountStateDetails }, stateChange);

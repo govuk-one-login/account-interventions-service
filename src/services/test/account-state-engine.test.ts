@@ -1,7 +1,8 @@
 import { AccountStateEngine } from '../account-states/account-state-engine';
-import { EventsEnum, MetricNames } from '../../data-types/constants';
+import { AISInterventionTypes, EventsEnum, MetricNames } from '../../data-types/constants';
 import { StateTransitionError } from '../../data-types/errors';
 import { logAndPublishMetric } from '../../commons/metrics';
+import { interventionsConfig, userLedActionsConfig } from '../account-states/config';
 
 const accountIsSuspended = {
   blocked: false,
@@ -510,6 +511,123 @@ describe('account-state-service', () => {
       expect(() => AccountStateEngine.getInterventionEnumFromCode(111)).toThrow(
         new StateTransitionError('no intervention could be found in current config for code 111'),
       );
+    });
+  });
+
+  describe('configuration errors', () => {
+    beforeEach(() => {
+      Object.defineProperty(AccountStateEngine, 'interventionConfigurations', {
+        writable: true,
+        value: interventionsConfig,
+      });
+      Object.defineProperty(AccountStateEngine, 'userLedActionConfiguration', {
+        writable: true,
+        value: userLedActionsConfig,
+      });
+    });
+    const invalidInterventionConfigWithoutCode = {
+      FRAUD_SUSPEND_ACCOUNT: {
+        interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+        allowedTransitions: [
+          EventsEnum.FRAUD_UNSUSPEND_ACCOUNT,
+          EventsEnum.FRAUD_BLOCK_ACCOUNT,
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
+          EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+        ],
+      },
+      state: {
+        blocked: false,
+        suspended: true,
+        resetPassword: false,
+        reproveIdentity: false,
+      },
+    };
+    const invalidInterventionConfigWithoutState = {
+      FRAUD_SUSPEND_ACCOUNT: {
+        interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+        allowedTransitions: [
+          EventsEnum.FRAUD_UNSUSPEND_ACCOUNT,
+          EventsEnum.FRAUD_BLOCK_ACCOUNT,
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
+          EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+        ],
+      },
+      code: 2,
+    };
+    const invalidInterventionConfigMissingKey = {
+      FRAUD_SUSPEND_ACCOUNT: {
+        interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+        allowedTransitions: [
+          EventsEnum.FRAUD_UNSUSPEND_ACCOUNT,
+          EventsEnum.FRAUD_BLOCK_ACCOUNT,
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
+          EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+        ],
+        state: {
+          blocked: false,
+          suspended: false,
+          resetPassword: false,
+          reproveIdentity: false,
+        },
+        code: 2,
+      },
+    };
+    const invalidUserActionConfig = {
+      IPV_IDENTITY_REISSUED: {
+        code: 8,
+        state: {
+          reproveIdentity: false,
+        },
+        allowedFromStates: [
+          EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+        ],
+      },
+    };
+    const sampleStateDetail = {
+      blocked: false,
+      suspended: false,
+      resetPassword: false,
+      reproveIdentity: false,
+    };
+    it('getInterventionEnumFromCode should throw error if code cannot be found in current intervention config', () => {
+      Object.defineProperty(AccountStateEngine, 'interventionConfigurations', {
+        writable: true,
+        value: invalidInterventionConfigWithoutCode,
+      });
+      expect(() => {
+        AccountStateEngine.getInterventionEnumFromCode(2);
+      }).toThrow(new Error('no intervention could be found in current config for code 2'));
+    });
+    it('applyEventTransition should throw if current state cannot be found in current intervention config', () => {
+      Object.defineProperty(AccountStateEngine, 'interventionConfigurations', {
+        writable: true,
+        value: invalidInterventionConfigWithoutState,
+      });
+      expect(() => {
+        AccountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNBLOCK_ACCOUNT, sampleStateDetail);
+      }).toThrow(new Error('no intervention could be found in current config for this state'));
+    });
+    it('applyEventTransition should throw if received user action is not found in current user action config', () => {
+      Object.defineProperty(AccountStateEngine, 'userLedActionConfiguration', {
+        writable: true,
+        value: invalidUserActionConfig,
+      });
+      expect(() => {
+        AccountStateEngine.applyEventTransition(EventsEnum.IPV_IDENTITY_ISSUED, sampleStateDetail);
+      }).toThrow(new Error('received user action IPV_IDENTITY_ISSUED event does not exist in current config'));
+    });
+    it('applyEventTransition should throw if received intervention cannot be found in current intervention config', () => {
+      Object.defineProperty(AccountStateEngine, 'interventionConfigurations', {
+        writable: true,
+        value: invalidInterventionConfigMissingKey,
+      });
+      expect(() => {
+        AccountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, sampleStateDetail);
+      }).toThrow(new Error('this intervention: FRAUD_UNSUSPEND_ACCOUNT cannot be found in current config'));
     });
   });
 });

@@ -1,10 +1,14 @@
 ---
-name: Validate Core SAM Template
+name: Validate Alarm SAM Template
 
 # Triggered when:
 #   - a file, listed below, is pushed to any branch other than `main`, i.e. a feature branch.
 #   - invoked by another workflow.
 on:
+  pull_request:
+    paths:
+      - src/infra/alarm/template.yaml
+      - .github/workflows/validate-alarm-sam-template.yaml
   workflow_call:
     inputs:
       gitRef:
@@ -26,5 +30,9 @@ jobs:
     env:
       SAM_CLI_TELEMETRY: 0
     steps:
+      - name: Checkout
+        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3
+        with:
+          ref: ${{ inputs.gitRef || github.ref }}
       - name: SAM Validate
-        run: sam validate --lint -t src/infra/monitoring/template.yaml
+        run: sam validate --lint -t src/infra/alarm/template.yaml

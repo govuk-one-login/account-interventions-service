@@ -67,8 +67,9 @@ describe('Dynamo DB Service', () => {
     const QueryCommandInput = {
       TableName: 'abc',
       KeyConditionExpression: '#pk = :id_value',
-      ExpressionAttributeNames: { '#pk': 'pk' },
-      ExpressionAttributeValues: { ':id_value': { S: 'abc' } },
+      ExpressionAttributeNames: { '#pk': 'pk', '#isAccountDeleted': 'isAccountDeleted' },
+      ExpressionAttributeValues: { ':id_value': { S: 'abc' }, ':isAccountDeleted': { BOOL: false } },
+      FilterExpression: 'attribute_not_exists(isAccountDeleted) OR #isAccountDeleted = :isAccountDeleted',
       ProjectionExpression: 'blocked, suspended, resetPassword, reproveIdentity',
     };
     const ddbMock = mockClient(DynamoDBClient);

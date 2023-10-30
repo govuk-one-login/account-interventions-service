@@ -5,6 +5,11 @@ name: Validate Main SAM Template
 #   - a file, listed below, is pushed to any branch other than `main`, i.e. a feature branch.
 #   - invoked by another workflow.
 on:
+  pull_request:
+    paths:
+      - src/infra/main/template.yaml
+      - .github/workflows/validate-main-sam-template.yaml
+
   workflow_call:
     inputs:
       gitRef:
@@ -26,5 +31,9 @@ jobs:
     env:
       SAM_CLI_TELEMETRY: 0
     steps:
+      - name: Checkout
+        uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3
+        with:
+          ref: ${{ inputs.gitRef || github.ref }}
       - name: SAM Validate
         run: sam validate --lint -t src/infra/main/template.yaml
