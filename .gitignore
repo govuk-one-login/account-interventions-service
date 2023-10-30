@@ -64,4 +64,5 @@ public/
 dist
 .idea
 
+.aws-sam/
 .DS_Store

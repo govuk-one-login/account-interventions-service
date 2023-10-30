@@ -106,7 +106,7 @@ const invalidTestEvent: APIGatewayEvent = {
   resource: '/{proxy+}',
 };
 
-const mockedRecord = {
+const suspendedRecord = {
   pk: 'testUserID',
   intervention: 'some intervention',
   updatedAt: 123455,
@@ -121,6 +121,23 @@ const mockedRecord = {
   auditLevel: 'standard',
   ttl: 1234567890,
   history: ['some intervention'],
+};
+
+const accountFoundNotSuspendedRecord = {
+  pk: 'testUserID',
+  intervention: 'no intervention',
+  updatedAt: 123455,
+  appliedAt: 12345685809,
+  sentAt: 123456789,
+  reprovedIdentityAt: 849473,
+  resetPasswordAt: 5847392,
+  blocked: false,
+  suspended: false,
+  resetPassword: false,
+  reproveIdentity: false,
+  auditLevel: 'standard',
+  ttl: 1234567890,
+  history: ['no intervention'],
 };
 
 const nullUpdatedAt = {
@@ -140,11 +157,11 @@ const nullUpdatedAt = {
   history: ['some intervention'],
 };
 
-const mockedAccount = {
+const suspendedAccount = {
   updatedAt: 123455,
   appliedAt: 12345685809,
   sentAt: 123456789,
-  description: mockedRecord.intervention,
+  description: suspendedRecord.intervention,
   reprovedIdentityAt: 849473,
   resetPasswordAt: 5847392,
   state: {
@@ -160,7 +177,7 @@ const updatedTime = {
   updatedAt: 1685404800000,
   appliedAt: 12345685809,
   sentAt: 123456789,
-  description: mockedRecord.intervention,
+  description: suspendedRecord.intervention,
   reprovedIdentityAt: 849473,
   resetPasswordAt: 5847392,
   state: {
@@ -188,13 +205,21 @@ describe('status-retriever-handler', () => {
 
   it('will return the correct response from the database if the user ID matches', async () => {
     mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'testUserID');
-    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce([marshall(mockedRecord)]);
+    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce([marshall(suspendedRecord)]);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(JSON.stringify({ intervention: mockedAccount }));
+    expect(response.body).toEqual(JSON.stringify({ intervention: suspendedAccount }));
   });
 
   it('will return a message if user ID cannot be found in the database', async () => {
+    const response = await handle(testEvent, mockConfig);
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toEqual(JSON.stringify({ message: 'No suspension.' }));
+  });
+
+  it('will return the correct response from the database if the user ID matches an account where the state items are all false', async () => {
+    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'testUserID');
+    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce([marshall(accountFoundNotSuspendedRecord)]);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual(JSON.stringify({ message: 'No suspension.' }));

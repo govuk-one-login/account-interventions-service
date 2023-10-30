@@ -3,7 +3,7 @@ import { AppConfigService } from '../services/app-config-service';
 import { DynamoDbService as DynamoDatabaseService } from '../services/dynamo-db-service';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
-import { AISInterventionTypes, MetricNames } from '../data-types/constants';
+import { MetricNames } from '../data-types/constants';
 import { TransformedResponseFromDynamoDatabase } from '../data-types/interfaces';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 
@@ -15,7 +15,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
   logger.debug('Status-Retriever-Handler.');
 
   const userId = event.pathParameters?.['userId'];
-  if (!userId || eventValidation(userId) === '') {
+  if (!userId || validateEvent(userId) === '') {
     logger.error('Subject ID is possibly undefined or empty');
     logAndPublishMetric(MetricNames.INVALID_SUBJECT_ID);
     return {
@@ -27,19 +27,27 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
   try {
     const response = await dynamoDBServiceInstance.retrieveRecordsByUserId(userId);
     if (!response || response.length === 0) {
-      logger.debug('Requested account is not suspended');
-      logAndPublishMetric(AISInterventionTypes.AIS_NO_INTERVENTION);
+      logAndPublishMetric(MetricNames.ACCOUNT_NOT_SUSPENDED);
       return {
         statusCode: 200,
         body: JSON.stringify({ message: 'No suspension.' }),
       };
     }
     for (const item of response) {
-      const toObject = unmarshall(item);
-      const toResponse = transformedResponse(toObject);
+      const unmarshalledObject = unmarshall(item);
+      const accountStatus = transformResponseFromDynamoDatabase(unmarshalledObject);
+
+      if (identifyAccountStateIsNotSuspended(accountStatus) === true) {
+          logAndPublishMetric(MetricNames.ACCOUNT_NOT_SUSPENDED);
+          return {
+            statusCode: 200,
+            body: JSON.stringify({ message: 'No suspension.' }),
+          };
+        } 
+
       return {
         statusCode: 200,
-        body: JSON.stringify({ intervention: toResponse }),
+        body: JSON.stringify({ intervention: accountStatus }),
       };
     }
   } catch (error) {
@@ -53,11 +61,11 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
 };
 
 /**
- * Helper function to remove whitespace from the user id
+ * Helper function to remove whitespace from the user id and to validate that the event contains a valid user id
  * @param userId - Obtained from APIGateway
  * @returns the userId that is passed in, trimmed of any whitespace
  */
-function eventValidation(userId: string) {
+function validateEvent(userId: string) {
   if (userId.trim() === '') {
     logger.error('Attribute invalid: user_id is empty.');
   }
@@ -69,7 +77,7 @@ function eventValidation(userId: string) {
  * @param item - recieved from dynamodb
  * @returns transformed object
  */
-function transformedResponse(item: Record<string, any>): TransformedResponseFromDynamoDatabase {
+function transformResponseFromDynamoDatabase(item: Record<string, any>): TransformedResponseFromDynamoDatabase {
   return (item = {
     updatedAt: Number(item['updatedAt'] ?? Date.now()),
     appliedAt: Number(item['appliedAt']),
@@ -85,4 +93,13 @@ function transformedResponse(item: Record<string, any>): TransformedResponseFrom
     },
     auditLevel: String(item['auditLevel']),
   });
+}
+
+/**
+ * Helper function to determine if the record's state object all has false values
+ * @param accountItem - recieved from dynamoDB, transformed via transformResponseFromDynamoDatabase
+ * @returns boolean, true if all items in the state object are false, false if not.
+ */
+function identifyAccountStateIsNotSuspended(accountItem: TransformedResponseFromDynamoDatabase) {
+  return Object.values(accountItem.state).every(item => item === false);
 }
