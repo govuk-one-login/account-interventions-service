@@ -10,10 +10,20 @@ import { buildPartialUpdateAccountStateCommand } from '../../commons/build-parti
 import { logAndPublishMetric } from '../../commons/metrics';
 import { StateTransitionError } from '../../data-types/errors';
 
+/**
+ * State Engine Class
+ * It stores the configuration for interventions and user actions transitions
+ */
 export class AccountStateEngine {
   private static readonly interventionConfigurations: InterventionTransitionConfigurations = interventionsConfig;
   private static readonly userLedActionConfiguration: UserLedActionTransitionConfigurations = userLedActionsConfig;
 
+  /**
+   * Private helper method: given a account state object, it searches for that state in the intervention
+   * configuration object and returns the corresponding key
+   * @param accountState - object { blocked: Boolean; suspended: Boolean; resetPassword: Boolean; resetIdentity: Boolean }
+   * @private
+   */
   private static getInterventionEnumFromStateDetail(accountState: StateDetails) {
     for (const key of Object.keys(AccountStateEngine.interventionConfigurations)) {
       const state = (AccountStateEngine.interventionConfigurations[key] as InterventionEventDetails).state;
@@ -29,6 +39,11 @@ export class AccountStateEngine {
     throw new StateTransitionError('no intervention could be found in current config for this state');
   }
 
+  /**
+   * Given a code, it searches the intervention configuration object for the code and returns
+   * the corresponding key
+   * @param code - code corresponding to an intervention event
+   */
   static getInterventionEnumFromCode(code: number) {
     for (const key of Object.keys(AccountStateEngine.interventionConfigurations)) {
       const code_ = (AccountStateEngine.interventionConfigurations[key] as InterventionEventDetails).code;

@@ -4,6 +4,12 @@ import { getCurrentTimestamp } from './get-current-timestamp';
 import { EventsEnum, MetricNames } from '../data-types/constants';
 import { logAndPublishMetric } from './metrics';
 
+/**
+ * Method to build a Partial of UpdateItemCommandInput
+ * @param newState - new account state object
+ * @param eventName - the name of the event received
+ * @param interventionName - optional intervention name if the event was a fraud intervention
+ */
 export const buildPartialUpdateAccountStateCommand = (
   newState: StateDetails,
   eventName: EventsEnum,
