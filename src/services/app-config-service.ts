@@ -33,6 +33,11 @@ export class AppConfigService {
     return this.validateConfiguration('AWS_REGION');
   }
 
+  public get maxRetentionSeconds(): number {
+    const retentionSecond = this.validateNumberEnvVars('DELETED_ACCOUNT_RETENTION_SECONDS');
+    return retentionSecond;
+  }
+
   /**
    * A method for validating environment variables.
    *
@@ -41,6 +46,17 @@ export class AppConfigService {
    * @throws {@link InvalidEnvironmentVariableError}
    * Thrown when the environment variable value is falsy
    */
+
+  private validateNumberEnvVars(environmentVariable: string): number {
+    const environmentVariableValue = Number.parseInt(this.validateConfiguration(environmentVariable));
+    if (Number.isNaN(environmentVariableValue) || environmentVariableValue < 0) {
+      const message = `${LOGS_PREFIX_INVALID_CONFIG} Environment variable ${environmentVariable} is not a number.`;
+      logger.error(message);
+      throw new InvalidEnvironmentVariableError(message);
+    }
+    return environmentVariableValue;
+  }
+
   private validateConfiguration(environmentVariable: string): string {
     if (!process.env[environmentVariable] || process.env[environmentVariable] === 'undefined') {
       const message = `${LOGS_PREFIX_INVALID_CONFIG} Environment variable ${environmentVariable} is not defined.`;

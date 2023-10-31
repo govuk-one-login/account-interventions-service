@@ -1,4 +1,10 @@
-import { DynamoDBClient, QueryCommand, QueryCommandOutput, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
+import {
+  DynamoDBClient,
+  QueryCommand,
+  QueryCommandOutput,
+  UpdateItemCommand,
+  UpdateItemCommandInput
+} from '@aws-sdk/client-dynamodb';
 import { DynamoDatabaseService } from '../dynamo-database-service';
 import 'aws-sdk-client-mock-jest';
 import { mockClient } from 'aws-sdk-client-mock';
@@ -120,5 +126,77 @@ describe('Dynamo DB Service', () => {
       new TooManyRecordsError('DynamoDB may have failed to query, returned a null response.'),
     );
     expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
+  });
+
+  it('should throw a logger debug if non-null LEK has been received', async () => {
+    const mockedQueryCommand = mockClient(DynamoDBClient).on(QueryCommand);
+    //@ts-ignore
+    mockedQueryCommand.resolvesOnce({
+      ConsumedCapacity: {
+        TableName: 'table_name',
+        CapacityUnits: Number('single'),
+      },
+      Count: 3,
+      Items: [
+        {pk: {S: 'userId1'}},
+        {pk: {S: 'userId1'}},
+        {pk: {S: 'userId1'}}
+      ],
+      ScannedCount: 3,
+      LastEvaluatedKey: {
+        pk: {
+          S: 'userId1'
+        }
+      }
+    }).resolvesOnce({
+      ConsumedCapacity: {},
+      Count: 3,
+      Items: [
+        {pk: {S: 'userId1'}},
+        {pk: {S: 'userId1'}},
+        {pk: {S: 'userId1'}}
+      ],
+      ScannedCount: 3,
+      LastEvaluatedKey: {
+        pk: {
+          S: 'userId1'
+        }
+      }
+    }).resolvesOnce(
+      {
+        ConsumedCapacity: {},
+        Count: 2,
+        Items: [
+          {pk: {S: 'userId1'}},
+          {pk: {S: 'userId1'}},
+        ],
+        ScannedCount: 2,
+      }
+    );
+    await expect((new DynamoDatabaseService('table_name')).retrieveRecordsByUserId('userId1')).resolves.toHaveLength(8);
+    expect(logAndPublishMetric).toHaveBeenCalledWith('DB_QUERY_HAS_LEK');
+    expect(logAndPublishMetric).toHaveBeenCalledTimes(2)
+  });
+
+  it('should update the status of the userId in DynamoDB and log info', async () => {
+    const commandInput: UpdateItemCommandInput = {
+      TableName: 'table_name',
+      Key: { pk: { S: 'hello' } },
+      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl',
+      ExpressionAttributeNames: {
+        '#isAccountDeleted': 'isAccountDeleted',
+        '#ttl': 'ttl',
+      },
+      ExpressionAttributeValues: {
+        ':isAccountDeleted': { BOOL: true },
+        ':ttl': { N: '1685417145' },
+        ':false': { BOOL: false },
+      },
+      ConditionExpression: 'attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false',
+    };
+    const ddbMock = mockClient(DynamoDBClient);
+    const dynamoDBService = new DynamoDatabaseService('table_name')
+    await dynamoDBService.updateDeleteStatus('hello');
+    expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, commandInput);
   });
 });

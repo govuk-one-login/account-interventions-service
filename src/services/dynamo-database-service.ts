@@ -16,6 +16,9 @@ import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { logAndPublishMetric } from '../commons/metrics';
 import { StateDetails } from '../data-types/interfaces';
 import { TooManyRecordsError } from '../data-types/errors';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+
+const appConfig = AppConfigService.getInstance();
 
 export class DynamoDatabaseService {
   private dynamoClient: DynamoDBClient;
@@ -81,5 +84,27 @@ export class DynamoDatabaseService {
     };
     const command = new UpdateItemCommand(commandInput);
     return await this.dynamoClient.send(command);
+  }
+
+  public async updateDeleteStatus(userId: string) {
+    const ttl = getCurrentTimestamp().seconds + appConfig.maxRetentionSeconds;
+    const commandInput: UpdateItemCommandInput = {
+      TableName: this.tableName,
+      Key: { pk: { S: userId } },
+      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl',
+      ExpressionAttributeNames: {
+        '#isAccountDeleted': 'isAccountDeleted',
+        '#ttl': 'ttl',
+      },
+      ExpressionAttributeValues: {
+        ':isAccountDeleted': { BOOL: true },
+        ':ttl': { N: ttl.toString() },
+        ':false': { BOOL: false },
+      },
+      ConditionExpression: 'attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false',
+    };
+    const command = new UpdateItemCommand(commandInput);
+    const response = await this.dynamoClient.send(command);
+    return response;
   }
 }

@@ -55,3 +55,7 @@ interface Intervention {
   requester_id?: string;
   audit_level?: string;
 }
+
+export interface DeleteStatusUpdateSNSMessage {
+  user_id: string;
+}
