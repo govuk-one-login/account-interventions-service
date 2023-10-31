@@ -1,6 +1,5 @@
 import {
   AttributeValue,
-  DeleteItemCommand,
   DynamoDBClient,
   QueryCommand,
   QueryCommandInput,
@@ -15,6 +14,9 @@ import { AppConfigService } from './app-config-service';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import tracer from '../commons/tracer';
 import { StateDetails } from '../data-types/interfaces';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+
+const appConfig = AppConfigService.getInstance();
 
 export class DynamoDbService {
   private dynamoClient: DynamoDBClient;
@@ -64,22 +66,6 @@ export class DynamoDbService {
     return items;
   }
 
-  public async deleteRecordByUserId(userId: string) {
-    const command = new DeleteItemCommand({
-      TableName: this.tableName,
-      Key: { pk: { S: userId } },
-    });
-
-    const response = await this.dynamoClient.send(command);
-    if (!response) {
-      const errorMessage = 'DynamoDB may have failed to delete items, returned a null response.';
-      logger.error(errorMessage);
-      logAndPublishMetric(MetricNames.DB_DELETE_ERROR_NO_RESPONSE);
-      throw new Error(errorMessage);
-    }
-    return { UserId: userId, StatusCode: response.$metadata.httpStatusCode };
-  }
-
   public async putItemForUserId(userId: string, newState: StateDetails) {
     const commandInput: UpdateItemCommandInput = {
       TableName: this.tableName,
@@ -101,6 +87,28 @@ export class DynamoDbService {
     const command = new UpdateItemCommand(commandInput);
     const response = await this.dynamoClient.send(command);
     logger.debug(JSON.stringify(response));
+    return response;
+  }
+
+  public async updateDeleteStatus(userId: string) {
+    const ttl = getCurrentTimestamp().seconds + appConfig.maxRetentionSeconds;
+    const commandInput: UpdateItemCommandInput = {
+      TableName: this.tableName,
+      Key: { pk: { S: userId } },
+      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl',
+      ExpressionAttributeNames: {
+        '#isAccountDeleted': 'isAccountDeleted',
+        '#ttl': 'ttl',
+      },
+      ExpressionAttributeValues: {
+        ':isAccountDeleted': { BOOL: true },
+        ':ttl': { N: ttl.toString() },
+        ':false': { BOOL: false },
+      },
+      ConditionExpression: 'attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false',
+    };
+    const command = new UpdateItemCommand(commandInput);
+    const response = await this.dynamoClient.send(command);
     return response;
   }
 }
