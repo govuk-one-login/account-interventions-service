@@ -7,7 +7,7 @@ import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import { validateEvent, validateInterventionEvent } from '../../services/validate-event';
 import { AccountStateEngine } from '../../services/account-states/account-state-engine';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
-import { ValidationError } from '../../data-types/errors';
+import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -78,9 +78,19 @@ describe('intervention processor handler', () => {
       expect(logAndPublishMetric).toHaveBeenCalledWith('INTERVENTION_EVENT_INVALID');
     });
 
+    it('should return a state transition error', async () => {
+      eventValidationMock.mockReturnValueOnce(void 0);
+      AccountStateEngine.applyEventTransition = jest.fn().mockImplementationOnce(() => {
+        throw new StateTransitionError('State transition Error');
+      });
+      expect(await handler(mockEvent, mockContext)).toEqual({
+        batchItemFailures: [],
+      });
+      expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried');
+    });
+
     it('should succeed', async () => {
-      eventValidationMock.mockReturnValueOnce(true);
-      interventionEventValidationMock.mockReturnValueOnce(true);
+      eventValidationMock.mockReturnValueOnce(void 0);
       AccountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
         ExpressionAttributeNames: {
           '#B': 'blocked',
@@ -104,7 +114,7 @@ describe('intervention processor handler', () => {
     });
 
     it('should fail as timestamp is in the future', async () => {
-      eventValidationMock.mockReturnValueOnce(true);
+      eventValidationMock.mockReturnValueOnce(void 0);
       mockRecord = {
         messageId: '123',
         receiptHandle: '',
@@ -153,8 +163,7 @@ describe('intervention processor handler', () => {
     });
 
     it('should fail if dynamo operation errors', async () => {
-      eventValidationMock.mockReturnValueOnce(true);
-      interventionEventValidationMock.mockReturnValueOnce(false);
+      eventValidationMock.mockReturnValueOnce(void 0);
       mockRetrieveRecords.mockRejectedValueOnce('Error');
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [
@@ -162,6 +171,51 @@ describe('intervention processor handler', () => {
             itemIdentifier: '123',
           },
         ],
+      });
+    });
+
+    it('should not retry if too many items returned', async () => {
+      eventValidationMock.mockReturnValueOnce(void 0);
+      mockRetrieveRecords.mockRejectedValueOnce(new TooManyRecordsError('Too many records'));
+      expect(await handler(mockEvent, mockContext)).toEqual({
+        batchItemFailures: [],
+      });
+      expect(logger.warn).toHaveBeenCalledWith('TooManyRecordsError caught, message will not be retried');
+    });
+
+    it('should do additional checks if event is from fraud', async () => {
+      eventValidationMock.mockReturnValueOnce(void 0);
+      interventionEventValidationMock.mockReturnValue(void 0);
+      mockRecord = {
+        messageId: '123',
+        receiptHandle: '',
+        body: JSON.stringify({
+          timestamp: getCurrentTimestamp().milliseconds,
+          user: {
+            user_id: 'abc',
+          },
+          event_name: 'TICF_ACCOUNT_INTERVENTION',
+          extension: {
+            intervention: {
+              intervention_code: '01',
+              intervention_reason: 'reason',
+            },
+          },
+        }),
+        attributes: {
+          ApproximateReceiveCount: '',
+          SentTimestamp: '',
+          SenderId: '',
+          ApproximateFirstReceiveTimestamp: '',
+        },
+        messageAttributes: {},
+        md5OfBody: '',
+        eventSource: '',
+        eventSourceARN: '',
+        awsRegion: '',
+      };
+      expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
+        batchItemFailures: [],
       });
     });
   });

@@ -13,6 +13,12 @@ import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
 
+/**
+ * A function for receiving and processing an intervention event.
+ *
+ * @param event - SQS event
+ * @param context - the {@link Context} object containing information about the runtime environment of this Lambda function
+ */
 export const handler = async (event: SQSEvent, context: Context): Promise<SQSBatchResponse> => {
   logger.addContext(context);
 
@@ -34,6 +40,12 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
   };
 };
 
+/**
+ * A function to process the SQS record, retrieve the corresponding record from DynamoDB and update the record accordingly.
+ *
+ * @param itemFailures - the array of items that should be retried
+ * @param record - sqs record
+ */
 async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQSRecord) {
   try {
     const recordBody: TxMAEvent = JSON.parse(record.body);
@@ -62,6 +74,13 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
   }
 }
 
+/**
+ * A function to check if timestamp of the event is in the future.
+ *
+ * @param recordBody - the parsed body of the sqs record
+ * @param itemFailures - the array of items that should be retried
+ * @param messageId - the messageId of the sqs record
+ */
 function isTimestampNotInFuture(
   recordBody: TxMAEvent,
   itemFailures: SQSBatchItemFailure[],
@@ -79,6 +98,11 @@ function isTimestampNotInFuture(
   return true;
 }
 
+/**
+ * A function to compute the event name,
+ *
+ * @param recordBody - the parsed body of the sqs record
+ */
 function getInterventionName(recordBody: TxMAEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
   if (recordBody.event_name === TICF_ACCOUNT_INTERVENTION) {
