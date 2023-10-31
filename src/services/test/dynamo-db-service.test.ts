@@ -139,5 +139,12 @@ describe('Dynamo DB Service', () => {
     expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, commandInput);
   });
 
-
+  it('should throw an error if response of the Dynamo Client is null / undefined', async () => {
+    const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
+    mockedUpdateCommand.resolves(undefined as any);
+    const loggerErrorSpy = jest.spyOn(logger, 'error');
+    await dynamoDBService.updateDeleteStatus('hello');
+    expect(loggerErrorSpy).toHaveBeenCalledWith('DynamoDB may have failed to update items, returned a null response.');
+    expect(logAndPublishMetric).toHaveBeenCalledWith('DB_UPDATE_ERROR');
+  });
 });

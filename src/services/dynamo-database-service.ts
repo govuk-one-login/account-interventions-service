@@ -107,8 +107,7 @@ export class DynamoDatabaseService {
     if (!response) {
       const errorMessage = 'DynamoDB may have failed to update items, returned a null response.';
       logger.error(errorMessage);
-      logAndPublishMetric(MetricNames.DB_UPDATE_ERROR_NO_RESPONSE);
-      throw new Error(errorMessage);
+      logAndPublishMetric(MetricNames.DB_UPDATE_ERROR);
     }
     return response;
   }

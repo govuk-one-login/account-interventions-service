@@ -56,10 +56,10 @@ async function updateDeleteStatusId(userId: string) {
   try {
     await ddbService.updateDeleteStatus(userId);
     logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Account ${userId} marked as deleted`);
-    logAndPublishMetric(MetricNames.STATUS_UPDATE_SUCCEEDED);
+    logAndPublishMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
   } catch (error) {
     logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} Error updating account ${userId}`, { error });
-    logAndPublishMetric(MetricNames.STATUS_UPDATE_FAILED);
+    logAndPublishMetric(MetricNames.MARK_AS_DELETED_FAILED);
     throw new Error('Failed to update the account status.');
   }
 }
