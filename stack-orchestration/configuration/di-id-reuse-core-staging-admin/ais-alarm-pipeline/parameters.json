@@ -1,11 +1,11 @@
 [
   {
     "ParameterKey": "AllowedAccounts",
-    "ParameterValue": "406416508755"
+    "ParameterValue": ""
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
-    "ParameterValue": "none"
+    "ParameterValue": "arn:aws:s3:::ais-alarm-pipeline-artifactpromotionbucket-9zjxdwt6itx4"
   },
   {
     "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
@@ -37,11 +37,11 @@
   },
   {
     "ParameterKey": "OneLoginRepositoryName",
-    "ParameterValue": "account-interventions-service"
+    "ParameterValue": "none"
   },
   {
     "ParameterKey": "IncludePromotion",
-    "ParameterValue": "Yes"
+    "ParameterValue": "No"
   },
   {
     "ParameterKey": "InvokableLambdaAccounts",

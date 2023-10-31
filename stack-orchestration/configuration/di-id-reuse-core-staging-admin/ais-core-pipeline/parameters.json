@@ -1,7 +1,7 @@
 [
   {
     "ParameterKey": "AllowedAccounts",
-    "ParameterValue": "406416508755"
+    "ParameterValue": ""
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
@@ -37,11 +37,11 @@
   },
   {
     "ParameterKey": "OneLoginRepositoryName",
-    "ParameterValue": "account-interventions-service"
+    "ParameterValue": "none"
   },
   {
     "ParameterKey": "IncludePromotion",
-    "ParameterValue": "Yes"
+    "ParameterValue": "No"
   },
   {
     "ParameterKey": "InvokableLambdaAccounts",
