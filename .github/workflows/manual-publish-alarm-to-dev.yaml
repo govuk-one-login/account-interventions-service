@@ -36,7 +36,7 @@ jobs:
     needs:
       - validate_deployment
     steps:
-      - uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # pin@v3
         with:
           ref: ${{ inputs.gitRef }}
 
@@ -47,7 +47,7 @@ jobs:
           aws-region: eu-west-2
 
       - name: "Deploy SAM app"
-        uses: alphagov/di-devplatform-upload-action@1db904c002e0f98dbcb5ab453ceb1b71de5f7dd3 # pin@v2
+        uses: govuk-one-login/devplatform-upload-action-ecr@4e97f7e56e8be55c3cfe2198a3349c5d6b9104ea  # pin@v2
         with:
           artifact-bucket-name: ${{ secrets.DEV_ALARM_ARTIFACT_BUCKET_NAME }}
           signing-profile-name: ${{ secrets.DEV_SIGNING_PROFILE_NAME }}
