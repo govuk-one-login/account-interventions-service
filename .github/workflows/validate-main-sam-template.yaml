@@ -5,6 +5,11 @@ name: Validate Main SAM Template
 #   - a file, listed below, is pushed to any branch other than `main`, i.e. a feature branch.
 #   - invoked by another workflow.
 on:
+  pull_request:
+    paths:
+      - src/infra/main/template.yaml
+      - .github/workflows/validate-main-sam-template.yaml
+
   workflow_call:
     inputs:
       gitRef:
@@ -30,17 +35,5 @@ jobs:
         uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3
         with:
           ref: ${{ inputs.gitRef || github.ref }}
-
-      - name: Set up SAM CLI
-        uses: aws-actions/setup-sam@f0b2399474464ed9f03a03ee90d1a82b7d680ad6 # pin@v2
-        with:
-          use-installer: true
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e1e17a757e536f70e52b5a12b2e8d1d1c60e04ef # pin@v1-node16
-        with:
-          role-to-assume: ${{ secrets.githubActionsRoleARN || secrets.DEV_MAIN_GH_ACTIONS_ROLE_ARN }}
-          aws-region: eu-west-2
-
       - name: SAM Validate
         run: sam validate --lint -t src/infra/main/template.yaml

@@ -1,5 +1,5 @@
 ---
-name: Validate Core SAM Template
+name: Validate Alarm SAM Template
 
 # Triggered when:
 #   - a file, listed below, is pushed to any branch other than `main`, i.e. a feature branch.
@@ -7,8 +7,8 @@ name: Validate Core SAM Template
 on:
   pull_request:
     paths:
-      - src/infra/core/template.yaml
-      - .github/workflows/validate-core-sam-template.yaml
+      - src/infra/alarm/template.yaml
+      - .github/workflows/validate-alarm-sam-template.yaml
   workflow_call:
     inputs:
       gitRef:
@@ -35,4 +35,4 @@ jobs:
         with:
           ref: ${{ inputs.gitRef || github.ref }}
       - name: SAM Validate
-        run: sam validate --lint -t src/infra/core/template.yaml
+        run: sam validate --lint -t src/infra/alarm/template.yaml
