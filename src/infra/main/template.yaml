@@ -25,10 +25,14 @@ Parameters:
     Description: The ARN of the permissions boundary to apply when creating IAM roles
     Type: String
     Default: none
+  CodeSigningConfigArn:
+    Description: Asserts that lambdas are signed when deployed.
+    Type: String
+    Default: none
   CoreStackName:
     Description: The name of the Core VC Storage stack
     Type: String
-    Default: account-interventions-service-core
+    Default: ais-core
   ProductTagValue:
     Description: Value for the Product Tag
     Type: String
@@ -48,6 +52,7 @@ Parameters:
 
 Conditions:
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
+  UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
 
 Mappings:
   EnvConfig:
@@ -83,33 +88,44 @@ Globals:
         - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
 
 Resources:
-  AISSampleLambdaFunction:
+  InterventionProcessorFunction:
     Type: AWS::Serverless::Function
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
     Properties:
-      FunctionName: !Sub '${AWS::StackName}-InterventionHistoryWriterFunction'
-      CodeUri: ../../../dist/handlers/sample-lambda-handler
-      Timeout: 10
+      FunctionName: !Sub "${AWS::StackName}-InterventionProcessorFunction"
+      Description: "A Lambda function for processing the interventions."
+      CodeUri: ../../../dist/interventions-processor-handler
+      Timeout: 5
+      Handler: interventions-processor-handler.handler
+      Role: !GetAtt InterventionProcessorFunctionRole.Arn
+      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt TxMAIngressQueue.Arn
+            BatchSize: 1
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
       Environment:
         Variables:
+          METRIC_SERVICE_NAME: "InterventionProcessorFunction"
           TABLE_NAME:
             Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
-          METRIC_SERVICE_NAME: !Sub "${AWS::StackName}-SampleLambda"
-      Handler: sample-lambda-handler.handle
-      Role: !GetAtt AISSampleLambdaHandlerRole.Arn
       Tags:
-        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
         Product: !Ref ProductTagValue
         System: !Ref SystemTagValue
         Environment: !Ref Environment
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
+        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
 
-  AISSampleLambdaHandlerRole:
+  InterventionProcessorFunctionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName:  !Sub '${AWS::StackName}-AISSampleLambdaHandlerRole'
+      RoleName: !Sub "${AWS::StackName}-InterventionProcessorFunctionRole"
+      Description: !Sub "The role assumed by ${AWS::StackName}-InterventionProcessorFunction"
       PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -134,25 +150,50 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-  AISSampleLambdaHandlerPolicy:
+  InterventionProcessorFunctionPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-AISSampleLambdaHandlerPolicy"
+      PolicyName: !Sub "${AWS::StackName}-InterventionProcessorFunctionPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
-              - "dynamodb:PutItem"
-              - "dynamodb:Query"
-              - "dynamodb:DeleteItem"
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource:
+              - !GetAtt InterventionProcessorFunctionRole.Arn
+          - Effect: Allow
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+            Resource: !GetAtt TxMAIngressQueue.Arn
+          - Effect: Allow
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: !GetAtt SQSEncryptionKey.Arn
+          - Effect: Allow
+            Action:
               - "dynamodb:UpdateItem"
+              - "dynamodb:Query"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
+          - Effect: "Allow"
+            Action:
+              - "cloudwatch:PutMetricData"
+            Resource:
+              - "*"
+            Condition:
+              StringEquals:
+                cloudwatch:namespace: !Ref SystemTagValue
       Roles:
-        - !Ref AISSampleLambdaHandlerRole
+        - !Ref InterventionProcessorFunctionRole
 
- #### TxMA ####
+
+
+  #### TxMA ####
   SQSEncryptionKey:
     Type: AWS::KMS::Key
     Properties:
@@ -200,7 +241,7 @@ Resources:
   TxMAIngressQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue"
+      QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue" #test commit
       MessageRetentionPeriod: 1209600
       KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
       RedriveAllowPolicy:
@@ -208,7 +249,7 @@ Resources:
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt TxMAIngressDLQ.Arn
         maxReceiveCount: 3
-      VisibilityTimeout: 60
+      VisibilityTimeout: 5
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -223,7 +264,6 @@ Resources:
 
   TxMAIngressQueuePolicy:
     Type: AWS::SQS::QueuePolicy
-    DependsOn: TxMAIngressQueue
     Properties:
       Queues:
         - !Ref TxMAIngressQueue
@@ -258,4 +298,3 @@ Resources:
           Value: !Ref OwnerTagValue
         - Key: Source
           Value: !Ref SourceTagValue
-
