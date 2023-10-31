@@ -54,7 +54,7 @@ describe('build-partial-upadte-state-command', () => {
     };
     const intervention = EventsEnum.FRAUD_BLOCK_ACCOUNT;
     expect(() => buildPartialUpdateAccountStateCommand(state, intervention)).toThrow(
-      new Error('intervention received did not have an interventionName field'),
+      new Error('The intervention received did not have an interventionName field.'),
     );
     expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
   });

@@ -86,7 +86,7 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried');
+      expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried.');
     });
 
     it('should succeed', async () => {
@@ -180,7 +180,7 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(logger.warn).toHaveBeenCalledWith('TooManyRecordsError caught, message will not be retried');
+      expect(logger.warn).toHaveBeenCalledWith('TooManyRecordsError caught, message will not be retried.');
     });
 
     it('should do additional checks if event is from fraud', async () => {

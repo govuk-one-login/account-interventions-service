@@ -67,8 +67,8 @@ export class DynamoDatabaseService {
 
   /**
    * A function to take a partially formed UpdateItemCommand input, form the full command, and send the command
-   * @param userId
-   * @param partialInput
+   * @param userId - id of the user whose record is being updated
+   * @param partialInput - Partial object for command input
    */
   public async updateUserStatus(
     userId: string,

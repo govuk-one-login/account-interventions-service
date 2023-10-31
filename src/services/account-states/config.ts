@@ -138,7 +138,7 @@ export const interventionsConfig: InterventionTransitionConfigurations = {
 
 export const userLedActionsConfig: UserLedActionTransitionConfigurations = {
   IPV_IDENTITY_ISSUED: {
-    code: 8,
+    code: 98,
     state: {
       reproveIdentity: false,
     },
@@ -148,7 +148,7 @@ export const userLedActionsConfig: UserLedActionTransitionConfigurations = {
     ],
   },
   AUTH_PASSWORD_RESET_SUCCESSFUL: {
-    code: 9,
+    code: 99,
     state: {
       resetPassword: false,
     },

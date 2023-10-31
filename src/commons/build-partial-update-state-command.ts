@@ -16,7 +16,7 @@ export const buildPartialUpdateAccountStateCommand = (
   interventionName?: string,
 ): Partial<UpdateItemCommandInput> => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const base: Record<string, any> = {
+  const baseUpdateItemCommandInput: Record<string, any> = {
     ExpressionAttributeNames: {
       '#B': 'blocked',
       '#S': 'suspended',
@@ -34,26 +34,27 @@ export const buildPartialUpdateAccountStateCommand = (
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
   };
   if (eventName === EventsEnum.IPV_IDENTITY_ISSUED) {
-    base['ExpressionAttributeNames']['#RIdA'] = 'reprovedIdentityAt';
-    base['ExpressionAttributeValues'][':rida'] = { N: `${getCurrentTimestamp().milliseconds}` };
-    base['UpdateExpression'] += ', #RIdA = :rida';
+    baseUpdateItemCommandInput['ExpressionAttributeNames']['#RIdA'] = 'reprovedIdentityAt';
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rida'] = { N: `${getCurrentTimestamp().milliseconds}` };
+    baseUpdateItemCommandInput['UpdateExpression'] += ', #RIdA = :rida';
   } else if (eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL) {
-    base['ExpressionAttributeNames']['#RPswdA'] = 'resetPasswordAt';
-    base['ExpressionAttributeValues'][':rpswda'] = { N: `${getCurrentTimestamp().milliseconds}` };
-    base['UpdateExpression'] += ', #RPswdA = :rpswda';
+    baseUpdateItemCommandInput['ExpressionAttributeNames']['#RPswdA'] = 'resetPasswordAt';
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rpswda'] = { N: `${getCurrentTimestamp().milliseconds}` };
+    baseUpdateItemCommandInput['UpdateExpression'] += ', #RPswdA = :rpswda';
   } else {
     if (!interventionName) {
       logAndPublishMetric(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
-      throw new Error('intervention received did not have an interventionName field');
+      throw new Error('The intervention received did not have an interventionName field.');
     }
-    base['ExpressionAttributeNames']['#INT'] = 'intervention';
-    base['ExpressionAttributeValues'][':int'] = { S: interventionName };
-    base['ExpressionAttributeNames']['#AA'] = 'appliedAt';
-    base['ExpressionAttributeValues'][':aa'] = { N: `${getCurrentTimestamp().milliseconds}` };
-    base['ExpressionAttributeNames']['#H'] = 'history';
-    base['ExpressionAttributeValues'][':empty_list'] = { L: [] };
-    base['ExpressionAttributeValues'][':h'] = { L: [{ S: interventionName }] };
-    base['UpdateExpression'] += ', #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
+    baseUpdateItemCommandInput['ExpressionAttributeNames']['#INT'] = 'intervention';
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':int'] = { S: interventionName };
+    baseUpdateItemCommandInput['ExpressionAttributeNames']['#AA'] = 'appliedAt';
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':aa'] = { N: `${getCurrentTimestamp().milliseconds}` };
+    baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':empty_list'] = { L: [] };
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = { L: [{ S: interventionName }] };
+    baseUpdateItemCommandInput['UpdateExpression'] +=
+      ', #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
   }
-  return base;
+  return baseUpdateItemCommandInput;
 };

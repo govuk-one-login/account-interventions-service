@@ -88,15 +88,15 @@ Globals:
         - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
 
 Resources:
-  InterventionProcessorFunction:
+  InterventionsProcessorFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "${AWS::StackName}-InterventionProcessorFunction"
+      FunctionName: !Sub "${AWS::StackName}-InterventionsProcessorFunction"
       Description: "A Lambda function for processing the interventions."
       CodeUri: ../../../dist/interventions-processor-handler
       Timeout: 5
       Handler: interventions-processor-handler.handler
-      Role: !GetAtt InterventionProcessorFunctionRole.Arn
+      Role: !GetAtt InterventionsProcessorFunctionRole.Arn
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       Events:
         SQSEvent:
@@ -108,7 +108,7 @@ Resources:
               - ReportBatchItemFailures
       Environment:
         Variables:
-          METRIC_SERVICE_NAME: "InterventionProcessorFunction"
+          METRIC_SERVICE_NAME: "InterventionsProcessorFunction"
           TABLE_NAME:
             Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
       Tags:
@@ -119,11 +119,11 @@ Resources:
         Source: !Ref SourceTagValue
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
 
-  InterventionProcessorFunctionRole:
+  InterventionsProcessorFunctionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "${AWS::StackName}-InterventionProcessorFunctionRole"
-      Description: !Sub "The role assumed by ${AWS::StackName}-InterventionProcessorFunction"
+      RoleName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionRole"
+      Description: !Sub "The role assumed by ${AWS::StackName}-InterventionsProcessorFunction"
       PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -148,19 +148,13 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-  InterventionProcessorFunctionPolicy:
+  InterventionsProcessorFunctionPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-InterventionProcessorFunctionPolicy"
+      PolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Effect: Allow
-            Action:
-              - "logs:CreateLogStream"
-              - "logs:PutLogEvents"
-            Resource:
-              - !GetAtt InterventionProcessorFunctionRole.Arn
           - Effect: Allow
             Action:
               - "sqs:ReceiveMessage"
@@ -187,7 +181,7 @@ Resources:
               StringEquals:
                 cloudwatch:namespace: !Ref SystemTagValue
       Roles:
-        - !Ref InterventionProcessorFunctionRole
+        - !Ref InterventionsProcessorFunctionRole
 
  #### TxMA ####
   SQSEncryptionKey:
@@ -237,14 +231,14 @@ Resources:
   TxMAIngressQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue" #test commit
+      QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue"
       MessageRetentionPeriod: 1209600
       KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
       RedriveAllowPolicy:
         redrivePermission: denyAll
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt TxMAIngressDLQ.Arn
-        maxReceiveCount: 3
+        maxReceiveCount: 60
       VisibilityTimeout: 5
       Tags:
         - Key: Product

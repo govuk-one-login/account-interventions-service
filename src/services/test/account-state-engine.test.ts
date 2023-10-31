@@ -435,7 +435,7 @@ describe('account-state-service', () => {
   });
 
   describe('Unsuccessful state transitions', () => {
-    const duplicateInterventionErrorMessage = 'proposed transition x is the same as current account state x';
+    const duplicateInterventionErrorMessage = 'Proposed transition x is the same as current account state x.';
     const re = /x/gi;
     describe('received intervention is the same as current account state', () => {
       it.each([
@@ -496,7 +496,7 @@ describe('account-state-service', () => {
         };
         expect(() =>
           AccountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, unexpectedAccountState),
-        ).toThrow(new StateTransitionError('no intervention could be found in current config for this state'));
+        ).toThrow(new StateTransitionError('No intervention could be found in current config for this state.'));
         expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
       });
     });
@@ -509,7 +509,7 @@ describe('account-state-service', () => {
     });
     it('should throw if the no intervention can be found with the given code', () => {
       expect(() => AccountStateEngine.getInterventionEnumFromCode(111)).toThrow(
-        new StateTransitionError('no intervention could be found in current config for code 111'),
+        new StateTransitionError('No intervention could be found in current config for code 111.'),
       );
     });
   });
@@ -601,7 +601,7 @@ describe('account-state-service', () => {
       });
       expect(() => {
         AccountStateEngine.getInterventionEnumFromCode(2);
-      }).toThrow(new Error('no intervention could be found in current config for code 2'));
+      }).toThrow(new Error('No intervention could be found in current config for code 2.'));
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.NO_INTERVENTION_FOUND_FOR_THIS_CODE);
     });
     it('applyEventTransition should throw if current state cannot be found in current intervention config', () => {
@@ -611,7 +611,7 @@ describe('account-state-service', () => {
       });
       expect(() => {
         AccountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNBLOCK_ACCOUNT, sampleStateDetail);
-      }).toThrow(new Error('no intervention could be found in current config for this state'));
+      }).toThrow(new Error('No intervention could be found in current config for this state.'));
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
     });
     it('applyEventTransition should throw if received user action is not found in current user action config', () => {
@@ -621,7 +621,7 @@ describe('account-state-service', () => {
       });
       expect(() => {
         AccountStateEngine.applyEventTransition(EventsEnum.IPV_IDENTITY_ISSUED, sampleStateDetail);
-      }).toThrow(new Error('received user action IPV_IDENTITY_ISSUED event does not exist in current config'));
+      }).toThrow(new Error('User action IPV_IDENTITY_ISSUED event does not exist in current config.'));
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(
         MetricNames.USER_ACTION_EVENT_DOES_NOT_EXIST_IN_CURRENT_CONFIG,
       );
@@ -633,7 +633,7 @@ describe('account-state-service', () => {
       });
       expect(() => {
         AccountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, sampleStateDetail);
-      }).toThrow(new Error('this intervention: FRAUD_UNSUSPEND_ACCOUNT cannot be found in current config'));
+      }).toThrow(new Error('Intervention FRAUD_UNSUSPEND_ACCOUNT cannot be found in current config.'));
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_EVENT_NOT_FOUND_IN_CURRENT_CONFIG);
     });
   });

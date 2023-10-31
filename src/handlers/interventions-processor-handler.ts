@@ -50,7 +50,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
   try {
     const recordBody: TxMAEvent = JSON.parse(record.body);
     validateEvent(recordBody);
-    if (isTimestampNotInFuture(recordBody, itemFailures, record.messageId)) {
+    if (isTimestampNotInFuture(recordBody)) {
       const intervention = getInterventionName(recordBody);
       logger.debug('identified event: ' + intervention);
       const itemFromDB = await service.retrieveRecordsByUserId(recordBody.user.user_id);
@@ -58,14 +58,18 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       const statusResult = AccountStateEngine.applyEventTransition(intervention, itemFromDB);
       logger.debug('processed requested event, sending update request to dynamo db');
       await service.updateUserStatus(recordBody.user.user_id, statusResult);
+    } else {
+      itemFailures.push({
+        itemIdentifier: record.messageId,
+      });
     }
   } catch (error) {
     if (error instanceof StateTransitionError) {
-      logger.warn('StateTransitionError caught, message will not be retried');
+      logger.warn('StateTransitionError caught, message will not be retried.');
     } else if (error instanceof ValidationError) {
-      logger.warn('ValidationError caught, message will not be retried');
+      logger.warn('ValidationError caught, message will not be retried.');
     } else if (error instanceof TooManyRecordsError) {
-      logger.warn('TooManyRecordsError caught, message will not be retried');
+      logger.warn('TooManyRecordsError caught, message will not be retried.');
     } else {
       itemFailures.push({
         itemIdentifier: record.messageId,
@@ -78,21 +82,12 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
  * A function to check if timestamp of the event is in the future.
  *
  * @param recordBody - the parsed body of the sqs record
- * @param itemFailures - the array of items that should be retried
- * @param messageId - the messageId of the sqs record
  */
-function isTimestampNotInFuture(
-  recordBody: TxMAEvent,
-  itemFailures: SQSBatchItemFailure[],
-  messageId: string,
-): boolean {
+function isTimestampNotInFuture(recordBody: TxMAEvent): boolean {
   const now = getCurrentTimestamp().milliseconds;
   if (now < recordBody.timestamp) {
-    logger.debug(`Timestamp is in the future (sec): ${recordBody.timestamp}`);
+    logger.debug(`Timestamp is in the future (sec): ${recordBody.timestamp}.`);
     logAndPublishMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
-    itemFailures.push({
-      itemIdentifier: messageId,
-    });
     return false;
   }
   return true;
