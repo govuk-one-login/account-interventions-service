@@ -25,10 +25,6 @@ Parameters:
     Description: The ARN of the permissions boundary to apply when creating IAM roles
     Type: String
     Default: none
-  CodeSigningConfigArn:
-    Description: Asserts that lambdas are signed when deployed.
-    Type: String
-    Default: none
   CoreStackName:
     Description: The name of the Core VC Storage stack
     Type: String
@@ -227,7 +223,6 @@ Resources:
 
   TxMAIngressQueuePolicy:
     Type: AWS::SQS::QueuePolicy
-    DependsOn: TxMAIngressQueue
     Properties:
       Queues:
         - !Ref TxMAIngressQueue
