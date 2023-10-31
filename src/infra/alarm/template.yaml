@@ -56,7 +56,6 @@ Resources:
 #
   AISUpdateDeleteFailed:
     Type: AWS::CloudWatch::Alarm
-    DependsOn: TooManyJwksTimeout
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -67,7 +66,7 @@ Resources:
       EvaluationPeriods: 1
       TreatMissingData: notBreaching
       MetricName: MARK_AS_DELETED_FAILED
-      Namespace: !Ref MainCloudWatchMetricNamespace
+      Namespace: AWS/AIS
       Dimensions:
         - Name: service
           Value: AccountDeletionProcessorFunction
@@ -77,7 +76,6 @@ Resources:
 
   AISUpdateDeleteDDBError:
     Type: AWS::CloudWatch::Alarm
-    DependsOn: TooManyJwksTimeout
     Properties:
       ActionsEnabled: true
       AlarmActions:
@@ -88,7 +86,7 @@ Resources:
       EvaluationPeriods: 1
       TreatMissingData: notBreaching
       MetricName: DB_UPDATE_ERROR
-      Namespace: !Ref MainCloudWatchMetricNamespace
+      Namespace: AWS/AIS
       Dimensions:
         - Name: service
           Value: AccountDeletionProcessorFunction
