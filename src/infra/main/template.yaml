@@ -765,7 +765,6 @@ Resources:
       # checkov:skip=CKV_AWS_120: API Gateway caching not enabled
       Name: !Sub "${AWS::StackName}-PrivateRestApi"
       AlwaysDeploy: true
-      OpenApiVersion: 3.0.3
       DefinitionBody:
         Fn::Transform:
           Name: AWS::Include
