@@ -104,7 +104,6 @@ export class DynamoDatabaseService {
       ConditionExpression: 'attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false',
     };
     const command = new UpdateItemCommand(commandInput);
-    const response = await this.dynamoClient.send(command);
-    return response;
+    return await this.dynamoClient.send(command);
   }
 }

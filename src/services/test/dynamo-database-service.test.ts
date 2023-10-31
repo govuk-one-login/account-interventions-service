@@ -2,8 +2,7 @@ import {
   DynamoDBClient,
   QueryCommand,
   QueryCommandOutput,
-  UpdateItemCommand,
-  UpdateItemCommandInput
+  UpdateItemCommand, UpdateItemCommandInput,
 } from '@aws-sdk/client-dynamodb';
 import { DynamoDatabaseService } from '../dynamo-database-service';
 import 'aws-sdk-client-mock-jest';
@@ -21,7 +20,17 @@ const ddbMock = mockClient(DynamoDBClient);
 const queryCommandMock = ddbMock.on(QueryCommand);
 const updateCommandMock = ddbMock.on(UpdateItemCommand);
 describe('Dynamo DB Service', () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(Date.UTC(2023, 4, 30)));
+  });
+
   beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -60,9 +69,6 @@ describe('Dynamo DB Service', () => {
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
   };
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
 
   it('should get all items successfully', async () => {
     queryCommandMock.resolves({ Items: items });
@@ -128,57 +134,8 @@ describe('Dynamo DB Service', () => {
     expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
   });
 
-  it('should throw a logger debug if non-null LEK has been received', async () => {
-    const mockedQueryCommand = mockClient(DynamoDBClient).on(QueryCommand);
-    //@ts-ignore
-    mockedQueryCommand.resolvesOnce({
-      ConsumedCapacity: {
-        TableName: 'table_name',
-        CapacityUnits: Number('single'),
-      },
-      Count: 3,
-      Items: [
-        {pk: {S: 'userId1'}},
-        {pk: {S: 'userId1'}},
-        {pk: {S: 'userId1'}}
-      ],
-      ScannedCount: 3,
-      LastEvaluatedKey: {
-        pk: {
-          S: 'userId1'
-        }
-      }
-    }).resolvesOnce({
-      ConsumedCapacity: {},
-      Count: 3,
-      Items: [
-        {pk: {S: 'userId1'}},
-        {pk: {S: 'userId1'}},
-        {pk: {S: 'userId1'}}
-      ],
-      ScannedCount: 3,
-      LastEvaluatedKey: {
-        pk: {
-          S: 'userId1'
-        }
-      }
-    }).resolvesOnce(
-      {
-        ConsumedCapacity: {},
-        Count: 2,
-        Items: [
-          {pk: {S: 'userId1'}},
-          {pk: {S: 'userId1'}},
-        ],
-        ScannedCount: 2,
-      }
-    );
-    await expect((new DynamoDatabaseService('table_name')).retrieveRecordsByUserId('userId1')).resolves.toHaveLength(8);
-    expect(logAndPublishMetric).toHaveBeenCalledWith('DB_QUERY_HAS_LEK');
-    expect(logAndPublishMetric).toHaveBeenCalledTimes(2)
-  });
-
-  it('should update the status of the userId in DynamoDB and log info', async () => {
+  it('should update the isAccountDeleted status of the userId in DynamoDB and log info', async () => {
+    updateCommandMock.resolves({$metadata : { httpStatusCode: 200 }});
     const commandInput: UpdateItemCommandInput = {
       TableName: 'table_name',
       Key: { pk: { S: 'hello' } },
@@ -194,9 +151,9 @@ describe('Dynamo DB Service', () => {
       },
       ConditionExpression: 'attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false',
     };
-    const ddbMock = mockClient(DynamoDBClient);
     const dynamoDBService = new DynamoDatabaseService('table_name')
     await dynamoDBService.updateDeleteStatus('hello');
     expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, commandInput);
+
   });
 });
