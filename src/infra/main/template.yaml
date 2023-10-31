@@ -310,7 +310,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
       Description: "A lambda function that updates an account status indicating that the account has been deleted"
-      CodeUri: ../../../dist/handlers/account-deletion-processor-handler
+      CodeUri: ../../../dist/account-deletion-processor-handler
       Timeout: 10
       Handler: account-deletion-processor-handler.handler
       Role: !GetAtt AccountDeletionProcessorFunctionRole.Arn
