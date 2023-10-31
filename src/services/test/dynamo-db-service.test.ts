@@ -130,8 +130,9 @@ describe('Dynamo DB Service', () => {
       ExpressionAttributeValues: {
         ':isAccountDeleted': { BOOL: true },
         ':ttl': { N: '1685417145' },
+        ':false': { BOOL: false },
       },
-      ConditionExpression: 'attribute_exists(pk)',
+      ConditionExpression: 'attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false',
     };
     const ddbMock = mockClient(DynamoDBClient);
     await dynamoDBService.updateDeleteStatus('hello');
