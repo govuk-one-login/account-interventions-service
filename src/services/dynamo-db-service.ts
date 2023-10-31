@@ -103,8 +103,9 @@ export class DynamoDbService {
       ExpressionAttributeValues: {
         ':isAccountDeleted': { BOOL: true },
         ':ttl': { N: ttl.toString() },
+        ':false': { BOOL: false },
       },
-      ConditionExpression: 'attribute_exists(pk)',
+      ConditionExpression: 'attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false',
     };
     const command = new UpdateItemCommand(commandInput);
     const response = await this.dynamoClient.send(command);
