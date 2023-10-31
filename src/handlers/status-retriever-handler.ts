@@ -3,7 +3,7 @@ import { AppConfigService } from '../services/app-config-service';
 import { DynamoDbService as DynamoDatabaseService } from '../services/dynamo-db-service';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
-import { MetricNames } from '../data-types/constants';
+import { MetricNames, AISInterventionTypes } from '../data-types/constants';
 import { TransformedResponseFromDynamoDatabase } from '../data-types/interfaces';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 
@@ -30,7 +30,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
       logAndPublishMetric(MetricNames.ACCOUNT_NOT_SUSPENDED);
       return {
         statusCode: 200,
-        body: JSON.stringify({ message: 'No suspension.' }),
+        body: JSON.stringify({ message: AISInterventionTypes.AIS_NO_INTERVENTION }),
       };
     }
     for (const item of response) {
@@ -41,7 +41,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
         logAndPublishMetric(MetricNames.ACCOUNT_NOT_SUSPENDED);
         return {
           statusCode: 200,
-          body: JSON.stringify({ message: 'No suspension.' }),
+          body: JSON.stringify({ message: AISInterventionTypes.AIS_NO_INTERVENTION }),
         };
       }
 

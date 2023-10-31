@@ -5,6 +5,7 @@ import { handle } from '../status-retriever-handler';
 import logger from '../../commons/logger';
 import { marshall } from '@aws-sdk/util-dynamodb';
 import { DynamoDbService } from '../../services/dynamo-db-service';
+import { AISInterventionTypes } from '../../data-types/constants';
 
 jest.mock('../../commons/logger.ts');
 jest.mock('../../services/dynamo-db-service');
@@ -214,7 +215,7 @@ describe('status-retriever-handler', () => {
   it('will return a message if user ID cannot be found in the database', async () => {
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(JSON.stringify({ message: 'No suspension.' }));
+    expect(response.body).toEqual(JSON.stringify({ message: AISInterventionTypes.AIS_NO_INTERVENTION }));
   });
 
   it('will return the correct response from the database if the user ID matches an account where the state items are all false', async () => {
@@ -222,7 +223,7 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce([marshall(accountFoundNotSuspendedRecord)]);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(JSON.stringify({ message: 'No suspension.' }));
+    expect(response.body).toEqual(JSON.stringify({ message: AISInterventionTypes.AIS_NO_INTERVENTION }));
   });
 
   it('will return the appropiate response if the event is malformed', async () => {
