@@ -32,6 +32,11 @@ export class DynamoDatabaseService {
     this.tableName = tableName;
   }
 
+  /**
+   * A function to retrieve the DynamoDB record according to the given userId
+   *
+   * @param userId - the userId that comes from the request
+   */
   public async retrieveRecordsByUserId(userId: string) {
     logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db, with ID : ${userId}`);
     const parameters: QueryCommandInput = {
