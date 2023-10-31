@@ -29,6 +29,7 @@
     "@aws-lambda-powertools/commons": "^1.14.0",
     "@aws-sdk/client-sns": "^3.427.0",
     "@aws-sdk/client-secrets-manager": "^3.427.0",
-    "@aws-sdk/credential-providers": "^3.427.0"
+    "@aws-sdk/credential-providers": "^3.427.0",
+    "@aws-sdk/client-sqs": "^3.427.0"
   }
 }
