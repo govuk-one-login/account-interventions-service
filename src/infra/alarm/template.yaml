@@ -50,3 +50,48 @@ Resources:
       EvaluationPeriods: 1
       Period: 60
       TreatMissingData: notBreaching
+
+#
+# CloudWatch Alarms for Updating Deletion Status
+#
+  AISUpdateDeleteFailed:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn: TooManyJwksTimeout
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "User's deletion status failed to be updated."
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: MARK_AS_DELETED_FAILED
+      Namespace: !Ref MainCloudWatchMetricNamespace
+      Dimensions:
+        - Name: service
+          Value: AccountDeletionProcessorFunction
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  AISUpdateDeleteDDBError:
+    Type: AWS::CloudWatch::Alarm
+    DependsOn: TooManyJwksTimeout
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "User's deletion status failed to be updated due to DynamoDB."
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: DB_UPDATE_ERROR
+      Namespace: !Ref MainCloudWatchMetricNamespace
+      Dimensions:
+        - Name: service
+          Value: AccountDeletionProcessorFunction
+      Period: 60
+      Statistic: Sum
+      Unit: Count
