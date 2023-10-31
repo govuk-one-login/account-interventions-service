@@ -215,7 +215,7 @@ describe('status-retriever-handler', () => {
   it('will return a message if user ID cannot be found in the database', async () => {
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(JSON.stringify({ message: AISInterventionTypes.AIS_NO_INTERVENTION }));
+    expect(response.body).toEqual(JSON.stringify({ intervention: AISInterventionTypes.AIS_NO_INTERVENTION }));
   });
 
   it('will return the correct response from the database if the user ID matches an account where the state items are all false', async () => {
@@ -223,7 +223,7 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce([marshall(accountFoundNotSuspendedRecord)]);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(JSON.stringify({ message: AISInterventionTypes.AIS_NO_INTERVENTION }));
+    expect(response.body).toEqual(JSON.stringify({ intervention: AISInterventionTypes.AIS_NO_INTERVENTION }));
   });
 
   it('will return the appropiate response if the event is malformed', async () => {

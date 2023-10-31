@@ -30,7 +30,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
       logAndPublishMetric(MetricNames.ACCOUNT_NOT_SUSPENDED);
       return {
         statusCode: 200,
-        body: JSON.stringify({ message: AISInterventionTypes.AIS_NO_INTERVENTION }),
+        body: JSON.stringify({ intervention: AISInterventionTypes.AIS_NO_INTERVENTION }),
       };
     }
     for (const item of response) {
@@ -41,7 +41,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
         logAndPublishMetric(MetricNames.ACCOUNT_NOT_SUSPENDED);
         return {
           statusCode: 200,
-          body: JSON.stringify({ message: AISInterventionTypes.AIS_NO_INTERVENTION }),
+          body: JSON.stringify({ intervention: AISInterventionTypes.AIS_NO_INTERVENTION }),
         };
       }
 

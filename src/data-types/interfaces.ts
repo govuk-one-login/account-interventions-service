@@ -81,14 +81,13 @@ export interface TransitionConfigurationInterface {
   };
 }
 
-export interface TransformedResponseFromDynamoDb {
-  intervention: {
-    updatedAt: number;
-    appliedAt: number;
-    sentAt: number;
-    description: string;
-    reprovedIdentityAt: number;
-    resetPasswordAt: number;
+export interface TransformedResponseFromDynamoDatabase {
+  updatedAt: number;
+  appliedAt: number;
+  sentAt: number;
+  description: string;
+  reprovedIdentityAt: number;
+  resetPasswordAt: number;
   state: {
     blocked: boolean;
     suspended: boolean;
@@ -97,3 +96,4 @@ export interface TransformedResponseFromDynamoDb {
   };
   auditLevel: string;
 }
+
