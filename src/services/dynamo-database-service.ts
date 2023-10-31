@@ -103,6 +103,13 @@ export class DynamoDatabaseService {
       ConditionExpression: 'attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false',
     };
     const command = new UpdateItemCommand(commandInput);
-    return await this.dynamoClient.send(command);
+    const response = await this.dynamoClient.send(command);
+    if (!response) {
+      const errorMessage = 'DynamoDB may have failed to update items, returned a null response.';
+      logger.error(errorMessage);
+      logAndPublishMetric(MetricNames.DB_UPDATE_ERROR_NO_RESPONSE);
+      throw new Error(errorMessage);
+    }
+    return response;
   }
 }
