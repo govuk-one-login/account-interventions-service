@@ -65,6 +65,11 @@ export class DynamoDatabaseService {
     return response.Items[0] ? (unmarshall(response.Items[0]) as StateDetails) : undefined;
   }
 
+  /**
+   * A function to take a partially formed UpdateItemCommand input, form the full command, and send the command
+   * @param userId
+   * @param partialInput
+   */
   public async updateUserStatus(
     userId: string,
     partialInput: Partial<UpdateItemCommandInput>,
