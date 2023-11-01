@@ -1,0 +1,15 @@
+{
+  "event_name": "IPV_IDENTITY_ISSUED",
+  "timestamp": 1234567,
+  "client_id": "UNKNOWN",
+  "component_id": "UNKNOWN",
+  "user": {
+    "user_id": "urn:fdc:gov.uk:2022:USER_ONE",
+    "email": "",
+    "phone": "UNKNOWN",
+    "ip_address": "",
+    "session_id": "",
+    "persistent_session_id": "",
+    "govuk_signin_journey_id": ""
+  }
+}

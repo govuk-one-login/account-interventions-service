@@ -25,10 +25,14 @@ Parameters:
     Description: The ARN of the permissions boundary to apply when creating IAM roles
     Type: String
     Default: none
+  CodeSigningConfigArn:
+    Description: Asserts that lambdas are signed when deployed.
+    Type: String
+    Default: none
   CoreStackName:
     Description: The name of the Core VC Storage stack
     Type: String
-    Default: account-interventions-service-core
+    Default: ais-core
   ProductTagValue:
     Description: Value for the Product Tag
     Type: String
@@ -48,7 +52,7 @@ Parameters:
 
 Conditions:
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
-  IsInternal: !Or [ !Equals [!Ref Environment, dev], !Equals [!Ref Environment, build],!Equals [ !Ref Environment, staging]]
+  UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
 
 Mappings:
   EnvConfig:
@@ -89,33 +93,44 @@ Globals:
         - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
 
 Resources:
-  AISSampleLambdaFunction:
+  ### Interventions Processor ###
+  InterventionsProcessorFunction:
+    DependsOn: InterventionsProcessorFunctionPolicy
     Type: AWS::Serverless::Function
-    # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
-    # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
     Properties:
-      FunctionName: !Sub '${AWS::StackName}-InterventionHistoryWriterFunction'
-      CodeUri: ../../../dist/handlers/sample-lambda-handler
-      Timeout: 10
+      FunctionName: !Sub "${AWS::StackName}-InterventionsProcessorFunction"
+      Description: "A Lambda function for processing the interventions."
+      CodeUri: ../../../dist/interventions-processor-handler
+      Timeout: 5
+      Handler: interventions-processor-handler.handler
+      Role: !GetAtt InterventionsProcessorFunctionRole.Arn
+      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt TxMAIngressQueue.Arn
+            BatchSize: 1
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
       Environment:
         Variables:
+          METRIC_SERVICE_NAME: "InterventionsProcessorFunction"
           TABLE_NAME:
             Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
-          METRIC_SERVICE_NAME: !Sub "${AWS::StackName}-SampleLambda"
-      Handler: sample-lambda-handler.handle
-      Role: !GetAtt AISSampleLambdaHandlerRole.Arn
       Tags:
-        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
         Product: !Ref ProductTagValue
         System: !Ref SystemTagValue
         Environment: !Ref Environment
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
+        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
 
-  AISSampleLambdaHandlerRole:
+  InterventionsProcessorFunctionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName:  !Sub '${AWS::StackName}-AISSampleLambdaHandlerRole'
+      RoleName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionRole"
+      Description: !Sub "The role assumed by ${AWS::StackName}-InterventionsProcessorFunction"
       PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -140,23 +155,42 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-  AISSampleLambdaHandlerPolicy:
+  InterventionsProcessorFunctionPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-AISSampleLambdaHandlerPolicy"
+      PolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
-              - "dynamodb:PutItem"
-              - "dynamodb:Query"
-              - "dynamodb:DeleteItem"
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+            Resource: !GetAtt TxMAIngressQueue.Arn
+          - Effect: Allow
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: !GetAtt SQSEncryptionKey.Arn
+          - Effect: Allow
+            Action:
               - "dynamodb:UpdateItem"
+              - "dynamodb:Query"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
+          - Effect: "Allow"
+            Action:
+              - "cloudwatch:PutMetricData"
+            Resource:
+              - "*"
+            Condition:
+              StringEquals:
+                cloudwatch:namespace: !Ref SystemTagValue
       Roles:
-        - !Ref AISSampleLambdaHandlerRole
+        - !Ref InterventionsProcessorFunctionRole
+
+### Account Deletion Processor ###
 
   AccountDeletionProcessorSNSTopic:
     Type: AWS::SNS::Topic
@@ -175,6 +209,248 @@ Resources:
           Value: !Ref OwnerTagValue
         - Key: Source
           Value: !Ref SourceTagValue
+
+  AccountDeletionProcessorFunction:
+    Type: AWS::Serverless::Function
+    # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
+    # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
+      Description: "A lambda function that updates an account status indicating that the account has been deleted"
+      CodeUri: ../../../dist/account-deletion-processor-handler
+      Timeout: 10
+      Handler: account-deletion-processor-handler.handler
+      Role: !GetAtt AccountDeletionProcessorFunctionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
+          DELETED_ACCOUNT_RETENTION_SECONDS: 63072000 #2 Years in Seconds
+          METRIC_SERVICE_NAME: !Sub "${AWS::StackName}-AccountDeletionProcessorFunction"
+      Events:
+        SNSEvent:
+          Type: SNS
+          Properties:
+            RedrivePolicy: !Sub "{ \"deadLetterTargetArn\": \"arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorDLQ\" }"
+            SqsSubscription:
+              BatchSize: 1
+              Enabled: true
+              QueueArn: !GetAtt AccountDeletionProcessorQueue.Arn
+              QueueUrl: !Ref AccountDeletionProcessorQueue
+            Topic: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
+
+      Tags:
+        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
+  AccountDeletionProcessorResourcePolicy:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AccountDeletionProcessorFunction
+      Action: lambda:InvokeFunction
+      Principal: sns.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
+
+  AccountDeletionProcessorFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:  !Sub '${AWS::StackName}-AccountDeletionProcessorFunctionRole'
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionRolePolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sqs:ReceiveMessage"
+                  - "sqs:DeleteMessage"
+                  - "sqs:GetQueueAttributes"
+                Resource: !GetAtt AccountDeletionProcessorQueue.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  AccountDeletionProcessorFunctionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AccountDeletionProcessorFunction}:*'
+          - Effect: Allow
+            Action:
+              - "kms:GenerateDataKey"
+              - "kms:Decrypt"
+            Resource:
+              - !GetAtt SQSEncryptionKey.Arn
+              - !GetAtt AccountDeletionProcessorSNSKmsKey.Arn
+          - Effect: Allow
+            Action:
+              - "dynamodb:UpdateItem"
+            Resource:
+              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
+      Roles:
+        - !Ref AccountDeletionProcessorFunctionRole
+
+  AccountDeletionProcessorQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-AccountDeletionProcessorQueue"
+      MessageRetentionPeriod: 1209600
+      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
+      RedriveAllowPolicy:
+        redrivePermission: denyAll
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt AccountDeletionProcessorDLQ.Arn
+        maxReceiveCount: 60
+      VisibilityTimeout: 10
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  AccountDeletionProcessorQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref AccountDeletionProcessorQueue
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt AccountDeletionProcessorQueue.Arn
+            Principal:
+              Service: sns.amazonaws.com
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
+
+  AccountDeletionProcessorDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-AccountDeletionProcessorDLQ"
+      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
+      VisibilityTimeout: 10
+      MessageRetentionPeriod: 1209600
+      RedriveAllowPolicy:
+        redrivePermission: byQueue
+        sourceQueueArns:
+          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorQueue"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+
+ #### TxMA Queues ####
+  TxMAIngressQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue"
+      MessageRetentionPeriod: 1209600
+      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
+      RedriveAllowPolicy:
+        redrivePermission: denyAll
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt TxMAIngressDLQ.Arn
+        maxReceiveCount: 60
+      VisibilityTimeout: 5
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  TxMAIngressQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref TxMAIngressQueue
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt TxMAIngressQueue.Arn
+            Principal:
+              Service: sns.amazonaws.com
+
+  TxMAIngressDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-TxMAIngressDLQ"
+      KmsMasterKeyId: !Ref SQSEncryptionKeyAlias
+      VisibilityTimeout: 0
+      MessageRetentionPeriod: 1209600
+      RedriveAllowPolicy:
+        redrivePermission: byQueue
+        sourceQueueArns:
+          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-TxMAIngressQueue"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+### Encryption Key SQS & SNS ###
 
   AccountDeletionProcessorSNSKmsKey:
     Type: AWS::KMS::Key
@@ -272,255 +548,3 @@ Resources:
     Properties:
       AliasName: !Sub "alias/${AWS::StackName}-SQSEncryptionKey"
       TargetKeyId: !GetAtt SQSEncryptionKey.Arn
-
-  AccountDeletionProcessorFunction:
-    Type: AWS::Serverless::Function
-    # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
-    # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
-    Properties:
-      FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
-      Description: "A lambda function that updates an account status indicating that the account has been deleted"
-      CodeUri: ../../../dist/handlers/account-deletion-processor-handler
-      Timeout: 10
-      Handler: account-deletion-processor-handler.handler
-      Role: !GetAtt AccountDeletionProcessorFunctionRole.Arn
-      Environment:
-        Variables:
-          TABLE_NAME:
-            Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
-          DELETED_ACCOUNT_RETENTION_SECONDS: 63072000 #2 Years in Seconds
-          METRIC_SERVICE_NAME: !Sub "${AWS::StackName}-AccountDeletionProcessorFunction"
-      Events:
-        SNSEvent:
-          Type: SNS
-          Properties:
-            RedrivePolicy: !Sub "{ \"deadLetterTargetArn\": \"arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorDLQ\" }"
-            SqsSubscription:
-              BatchSize: 1
-              Enabled: true
-              QueueArn: !GetAtt AccountDeletionProcessorQueue.Arn
-              QueueUrl: !Ref AccountDeletionProcessorQueue
-            Topic: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
-#            Topic: !If
-#              - IsInternal
-#              - !Ref AccountDeletionProcessorSNSTopic
-#              - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
-      Tags:
-        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
-        Product: !Ref ProductTagValue
-        System: !Ref SystemTagValue
-        Environment: !Ref Environment
-        Owner: !Ref OwnerTagValue
-        Source: !Ref SourceTagValue
-
-  AccountDeletionProcessorResourcePolicy:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref AccountDeletionProcessorFunction
-      Action: lambda:InvokeFunction
-      Principal: sns.amazonaws.com
-      SourceAccount: !Ref AWS::AccountId
-      SourceArn: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
-#      SourceArn: !If
-#        - IsInternal
-#        - !Ref AccountDeletionProcessorSNSTopic
-#        - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
-
-  AccountDeletionProcessorFunctionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName:  !Sub '${AWS::StackName}-AccountDeletionProcessorFunctionRole'
-      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-      Policies:
-        - PolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionRolePolicy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "sqs:ReceiveMessage"
-                  - "sqs:DeleteMessage"
-                  - "sqs:GetQueueAttributes"
-                Resource: !GetAtt AccountDeletionProcessorQueue.Arn 
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-
-  AccountDeletionProcessorFunctionPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionPolicy"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "logs:CreateLogStream"
-              - "logs:PutLogEvents"
-            Resource:
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AccountDeletionProcessorFunction}:*'
-          - Effect: Allow
-            Action:
-              - "kms:GenerateDataKey"
-              - "kms:Decrypt"
-            Resource:
-              - !GetAtt SQSEncryptionKey.Arn
-              - !GetAtt AccountDeletionProcessorSNSKmsKey.Arn
-          - Effect: Allow
-            Action:
-              - "dynamodb:UpdateItem"
-            Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
-      Roles:
-        - !Ref AccountDeletionProcessorFunctionRole
-
-  AccountDeletionProcessorQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${AWS::StackName}-AccountDeletionProcessorQueue"
-      MessageRetentionPeriod: 1209600
-      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
-      RedriveAllowPolicy:
-        redrivePermission: denyAll
-      RedrivePolicy:
-        deadLetterTargetArn: !GetAtt AccountDeletionProcessorDLQ.Arn
-        maxReceiveCount: 60
-      VisibilityTimeout: 10
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-
-  AccountDeletionProcessorQueuePolicy:
-    Type: AWS::SQS::QueuePolicy
-    Properties:
-      Queues:
-        - !Ref AccountDeletionProcessorQueue
-      PolicyDocument:
-        Statement:
-          - Effect: Allow
-            Action:
-              - "sqs:SendMessage"
-            Resource: !GetAtt AccountDeletionProcessorQueue.Arn
-            Principal:
-              Service: sns.amazonaws.com
-            Condition:
-              ArnEquals:
-                aws:SourceArn: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
-#                  - !If
-#                    - IsInternal
-#                    - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
-#                    - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN]
-
-  AccountDeletionProcessorDLQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${AWS::StackName}-AccountDeletionProcessorDLQ"
-      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
-      VisibilityTimeout: 10
-      MessageRetentionPeriod: 1209600
-      RedriveAllowPolicy:
-        redrivePermission: byQueue
-        sourceQueueArns:
-          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorQueue"
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-
-
- #### TxMA ####
-  TxMAIngressQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue"
-      MessageRetentionPeriod: 1209600
-      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
-      RedriveAllowPolicy:
-        redrivePermission: denyAll
-      RedrivePolicy:
-        deadLetterTargetArn: !GetAtt TxMAIngressDLQ.Arn
-        maxReceiveCount: 3
-      VisibilityTimeout: 10
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-
-  TxMAIngressQueuePolicy:
-    Type: AWS::SQS::QueuePolicy
-    Properties:
-      Queues:
-        - !Ref TxMAIngressQueue
-      PolicyDocument:
-        Statement:
-          - Effect: Allow
-            Action:
-              - "sqs:SendMessage"
-            Resource: !GetAtt TxMAIngressQueue.Arn
-            Principal:
-              Service: sns.amazonaws.com
-
-  TxMAIngressDLQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "${AWS::StackName}-TxMAIngressDLQ"
-      KmsMasterKeyId: !Ref SQSEncryptionKeyAlias
-      VisibilityTimeout: 0
-      MessageRetentionPeriod: 1209600
-      RedriveAllowPolicy:
-        redrivePermission: byQueue
-        sourceQueueArns:
-          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-TxMAIngressQueue"
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-

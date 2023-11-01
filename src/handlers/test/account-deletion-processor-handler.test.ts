@@ -1,11 +1,11 @@
 import { handler } from '../account-deletion-processor-handler';
-import { DynamoDbService as DynamoDatabaseService } from '../../services/dynamo-db-service';
+import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import logger from '../../commons/logger';
 import 'aws-sdk-client-mock-jest';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { ContextExamples } from '@aws-lambda-powertools/commons';
 
-jest.mock('../../services/dynamo-db-service');
+jest.mock('../../services/dynamo-database-service');
 jest.mock('@aws-sdk/util-dynamodb');
 jest.mock('../../commons/logger');
 

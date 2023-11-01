@@ -1,24 +1,26 @@
 import {
-  AttributeValue,
   DynamoDBClient,
   QueryCommand,
   QueryCommandInput,
   QueryCommandOutput,
   UpdateItemCommand,
   UpdateItemCommandInput,
+  UpdateItemCommandOutput,
 } from '@aws-sdk/client-dynamodb';
 import logger from '../commons/logger';
 import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
-import { logAndPublishMetric } from '../commons/metrics';
 import { AppConfigService } from './app-config-service';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import tracer from '../commons/tracer';
-import { StateDetails } from '../data-types/interfaces';
+import { unmarshall } from '@aws-sdk/util-dynamodb';
+import { logAndPublishMetric } from '../commons/metrics';
+import { TooManyRecordsError } from '../data-types/errors';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { DynamoDBStateResult } from '../data-types/interfaces';
 
 const appConfig = AppConfigService.getInstance();
 
-export class DynamoDbService {
+export class DynamoDatabaseService {
   private dynamoClient: DynamoDBClient;
   private readonly tableName: string;
 
@@ -33,61 +35,54 @@ export class DynamoDbService {
     this.tableName = tableName;
   }
 
+  /**
+   * A function to retrieve the DynamoDB record according to the given userId
+   *
+   * @param userId - the userId that comes from the request
+   */
   public async retrieveRecordsByUserId(userId: string) {
-    const items: Record<string, AttributeValue>[] = [];
-    let lastEvaluatedKey;
     logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db, with ID : ${userId}`);
     const parameters: QueryCommandInput = {
       TableName: this.tableName,
       KeyConditionExpression: '#pk = :id_value',
       ExpressionAttributeNames: { '#pk': 'pk' },
       ExpressionAttributeValues: { ':id_value': { S: userId } },
+      ProjectionExpression: 'blocked, suspended, resetPassword, reproveIdentity, isAccountDeleted',
     };
 
-    do {
-      if (lastEvaluatedKey) {
-        parameters.ExclusiveStartKey = lastEvaluatedKey;
-        logAndPublishMetric(MetricNames.DB_QUERY_HAS_LEK);
-        logger.debug('Non-null LastEvaluatedKey has been received');
-      }
-      const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
-      if (response === undefined) {
-        const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
-        logger.error(errorMessage);
-        logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
-        throw new Error(errorMessage);
-      } else {
-        for (const item of response.Items!) {
-          items.push(item);
-        }
-        lastEvaluatedKey = response.LastEvaluatedKey ?? undefined;
-      }
-    } while (lastEvaluatedKey);
-    return items;
+    const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
+    if (!response.Items) {
+      const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
+      logger.error(errorMessage);
+      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
+      throw new Error(errorMessage);
+    }
+
+    if (response.Items.length > 1) {
+      const errorMessage = 'DynamoDB returned more than one element.';
+      logger.error(errorMessage);
+      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
+      throw new TooManyRecordsError(errorMessage);
+    }
+    return response.Items[0] ? (unmarshall(response.Items[0]) as DynamoDBStateResult) : undefined;
   }
 
-  public async putItemForUserId(userId: string, newState: StateDetails) {
+  /**
+   * A function to take a partially formed UpdateItemCommand input, form the full command, and send the command
+   * @param userId - id of the user whose record is being updated
+   * @param partialInput - Partial object for command input
+   */
+  public async updateUserStatus(
+    userId: string,
+    partialInput: Partial<UpdateItemCommandInput>,
+  ): Promise<UpdateItemCommandOutput> {
     const commandInput: UpdateItemCommandInput = {
       TableName: this.tableName,
       Key: { pk: { S: userId } },
-      ExpressionAttributeNames: {
-        '#B': 'blocked',
-        '#S': 'suspended',
-        '#RP': 'resetPassword',
-        '#RI': 'reproveIdentity',
-      },
-      ExpressionAttributeValues: {
-        ':b': { BOOL: newState.blocked },
-        ':s': { BOOL: newState.suspended },
-        ':rp': { BOOL: newState.resetPassword },
-        ':ri': { BOOL: newState.reproveIdentity },
-      },
-      UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri',
+      ...partialInput,
     };
     const command = new UpdateItemCommand(commandInput);
-    const response = await this.dynamoClient.send(command);
-    logger.debug(JSON.stringify(response));
-    return response;
+    return await this.dynamoClient.send(command);
   }
 
   public async updateDeleteStatus(userId: string) {
@@ -108,7 +103,6 @@ export class DynamoDbService {
       ConditionExpression: 'attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false',
     };
     const command = new UpdateItemCommand(commandInput);
-    const response = await this.dynamoClient.send(command);
-    return response;
+    return await this.dynamoClient.send(command);
   }
 }

@@ -4,3 +4,24 @@ export class InvalidEnvironmentVariableError extends Error {
     this.name = 'InvalidEnvironmentVariableError';
   }
 }
+
+export class StateTransitionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'StateTransitionError';
+  }
+}
+
+export class ValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
+export class TooManyRecordsError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'TooManyRecordsError';
+  }
+}
