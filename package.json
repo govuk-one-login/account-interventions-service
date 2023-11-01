@@ -64,6 +64,8 @@
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4",
     "yaml-cfn": "^0.3.2",
-    "yarn-audit-fix": "^10.0.1"
+    "yarn-audit-fix": "^10.0.1",
+    "aws-sdk-client-mock": "^3.0.0",
+    "aws-sdk-client-mock-jest": "^3.0.0"
   }
 }

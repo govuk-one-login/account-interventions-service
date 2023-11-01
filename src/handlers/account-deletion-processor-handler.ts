@@ -1,6 +1,6 @@
 import logger from '../commons/logger';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
-import { LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
+import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
 import { AppConfigService } from '../services/app-config-service';
 import type { Context, SNSMessage, SQSEvent, SQSRecord } from 'aws-lambda';
 import { DeleteStatusUpdateSNSMessage } from '../data-types/interfaces';
