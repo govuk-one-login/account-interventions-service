@@ -8,6 +8,7 @@ import { validateEvent, validateInterventionEvent } from '../../services/validat
 import { AccountStateEngine } from '../../services/account-states/account-state-engine';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
+import {MetricNames} from "../../data-types/constants";
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -111,6 +112,22 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
+    });
+
+    it('should not process the event if the user account is marked as deleted', async () => {
+      eventValidationMock.mockReturnValueOnce(void 0);
+      mockRetrieveRecords.mockReturnValue({
+        blocked: false,
+        reproveIdentity: false,
+        resetPassword: false,
+        suspended: false,
+        isAccountDeleted: true
+      });
+      expect(await handler(mockEvent, mockContext)).toEqual({
+        batchItemFailures: [],
+      });
+      expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
+      expect(logger.warn).toHaveBeenLastCalledWith('Sensitive info - user abc account has been deleted.')
     });
 
     it('should fail as timestamp is in the future', async () => {
