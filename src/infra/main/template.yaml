@@ -226,7 +226,7 @@ Resources:
           TABLE_NAME:
             Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
           DELETED_ACCOUNT_RETENTION_SECONDS: 63072000 #2 Years in Seconds
-          METRIC_SERVICE_NAME: !Sub "${AWS::StackName}-AccountDeletionProcessorFunction"
+          METRIC_SERVICE_NAME: AccountDeletionProcessorFunction
       Events:
         SNSEvent:
           Type: SNS
@@ -238,7 +238,10 @@ Resources:
               QueueArn: !GetAtt AccountDeletionProcessorQueue.Arn
               QueueUrl: !Ref AccountDeletionProcessorQueue
             Topic: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
-
+#            Topic: !If
+#              - IsInternal
+#              - !Ref AccountDeletionProcessorSNSTopic
+#              - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
         Product: !Ref ProductTagValue
@@ -255,6 +258,10 @@ Resources:
       Principal: sns.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
       SourceArn: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
+#      SourceArn: !If
+#        - IsInternal
+#        - !Ref AccountDeletionProcessorSNSTopic
+#        - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
 
   AccountDeletionProcessorFunctionRole:
     Type: AWS::IAM::Role
@@ -363,6 +370,10 @@ Resources:
             Condition:
               ArnEquals:
                 aws:SourceArn: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
+#                  - !If
+#                    - IsInternal
+#                    - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
+#                    - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN]
 
   AccountDeletionProcessorDLQ:
     Type: AWS::SQS::Queue
