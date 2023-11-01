@@ -53,7 +53,7 @@ Parameters:
 Conditions:
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
-  IsInternal: !Or [ !Equals [!Ref Environment, dev], !Equals [!Ref Environment, build],!Equals [ !Ref Environment, staging]]
+#  IsInternal: !Or [ !Equals [!Ref Environment, dev], !Equals [!Ref Environment, build],!Equals [ !Ref Environment, staging]]
 
 Mappings:
   EnvConfig:
