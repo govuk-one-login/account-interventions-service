@@ -221,6 +221,7 @@ Resources:
       Timeout: 10
       Handler: account-deletion-processor-handler.handler
       Role: !GetAtt AccountDeletionProcessorFunctionRole.Arn
+      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       Environment:
         Variables:
           TABLE_NAME:
