@@ -85,7 +85,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
  */
 function isTimestampNotInFuture(recordBody: TxMAEvent): boolean {
   const now = getCurrentTimestamp().milliseconds;
-  if (now < recordBody.timestamp) {
+  if (now < (recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000)) {
     logger.debug(`Timestamp is in the future (sec): ${recordBody.timestamp}.`);
     logAndPublishMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
     return false;

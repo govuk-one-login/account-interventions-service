@@ -191,6 +191,7 @@ describe('intervention processor handler', () => {
         receiptHandle: '',
         body: JSON.stringify({
           timestamp: getCurrentTimestamp().milliseconds,
+          event_timestamp_ms: getCurrentTimestamp().milliseconds,
           user: {
             user_id: 'abc',
           },
