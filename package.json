@@ -45,7 +45,7 @@
     "aws-crt": "^1.18.1",
     "aws-lambda": "^1.0.7",
     "clean-webpack-plugin": "^4.0.0",
-    "eslint": "^8.51.0",
+    "eslint": "^8.52.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",
     "eslint-plugin-tsdoc": "^0.2.17",
