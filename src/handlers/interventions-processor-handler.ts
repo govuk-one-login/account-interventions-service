@@ -9,9 +9,12 @@ import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { AppConfigService } from '../services/app-config-service';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { compileSchema } from '../commons/compile-schema';
+import { TxMAIngress } from '../data-types/schemas';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
+const validateInterventionDataInput = compileSchema(TxMAIngress);
 
 /**
  * A function for receiving and processing an intervention event.
