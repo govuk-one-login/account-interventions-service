@@ -1,0 +1,53 @@
+---
+name: "Publish Alarm SAM Template"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/infra/alarm/**"
+      - ".github/workflows/merge-alarm-to-main.yaml"
+  workflow_dispatch:
+
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  validate_deployment:
+    name: Deployment Template Checks
+    uses: ./.github/workflows/validate-alarm-sam-template.yaml
+    with:
+      gitRef: ${{ inputs.gitRef }}
+    secrets:
+      githubActionsRoleARN: ${{ secrets.ALARM_GH_ACTIONS_ROLE_ARN }}
+
+  publish_artifacts:
+    name: "Publish Template"
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs:
+      - validate_deployment
+    steps:
+      - uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3
+        with:
+          ref: ${{ inputs.gitRef }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@e1e17a757e536f70e52b5a12b2e8d1d1c60e04ef # pin@v1-node16
+        with:
+          role-to-assume: ${{ secrets.ALARM_GH_ACTIONS_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: "Deploy SAM app"
+        uses: govuk-one-login/devplatform-upload-action-ecr@4e97f7e56e8be55c3cfe2198a3349c5d6b9104ea # pin@v2
+        with:
+          artifact-bucket-name: ${{ secrets.ALARM_ARTIFACT_BUCKET_NAME }}
+          signing-profile-name: ${{ secrets.SIGNING_PROFILE_NAME }}
+          working-directory: ./src/infra/alarm/
+          template-file: template.yaml
+
+      - name: "Delegated Deployment via AWS CodeDeploy"
+        run: echo "Deployment has been delegated to AWS CodeDeploy"
