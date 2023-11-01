@@ -45,10 +45,9 @@ export class DynamoDatabaseService {
     const parameters: QueryCommandInput = {
       TableName: this.tableName,
       KeyConditionExpression: '#pk = :id_value',
-      ExpressionAttributeNames: { '#pk': 'pk', '#isAccountDeleted': 'isAccountDeleted' },
-      ExpressionAttributeValues: { ':id_value': { S: userId }, ':isAccountDeleted': { BOOL: false } },
-      FilterExpression: 'attribute_not_exists(isAccountDeleted) OR #isAccountDeleted = :isAccountDeleted',
-      ProjectionExpression: 'blocked, suspended, resetPassword, reproveIdentity',
+      ExpressionAttributeNames: { '#pk': 'pk' },
+      ExpressionAttributeValues: { ':id_value': { S: userId } },
+      ProjectionExpression: 'blocked, suspended, resetPassword, reproveIdentity, isAccountDeleted',
     };
 
     const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));

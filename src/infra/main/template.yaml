@@ -93,7 +93,9 @@ Globals:
         - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
 
 Resources:
+  ### Interventions Processor ###
   InterventionsProcessorFunction:
+    DependsOn: InterventionsProcessorFunctionPolicy
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-InterventionsProcessorFunction"
@@ -188,6 +190,8 @@ Resources:
       Roles:
         - !Ref InterventionsProcessorFunctionRole
 
+### Account Deletion Processor ###
+
   AccountDeletionProcessorSNSTopic:
     Type: AWS::SNS::Topic
     Properties:
@@ -205,103 +209,6 @@ Resources:
           Value: !Ref OwnerTagValue
         - Key: Source
           Value: !Ref SourceTagValue
-
-  AccountDeletionProcessorSNSKmsKey:
-    Type: AWS::KMS::Key
-    Properties:
-      EnableKeyRotation: true
-      KeyPolicy:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            Action: "kms:*"
-            Resource: "*"
-          - Effect: Allow
-            Principal:
-              Service:
-                - "sns.amazonaws.com"
-            Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: "*"
-            Condition:
-              ArnEquals:
-                aws:SourceArn:
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-AccountDeletionProcessorFunction"
-                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-
-  AccountDeletionProcessorSNSKmsKeyAlias:
-    Type: AWS::KMS::Alias
-    Properties:
-      AliasName: !Sub "alias/${AWS::StackName}-AccountDeletionProcessorSNSKmsKey"
-      TargetKeyId: !GetAtt AccountDeletionProcessorSNSKmsKey.Arn
-
-  SQSEncryptionKey:
-    Type: AWS::KMS::Key
-    Properties:
-      Description: AWS KMS key for encrypting the contents of messages in SQS queues
-      EnableKeyRotation: true
-      KeyPolicy:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            Action:
-              - "kms:*"
-            Resource: "*"
-          - Effect: Allow
-            Principal:
-              Service: sqs.amazonaws.com
-            Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: "*"
-            Condition:
-              ArnLike:
-                aws:SourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:*"
-          - Effect: Allow
-            Principal:
-              Service: sns.amazonaws.com
-            Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: "*"
-            Condition:
-              ArnEquals:
-                aws:SourceArn: !Ref AccountDeletionProcessorSNSTopic
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-        - Key: Name
-          Value: !Sub "${AWS::StackName}-SQSEncryptionKey"
-
-  SQSEncryptionKeyAlias:
-    Type: AWS::KMS::Alias
-    Properties:
-      AliasName: !Sub "alias/${AWS::StackName}-SQSEncryptionKey"
-      TargetKeyId: !GetAtt SQSEncryptionKey.Arn
 
   AccountDeletionProcessorFunction:
     Type: AWS::Serverless::Function
@@ -481,7 +388,7 @@ Resources:
           Value: !Ref SourceTagValue
 
 
- #### TxMA ####
+ #### TxMA Queues ####
   TxMAIngressQueue:
     Type: AWS::SQS::Queue
     Properties:
@@ -542,3 +449,102 @@ Resources:
           Value: !Ref OwnerTagValue
         - Key: Source
           Value: !Ref SourceTagValue
+
+### Encryption Key SQS & SNS ###
+
+  AccountDeletionProcessorSNSKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: "kms:*"
+            Resource: "*"
+          - Effect: Allow
+            Principal:
+              Service:
+                - "sns.amazonaws.com"
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: "*"
+            Condition:
+              ArnEquals:
+                aws:SourceArn:
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-AccountDeletionProcessorFunction"
+                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  AccountDeletionProcessorSNSKmsKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-AccountDeletionProcessorSNSKmsKey"
+      TargetKeyId: !GetAtt AccountDeletionProcessorSNSKmsKey.Arn
+
+  SQSEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: AWS KMS key for encrypting the contents of messages in SQS queues
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource: "*"
+          - Effect: Allow
+            Principal:
+              Service: sqs.amazonaws.com
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: "*"
+            Condition:
+              ArnLike:
+                aws:SourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:*"
+          - Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: "*"
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Ref AccountDeletionProcessorSNSTopic
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-SQSEncryptionKey"
+
+  SQSEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-SQSEncryptionKey"
+      TargetKeyId: !GetAtt SQSEncryptionKey.Arn
