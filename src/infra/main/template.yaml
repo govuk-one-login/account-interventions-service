@@ -53,7 +53,6 @@ Parameters:
 Conditions:
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
-#  IsInternal: !Or [ !Equals [!Ref Environment, dev], !Equals [!Ref Environment, build],!Equals [ !Ref Environment, staging]]
 
 Mappings:
   EnvConfig:
@@ -239,10 +238,6 @@ Resources:
               QueueArn: !GetAtt AccountDeletionProcessorQueue.Arn
               QueueUrl: !Ref AccountDeletionProcessorQueue
             Topic: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
-#            Topic: !If
-#              - IsInternal
-#              - !Ref AccountDeletionProcessorSNSTopic
-#              - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
         Product: !Ref ProductTagValue
@@ -259,10 +254,6 @@ Resources:
       Principal: sns.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
       SourceArn: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
-#      SourceArn: !If
-#        - IsInternal
-#        - !Ref AccountDeletionProcessorSNSTopic
-#        - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
 
   AccountDeletionProcessorFunctionRole:
     Type: AWS::IAM::Role
@@ -371,10 +362,6 @@ Resources:
             Condition:
               ArnEquals:
                 aws:SourceArn: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
-#                  - !If
-#                    - IsInternal
-#                    - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
-#                    - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN]
 
   AccountDeletionProcessorDLQ:
     Type: AWS::SQS::Queue
