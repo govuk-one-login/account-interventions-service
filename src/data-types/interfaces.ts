@@ -7,6 +7,10 @@ export interface StateDetails {
   reproveIdentity: boolean;
 }
 
+export interface DynamoDBStateResult extends StateDetails {
+  isAccountDeleted?: boolean;
+}
+
 export interface InterventionTransitionConfigurations {
   [key: string]: InterventionEventDetails;
 }

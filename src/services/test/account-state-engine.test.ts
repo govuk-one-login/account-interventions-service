@@ -637,4 +637,21 @@ describe('account-state-service', () => {
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_EVENT_NOT_FOUND_IN_CURRENT_CONFIG);
     });
   });
+
+  describe('validation of current configuration objects', () => {
+    const enumKeys = Object.keys(EventsEnum);
+    const interventionConfigObjectKeys = Object.keys(interventionsConfig);
+    const userActionConfigObjectKeys = Object.keys(userLedActionsConfig);
+
+    it('Intervention configuration object keys should map to EventsEnum', () => {
+      interventionConfigObjectKeys.forEach((k) => {
+        expect(enumKeys.includes(k)).toEqual(true);
+      });
+    });
+    it('User action configuration object keys should map to EventsEnum', () => {
+      userActionConfigObjectKeys.forEach((k) => {
+        expect(enumKeys.includes(k)).toEqual(true);
+      });
+    })
+  })
 });

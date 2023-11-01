@@ -15,6 +15,7 @@ export const buildPartialUpdateAccountStateCommand = (
   eventName: EventsEnum,
   interventionName?: string,
 ): Partial<UpdateItemCommandInput> => {
+  const currentTime = getCurrentTimestamp();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const baseUpdateItemCommandInput: Record<string, any> = {
     ExpressionAttributeNames: {
@@ -29,17 +30,17 @@ export const buildPartialUpdateAccountStateCommand = (
       ':s': { BOOL: newState.suspended },
       ':rp': { BOOL: newState.resetPassword },
       ':ri': { BOOL: newState.reproveIdentity },
-      ':ua': { N: `${getCurrentTimestamp().milliseconds}` },
+      ':ua': { N: `${currentTime.milliseconds}` },
     },
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
   };
   if (eventName === EventsEnum.IPV_IDENTITY_ISSUED) {
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RIdA'] = 'reprovedIdentityAt';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rida'] = { N: `${getCurrentTimestamp().milliseconds}` };
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rida'] = { N: `${currentTime.milliseconds}` };
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RIdA = :rida';
   } else if (eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL) {
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RPswdA'] = 'resetPasswordAt';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rpswda'] = { N: `${getCurrentTimestamp().milliseconds}` };
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rpswda'] = { N: `${currentTime.milliseconds}` };
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RPswdA = :rpswda';
   } else {
     if (!interventionName) {
@@ -49,7 +50,7 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#INT'] = 'intervention';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':int'] = { S: interventionName };
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#AA'] = 'appliedAt';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':aa'] = { N: `${getCurrentTimestamp().milliseconds}` };
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':aa'] = { N: `${currentTime.milliseconds}` };
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':empty_list'] = { L: [] };
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = { L: [{ S: interventionName }] };

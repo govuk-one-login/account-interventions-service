@@ -1,6 +1,11 @@
 import { Context, SQSBatchItemFailure, SQSBatchResponse, SQSEvent, SQSRecord } from 'aws-lambda';
 import logger from '../commons/logger';
-import { EventsEnum, MetricNames, TICF_ACCOUNT_INTERVENTION } from '../data-types/constants';
+import {
+  EventsEnum,
+  LOGS_PREFIX_SENSITIVE_INFO,
+  MetricNames,
+  TICF_ACCOUNT_INTERVENTION,
+} from '../data-types/constants';
 import { logAndPublishMetric } from '../commons/metrics';
 import { TxMAEvent } from '../data-types/interfaces';
 import { validateEvent, validateInterventionEvent } from '../services/validate-event';
@@ -54,10 +59,15 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       const intervention = getInterventionName(recordBody);
       logger.debug('identified event: ' + intervention);
       const itemFromDB = await service.retrieveRecordsByUserId(recordBody.user.user_id);
-      logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
-      const statusResult = AccountStateEngine.applyEventTransition(intervention, itemFromDB);
-      logger.debug('processed requested event, sending update request to dynamo db');
-      await service.updateUserStatus(recordBody.user.user_id, statusResult);
+      if (itemFromDB?.isAccountDeleted === true) {
+        logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${recordBody.user.user_id} account has been deleted.`);
+        logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
+      } else {
+        logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
+        const statusResult = AccountStateEngine.applyEventTransition(intervention, itemFromDB);
+        logger.debug('processed requested event, sending update request to dynamo db');
+        await service.updateUserStatus(recordBody.user.user_id, statusResult);
+      }
     } else {
       itemFailures.push({
         itemIdentifier: record.messageId,

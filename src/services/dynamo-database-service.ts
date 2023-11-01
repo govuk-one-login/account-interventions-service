@@ -14,9 +14,9 @@ import { NodeHttpHandler } from '@smithy/node-http-handler';
 import tracer from '../commons/tracer';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { logAndPublishMetric } from '../commons/metrics';
-import { StateDetails } from '../data-types/interfaces';
 import { TooManyRecordsError } from '../data-types/errors';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { DynamoDBStateResult } from '../data-types/interfaces';
 
 const appConfig = AppConfigService.getInstance();
 
@@ -64,7 +64,7 @@ export class DynamoDatabaseService {
       logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
       throw new TooManyRecordsError(errorMessage);
     }
-    return response.Items[0] ? (unmarshall(response.Items[0]) as StateDetails) : undefined;
+    return response.Items[0] ? (unmarshall(response.Items[0]) as DynamoDBStateResult) : undefined;
   }
 
   /**

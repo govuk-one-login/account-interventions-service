@@ -82,7 +82,7 @@ export class AccountStateEngine {
         throw new StateTransitionError(`User action ${proposedTransition} event does not exist in current config.`);
       }
       if (!userActionEventObject.allowedFromStates.includes(accountStateEventEnum)) {
-        logAndPublishMetric(MetricNames.STATE_TRANSITION_NOT_ALLOWED);
+        logAndPublishMetric(MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED);
         throw new StateTransitionError(
           `User action ${proposedTransition} is not allowed on the current account state ${accountStateEventEnum}.`,
         );
@@ -91,13 +91,13 @@ export class AccountStateEngine {
       newState.suspended = newState.resetPassword || newState.reproveIdentity;
       stateChange = newState;
     } else {
-      const currentState = AccountStateEngine.interventionConfigurations[accountStateEventEnum]!;
+      const currentState = AccountStateEngine.interventionConfigurations[accountStateEventEnum];
       if (!currentState) {
         logAndPublishMetric(MetricNames.INTERVENTION_EVENT_NOT_FOUND_IN_CURRENT_CONFIG);
         throw new StateTransitionError(`State enum ${accountStateEventEnum} does not exist in current config.`);
       }
       if (!currentState.allowedTransitions.includes(proposedTransition)) {
-        logAndPublishMetric(MetricNames.STATE_TRANSITION_NOT_ALLOWED);
+        logAndPublishMetric(MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED);
         throw new StateTransitionError(
           `Intervention ${proposedTransition} is now allowed on the current account state ${accountStateEventEnum}.`,
         );
