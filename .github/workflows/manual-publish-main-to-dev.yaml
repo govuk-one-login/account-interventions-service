@@ -45,12 +45,12 @@ jobs:
       - validate_deployment
       - acceptance_checks
     steps:
-      - uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # pin@v3
         with:
           ref: ${{ inputs.gitRef }}
 
       - name: Setup NodeJS
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # pin@v3
+        uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7 # pin@v3
         with:
           node-version-file: '.node-version'
 
@@ -70,7 +70,7 @@ jobs:
           aws-region: eu-west-2
 
       - name: "Deploy SAM app"
-        uses: alphagov/di-devplatform-upload-action@1db904c002e0f98dbcb5ab453ceb1b71de5f7dd3 # pin@v2
+        uses: govuk-one-login/devplatform-upload-action@32daf3e2158e7c9aa15cba6e17f927dc4b0250c5 # pin@v3.3
         with:
           artifact-bucket-name: ${{ secrets.DEV_MAIN_ARTIFACT_BUCKET_NAME }}
           signing-profile-name: ${{ secrets.DEV_SIGNING_PROFILE_NAME }}
