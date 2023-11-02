@@ -5,6 +5,16 @@ name: "Build & Test"
 #   - a file, listed below, is pushed to any branch other than `main`, i.e. a feature branch.
 #   - invoked by another workflow.
 on:
+  push:
+    paths:
+      - src/**
+      - package.json
+      - yarn.lock
+      - tsconfig.json
+      - .node-version
+      - .github/workflows/acceptance-checks.yaml
+    branches:
+      - main
   pull_request:
     paths:
       - src/**
@@ -52,3 +62,9 @@ jobs:
 
       - name: Run unit tests with coverage report
         run: yarn test:unit
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@c25d2e7e3def96d0d1781000d3c429da22cd6252 # pin@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
