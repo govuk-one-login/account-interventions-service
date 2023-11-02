@@ -136,7 +136,7 @@ export class DynamoDatabaseService {
     const command = new UpdateItemCommand(commandInput);
     try {
       const response = await this.dynamoClient.send(command);
-      logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Account ${userId} marked as deleted`);
+      logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Account ${userId} marked as deleted.`);
       logAndPublishMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
       if (!response) {
         const errorMessage = 'DynamoDB may have failed to update items, returned a null response.';
@@ -145,7 +145,7 @@ export class DynamoDatabaseService {
       }
       return response;
     } catch {
-      const errorMessage = `${LOGS_PREFIX_SENSITIVE_INFO} Error updating item with pk ${userId}`;
+      const errorMessage = `${LOGS_PREFIX_SENSITIVE_INFO} Error updating item with pk ${userId}.`;
       logger.error(errorMessage);
       logAndPublishMetric(MetricNames.DB_UPDATE_ERROR);
     }
