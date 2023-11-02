@@ -11,7 +11,7 @@ describe('event-validation', () => {
     jest.clearAllMocks();
   });
 
-  it('should return true as event is valid', () => {
+  it('should no return anything as event is valid', () => {
     const TxMAEvent: TxMAEvent = {
       timestamp: 87_298_174,
       user: {
@@ -29,7 +29,7 @@ describe('event-validation', () => {
     expect(validateInterventionEvent(TxMAEvent)).toBeUndefined();
   });
 
-  it('should return false as intervention is invalid', () => {
+  it('should return error as intervention is invalid', () => {
     const TxMAEvent: TxMAEvent = {
       timestamp: 87_298_174,
       user: {
@@ -44,13 +44,12 @@ describe('event-validation', () => {
         },
       },
     };
-    expect(validateEvent(TxMAEvent)).toBeUndefined();
-    expect(() => validateInterventionEvent(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
-    expect(logger.debug).toHaveBeenCalledWith('Invalid intervention request.');
+    expect(() => validateEvent(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
+    expect(logger.debug).toHaveBeenCalledWith('event has failed schema validation');
     expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
 
-  it('should return false as event is invalid', () => {
+  it('should return error as event is invalid', () => {
     const TxMAEvent: TxMAEvent = {
       timestamp: 87_298_174,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -66,7 +65,29 @@ describe('event-validation', () => {
     };
     expect(() => validateEvent(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
     expect(validateInterventionEvent(TxMAEvent)).toBeUndefined();
-    expect(logger.debug).toHaveBeenCalledWith('event has failed initial validation');
+    expect(logger.debug).toHaveBeenCalledWith('event has failed schema validation');
+    expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
+  });
+
+  it('should return error as intervention code is NAN', () => {
+    const TxMAEvent: TxMAEvent = {
+      timestamp: 87_298_174,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      user: {
+        user_id: 'abc'
+      },
+      event_name: 'event',
+      extension: {
+        intervention: {
+          intervention_code: 'nan',
+          intervention_reason: 'reason',
+        },
+      },
+    };
+    expect(validateEvent(TxMAEvent)).toBeUndefined();
+    expect(() => validateInterventionEvent(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
+    expect(logger.debug).toHaveBeenCalledWith('Invalid intervention request.');
     expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
 });
