@@ -16,12 +16,12 @@ export const TxMAIngress = {
         timestamp: {
           $id: '#root/event/timestamp',
           title: 'Timestamp',
-          type: 'number',
+          type: 'timestamp',
         },
         event_timestamp_ms: {
           $id: '#root/event/event_timestamp_ms',
           title: 'Event_timestamp_ms',
-          type: 'number',
+          type: 'timestamp',
         },
         event_name: {
           $id: '#root/event/event_name',
