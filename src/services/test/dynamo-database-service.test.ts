@@ -149,7 +149,7 @@ describe('Dynamo DB Service', () => {
         ':ttl': { N: '1685417145' },
         ':false': { BOOL: false },
       },
-      ConditionExpression: 'attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false',
+      ConditionExpression: 'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
     };
     const dynamoDBService = new DynamoDatabaseService('table_name')
     await dynamoDBService.updateDeleteStatus('hello');
