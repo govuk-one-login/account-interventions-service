@@ -227,7 +227,7 @@ Resources:
           TABLE_NAME:
             Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
           DELETED_ACCOUNT_RETENTION_SECONDS: 63072000 #2 Years in Seconds
-          METRIC_SERVICE_NAME: !Sub "${AWS::StackName}-AccountDeletionProcessorFunction"
+          METRIC_SERVICE_NAME: AccountDeletionProcessorFunction
       Events:
         SNSEvent:
           Type: SNS
@@ -239,7 +239,6 @@ Resources:
               QueueArn: !GetAtt AccountDeletionProcessorQueue.Arn
               QueueUrl: !Ref AccountDeletionProcessorQueue
             Topic: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
-
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
         Product: !Ref ProductTagValue
