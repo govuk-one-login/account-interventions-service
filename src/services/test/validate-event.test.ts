@@ -72,8 +72,6 @@ describe('event-validation', () => {
   it('should return error as intervention code is NAN', () => {
     const TxMAEvent: TxMAEvent = {
       timestamp: 87_298_174,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       user: {
         user_id: 'abc'
       },
