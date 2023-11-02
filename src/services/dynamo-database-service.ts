@@ -145,7 +145,7 @@ export class DynamoDatabaseService {
       }
       return response;
     } catch {
-      const errorMessage = `Error updating item with pk ${userId}`;
+      const errorMessage = `${LOGS_PREFIX_SENSITIVE_INFO} Error updating item with pk ${userId}`;
       logger.error(errorMessage);
       logAndPublishMetric(MetricNames.DB_UPDATE_ERROR);
     }
