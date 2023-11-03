@@ -39,44 +39,54 @@ export class AccountStateEngine {
   }
 
   /**
-   * Helper method to process intervention transition:
-   * @param proposedTransition - Enum representation of intervention event received
+   * Helper method to process intervention transition: it receives enums representing current state of the account and proposed intervention
+   * if the transition is allowed, it retrieves the list of allowed transitions for the current state and returns an object containing new state and intervention name,
+   * it throws an error otherwise
+   * @param proposedIntervention - Enum representation of intervention event received
    * @param accountStateEventEnum - Enum representation of current state of the account
    */
-  private static processInterventionTransition(proposedTransition: EventsEnum, accountStateEventEnum: EventsEnum) {
+  private static processInterventionTransition(proposedIntervention: EventsEnum, accountStateEventEnum: EventsEnum) {
     const currentStateInterventionObject = AccountStateEngine.interventionConfigurations[accountStateEventEnum];
     if (!currentStateInterventionObject) {
       logAndPublishMetric(MetricNames.INTERVENTION_EVENT_NOT_FOUND_IN_CURRENT_CONFIG);
       throw new StateTransitionError(`State enum ${accountStateEventEnum} does not exist in current config.`);
     }
-    if (!currentStateInterventionObject.allowedTransitions.includes(proposedTransition)) {
+    if (!currentStateInterventionObject.allowedTransitions.includes(proposedIntervention)) {
       logAndPublishMetric(MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED);
       throw new StateTransitionError(
-        `Intervention ${proposedTransition} is now allowed on the current account state ${accountStateEventEnum}.`,
+        `Intervention ${proposedIntervention} is now allowed on the current account state ${accountStateEventEnum}.`,
       );
     }
-    const newStateDetails = AccountStateEngine.interventionConfigurations[proposedTransition];
+    const newStateDetails = AccountStateEngine.interventionConfigurations[proposedIntervention];
     if (!newStateDetails) {
       logAndPublishMetric(MetricNames.INTERVENTION_EVENT_NOT_FOUND_IN_CURRENT_CONFIG);
-      throw new StateTransitionError(`Intervention ${proposedTransition} cannot be found in current config.`);
+      throw new StateTransitionError(`Intervention ${proposedIntervention} cannot be found in current config.`);
     }
     return newStateDetails;
   }
 
+  /**
+   * Helper method to process user action transition:
+   * it retrieves the state from which the received user action is allowed, if it is allowed it computes the new state and returns it
+   * it throws an error otherwise
+   * @param proposedUserAction - Enum representation of the user action event received
+   * @param currentAccountStateDetails - State object representation of current state of the account
+   * @param accountStateEventEnum - Enum representation of the current state of the account
+   */
   private static processUserActionTransition(
-    proposedTransition: EventsEnum,
+    proposedUserAction: EventsEnum,
     currentAccountStateDetails: StateDetails,
     accountStateEventEnum: EventsEnum,
   ) {
-    const userActionEventObject = AccountStateEngine.userLedActionConfiguration[proposedTransition];
+    const userActionEventObject = AccountStateEngine.userLedActionConfiguration[proposedUserAction];
     if (!userActionEventObject) {
       logAndPublishMetric(MetricNames.USER_ACTION_EVENT_DOES_NOT_EXIST_IN_CURRENT_CONFIG);
-      throw new StateTransitionError(`User action ${proposedTransition} event does not exist in current config.`);
+      throw new StateTransitionError(`User action ${proposedUserAction} event does not exist in current config.`);
     }
     if (!userActionEventObject.allowedFromStates.includes(accountStateEventEnum)) {
       logAndPublishMetric(MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED);
       throw new StateTransitionError(
-        `User action ${proposedTransition} is not allowed on the current account state ${accountStateEventEnum}.`,
+        `User action ${proposedUserAction} is not allowed on the current account state ${accountStateEventEnum}.`,
       );
     }
     const newState = { ...currentAccountStateDetails, ...userActionEventObject.state };
