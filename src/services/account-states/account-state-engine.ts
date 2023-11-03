@@ -67,7 +67,7 @@ export class AccountStateEngine {
 
   /**
    * Helper method to process user action transition:
-   * it retrieves the state from which the received user action is allowed, if it is allowed it computes the new state and returns it
+   * it retrieves the state from which the received user action is allowed, if it is allowed it computes the new state and returns it,
    * it throws an error otherwise
    * @param proposedUserAction - Enum representation of the user action event received
    * @param currentAccountStateDetails - State object representation of current state of the account
@@ -108,6 +108,13 @@ export class AccountStateEngine {
     throw new StateTransitionError(`No intervention could be found in current config for code ${code}.`);
   }
 
+  /**
+   * Main method that takes a proposed transition (user action or intervention), and an optional account state object.
+   * It computes the EventEnum representation of the current account state and passes this to the relevant helper method to process the transition (user action or intervention)
+   * If the transition is valid, it builds partial UpdateCommandInput object and returns it to the caller. It throws an error otherwise
+   * @param proposedTransition - Enum representation of received event
+   * @param currentAccountStateDetails - optional account state object, if nothing is passed it defaults to an unsuspended / unblocked state
+   */
   static applyEventTransition(proposedTransition: EventsEnum, currentAccountStateDetails?: StateDetails) {
     if (!currentAccountStateDetails)
       currentAccountStateDetails = {
