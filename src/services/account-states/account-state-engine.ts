@@ -39,6 +39,52 @@ export class AccountStateEngine {
   }
 
   /**
+   * Helper method to process intervention transition:
+   * @param proposedTransition - Enum representation of intervention event received
+   * @param accountStateEventEnum - Enum representation of current state of the account
+   */
+  private static processInterventionTransition(proposedTransition: EventsEnum, accountStateEventEnum: EventsEnum) {
+    const currentStateInterventionObject = AccountStateEngine.interventionConfigurations[accountStateEventEnum];
+    if (!currentStateInterventionObject) {
+      logAndPublishMetric(MetricNames.INTERVENTION_EVENT_NOT_FOUND_IN_CURRENT_CONFIG);
+      throw new StateTransitionError(`State enum ${accountStateEventEnum} does not exist in current config.`);
+    }
+    if (!currentStateInterventionObject.allowedTransitions.includes(proposedTransition)) {
+      logAndPublishMetric(MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED);
+      throw new StateTransitionError(
+        `Intervention ${proposedTransition} is now allowed on the current account state ${accountStateEventEnum}.`,
+      );
+    }
+    const newStateDetails = AccountStateEngine.interventionConfigurations[proposedTransition];
+    if (!newStateDetails) {
+      logAndPublishMetric(MetricNames.INTERVENTION_EVENT_NOT_FOUND_IN_CURRENT_CONFIG);
+      throw new StateTransitionError(`Intervention ${proposedTransition} cannot be found in current config.`);
+    }
+    return newStateDetails;
+  }
+
+  private static processUserActionTransition(
+    proposedTransition: EventsEnum,
+    currentAccountStateDetails: StateDetails,
+    accountStateEventEnum: EventsEnum,
+  ) {
+    const userActionEventObject = AccountStateEngine.userLedActionConfiguration[proposedTransition];
+    if (!userActionEventObject) {
+      logAndPublishMetric(MetricNames.USER_ACTION_EVENT_DOES_NOT_EXIST_IN_CURRENT_CONFIG);
+      throw new StateTransitionError(`User action ${proposedTransition} event does not exist in current config.`);
+    }
+    if (!userActionEventObject.allowedFromStates.includes(accountStateEventEnum)) {
+      logAndPublishMetric(MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED);
+      throw new StateTransitionError(
+        `User action ${proposedTransition} is not allowed on the current account state ${accountStateEventEnum}.`,
+      );
+    }
+    const newState = { ...currentAccountStateDetails, ...userActionEventObject.state };
+    newState.suspended = newState.resetPassword || newState.reproveIdentity;
+    return newState;
+  }
+
+  /**
    * Given a code, it searches the intervention configuration object for the code and returns
    * the corresponding key
    * @param code - code corresponding to an intervention event
@@ -76,43 +122,21 @@ export class AccountStateEngine {
       proposedTransition === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL ||
       proposedTransition === EventsEnum.IPV_IDENTITY_ISSUED
     ) {
-      const userActionEventObject = AccountStateEngine.userLedActionConfiguration[proposedTransition];
-      if (!userActionEventObject) {
-        logAndPublishMetric(MetricNames.USER_ACTION_EVENT_DOES_NOT_EXIST_IN_CURRENT_CONFIG);
-        throw new StateTransitionError(`User action ${proposedTransition} event does not exist in current config.`);
-      }
-      if (!userActionEventObject.allowedFromStates.includes(accountStateEventEnum)) {
-        logAndPublishMetric(MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED);
-        throw new StateTransitionError(
-          `User action ${proposedTransition} is not allowed on the current account state ${accountStateEventEnum}.`,
-        );
-      }
-      const newState = Object.assign({ ...currentAccountStateDetails }, userActionEventObject.state);
-      newState.suspended = newState.resetPassword || newState.reproveIdentity;
-      stateChange = newState;
+      stateChange = AccountStateEngine.processUserActionTransition(
+        proposedTransition,
+        currentAccountStateDetails,
+        accountStateEventEnum,
+      );
     } else {
-      const currentState = AccountStateEngine.interventionConfigurations[accountStateEventEnum];
-      if (!currentState) {
-        logAndPublishMetric(MetricNames.INTERVENTION_EVENT_NOT_FOUND_IN_CURRENT_CONFIG);
-        throw new StateTransitionError(`State enum ${accountStateEventEnum} does not exist in current config.`);
-      }
-      if (!currentState.allowedTransitions.includes(proposedTransition)) {
-        logAndPublishMetric(MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED);
-        throw new StateTransitionError(
-          `Intervention ${proposedTransition} is now allowed on the current account state ${accountStateEventEnum}.`,
-        );
-      }
-
-      const newStateDetails = AccountStateEngine.interventionConfigurations[proposedTransition];
-      if (!newStateDetails) {
-        logAndPublishMetric(MetricNames.INTERVENTION_EVENT_NOT_FOUND_IN_CURRENT_CONFIG);
-        throw new StateTransitionError(`Intervention ${proposedTransition} cannot be found in current config.`);
-      }
+      const newStateDetails = AccountStateEngine.processInterventionTransition(
+        proposedTransition,
+        accountStateEventEnum,
+      );
       interventionName = newStateDetails.interventionName;
       stateChange = newStateDetails.state;
     }
 
-    const newState = Object.assign({ ...currentAccountStateDetails }, stateChange);
+    const newState = { ...currentAccountStateDetails, ...stateChange };
     return buildPartialUpdateAccountStateCommand(newState, proposedTransition, interventionName);
   }
 }
