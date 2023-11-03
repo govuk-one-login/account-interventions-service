@@ -7,13 +7,13 @@ import {
   TICF_ACCOUNT_INTERVENTION,
 } from '../data-types/constants';
 import { logAndPublishMetric } from '../commons/metrics';
-import { TxMAEvent } from '../data-types/interfaces';
 import { validateEvent, validateInterventionEvent } from '../services/validate-event';
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { AppConfigService } from '../services/app-config-service';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { TxMAIngressEvent } from '../data-types/interfaces';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
@@ -53,7 +53,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
  */
 async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQSRecord) {
   try {
-    const recordBody: TxMAEvent = JSON.parse(record.body);
+    const recordBody: TxMAIngressEvent = JSON.parse(record.body);
     validateEvent(recordBody);
     if (isTimestampNotInFuture(recordBody)) {
       const intervention = getInterventionName(recordBody);
@@ -93,7 +93,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
  *
  * @param recordBody - the parsed body of the sqs record
  */
-function isTimestampNotInFuture(recordBody: TxMAEvent): boolean {
+function isTimestampNotInFuture(recordBody: TxMAIngressEvent): boolean {
   const now = getCurrentTimestamp().milliseconds;
   if (now < (recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000)) {
     logger.debug(`Timestamp is in the future (sec): ${recordBody.timestamp}.`);
@@ -108,7 +108,7 @@ function isTimestampNotInFuture(recordBody: TxMAEvent): boolean {
  *
  * @param recordBody - the parsed body of the sqs record
  */
-function getInterventionName(recordBody: TxMAEvent): EventsEnum {
+function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
   if (recordBody.event_name === TICF_ACCOUNT_INTERVENTION) {
     validateInterventionEvent(recordBody);
