@@ -36,20 +36,42 @@ export interface CurrentTimeDescriptor {
   seconds: number;
 }
 
-export interface TxMAEvent {
+export type TxMAEgressEventName =
+  | 'AIS_INTERVENTION_TRANSITION_APPLIED'
+  | 'AIS_INTERVENTION_TRANSITION_IGNORED'
+  | 'AIS_INTERVENTION_IGNORED_STALE'
+  | 'AIS_INTERVENTION_IGNORED_INFUTURE'
+  | 'AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED';
+
+export interface TxMAEgressEvent {
+  event_name: TxMAEgressEventName;
+  timestamp: number;
+  event_timestamp_ms?: number;
+  event_timestamp_ms_formatted?: string;
+  component_id?: string;
+  user: TxmaUser;
+  extensions: TxMAEgressExtensions;
+}
+
+export interface TxMAEgressExtensions {
+  intervention: EventsEnum;
+  appliedAt?: number;
+  reason?: string;
+}
+export interface TxMAIngressEvent {
   event_name: string;
   timestamp: number;
   event_timestamp_ms?: number;
   component_id?: string;
-  user: User;
-  extension?: Extension;
+  user: TxmaUser;
+  extension?: IngressEventExtension;
 }
 
-interface User {
+export interface TxmaUser {
   user_id: string;
 }
 
-interface Extension {
+interface IngressEventExtension {
   intervention: Intervention;
 }
 

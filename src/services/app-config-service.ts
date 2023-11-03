@@ -33,6 +33,10 @@ export class AppConfigService {
     return this.validateConfiguration('AWS_REGION');
   }
 
+  public get txmaQueueUrl(): string {
+    return this.validateIsHTTPSUrl('TXMA_QUEUE_URL');
+  }
+
   public get maxRetentionSeconds(): number {
     const retentionSecond = this.validateNumberEnvVars('DELETED_ACCOUNT_RETENTION_SECONDS');
     return retentionSecond;
@@ -64,5 +68,15 @@ export class AppConfigService {
       throw new InvalidEnvironmentVariableError(message);
     }
     return process.env[environmentVariable] as string;
+  }
+
+  private validateIsHTTPSUrl(environmentVariable: string) {
+    const url = this.validateConfiguration(environmentVariable);
+    if (!url.startsWith('https://')) {
+      const message = `${LOGS_PREFIX_INVALID_CONFIG} Environment variable ${environmentVariable} is not a valid HTTPS URL (${url}).`;
+      logger.error(message);
+      throw new InvalidEnvironmentVariableError(message);
+    }
+    return url;
   }
 }
