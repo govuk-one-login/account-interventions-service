@@ -146,9 +146,8 @@ export class DynamoDatabaseService {
       logAndPublishMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
       return response;
     } catch (error: any) {
-      console.log(error);
       if (error.name === 'ValidationException') {
-        throw new Error();
+        throw new Error('The error was validation exception, thus retrying.');
       }
       const errorMessage = `${LOGS_PREFIX_SENSITIVE_INFO} Error updating item with pk ${userId}.`;
       logger.error(errorMessage);
