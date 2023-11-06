@@ -16,6 +16,7 @@ import { MetricNames } from '../../data-types/constants';
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
 jest.mock('@smithy/node-http-handler');
+
 const ddbMock = mockClient(DynamoDBClient);
 const queryCommandMock = ddbMock.on(QueryCommand);
 const updateCommandMock = ddbMock.on(UpdateItemCommand);
@@ -165,4 +166,3 @@ describe('Dynamo DB Service', () => {
     expect(logAndPublishMetric).toHaveBeenCalledWith('DB_UPDATE_ERROR');
   });
 });
-

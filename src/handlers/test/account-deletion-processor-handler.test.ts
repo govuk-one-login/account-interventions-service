@@ -8,6 +8,7 @@ import { ContextExamples } from '@aws-lambda-powertools/commons';
 jest.mock('../../services/dynamo-database-service');
 jest.mock('@aws-sdk/util-dynamodb');
 jest.mock('../../commons/logger');
+jest.mock('@aws-lambda-powertools/metrics')
 
 const mockDynamoDBServiceUpdateDeleteStatus = DynamoDatabaseService.prototype.updateDeleteStatus as jest.Mock;
 
