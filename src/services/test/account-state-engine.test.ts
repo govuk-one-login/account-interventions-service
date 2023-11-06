@@ -646,7 +646,7 @@ describe('account-state-service', () => {
 
       expect(() =>
         AccountStateEngine.getInstance()
-      ).toThrow(new StateTransitionError('Invalid state engine configuration detected.'));
+      ).toThrow(new StateTransitionError('Invalid state engine configuration detected. Adjacency mismatch'));
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION);
     });
     it('should throw when the the configuration object fails validation because at least one edge points to a non-existing node', () => {
@@ -688,7 +688,7 @@ describe('account-state-service', () => {
 
       expect(() =>
         AccountStateEngine.getInstance()
-      ).toThrow(new StateTransitionError('Invalid state engine configuration detected.'));
+      ).toThrow(new StateTransitionError('Invalid state engine configuration detected. Edge mismatch'));
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION);
     });
   });
