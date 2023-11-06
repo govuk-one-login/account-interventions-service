@@ -1,160 +1,103 @@
 import { EventsEnum, AISInterventionTypes } from '../../data-types/constants';
-import {
-  InterventionTransitionConfigurations,
-  UserLedActionTransitionConfigurations,
-} from '../../data-types/interfaces';
-
-export const interventionsConfig: InterventionTransitionConfigurations = {
-  NO_EXISTING_INTERVENTIONS: {
-    code: 0,
-    state: {
+import { TransitionConfigurationInterface } from '../../data-types/interfaces';
+export const graph: TransitionConfigurationInterface = {
+  nodes: {
+    AccountIsOkay: {
       blocked: false,
       suspended: false,
       resetPassword: false,
       reproveIdentity: false,
     },
-    allowedTransitions: [
-      EventsEnum.FRAUD_BLOCK_ACCOUNT,
-      EventsEnum.FRAUD_SUSPEND_ACCOUNT,
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
-      EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
-    ],
-  },
-  FRAUD_SUSPEND_ACCOUNT: {
-    code: 1,
-    state: {
-      blocked: false,
-      suspended: true,
-      resetPassword: false,
-      reproveIdentity: false,
-    },
-    interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
-    allowedTransitions: [
-      EventsEnum.FRAUD_UNSUSPEND_ACCOUNT,
-      EventsEnum.FRAUD_BLOCK_ACCOUNT,
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
-      EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
-    ],
-  },
-  FRAUD_UNSUSPEND_ACCOUNT: {
-    code: 2,
-    state: {
-      blocked: false,
-      suspended: false,
-      resetPassword: false,
-      reproveIdentity: false,
-    },
-    interventionName: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
-    allowedTransitions: [
-      EventsEnum.FRAUD_BLOCK_ACCOUNT,
-      EventsEnum.FRAUD_SUSPEND_ACCOUNT,
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
-      EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
-    ],
-  },
-  FRAUD_BLOCK_ACCOUNT: {
-    code: 3,
-    state: {
+    AccountIsBlocked: {
       blocked: true,
       suspended: false,
       resetPassword: false,
       reproveIdentity: false,
     },
-    allowedTransitions: [EventsEnum.FRAUD_UNBLOCK_ACCOUNT],
-    interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
-  },
-  FRAUD_UNBLOCK_ACCOUNT: {
-    code: 7,
-    state: {
+    AccountIsSuspended: {
       blocked: false,
-      suspended: false,
+      suspended: true,
       resetPassword: false,
       reproveIdentity: false,
     },
-    allowedTransitions: [
-      EventsEnum.FRAUD_SUSPEND_ACCOUNT,
-      EventsEnum.FRAUD_BLOCK_ACCOUNT,
-      EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
-    ],
-    interventionName: AISInterventionTypes.AIS_ACCOUNT_UNBLOCKED,
-  },
-  FRAUD_FORCED_USER_PASSWORD_RESET: {
-    code: 4,
-    state: {
+    AccountNeedsPasswordReset: {
       blocked: false,
       suspended: true,
       resetPassword: true,
       reproveIdentity: false,
     },
-    allowedTransitions: [
-      EventsEnum.FRAUD_BLOCK_ACCOUNT,
-      EventsEnum.FRAUD_UNSUSPEND_ACCOUNT,
-      EventsEnum.FRAUD_SUSPEND_ACCOUNT,
-      EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
-    ],
-    interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
-  },
-  FRAUD_FORCED_USER_IDENTITY_REVERIFICATION: {
-    code: 5,
-    state: {
+    AccountNeedsIdReset: {
       blocked: false,
       suspended: true,
       resetPassword: false,
       reproveIdentity: true,
     },
-    allowedTransitions: [
-      EventsEnum.FRAUD_BLOCK_ACCOUNT,
-      EventsEnum.FRAUD_UNSUSPEND_ACCOUNT,
-      EventsEnum.FRAUD_SUSPEND_ACCOUNT,
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
-    ],
-    interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
-  },
-  FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION: {
-    code: 6,
-    state: {
+    AccountNeedsPswAndIdReset: {
       blocked: false,
       suspended: true,
       resetPassword: true,
       reproveIdentity: true,
     },
-    allowedTransitions: [
-      EventsEnum.FRAUD_BLOCK_ACCOUNT,
-      EventsEnum.FRAUD_UNSUSPEND_ACCOUNT,
-      EventsEnum.FRAUD_SUSPEND_ACCOUNT,
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
-      EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
-    ],
-    interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
   },
-};
-
-export const userLedActionsConfig: UserLedActionTransitionConfigurations = {
-  IPV_IDENTITY_ISSUED: {
-    code: 98,
-    state: {
-      reproveIdentity: false,
+  edges: {
+    1: {
+      to: 'AccountIsSuspended',
+      name: EventsEnum.FRAUD_SUSPEND_ACCOUNT,
+      interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
     },
-    allowedFromStates: [
-      EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
-    ],
+    2: {
+      to: 'AccountIsOkay',
+      name: EventsEnum.FRAUD_UNSUSPEND_ACCOUNT,
+      interventionName: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
+    },
+    3: {
+      to: 'AccountIsBlocked',
+      name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
+      interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
+    },
+    4: {
+      to: 'AccountNeedsPasswordReset',
+      name: EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
+      interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
+    },
+    5: {
+      to: 'AccountNeedsIdReset',
+      name: EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
+      interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
+    },
+    6: {
+      to: 'AccountNeedsPswAndIdReset',
+      name: EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+      interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
+    },
+    7: {
+      to: 'AccountIsOkay',
+      name: EventsEnum.FRAUD_UNBLOCK_ACCOUNT,
+      interventionName: AISInterventionTypes.AIS_ACCOUNT_UNBLOCKED,
+    },
+    90: {
+      to: 'AccountIsOkay',
+      name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+    },
+    91: {
+      to: 'AccountIsOkay',
+      name: EventsEnum.IPV_IDENTITY_ISSUED,
+    },
+    92: {
+      to: 'AccountNeedsPasswordReset',
+      name: EventsEnum.IPV_IDENTITY_ISSUED,
+    },
+    93: {
+      to: 'AccountNeedsIdReset',
+      name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+    },
   },
-  AUTH_PASSWORD_RESET_SUCCESSFUL: {
-    code: 99,
-    state: {
-      resetPassword: false,
-    },
-    allowedFromStates: [
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
-      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
-    ],
+  adjacency: {
+    AccountIsOkay: [1, 3, 4, 5, 6],
+    AccountIsBlocked: [7],
+    AccountIsSuspended: [2, 3, 4, 5, 6],
+    AccountNeedsPasswordReset: [1, 2, 3, 5, 6, 90],
+    AccountNeedsIdReset: [1, 2, 3, 4, 6, 91],
+    AccountNeedsPswAndIdReset: [1, 2, 3, 4, 5, 92, 93],
   },
 };

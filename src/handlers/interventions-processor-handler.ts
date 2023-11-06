@@ -17,7 +17,7 @@ import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
-
+const accountStateEngine = AccountStateEngine.getInstance();
 /**
  * A function for receiving and processing an intervention event.
  *
@@ -64,7 +64,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
         logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
       } else {
         logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
-        const statusResult = AccountStateEngine.applyEventTransition(intervention, itemFromDB);
+        const statusResult = accountStateEngine.applyEventTransition(intervention, itemFromDB);
         logger.debug('processed requested event, sending update request to dynamo db');
         await service.updateUserStatus(recordBody.user.user_id, statusResult);
       }
@@ -113,7 +113,7 @@ function getInterventionName(recordBody: TxMAEvent): EventsEnum {
   if (recordBody.event_name === TICF_ACCOUNT_INTERVENTION) {
     validateInterventionEvent(recordBody);
     const interventionCode = Number.parseInt(recordBody.extension!.intervention.intervention_code);
-    return AccountStateEngine.getInterventionEnumFromCode(interventionCode);
+    return accountStateEngine.getInterventionEnumFromCode(interventionCode);
   }
   return recordBody.event_name as EventsEnum;
 }
