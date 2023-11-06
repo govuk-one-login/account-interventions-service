@@ -23,15 +23,18 @@ export class AccountStateEngine {
    * Private method to validate configuration object in use by this class
    */
   private static validateConfiguration() {
-    const accountStates = Object.keys(AccountStateEngine.configuration.nodes).sort(compareString);
-    const adjacencyLists = Object.keys(AccountStateEngine.configuration.adjacency).sort(compareString);
+    const accountStates = Object.keys(AccountStateEngine.configuration.nodes).sort(compareStrings);
+    const adjacencyLists = Object.keys(AccountStateEngine.configuration.adjacency).sort(compareStrings);
     if (JSON.stringify(adjacencyLists) !== JSON.stringify(accountStates))
-      throw buildError(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION, 'Invalid state engine configuration detected.');
+      throw buildError(
+        MetricNames.INVALID_STATE_ENGINE_CONFIGURATION,
+        'Invalid state engine configuration detected. Adjacency mismatch',
+      );
     for (const element of Object.values(AccountStateEngine.configuration.edges)) {
       if (!accountStates.includes(element.to))
         throw buildError(
           MetricNames.INVALID_STATE_ENGINE_CONFIGURATION,
-          'Invalid state engine configuration detected.',
+          'Invalid state engine configuration detected. Edge mismatch',
         );
     }
   }
@@ -73,7 +76,7 @@ export class AccountStateEngine {
     const allowedTransition = this.findPossibleTransitions(currentStateName);
     const transition = this.getTransition(allowedTransition, event);
     const newStateObject = this.getNewStateObject(transition);
-    if (compareStateObjects(newStateObject, currentState))
+    if (compareAccountStates(newStateObject, currentState))
       throw buildError(
         MetricNames.TRANSITION_SAME_AS_CURRENT_STATE,
         'Computed new state is the same as the current state.',
@@ -92,7 +95,7 @@ export class AccountStateEngine {
    */
   private findAccountStateName(state: StateDetails) {
     for (const key of Object.keys(transitionConfiguration.nodes))
-      if (compareStateObjects(transitionConfiguration.nodes[key]!, state)) return key;
+      if (compareAccountStates(transitionConfiguration.nodes[key]!, state)) return key;
     throw buildError(
       MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG,
       'Account state does not exists in current configuration.',
@@ -162,20 +165,25 @@ function buildError(metricName: MetricNames, errorMessage: string) {
 /**
  * Helper method to compare two StateDetails objects.
  * It returns true, IFF all fields are the same, false otherwise
- * @param object1 - first account state
- * @param object2 - second accoutn state
+ * @param aState - first account state
+ * @param anotherState - second account state
  */
-function compareStateObjects(object1: StateDetails, object2: StateDetails) {
+function compareAccountStates(aState: StateDetails, anotherState: StateDetails) {
   return (
-    object1.resetPassword === object2.resetPassword &&
-    object1.reproveIdentity === object2.reproveIdentity &&
-    object1.blocked === object2.blocked &&
-    object1.suspended === object2.suspended
+    aState.resetPassword === anotherState.resetPassword &&
+    aState.reproveIdentity === anotherState.reproveIdentity &&
+    aState.blocked === anotherState.blocked &&
+    aState.suspended === anotherState.suspended
   );
 }
 
-function compareString(a: string, b: string) {
-  if (a === b) return 0;
-  else if (a < b) return -1;
+/**
+ * Helper method to provide explicit sorting logic for arrays
+ * @param aString - first string
+ * @param anotherString - second string
+ */
+function compareStrings(aString: string, anotherString: string) {
+  if (aString === anotherString) return 0;
+  else if (aString < anotherString) return -1;
   else return 1;
 }
