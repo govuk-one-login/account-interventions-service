@@ -5,6 +5,10 @@ Description: >-
   Alarm template for the Account Interventions Service (AIS) solution.
 
 Parameters:
+  SystemTagValue:
+    Description: Value for the System Tag
+    Type: String
+    Default: Account Interventions Service
   AlertingSNSLowAlertNotificationTopicARN:
     Description: "The ARN of the Alerting SNS Low Alert Notification topic"
     Type: AWS::SSM::Parameter::Value<String>
@@ -50,3 +54,46 @@ Resources:
       EvaluationPeriods: 1
       Period: 60
       TreatMissingData: notBreaching
+
+#
+# CloudWatch Alarms for Updating Deletion Status
+#
+  AISUpdateDeleteFailed:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "User's deletion status failed to be updated."
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: MARK_AS_DELETED_FAILED
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: AccountDeletionProcessorFunction
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  AISUpdateDeleteDDBError:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "User's deletion status failed to be updated due to DynamoDB."
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: DB_UPDATE_ERROR
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: AccountDeletionProcessorFunction
+      Period: 60
+      Statistic: Sum
+      Unit: Count

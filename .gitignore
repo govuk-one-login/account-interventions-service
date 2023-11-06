@@ -61,5 +61,7 @@ typings/
 govuk_modules/
 public/
 
+dist
+.idea
 
 .DS_Store
