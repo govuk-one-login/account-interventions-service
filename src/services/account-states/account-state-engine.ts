@@ -25,7 +25,7 @@ export class AccountStateEngine {
   private static validateConfiguration() {
     const accountStates = Object.keys(AccountStateEngine.configuration.nodes).sort(compareString);
     const adjacencyLists = Object.keys(AccountStateEngine.configuration.adjacency).sort(compareString);
-    if (!(JSON.stringify(adjacencyLists) === JSON.stringify(accountStates)))
+    if (JSON.stringify(adjacencyLists) !== JSON.stringify(accountStates))
       throw buildError(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION, 'Invalid state engine configuration detected.');
     for (const element of Object.values(AccountStateEngine.configuration.edges)) {
       if (!accountStates.includes(element.to))
