@@ -37,7 +37,7 @@ export class AccountStateEngine {
     const newStateName = AccountStateEngine.configuration.edges[code]?.name;
     if (!newStateName)
       throw buildError(
-        MetricNames.NO_INTERVENTION_FOUND_FOR_THIS_CODE,
+        MetricNames.INTERVENTION_CODE_NOT_FOUND_IN_CONFIG,
         `code: ${code} is not found in current configuration`,
       );
     return newStateName;

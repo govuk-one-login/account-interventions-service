@@ -492,7 +492,7 @@ describe('account-state-service', () => {
   describe('Configuration errors', () => {
     it('should throw when given code cannot be found in configuration', () => {
       expect(() => accountStateEngine.getInterventionEnumFromCode(111)).toThrow(new StateTransitionError('code: 111 is not found in current configuration'));
-      expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.NO_INTERVENTION_FOUND_FOR_THIS_CODE);
+      expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_CODE_NOT_FOUND_IN_CONFIG);
     })
     it('should throw when the computed state is the same as the current state', () => {
       const invalidConfig: TransitionConfigurationInterface = {
