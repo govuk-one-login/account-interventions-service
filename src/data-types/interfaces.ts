@@ -8,6 +8,8 @@ export interface StateDetails {
 }
 
 export interface DynamoDBStateResult extends StateDetails {
+  sentAt?: number;
+  appliedAt?: number;
   isAccountDeleted?: boolean;
 }
 

@@ -47,7 +47,7 @@ export class DynamoDatabaseService {
       KeyConditionExpression: '#pk = :id_value',
       ExpressionAttributeNames: { '#pk': 'pk' },
       ExpressionAttributeValues: { ':id_value': { S: userId } },
-      ProjectionExpression: 'blocked, suspended, resetPassword, reproveIdentity, isAccountDeleted',
+      ProjectionExpression: 'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted',
     };
 
     const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));

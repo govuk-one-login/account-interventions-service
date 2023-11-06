@@ -55,18 +55,22 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
   try {
     const recordBody: TxMAIngressEvent = JSON.parse(record.body);
     validateEvent(recordBody);
-    if (isTimestampNotInFuture(recordBody)) {
+    const eventTimestampInMs = recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000;
+    if (isTimestampNotInFuture(eventTimestampInMs)) {
       const intervention = getInterventionName(recordBody);
       logger.debug('identified event: ' + intervention);
       const itemFromDB = await service.retrieveRecordsByUserId(recordBody.user.user_id);
       if (itemFromDB?.isAccountDeleted === true) {
         logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${recordBody.user.user_id} account has been deleted.`);
         logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-      } else {
+      } else if (checkEventIsAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
         logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
         const statusResult = AccountStateEngine.applyEventTransition(intervention, itemFromDB);
         logger.debug('processed requested event, sending update request to dynamo db');
         await service.updateUserStatus(recordBody.user.user_id, statusResult);
+      } else {
+        logger.warn('Event received predates last applied event for this user.');
+        logAndPublishMetric(MetricNames.INTERVENTION_EVENT_STALE);
       }
     } else {
       itemFailures.push({
@@ -91,12 +95,12 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
 /**
  * A function to check if timestamp of the event is in the future.
  *
- * @param recordBody - the parsed body of the sqs record
+ * @param recordTimeStampInMs - timestamp in ms from record
  */
-function isTimestampNotInFuture(recordBody: TxMAIngressEvent): boolean {
+function isTimestampNotInFuture(recordTimeStampInMs: number): boolean {
   const now = getCurrentTimestamp().milliseconds;
-  if (now < (recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000)) {
-    logger.debug(`Timestamp is in the future (sec): ${recordBody.timestamp}.`);
+  if (now < recordTimeStampInMs) {
+    logger.debug(`Timestamp is in the future (sec): ${recordTimeStampInMs}.`);
     logAndPublishMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
     return false;
   }
@@ -116,4 +120,8 @@ function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
     return AccountStateEngine.getInterventionEnumFromCode(interventionCode);
   }
   return recordBody.event_name as EventsEnum;
+}
+
+function checkEventIsAfterLastEvent(eventTimeStamp: number, sentAt: number = 0, appliedAt: number = 0) {
+  return eventTimeStamp > Math.max(sentAt, appliedAt);
 }
