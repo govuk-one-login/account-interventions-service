@@ -23,9 +23,9 @@ export class AccountStateEngine {
    * Private method to validate configuration object in use by this class
    */
   private static validateConfiguration() {
-    const accountStates = Object.keys(AccountStateEngine.configuration.nodes);
-    const adjacencyLists = Object.keys(AccountStateEngine.configuration.adjacency);
-    if (!(JSON.stringify(adjacencyLists.sort()) === JSON.stringify(accountStates.sort())))
+    const accountStates = Object.keys(AccountStateEngine.configuration.nodes).sort(compareString);
+    const adjacencyLists = Object.keys(AccountStateEngine.configuration.adjacency).sort(compareString);
+    if (!(JSON.stringify(adjacencyLists) === JSON.stringify(accountStates)))
       throw buildError(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION, 'Invalid state engine configuration detected.');
     for (const element of Object.values(AccountStateEngine.configuration.edges)) {
       if (!accountStates.includes(element.to))
@@ -172,4 +172,10 @@ function compareStateObjects(object1: StateDetails, object2: StateDetails) {
     object1.blocked === object2.blocked &&
     object1.suspended === object2.suspended
   );
+}
+
+function compareString(a: string, b: string) {
+  if (a === b) return 0;
+  else if (a < b) return -1;
+  else return 1;
 }
