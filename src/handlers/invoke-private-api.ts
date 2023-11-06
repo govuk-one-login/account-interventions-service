@@ -38,7 +38,7 @@ export const handle = async (event: CustomEvent) => {
   const response = await responsePromise.json();
   logger.debug('parsed response:', { response });
 
-  if (Object.keys(response).length === 0 || !response.ok) {
+  if (Object.keys(response).length === 0) {
     return {
       statusCode: response.status || 400,
       message: "Request didn't return a valid response",

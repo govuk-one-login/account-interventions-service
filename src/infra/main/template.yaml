@@ -59,7 +59,7 @@ Parameters:
     Default: v1
 
 Conditions:
-  IsDevEnvironment: !Equals [!Ref Environment, 'dev']
+  IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
 
@@ -717,7 +717,7 @@ Resources:
       Role: !GetAtt StatusRetrieverFunctionRole.Arn
 
   InvokePrivateAPIGatewayFunction:
-    Condition: IsDevEnvironment
+    Condition: IsInternal
     Type: AWS::Serverless::Function
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
