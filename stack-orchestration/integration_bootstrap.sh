@@ -3,7 +3,7 @@
 set -u
 
 # Input parameters
-AWS_ACCOUNT=di-account-interventions-integration-admin
+AWS_ACCOUNT=di-account-interven-int-admin
 
 export AWS_ACCOUNT=$AWS_ACCOUNT
 
