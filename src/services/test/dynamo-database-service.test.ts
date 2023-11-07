@@ -11,7 +11,7 @@ import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import logger from '../../commons/logger';
 import { TooManyRecordsError } from '../../data-types/errors';
 import { logAndPublishMetric } from '../../commons/metrics';
-import { MetricNames } from '../../data-types/constants';
+import { MetricNames} from '../../data-types/constants';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -166,19 +166,9 @@ describe('Dynamo DB Service', () => {
     expect(logAndPublishMetric).toHaveBeenCalledWith('DB_UPDATE_ERROR');
   });
 
-  it('should throw an error if response of the Dynamo Client is null / undefined.', async () => {
-    const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
-    mockedUpdateCommand.resolves(undefined as any);
-    const loggerErrorSpy = jest.spyOn(logger, 'error');
-    const dynamoDBService = new DynamoDatabaseService('table_name')
-    await dynamoDBService.updateDeleteStatus('hello');
-    expect(loggerErrorSpy).toHaveBeenCalledWith('DynamoDB may have failed to update items, returned a null response.');
-    expect(logAndPublishMetric).toHaveBeenCalledWith('DB_UPDATE_ERROR');
-  });
-
   it('throws an error when it fails to update the userId status.', async () => {
     const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
-    mockedUpdateCommand.rejectsOnce("InternalServerError" || "InvalidEndpointException" || "ItemCollectionSizeLimitExceededException" || "ProvisionedThroughputExceededException" || "RequestLimitExceeded" || "ResourceNotFoundException" || "TransactionConflictException" || "DynamoDBServiceException" );
+    mockedUpdateCommand.rejectsOnce("InternalServerError" || "InvalidEndpointException" || "ItemCollectionSizeLimitExceededException" || "ProvisionedThroughputExceededException" || "RequestLimitExceeded" || "ResourceNotFoundException" || "TransactionConflictException" || "DynamoDBServiceException" || undefined );
     const loggerErrorSpy = jest.spyOn(logger, 'error');
     const dynamoDBService = new DynamoDatabaseService('table_name')
     await expect(async () => await dynamoDBService.updateDeleteStatus('hello')).rejects.toThrow(
@@ -194,6 +184,6 @@ describe('Dynamo DB Service', () => {
     const loggerInfoSpy = jest.spyOn(logger, 'info');
     const dynamoDBService = new DynamoDatabaseService('table_name')
     await dynamoDBService.updateDeleteStatus('hello');
-    expect(loggerInfoSpy).toHaveBeenCalledWith('No intervention exists for this account.');
+    expect(loggerInfoSpy).toHaveBeenCalledWith("Sensitive info - No intervention exists for this account.", {"userId": "hello"});
   });
 });

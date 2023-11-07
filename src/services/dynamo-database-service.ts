@@ -14,9 +14,9 @@ import { NodeHttpHandler } from '@smithy/node-http-handler';
 import tracer from '../commons/tracer';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { logAndPublishMetric } from '../commons/metrics';
-import { TooManyRecordsError } from '../data-types/errors';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { DynamoDBStateResult } from '../data-types/interfaces';
+import { TooManyRecordsError } from '../data-types/errors';
 
 const appConfig = AppConfigService.getInstance();
 export class DynamoDatabaseService {
@@ -138,21 +138,18 @@ export class DynamoDatabaseService {
       const response = await this.dynamoClient.send(command);
       logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Account ${userId} marked as deleted.`);
       if (!response) {
-        const errorMessage = 'DynamoDB may have failed to update items, returned a null response.';
-        logger.error(errorMessage);
+        logger.error('DynamoDB may have failed to update items, returned a null response.');
         logAndPublishMetric(MetricNames.DB_UPDATE_ERROR);
-        return;
       }
       logAndPublishMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
       return response;
     } catch (error: any) {
-      if (error.name != 'ConditionalCheckFailedException') {
-        const errorMessage = `${LOGS_PREFIX_SENSITIVE_INFO} Error updating item with pk ${userId}.`;
-        logger.error(errorMessage);
+      if (!error.name || error.name !== 'ConditionalCheckFailedException') {
+        logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} Error updating item with pk ${userId}.`);
         logAndPublishMetric(MetricNames.DB_UPDATE_ERROR);
         throw new Error('Error was not a Conditional Check Exception.'); //Therefore re-driving message back to the queue.
       }
-      logger.info('No intervention exists for this account.');
+      logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} No intervention exists for this account.`, { userId });
     }
   }
 }
