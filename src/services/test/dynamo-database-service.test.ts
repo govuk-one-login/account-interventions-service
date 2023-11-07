@@ -71,7 +71,7 @@ describe('Dynamo DB Service', () => {
   };
 
 
-  it('should get all items successfully', async () => {
+  it('should get all items successfully.', async () => {
     queryCommandMock.resolves({ Items: items });
     const allItems = await new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc');
     expect(allItems).toEqual({
@@ -82,13 +82,13 @@ describe('Dynamo DB Service', () => {
     });
   });
 
-  it('should return undefined if user has no record', async () => {
+  it('should return undefined if a user has no record.', async () => {
     queryCommandMock.resolves({ Items: [] });
     const allItems = await new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc');
     expect(allItems).toEqual(undefined);
   });
 
-  it('should check the parameters are being called correctly', async () => {
+  it('should check the parameters are being called correctly.', async () => {
     const QueryCommandInput = {
       TableName: 'abc',
       KeyConditionExpression: '#pk = :id_value',
@@ -101,7 +101,7 @@ describe('Dynamo DB Service', () => {
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, QueryCommandInput);
   });
 
-  it('should return expected response if update was successful', async () => {
+  it('should return expected response if update was successful.', async () => {
     queryCommandMock.resolvesOnce({ Items: items });
     updateCommandMock.resolvesOnce({
       $metadata: {
@@ -116,7 +116,7 @@ describe('Dynamo DB Service', () => {
     expect(logger.info).toHaveBeenCalledTimes(0);
   });
 
-  it('should throw a TooManyRecordsError error if more than one record is retrieved for one user id', async () => {
+  it('should throw a TooManyRecordsError error if more than one record is retrieved for one user id.', async () => {
     queryCommandMock.resolves({ Items: [{ key: { S: 'valueOne' } }, { key: { S: 'valueTwo' } }] });
     const service = await new DynamoDatabaseService('table_name');
     await expect(async () => await service.retrieveRecordsByUserId('userId')).rejects.toThrow(
@@ -125,7 +125,7 @@ describe('Dynamo DB Service', () => {
     expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
   });
 
-  it('should throw an error if Items field is undefined in response from db', async () => {
+  it('should throw an error if Items field is undefined in response from DynamoDB.', async () => {
     queryCommandMock.resolves({ Items: undefined } as unknown as QueryCommandOutput);
     const service = await new DynamoDatabaseService('table_name');
     await expect(async () => await service.retrieveRecordsByUserId('userId')).rejects.toThrow(
@@ -134,7 +134,7 @@ describe('Dynamo DB Service', () => {
     expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
   });
 
-  it('should update the isAccountDeleted status of the userId in DynamoDB and log info', async () => {
+  it('should update the isAccountDeleted status of the userId in DynamoDB and log info.', async () => {
     updateCommandMock.resolves({$metadata : { httpStatusCode: 200 }});
     const commandInput: UpdateItemCommandInput = {
       TableName: 'table_name',
@@ -156,7 +156,7 @@ describe('Dynamo DB Service', () => {
     expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, commandInput);
   });
 
-  it('should throw an error if response of the Dynamo Client is null / undefined', async () => {
+  it('should throw an error if response of the Dynamo Client is null / undefined.', async () => {
     const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
     mockedUpdateCommand.resolves(undefined as any);
     const loggerErrorSpy = jest.spyOn(logger, 'error');
@@ -166,7 +166,7 @@ describe('Dynamo DB Service', () => {
     expect(logAndPublishMetric).toHaveBeenCalledWith('DB_UPDATE_ERROR');
   });
 
-  it('should throw an error if response of the Dynamo Client is null / undefined', async () => {
+  it('should throw an error if response of the Dynamo Client is null / undefined.', async () => {
     const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
     mockedUpdateCommand.resolves(undefined as any);
     const loggerErrorSpy = jest.spyOn(logger, 'error');
@@ -176,7 +176,7 @@ describe('Dynamo DB Service', () => {
     expect(logAndPublishMetric).toHaveBeenCalledWith('DB_UPDATE_ERROR');
   });
 
-  it('throws an error when it fails to update the userId status', async () => {
+  it('throws an error when it fails to update the userId status.', async () => {
     const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
     mockedUpdateCommand.rejectsOnce("InternalServerError" || "InvalidEndpointException" || "ItemCollectionSizeLimitExceededException" || "ProvisionedThroughputExceededException" || "RequestLimitExceeded" || "ResourceNotFoundException" || "TransactionConflictException" || "DynamoDBServiceException" );
     const loggerErrorSpy = jest.spyOn(logger, 'error');
@@ -188,7 +188,7 @@ describe('Dynamo DB Service', () => {
     expect(logAndPublishMetric).toHaveBeenCalledWith('DB_UPDATE_ERROR');
   });
 
-  it('does not throw an error and logs an info when there is a Conditional Check Exception', async () => {
+  it('does not throw an error and logs an info when there is a Conditional Check Exception.', async () => {
     const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
     mockedUpdateCommand.rejectsOnce({ name: "ConditionalCheckFailedException" });
     const loggerInfoSpy = jest.spyOn(logger, 'info');
