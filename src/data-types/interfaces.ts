@@ -86,8 +86,8 @@ export interface TransformedResponseFromDynamoDatabase {
   appliedAt: number;
   sentAt: number;
   description: string;
-  reprovedIdentityAt: number;
-  resetPasswordAt: number;
+  reprovedIdentityAt?: number | undefined;
+  resetPasswordAt?: number | undefined;
   state: {
     blocked: boolean;
     suspended: boolean;
@@ -95,5 +95,6 @@ export interface TransformedResponseFromDynamoDatabase {
     resetPassword: boolean;
   };
   auditLevel: string;
+  history?: [],
 }
 
