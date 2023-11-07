@@ -146,12 +146,13 @@ export class DynamoDatabaseService {
       logAndPublishMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
       return response;
     } catch (error: any) {
-      if (error.name === 'ValidationException') {
-        throw new Error('The error was validation exception, thus retrying.');
+      if (error.name != 'ConditionalCheckFailedException') {
+        const errorMessage = `${LOGS_PREFIX_SENSITIVE_INFO} Error updating item with pk ${userId}.`;
+        logger.error(errorMessage);
+        logAndPublishMetric(MetricNames.DB_UPDATE_ERROR);
+        throw new Error('Error was not a Conditional Check Exception.'); //Therefore re-driving message back to the queue.
       }
-      const errorMessage = `${LOGS_PREFIX_SENSITIVE_INFO} Error updating item with pk ${userId}.`;
-      logger.error(errorMessage);
-      logAndPublishMetric(MetricNames.DB_UPDATE_ERROR);
+      logger.info('No intervention exists for this account.');
     }
   }
 }
