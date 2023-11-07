@@ -1,0 +1,10 @@
+[
+  {
+    "ParameterKey": "AWSOrganizationId",
+    "ParameterValue": "o-pjzf8d99ys,o-dpp53lco28"
+  },
+  {
+    "ParameterKey": "PipelineStackName",
+    "ParameterValue": "id-reuse-test-pipeline"
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "ParameterKey": "GrafanaKeySecretId",
+    "ParameterValue": "pipeline-grafana-api-key"
+  },
+  {
+    "ParameterKey": "GrafanaEnvironment",
+    "ParameterValue": "prod"
+  }
+]
