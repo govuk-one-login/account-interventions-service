@@ -4,11 +4,11 @@ import { ContextExamples } from '@aws-lambda-powertools/commons';
 import { handle } from '../status-retriever-handler';
 import logger from '../../commons/logger';
 import { marshall } from '@aws-sdk/util-dynamodb';
-import { DynamoDbService } from '../../services/dynamo-db-service';
-import { AISInterventionTypes } from '../../data-types/constants';
+import { DynamoDatabaseService } from '../../services/dynamo-database-service';
+
 
 jest.mock('../../commons/logger.ts');
-jest.mock('../../services/dynamo-db-service');
+jest.mock('../../services/dynamo-database-service');
 jest.mock('@smithy/node-http-handler');
 
 const testEvent: APIGatewayEvent = {
@@ -121,7 +121,7 @@ const suspendedRecord = {
   reproveIdentity: false,
   auditLevel: 'standard',
   ttl: 1234567890,
-  history: ['some intervention'],
+  history: 'some intervention',
 };
 
 const accountFoundNotSuspendedRecord = {
@@ -138,7 +138,23 @@ const accountFoundNotSuspendedRecord = {
   reproveIdentity: false,
   auditLevel: 'standard',
   ttl: 1234567890,
-  history: ['no intervention'],
+  history: [],
+};
+
+const accountNotFoundDefaultObject = {
+  updatedAt: 1685404800000,
+  appliedAt: 1685404800000,
+  sentAt: 1685404800000,
+  description: 'AIS_NO_INTERVENTION',
+  reprovedIdentityAt: null,
+  resetPasswordAt: null,
+  state: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
+  },
+  auditLevel: 'standard'
 };
 
 const nullUpdatedAt = {
@@ -155,7 +171,7 @@ const nullUpdatedAt = {
   reproveIdentity: false,
   auditLevel: 'standard',
   ttl: 1234567890,
-  history: ['some intervention'],
+  history: 'some intervention',
 };
 
 const suspendedAccount = {
@@ -171,8 +187,24 @@ const suspendedAccount = {
     resetPassword: false,
     reproveIdentity: false,
   },
-  auditLevel: 'standard',
+  auditLevel: 'standard'
 };
+
+const accountIsNotSuspended = {
+  updatedAt: 123455,
+  appliedAt: 12345685809,
+  sentAt: 123456789,
+  description: accountFoundNotSuspendedRecord.intervention,
+  reprovedIdentityAt: 849473,
+  resetPasswordAt: 5847392,
+  state: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
+  },
+  auditLevel: 'standard'
+}
 
 const updatedTime = {
   updatedAt: 1685404800000,
@@ -187,11 +219,11 @@ const updatedTime = {
     resetPassword: false,
     reproveIdentity: false,
   },
-  auditLevel: 'standard',
+  auditLevel: 'standard'
 };
 
 const mockConfig = ContextExamples.helloworldContext;
-const mockDynamoDBServiceRetrieveRecords = DynamoDbService.prototype.retrieveRecordsByUserId as jest.Mock;
+const mockDynamoDBServiceRetrieveRecords = DynamoDatabaseService.prototype.retrieveRecordsByUserId as jest.Mock;
 
 describe('status-retriever-handler', () => {
   beforeAll(() => {
@@ -213,9 +245,11 @@ describe('status-retriever-handler', () => {
   });
 
   it('will return a message if user ID cannot be found in the database', async () => {
+    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
     const response = await handle(testEvent, mockConfig);
+    expect(logger.warn).toBeCalledWith('Query matched no records in DynamoDB.');
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(JSON.stringify({ intervention: AISInterventionTypes.AIS_NO_INTERVENTION }));
+    expect(response.body).toEqual(JSON.stringify({ intervention: accountNotFoundDefaultObject }));
   });
 
   it('will return the correct response from the database if the user ID matches an account where the state items are all false', async () => {
@@ -223,7 +257,7 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce([marshall(accountFoundNotSuspendedRecord)]);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(JSON.stringify({ intervention: AISInterventionTypes.AIS_NO_INTERVENTION }));
+    expect(response.body).toEqual(JSON.stringify({ intervention: accountIsNotSuspended }));
   });
 
   it('will return the appropiate response if the event is malformed', async () => {

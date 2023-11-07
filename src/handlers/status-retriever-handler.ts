@@ -1,11 +1,13 @@
 import type { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { AppConfigService } from '../services/app-config-service';
-import { DynamoDbService as DynamoDatabaseService } from '../services/dynamo-db-service';
+import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
 import { MetricNames, AISInterventionTypes } from '../data-types/constants';
 import { TransformedResponseFromDynamoDatabase } from '../data-types/interfaces';
-import { unmarshall } from '@aws-sdk/util-dynamodb';
+// import { AttributeValue } from '@aws-sdk/client-dynamodb';
+// import { LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
+// import { QueryCommand, QueryCommandInput, QueryCommandOutput } from '@aws-sdk/client-dynamodb';
 
 const appConfig = AppConfigService.getInstance();
 const dynamoDBServiceInstance = new DynamoDatabaseService(appConfig.tableName);
@@ -24,32 +26,47 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
     };
   }
 
+  const historyQuery = event.queryStringParameters?.['history'];
+  logger.debug('query', {historyQuery});
+  logger.debug('double-check', {event});
+
   try {
-    const response = await dynamoDBServiceInstance.retrieveRecordsByUserId(userId);
-    if (!response || response.length === 0) {
-      logAndPublishMetric(MetricNames.ACCOUNT_NOT_SUSPENDED);
+    const response = await dynamoDBServiceInstance.retrieveRecordsByUserId(userId) as unknown as Record<string, any>;
+    if (!response) {
+      logger.warn('Query matched no records in DynamoDB.')
+      logAndPublishMetric(MetricNames.ACCOUNT_NOT_FOUND);
+      const undefinedResponseFromDynamoDatabase: Record<string, any> = {
+        updatedAt: undefined,
+        appliedAt: undefined,
+        sentAt: undefined,
+        description: undefined,
+        state: {
+          blocked: false,
+          suspended: false,
+          resetPassword: false,
+          reproveIdentity: false,
+        },
+        auditLevel: undefined,
+        history: [],
+      };
+      const undefinedAccount = transformResponseFromDynamoDatabase(undefinedResponseFromDynamoDatabase);
       return {
         statusCode: 200,
-        body: JSON.stringify({ intervention: AISInterventionTypes.AIS_NO_INTERVENTION }),
+        body: JSON.stringify({ intervention: undefinedAccount }),
       };
     }
-    for (const item of response) {
-      const unmarshalledObject = unmarshall(item);
-      const accountStatus = transformResponseFromDynamoDatabase(unmarshalledObject);
-
-      if (identifyAccountStateIsNotSuspended(accountStatus) === true) {
-        logAndPublishMetric(MetricNames.ACCOUNT_NOT_SUSPENDED);
-        return {
-          statusCode: 200,
-          body: JSON.stringify({ intervention: AISInterventionTypes.AIS_NO_INTERVENTION }),
-        };
-      }
-
+    if (historyQuery && historyQuery !== '') {
       return {
         statusCode: 200,
-        body: JSON.stringify({ intervention: accountStatus }),
+        body: JSON.stringify({ history: String(response['history']) }),
       };
     }
+    const accountStatus = transformResponseFromDynamoDatabase(response);
+    
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ intervention: accountStatus }),
+    };
   } catch (error) {
     logger.error('A problem occured with the query', { error });
     logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
@@ -80,26 +97,17 @@ function validateEvent(userId: string) {
 function transformResponseFromDynamoDatabase(item: Record<string, any>): TransformedResponseFromDynamoDatabase {
   return (item = {
     updatedAt: Number(item['updatedAt'] ?? Date.now()),
-    appliedAt: Number(item['appliedAt']),
-    sentAt: Number(item['sentAt']),
-    description: String(item['intervention']),
-    reprovedIdentityAt: Number(item['reprovedIdentityAt']),
-    resetPasswordAt: Number(item['resetPasswordAt']),
+    appliedAt: Number(item['appliedAt'] ?? Date.now()),
+    sentAt: Number(item['sentAt'] ?? Date.now()),
+    description: String(item['intervention'] ?? AISInterventionTypes.AIS_NO_INTERVENTION),
+    reprovedIdentityAt: Number(item['reprovedIdentityAt'] ?? undefined),
+    resetPasswordAt: Number(item['resetPasswordAt'] ?? undefined),
     state: {
-      blocked: Boolean(item['blocked']),
-      suspended: Boolean(item['suspended']),
-      resetPassword: Boolean(item['resetPassword']),
-      reproveIdentity: Boolean(item['reproveIdentity']),
+      blocked: Boolean(item['blocked'] ?? false),
+      suspended: Boolean(item['suspended'] ?? false),
+      resetPassword: Boolean(item['resetPassword'] ?? false),
+      reproveIdentity: Boolean(item['reproveIdentity'] ?? false),
     },
-    auditLevel: String(item['auditLevel']),
+    auditLevel: String(item['auditLevel'] ?? 'standard'),
   });
-}
-
-/**
- * Helper function to determine if the record's state object all has false values
- * @param accountItem - recieved from dynamoDB, transformed via transformResponseFromDynamoDatabase
- * @returns boolean, true if all items in the state object are false, false if not.
- */
-function identifyAccountStateIsNotSuspended(accountItem: TransformedResponseFromDynamoDatabase) {
-  return Object.values(accountItem.state).every((item) => item === false);
 }

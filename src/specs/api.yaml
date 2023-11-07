@@ -44,6 +44,7 @@ paths:
         - Status
       parameters:
         - $ref: "#/components/parameters/UserId"
+        - $ref: "#/components/parameters/History"
       responses:
         "200":
           description: "Ok"
@@ -209,6 +210,14 @@ components:
       schema:
         type: string
         pattern: ^[^,\s]+$
+    History:
+      name: history
+      in: queryStringParameters
+      description: "A check to recall the accounts history, of any previous interventions."
+      required: false
+      example: "history=true"
+      schema:
+        type: boolean
   responses:
     Throttled:
       description: "Throttled"
