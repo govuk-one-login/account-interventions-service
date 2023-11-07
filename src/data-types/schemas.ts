@@ -74,6 +74,28 @@ export const TxMAIngress = {
             },
           },
         },
+        extensions: {
+          $id: '#root/event/extensions',
+          title: 'Extensions',
+          type: 'object',
+          properties: {
+            levelOfConfidence: {
+              $id: '#root/event/levelOfConfidence',
+              title: 'LevelOfConfidence',
+              type: 'string',
+            },
+            ciFail: {
+              $id: '#root/event/ciFail',
+              title: 'CIFail',
+              type: 'boolean',
+            },
+            hasMitigations: {
+              $id: '#root/event/hasMitigations',
+              title: 'HasMitigations',
+              type: 'boolean',
+            },
+          },
+        },
         user: {
           $id: '#root/event/user',
           title: 'User',
@@ -86,6 +108,36 @@ export const TxMAIngress = {
               type: 'string',
               pattern: '^[^,\\s]+$',
               minLength: 3,
+            },
+            email: {
+              $id: '#root/event/email',
+              title: 'Email',
+              type: 'string',
+            },
+            phone: {
+              $id: '#root/event/phone',
+              title: 'Phone',
+              type: 'string',
+            },
+            ip_address: {
+              $id: '#root/event/ip_address',
+              title: 'Ip_address',
+              type: 'string',
+            },
+            session_id: {
+              $id: '#root/event/session_id',
+              title: 'Session_id',
+              type: 'string',
+            },
+            persistent_session_id: {
+              $id: '#root/event/persistent_session_id',
+              title: 'Persistent_session_id',
+              type: 'string',
+            },
+            govuk_signin_journey_id: {
+              $id: '#root/event/govuk_signin_journey_id',
+              title: 'GOVUK_signin_journey_id',
+              type: 'string',
             },
           },
         },
