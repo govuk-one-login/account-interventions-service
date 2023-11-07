@@ -5,7 +5,9 @@ import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logAndPublishMetric } from '../../commons/metrics';
 import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import { validateEvent, validateInterventionEvent } from '../../services/validate-event';
-import { AccountStateEngine } from '../../services/account-states/account-state-engine';
+import {
+  AccountStateEngine,
+} from '../../services/account-states/account-state-engine';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
 import {MetricNames} from "../../data-types/constants";
@@ -20,7 +22,7 @@ const mockRetrieveRecords = DynamoDatabaseService.prototype.retrieveRecordsByUse
 const mockUpdateRecords = DynamoDatabaseService.prototype.updateUserStatus as jest.Mock;
 const eventValidationMock = validateEvent as jest.Mock;
 const interventionEventValidationMock = validateInterventionEvent as jest.Mock;
-
+const accountStateEngine = AccountStateEngine.getInstance();
 describe('intervention processor handler', () => {
   let mockEvent: SQSEvent;
   let mockRecord: SQSRecord;
@@ -81,7 +83,7 @@ describe('intervention processor handler', () => {
 
     it('should return a state transition error', async () => {
       eventValidationMock.mockReturnValueOnce(void 0);
-      AccountStateEngine.applyEventTransition = jest.fn().mockImplementationOnce(() => {
+      accountStateEngine.applyEventTransition = jest.fn().mockImplementationOnce(() => {
         throw new StateTransitionError('State transition Error');
       });
       expect(await handler(mockEvent, mockContext)).toEqual({
@@ -92,7 +94,7 @@ describe('intervention processor handler', () => {
 
     it('should succeed', async () => {
       eventValidationMock.mockReturnValueOnce(void 0);
-      AccountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
+      accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
         ExpressionAttributeNames: {
           '#B': 'blocked',
           '#S': 'suspended',
