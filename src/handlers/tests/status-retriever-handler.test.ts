@@ -3,9 +3,7 @@ import type { APIGatewayEvent } from 'aws-lambda';
 import { ContextExamples } from '@aws-lambda-powertools/commons';
 import { handle } from '../status-retriever-handler';
 import logger from '../../commons/logger';
-import { marshall } from '@aws-sdk/util-dynamodb';
 import { DynamoDatabaseService } from '../../services/dynamo-database-service';
-
 
 jest.mock('../../commons/logger.ts');
 jest.mock('../../services/dynamo-database-service');
@@ -223,7 +221,7 @@ const updatedTime = {
 };
 
 const mockConfig = ContextExamples.helloworldContext;
-const mockDynamoDBServiceRetrieveRecords = DynamoDatabaseService.prototype.retrieveRecordsByUserId as jest.Mock;
+const mockDynamoDBServiceRetrieveRecords = DynamoDatabaseService.prototype.queryRecordFromDynamoDatabase as jest.Mock;
 
 describe('status-retriever-handler', () => {
   beforeAll(() => {
@@ -238,7 +236,7 @@ describe('status-retriever-handler', () => {
 
   it('will return the correct response from the database if the user ID matches', async () => {
     mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'testUserID');
-    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce([marshall(suspendedRecord)]);
+    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(suspendedRecord);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual(JSON.stringify({ intervention: suspendedAccount }));
@@ -254,7 +252,7 @@ describe('status-retriever-handler', () => {
 
   it('will return the correct response from the database if the user ID matches an account where the state items are all false', async () => {
     mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'testUserID');
-    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce([marshall(accountFoundNotSuspendedRecord)]);
+    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual(JSON.stringify({ intervention: accountIsNotSuspended }));
@@ -270,14 +268,14 @@ describe('status-retriever-handler', () => {
   });
 
   it('will return the correct response if there is a problem with the query to dynamoDB', async () => {
-    mockDynamoDBServiceRetrieveRecords.mockReturnValueOnce('There was a problem with the query operation');
+    mockDynamoDBServiceRetrieveRecords.mockRejectedValueOnce('There was a problem with the query operation');
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(500);
     expect(response.body).toEqual(JSON.stringify({ message: 'Unable to retrieve records.' }));
   });
 
   it('will return the correct updatedAt field if the field is returned as null', async () => {
-    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce([marshall(nullUpdatedAt)]);
+    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(nullUpdatedAt);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual(JSON.stringify({ intervention: updatedTime }));

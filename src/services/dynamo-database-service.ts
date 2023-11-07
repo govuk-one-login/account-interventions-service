@@ -67,6 +67,45 @@ export class DynamoDatabaseService {
   }
 
   /**
+   * Function to retrieve the full record from DynamoDB
+   * @param userId - user ID passed in via path params
+   * @returns - record from dynamoDB
+   */
+  public async queryRecordFromDynamoDatabase(userId: string) {
+    const dynamoClient = tracer.captureAWSv3Client(
+      new DynamoDBClient({
+        region: AppConfigService.getInstance().awsRegion,
+        maxAttempts: 2,
+        requestHandler: new NodeHttpHandler({ requestTimeout: 5000 }),
+      }),
+    );
+  
+    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db, with ID : ${userId}`);
+    const parameters: QueryCommandInput = {
+      TableName: appConfig.tableName,
+      KeyConditionExpression: '#pk = :id_value',
+      ExpressionAttributeNames: { '#pk': 'pk' },
+      ExpressionAttributeValues: { ':id_value': { S: userId } },
+    };
+  
+    const response: QueryCommandOutput = await dynamoClient.send(new QueryCommand(parameters));
+    if (!response.Items) {
+      const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
+      logger.error(errorMessage);
+      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
+      throw new Error(errorMessage);
+    }
+  
+    if (response.Items.length > 1) {
+      const errorMessage = 'DynamoDB returned more than one element.';
+      logger.error(errorMessage);
+      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
+      throw new TooManyRecordsError(errorMessage);
+    }
+    return response.Items[0] ? unmarshall(response.Items[0]) : undefined;
+  }
+  
+  /**
    * A function to take a partially formed UpdateItemCommand input, form the full command, and send the command
    * @param userId - id of the user whose record is being updated
    * @param partialInput - Partial object for command input
