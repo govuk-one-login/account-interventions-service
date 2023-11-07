@@ -7,310 +7,138 @@ import { logAndPublishMetric } from '../../commons/metrics';
 import { TransitionConfigurationInterface } from "../../data-types/interfaces";
 
 const accountStateEngine = AccountStateEngine.getInstance();
-
 const accountIsSuspended = {
   blocked: false,
   suspended: true,
   resetPassword: false,
   reproveIdentity: false,
 };
-
 const accountNeedsPswReset = {
   blocked: false,
   suspended: true,
   resetPassword: true,
   reproveIdentity: false,
 };
-
 const accountIsOkay = {
   blocked: false,
   suspended: false,
   resetPassword: false,
   reproveIdentity: false,
 };
-
 const accountNeedsIDReset = {
   blocked: false,
   suspended: true,
   resetPassword: false,
   reproveIdentity: true,
 };
-
 const accountNeedsIDResetAdnPswReset = {
   blocked: false,
   suspended: true,
   resetPassword: true,
   reproveIdentity: true,
 };
-
 const accountIsBlocked = {
   blocked: true,
   suspended: false,
   resetPassword: false,
   reproveIdentity: false,
 };
-
 const blockAccountUpdate = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#INT': 'intervention',
-    '#AA': 'appliedAt',
-    '#H': 'history',
+  newState: {
+    blocked: true,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: true },
-    ':s': { BOOL: false },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':int': { S: 'AIS_ACCOUNT_BLOCKED' },
-    ':aa': { N: '1234567890' },
-    ':empty_list': { L: [] },
-    ':h': { L: [{ S: 'AIS_ACCOUNT_BLOCKED' }] },
-  },
-  UpdateExpression:
-    'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED
 };
-
-const unblockAccountUpdate = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#INT': 'intervention',
-    '#AA': 'appliedAt',
-    '#H': 'history',
-  },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: false },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':int': { S: 'AIS_ACCOUNT_UNBLOCKED' },
-    ':aa': { N: '1234567890' },
-    ':empty_list': { L: [] },
-    ':h': { L: [{ S: 'AIS_ACCOUNT_UNBLOCKED' }] },
-  },
-  UpdateExpression:
-    'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
-};
-
 const suspendAccountUpdate = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#INT': 'intervention',
-    '#AA': 'appliedAt',
-    '#H': 'history',
+  newState: {
+    blocked: false,
+    suspended: true,
+    resetPassword: false,
+    reproveIdentity: false,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: true },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':int': { S: 'AIS_ACCOUNT_SUSPENDED' },
-    ':aa': { N: '1234567890' },
-    ':empty_list': { L: [] },
-    ':h': { L: [{ S: 'AIS_ACCOUNT_SUSPENDED' }] },
-  },
-  UpdateExpression:
-    'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED
 };
-
-const unsuspendAccountUpdate = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#INT': 'intervention',
-    '#AA': 'appliedAt',
-    '#H': 'history',
-  },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: false },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':int': { S: 'AIS_ACCOUNT_UNSUSPENDED' },
-    ':aa': { N: '1234567890' },
-    ':empty_list': { L: [] },
-    ':h': { L: [{ S: 'AIS_ACCOUNT_UNSUSPENDED' }] },
-  },
-  UpdateExpression:
-    'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
-};
-
 const passwordResetRequiredUpdate = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#INT': 'intervention',
-    '#AA': 'appliedAt',
-    '#H': 'history',
+  newState: {
+    blocked: false,
+    suspended: true,
+    resetPassword: true,
+    reproveIdentity: false,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: true },
-    ':rp': { BOOL: true },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET' },
-    ':aa': { N: '1234567890' },
-    ':empty_list': { L: [] },
-    ':h': { L: [{ S: 'AIS_FORCED_USER_PASSWORD_RESET' }] },
-  },
-  UpdateExpression:
-    'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
+  interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET
 };
-
 const idResetRequiredUpdate = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#INT': 'intervention',
-    '#AA': 'appliedAt',
-    '#H': 'history',
+  newState: {
+    blocked: false,
+    suspended: true,
+    resetPassword: false,
+    reproveIdentity: true,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: true },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: true },
-    ':ua': { N: '1234567890' },
-    ':int': { S: 'AIS_FORCED_USER_IDENTITY_VERIFY' },
-    ':aa': { N: '1234567890' },
-    ':empty_list': { L: [] },
-    ':h': { L: [{ S: 'AIS_FORCED_USER_IDENTITY_VERIFY' }] },
-  },
-  UpdateExpression:
-    'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
+  interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY
 };
-
 const pswAndIdResetRequiredUpdate = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#INT': 'intervention',
-    '#AA': 'appliedAt',
-    '#H': 'history',
+  newState: {
+    blocked: false,
+    suspended: true,
+    resetPassword: true,
+    reproveIdentity: true,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: true },
-    ':rp': { BOOL: true },
-    ':ri': { BOOL: true },
-    ':ua': { N: '1234567890' },
-    ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY' },
-    ':aa': { N: '1234567890' },
-    ':empty_list': { L: [] },
-    ':h': { L: [{ S: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY' }] },
-  },
-  UpdateExpression:
-    'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
+  interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY
 };
-
+const unsuspendAccountUpdate = {
+  newState: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
+  },
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED
+};
+const unblockAccountUpdate = {
+  newState: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
+  },
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_UNBLOCKED
+}
 const pswResetSuccessfulUpdateUnsuspended = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#RPswdA': 'resetPasswordAt',
-  },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: false },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':rpswda': { N: '1234567890' },
-  },
-  UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda',
+  newState: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
+  }
 };
-
 const pswResetSuccessfulUpdateSuspended = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#RPswdA': 'resetPasswordAt',
+  newState: {
+    blocked: false,
+    suspended: true,
+    resetPassword: false,
+    reproveIdentity: true,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: true },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: true },
-    ':ua': { N: '1234567890' },
-    ':rpswda': { N: '1234567890' },
-  },
-  UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda',
 };
-
 const idResetSuccessfulUpdateUnsuspended = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#RIdA': 'reprovedIdentityAt',
+  newState: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: false },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':rida': { N: '1234567890' },
-  },
-  UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida',
 };
-
 const idResetSuccessfulUpdateSuspended = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#RIdA': 'reprovedIdentityAt',
+  newState: {
+    blocked: false,
+    suspended: true,
+    resetPassword: true,
+    reproveIdentity: false,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: true },
-    ':rp': { BOOL: true },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':rida': { N: '1234567890' },
-  },
-  UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida',
-};
+}
+
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
 jest.mock('../../commons/get-current-timestamp', () => ({

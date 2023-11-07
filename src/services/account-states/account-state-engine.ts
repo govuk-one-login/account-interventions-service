@@ -1,10 +1,9 @@
 import { transitionConfiguration } from './config';
-import { StateDetails } from '../../data-types/interfaces';
-import { EventsEnum, MetricNames } from '../../data-types/constants';
+import { AccountStateEngineOutput, StateDetails } from '../../data-types/interfaces';
+import { AISInterventionTypes, EventsEnum, MetricNames } from '../../data-types/constants';
 import { StateTransitionError } from '../../data-types/errors';
 import logger from '../../commons/logger';
 import { logAndPublishMetric } from '../../commons/metrics';
-import { buildPartialUpdateAccountStateCommand } from '../../commons/build-partial-update-state-command';
 
 export class AccountStateEngine {
   private static readonly configuration = transitionConfiguration;
@@ -64,7 +63,7 @@ export class AccountStateEngine {
    * @param event - EventEnum representation of event received
    * @param currentState - optional state object representation the current state of the account, it defaults to account unsuspended if nothing is passed
    */
-  applyEventTransition(event: EventsEnum, currentState?: StateDetails) {
+  applyEventTransition(event: EventsEnum, currentState?: StateDetails): AccountStateEngineOutput {
     if (!currentState)
       currentState = {
         blocked: false,
@@ -81,11 +80,10 @@ export class AccountStateEngine {
         MetricNames.TRANSITION_SAME_AS_CURRENT_STATE,
         'Computed new state is the same as the current state.',
       );
-    return buildPartialUpdateAccountStateCommand(
-      newStateObject,
-      event,
-      AccountStateEngine.configuration.edges[transition]?.interventionName,
-    );
+    return {
+      newState: newStateObject,
+      interventionName: AccountStateEngine.configuration.edges[transition]?.interventionName as AISInterventionTypes,
+    };
   }
 
   /**

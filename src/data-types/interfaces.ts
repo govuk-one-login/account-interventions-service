@@ -12,23 +12,8 @@ export interface DynamoDBStateResult extends StateDetails {
   appliedAt?: number;
   isAccountDeleted?: boolean;
 }
-
-export interface InterventionTransitionConfigurations {
-  [key: string]: InterventionEventDetails;
-}
-
-export interface UserLedActionTransitionConfigurations {
-  [key: string]: UserLedActionEventDetails;
-}
-export interface UserLedActionEventDetails {
-  code: number;
-  state: { resetPassword?: boolean; reproveIdentity?: boolean };
-  allowedFromStates: EventsEnum[];
-}
-export interface InterventionEventDetails {
-  code: number;
-  state: StateDetails;
-  allowedTransitions: EventsEnum[];
+export interface AccountStateEngineOutput {
+  newState: StateDetails;
   interventionName?: AISInterventionTypes;
 }
 

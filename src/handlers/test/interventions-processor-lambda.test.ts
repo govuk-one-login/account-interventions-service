@@ -10,7 +10,7 @@ import {
 } from '../../services/account-states/account-state-engine';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
-import {MetricNames} from "../../data-types/constants";
+import {AISInterventionTypes, MetricNames} from "../../data-types/constants";
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -95,21 +95,13 @@ describe('intervention processor handler', () => {
     it('should succeed', async () => {
       eventValidationMock.mockReturnValueOnce(void 0);
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
-        ExpressionAttributeNames: {
-          '#B': 'blocked',
-          '#S': 'suspended',
-          '#RP': 'resetPassword',
-          '#RI': 'reproveIdentity',
-          '#UA': 'updatedAt',
+        newState: {
+          blocked: false,
+          suspended: true,
+          resetPassword: false,
+          reproveIdentity: false,
         },
-        ExpressionAttributeValues: {
-          ':b': { BOOL: true },
-          ':s': { BOOL: true },
-          ':rp': { BOOL: false },
-          ':ri': { BOOL: false },
-          ':ua': { N: '993332' },
-        },
-        UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
+        interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED
       });
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
@@ -205,6 +197,13 @@ describe('intervention processor handler', () => {
     it('should do additional checks if event is from fraud', async () => {
       eventValidationMock.mockReturnValueOnce(void 0);
       interventionEventValidationMock.mockReturnValue(void 0);
+      mockRetrieveRecords.mockReturnValue({
+        blocked: false,
+        reproveIdentity: false,
+        resetPassword: false,
+        suspended: false,
+        isAccountDeleted: true
+      });
       mockRecord = {
         messageId: '123',
         receiptHandle: '',

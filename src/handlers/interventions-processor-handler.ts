@@ -14,6 +14,7 @@ import { AppConfigService } from '../services/app-config-service';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { TxMAIngressEvent } from '../data-types/interfaces';
+import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
@@ -63,11 +64,17 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       if (itemFromDB?.isAccountDeleted === true) {
         logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${recordBody.user.user_id} account has been deleted.`);
         logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-      } else if (checkEventIsAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
+      } else if (isEventIsAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
         logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
         const statusResult = accountStateEngine.applyEventTransition(intervention, itemFromDB);
+        const partialCommandInput = buildPartialUpdateAccountStateCommand(
+          statusResult.newState,
+          intervention,
+          eventTimestampInMs,
+          statusResult.interventionName,
+        );
         logger.debug('processed requested event, sending update request to dynamo db');
-        await service.updateUserStatus(recordBody.user.user_id, statusResult);
+        await service.updateUserStatus(recordBody.user.user_id, partialCommandInput);
       } else {
         logger.warn('Event received predates last applied event for this user.');
         logAndPublishMetric(MetricNames.INTERVENTION_EVENT_STALE);
@@ -85,6 +92,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
     } else if (error instanceof TooManyRecordsError) {
       logger.warn('TooManyRecordsError caught, message will not be retried.');
     } else {
+      logger.debug(JSON.stringify(error));
       itemFailures.push({
         itemIdentifier: record.messageId,
       });
@@ -122,6 +130,7 @@ function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
   return recordBody.event_name as EventsEnum;
 }
 
-function checkEventIsAfterLastEvent(eventTimeStamp: number, sentAt: number = 0, appliedAt: number = 0) {
-  return eventTimeStamp > Math.max(sentAt, appliedAt);
+function isEventIsAfterLastEvent(eventTimeStamp: number, sentAt?: number, appliedAt?: number) {
+  const latestIntervention = sentAt ?? appliedAt ?? 0;
+  return eventTimeStamp > latestIntervention;
 }
