@@ -95,6 +95,5 @@ export interface TransformedResponseFromDynamoDatabase {
     resetPassword: boolean;
   };
   auditLevel: string;
-  history?: [],
+  history?: [];
 }
-

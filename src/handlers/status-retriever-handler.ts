@@ -1,16 +1,18 @@
 import type { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { AppConfigService } from '../services/app-config-service';
-import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
 import { MetricNames, AISInterventionTypes } from '../data-types/constants';
 import { TransformedResponseFromDynamoDatabase } from '../data-types/interfaces';
-// import { AttributeValue } from '@aws-sdk/client-dynamodb';
-// import { LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
-// import { QueryCommand, QueryCommandInput, QueryCommandOutput } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
+import { QueryCommand, QueryCommandInput, QueryCommandOutput } from '@aws-sdk/client-dynamodb';
+import { TooManyRecordsError } from '../data-types/errors';
+import { unmarshall } from '@aws-sdk/util-dynamodb';
+import { NodeHttpHandler } from '@smithy/node-http-handler';
+import tracer from '../commons/tracer';
 
 const appConfig = AppConfigService.getInstance();
-const dynamoDBServiceInstance = new DynamoDatabaseService(appConfig.tableName);
 
 export const handle = async (event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> => {
   logger.addContext(context);
@@ -27,13 +29,11 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
   }
 
   const historyQuery = event.queryStringParameters?.['history'];
-  logger.debug('query', {historyQuery});
-  logger.debug('double-check', {event});
 
   try {
-    const response = await dynamoDBServiceInstance.retrieveRecordsByUserId(userId) as unknown as Record<string, any>;
+    const response = await queryRecordFromDynamoDatabase(userId);
     if (!response) {
-      logger.warn('Query matched no records in DynamoDB.')
+      logger.warn('Query matched no records in DynamoDB.');
       logAndPublishMetric(MetricNames.ACCOUNT_NOT_FOUND);
       const undefinedResponseFromDynamoDatabase: Record<string, any> = {
         updatedAt: undefined,
@@ -49,20 +49,22 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
         auditLevel: undefined,
         history: [],
       };
+
       const undefinedAccount = transformResponseFromDynamoDatabase(undefinedResponseFromDynamoDatabase);
+
       return {
         statusCode: 200,
         body: JSON.stringify({ intervention: undefinedAccount }),
       };
     }
-    if (historyQuery && historyQuery !== '') {
+    if (historyQuery && historyQuery !== '' && historyQuery === 'true') {
       return {
         statusCode: 200,
         body: JSON.stringify({ history: String(response['history']) }),
       };
     }
     const accountStatus = transformResponseFromDynamoDatabase(response);
-    
+
     return {
       statusCode: 200,
       body: JSON.stringify({ intervention: accountStatus }),
@@ -110,4 +112,38 @@ function transformResponseFromDynamoDatabase(item: Record<string, any>): Transfo
     },
     auditLevel: String(item['auditLevel'] ?? 'standard'),
   });
+}
+
+async function queryRecordFromDynamoDatabase(userId: string) {
+  const dynamoClient = tracer.captureAWSv3Client(
+    new DynamoDBClient({
+      region: AppConfigService.getInstance().awsRegion,
+      maxAttempts: 2,
+      requestHandler: new NodeHttpHandler({ requestTimeout: 5000 }),
+    }),
+  );
+
+  logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db, with ID : ${userId}`);
+  const parameters: QueryCommandInput = {
+    TableName: appConfig.tableName,
+    KeyConditionExpression: '#pk = :id_value',
+    ExpressionAttributeNames: { '#pk': 'pk' },
+    ExpressionAttributeValues: { ':id_value': { S: userId } },
+  };
+
+  const response: QueryCommandOutput = await dynamoClient.send(new QueryCommand(parameters));
+  if (!response.Items) {
+    const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
+    logger.error(errorMessage);
+    logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
+    throw new Error(errorMessage);
+  }
+
+  if (response.Items.length > 1) {
+    const errorMessage = 'DynamoDB returned more than one element.';
+    logger.error(errorMessage);
+    logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
+    throw new TooManyRecordsError(errorMessage);
+  }
+  return response.Items[0] ? unmarshall(response.Items[0]) : undefined;
 }

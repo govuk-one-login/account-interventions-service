@@ -212,10 +212,10 @@ components:
         pattern: ^[^,\s]+$
     History:
       name: history
-      in: queryStringParameters
+      in: query
       description: "A check to recall the accounts history, of any previous interventions."
-      required: false
-      example: "history=true"
+      required: true
+      example: false
       schema:
         type: boolean
   responses:
