@@ -59,18 +59,23 @@ Mappings:
     dev:
       LambdaLogLevel: DEBUG
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #This will point to the internal SNS topic
+      TxMAAccountARN: arn:aws:iam::013758878511:root # DI ID Reuse Core Dev
     build:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #This will point to the internal SNS topic
+      TxMAAccountARN: arn:aws:iam::688341086169:root # DI ID Reuse Core Build
     staging:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
+      TxMAAccountARN: arn:aws:iam::178023842775:root
     integration:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
+      TxMAAccountARN: arn:aws:iam::729485541398:root
     production:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
+      TxMAAccountARN: arn:aws:iam::451773080033:root
 
 Globals:
   Function:
@@ -118,6 +123,7 @@ Resources:
           METRIC_SERVICE_NAME: "InterventionsProcessorFunction"
           TABLE_NAME:
             Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
+          TXMA_QUEUE_URL: !Ref TxMAEgressQueue
       Tags:
         Product: !Ref ProductTagValue
         System: !Ref SystemTagValue
@@ -438,6 +444,85 @@ Resources:
         redrivePermission: byQueue
         sourceQueueArns:
           - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-TxMAIngressQueue"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  TxMAEgressQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-TxMAEgressQueue"
+      KmsMasterKeyId: !Ref SQSEncryptionKeyAlias
+      RedriveAllowPolicy:
+        redrivePermission: denyAll
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt TxMAEgressDLQ.Arn
+        maxReceiveCount: 60
+      MessageRetentionPeriod: 1209600
+      VisibilityTimeout: 60
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  TxMAEgressQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref TxMAEgressQueue
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+              - "sqs:ChangeMessageVisibility"
+              - "sqs:ReceiveMessage"
+            Resource:
+              - !GetAtt TxMAEgressQueue.Arn
+            Principal:
+              AWS:
+                - !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountARN ]
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource:
+              - !GetAtt TxMAEgressQueue.Arn
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Condition:
+              ArnEquals:
+                aws:SourceArn:
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-InterventionsProcessorFunction"
+
+  TxMAEgressDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-TxMAEgressDLQ"
+      KmsMasterKeyId: !Ref SQSEncryptionKey
+      VisibilityTimeout: 0
+      MessageRetentionPeriod: 1209600
+      RedriveAllowPolicy:
+        redrivePermission: byQueue
+        sourceQueueArns:
+          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-TxMAEgressQueue"
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
