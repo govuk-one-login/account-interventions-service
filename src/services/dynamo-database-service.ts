@@ -79,7 +79,7 @@ export class DynamoDatabaseService {
         requestHandler: new NodeHttpHandler({ requestTimeout: 5000 }),
       }),
     );
-  
+
     logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db, with ID : ${userId}`);
     const parameters: QueryCommandInput = {
       TableName: appConfig.tableName,
@@ -87,7 +87,7 @@ export class DynamoDatabaseService {
       ExpressionAttributeNames: { '#pk': 'pk' },
       ExpressionAttributeValues: { ':id_value': { S: userId } },
     };
-  
+
     const response: QueryCommandOutput = await dynamoClient.send(new QueryCommand(parameters));
     if (!response.Items) {
       const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
@@ -95,7 +95,7 @@ export class DynamoDatabaseService {
       logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
       throw new Error(errorMessage);
     }
-  
+
     if (response.Items.length > 1) {
       const errorMessage = 'DynamoDB returned more than one element.';
       logger.error(errorMessage);
@@ -104,7 +104,7 @@ export class DynamoDatabaseService {
     }
     return response.Items[0] ? unmarshall(response.Items[0]) : undefined;
   }
-  
+
   /**
    * A function to take a partially formed UpdateItemCommand input, form the full command, and send the command
    * @param userId - id of the user whose record is being updated

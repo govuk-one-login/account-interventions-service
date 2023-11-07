@@ -3,7 +3,7 @@ import { AppConfigService } from '../services/app-config-service';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
 import { MetricNames, AISInterventionTypes } from '../data-types/constants';
-import { TransformedResponseFromDynamoDatabase } from '../data-types/interfaces';
+import { AccountStatus } from '../data-types/interfaces';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
 
 const appConfig = AppConfigService.getInstance();
@@ -14,7 +14,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
   logger.debug('Status-Retriever-Handler.');
 
   const userId = event.pathParameters?.['userId'];
-  if (!userId || validateEvent(userId) === '') {
+  if (!userId || !validateEvent(userId)) {
     logger.error('Subject ID is possibly undefined or empty');
     logAndPublishMetric(MetricNames.INVALID_SUBJECT_ID);
     return {
@@ -55,7 +55,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
     if (historyQuery && historyQuery !== '' && historyQuery === 'true') {
       return {
         statusCode: 200,
-        body: JSON.stringify({ history: String(response['history']) }),
+        body: JSON.stringify({ history: JSON.stringify(response['history']) }),
       };
     }
     const accountStatus = transformResponseFromDynamoDatabase(response);
@@ -80,10 +80,11 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
  * @returns the userId that is passed in, trimmed of any whitespace
  */
 function validateEvent(userId: string) {
-  if (userId.trim() === '') {
+  const trimmedUserId = userId.trim();
+  if (!trimmedUserId) {
     logger.error('Attribute invalid: user_id is empty.');
   }
-  return userId.trim();
+  return trimmedUserId;
 }
 
 /**
@@ -91,8 +92,8 @@ function validateEvent(userId: string) {
  * @param item - recieved from dynamodb
  * @returns transformed object
  */
-function transformResponseFromDynamoDatabase(item: Record<string, any>): TransformedResponseFromDynamoDatabase {
-  return (item = {
+function transformResponseFromDynamoDatabase(item: Record<string, string | number | boolean>): AccountStatus {
+  return {
     updatedAt: Number(item['updatedAt'] ?? Date.now()),
     appliedAt: Number(item['appliedAt'] ?? Date.now()),
     sentAt: Number(item['sentAt'] ?? Date.now()),
@@ -106,5 +107,5 @@ function transformResponseFromDynamoDatabase(item: Record<string, any>): Transfo
       reproveIdentity: Boolean(item['reproveIdentity'] ?? false),
     },
     auditLevel: String(item['auditLevel'] ?? 'standard'),
-  });
+  };
 }

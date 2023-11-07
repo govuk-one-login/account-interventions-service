@@ -81,7 +81,7 @@ export interface TransitionConfigurationInterface {
   };
 }
 
-export interface TransformedResponseFromDynamoDatabase {
+export interface AccountStatus {
   updatedAt: number;
   appliedAt: number;
   sentAt: number;
