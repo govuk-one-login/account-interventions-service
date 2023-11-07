@@ -19,7 +19,6 @@ import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { DynamoDBStateResult } from '../data-types/interfaces';
 
 const appConfig = AppConfigService.getInstance();
-
 export class DynamoDatabaseService {
   private dynamoClient: DynamoDBClient;
   private readonly tableName: string;

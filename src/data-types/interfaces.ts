@@ -88,3 +88,19 @@ interface Intervention {
 export interface DeleteStatusUpdateSNSMessage {
   user_id: string;
 }
+
+export interface TransitionConfigurationInterface {
+  nodes: {
+    [key: string]: StateDetails;
+  };
+  edges: {
+    [key: number]: {
+      to: string;
+      name: EventsEnum;
+      interventionName?: AISInterventionTypes;
+    };
+  };
+  adjacency: {
+    [key: string]: number[];
+  };
+}
