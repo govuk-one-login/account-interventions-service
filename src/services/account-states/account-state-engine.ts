@@ -76,7 +76,7 @@ export class AccountStateEngine {
     const allowedTransition = this.findPossibleTransitions(currentStateName);
     const transition = this.getTransition(allowedTransition, event);
     const newStateObject = this.getNewStateObject(transition);
-    if (compareAccountStates(newStateObject, currentState))
+    if (areAccountStatesTheSame(newStateObject, currentState))
       throw buildError(
         MetricNames.TRANSITION_SAME_AS_CURRENT_STATE,
         'Computed new state is the same as the current state.',
@@ -95,7 +95,7 @@ export class AccountStateEngine {
    */
   private findAccountStateName(state: StateDetails) {
     for (const key of Object.keys(transitionConfiguration.nodes))
-      if (compareAccountStates(transitionConfiguration.nodes[key]!, state)) return key;
+      if (areAccountStatesTheSame(transitionConfiguration.nodes[key]!, state)) return key;
     throw buildError(
       MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG,
       'Account state does not exists in current configuration.',
@@ -105,14 +105,14 @@ export class AccountStateEngine {
   /**
    * Helper method to return the list of possible transitions given a state name
    * If none can be found it throws an error
-   * @param nodeKye - the state name used as the key to identify the nodes in the config object
+   * @param nodeKey - the state name used as the key to identify the nodes in the config object
    */
-  private findPossibleTransitions(nodeKye: string) {
-    const allowedTransition = AccountStateEngine.configuration.adjacency[nodeKye];
+  private findPossibleTransitions(nodeKey: string) {
+    const allowedTransition = AccountStateEngine.configuration.adjacency[nodeKey];
     if (!allowedTransition)
       throw buildError(
         MetricNames.NO_TRANSITIONS_FOUND_IN_CONFIG,
-        `There are no allowed transitions from state ${nodeKye} in current configurations`,
+        `There are no allowed transitions from state ${nodeKey} in current configurations`,
       );
     return allowedTransition;
   }
@@ -126,8 +126,8 @@ export class AccountStateEngine {
    * @param transition - EventsEnum representation of the proposed transition
    */
   private getTransition(allowedTransition: number[], transition: EventsEnum) {
-    for (const element of allowedTransition) {
-      if (AccountStateEngine.configuration.edges[element]?.name === transition.toString()) return element;
+    for (const edge of allowedTransition) {
+      if (AccountStateEngine.configuration.edges[edge]?.name === transition.toString()) return edge;
     }
     throw buildError(
       MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED,
@@ -168,7 +168,7 @@ function buildError(metricName: MetricNames, errorMessage: string) {
  * @param aState - first account state
  * @param anotherState - second account state
  */
-function compareAccountStates(aState: StateDetails, anotherState: StateDetails) {
+function areAccountStatesTheSame(aState: StateDetails, anotherState: StateDetails) {
   return (
     aState.resetPassword === anotherState.resetPassword &&
     aState.reproveIdentity === anotherState.reproveIdentity &&
