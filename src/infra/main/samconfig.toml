@@ -1,11 +1,10 @@
 version = 0.1
 [default.deploy.parameters]
-stack_name = "ais-main-ch"
+stack_name = "ais-main"
 resolve_s3 = true
-s3_prefix = "ais-main-ch"
+s3_prefix = "ais-main"
 region = "eu-west-2"
-confirm_changeset = false
-disable_rollback = true
+confirm_changeset = true
 capabilities = "CAPABILITY_NAMED_IAM"
 parameter_overrides = "Environment=\"dev\" VpcStackName=\"vpc\" PermissionsBoundary=\"none\" CoreStackName=\"ais-core\""
 image_repositories = []
