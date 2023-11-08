@@ -1,9 +1,9 @@
 /* eslint-disable unicorn/no-null, unicorn/numeric-separators-style */
-import type { APIGatewayEvent } from 'aws-lambda';
+import type { APIGatewayEvent, APIGatewayProxyEventQueryStringParameters } from 'aws-lambda';
 import { ContextExamples } from '@aws-lambda-powertools/commons';
 import { handle } from '../status-retriever-handler';
 import logger from '../../commons/logger';
-import { DynamoDatabaseService } from '../../services/dynamo-database-service';
+import { DynamoDatabaseService } from '../../services/dynamo-database-service'; 
 
 jest.mock('../../commons/logger.ts');
 jest.mock('../../services/dynamo-database-service');
@@ -234,4 +234,72 @@ describe('status-retriever-handler', () => {
     expect(response.statusCode).toBe(200);
     expect(JSON.parse(response.body)).toEqual({ intervention: updatedTime });
   });
+
+  it('will add the history field to the default object if no user id is passed in but the query parameters are', async () => {
+    const queryParams: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
+    const accountNotFoundDefaultObject = {
+      updatedAt: 1685404800000,
+      appliedAt: 1685404800000,
+      sentAt: 1685404800000,
+      description: 'AIS_NO_INTERVENTION',
+      state: {
+        blocked: false,
+        suspended: false,
+        resetPassword: false,
+        reproveIdentity: false,
+      },
+      auditLevel: 'standard',
+      history: []
+    };
+
+    const addedQueryParamTestEvent = { ...testEvent, queryStringParameters: queryParams };
+    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user')
+    const response = await handle(addedQueryParamTestEvent, mockConfig);
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({ intervention: accountNotFoundDefaultObject });
+  });
+
+  it('will add in the history field to the response returned from dynamo db if query parameters are passed in', async () => {
+    const accountFoundNotSuspendedRecord = {
+      pk: 'testUserID',
+      intervention: 'no intervention',
+      updatedAt: 123455,
+      appliedAt: 12345685809,
+      sentAt: 123456789,
+      reprovedIdentityAt: 849473,
+      resetPasswordAt: 5847392,
+      blocked: false,
+      suspended: false,
+      resetPassword: false,
+      reproveIdentity: false,
+      auditLevel: 'standard',
+      ttl: 1234567890,
+      history: [],
+    };
+
+    const accountIsNotSuspended = {
+      updatedAt: 123455,
+      appliedAt: 12345685809,
+      sentAt: 123456789,
+      description: accountFoundNotSuspendedRecord.intervention,
+      reprovedIdentityAt: 849473,
+      resetPasswordAt: 5847392,
+      state: {
+        blocked: false,
+        suspended: false,
+        resetPassword: false,
+        reproveIdentity: false,
+      },
+      auditLevel: 'standard',
+      history: []
+    }
+
+    const queryParams: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
+    const addedQueryParamTestEvent = { ...testEvent, queryStringParameters: queryParams }
+    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
+    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
+    const response = await handle(addedQueryParamTestEvent, mockConfig);
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({ intervention: accountIsNotSuspended });
+  })
 });
