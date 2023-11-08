@@ -122,7 +122,7 @@ function getInterventionName(recordBody: TxMAEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
   if (recordBody.event_name === TICF_ACCOUNT_INTERVENTION) {
     validateInterventionEvent(recordBody);
-    const interventionCode = Number.parseInt(recordBody.extensions!.intervention.intervention_code);
+    const interventionCode = Number.parseInt(recordBody.extensions!.intervention!.intervention_code);
     return accountStateEngine.getInterventionEnumFromCode(interventionCode);
   }
   return recordBody.event_name as EventsEnum;
