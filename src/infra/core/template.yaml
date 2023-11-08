@@ -56,7 +56,6 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-
 Outputs:
   AccountStatusTableName:
     Description: "The name of the Intervention History DynamoDB database"

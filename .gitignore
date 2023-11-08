@@ -61,7 +61,7 @@ typings/
 govuk_modules/
 public/
 
-dist
-.idea
-
+.aws-sam/
+.idea/
+dist/
 .DS_Store

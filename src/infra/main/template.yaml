@@ -15,6 +15,10 @@ Parameters:
       - integration
       - production
     Default: dev
+  ApiStageName:
+    Description: The stage name of the API
+    Type: String
+    Default: v1
   VpcStackName:
     Description: The name of the stack that defines the VPC
     Type: String
@@ -60,28 +64,42 @@ Mappings:
       LambdaLogLevel: DEBUG
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #This will point to the internal SNS topic
       TxMAAccountARN: arn:aws:iam::013758878511:root # DI ID Reuse Core Dev
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables #pragma: allowlist secret
+      OrchestrationVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
+      AuthenticationVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
+      OneLoginHomeVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
     build:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #This will point to the internal SNS topic
       TxMAAccountARN: arn:aws:iam::688341086169:root # DI ID Reuse Core Build
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables #pragma: allowlist secret
+      OrchestrationVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
+      AuthenticationVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
+      OneLoginHomeVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
     staging:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
       TxMAAccountARN: arn:aws:iam::178023842775:root
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables #pragma: allowlist secret
+      OrchestrationVPCID: vpc-09cfe19dc5f8fcb47 # ID Reuse Core Staging VPC ID
+      AuthenticationVPCID: vpc-09cfe19dc5f8fcb47 # ID Reuse Core Staging VPC ID
+      OneLoginHomeVPCID: vpc-09cfe19dc5f8fcb47 # ID Reuse Core Staging VPC ID
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
     integration:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
       TxMAAccountARN: arn:aws:iam::729485541398:root
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables #pragma: allowlist secret
+      OrchestrationVPCID: vpc-0ae72461a035c0934 # ID Reuse Core Integration VPC ID
+      AuthenticationVPCID: vpc-0ae72461a035c0934 # ID Reuse Core Integration VPC ID
+      OneLoginHomeVPCID: vpc-0ae72461a035c0934 # ID Reuse Core Integration VPC ID
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
     production:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
       TxMAAccountARN: arn:aws:iam::451773080033:root
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables #pragma: allowlist secret
-
+      OrchestrationVPCID: vpc-0744a49090620ce26 # ID Reuse Core Production VPC ID
+      AuthenticationVPCID: vpc-0744a49090620ce26 # ID Reuse Core Production VPC ID
+      OneLoginHomeVPCID: vpc-0744a49090620ce26 # ID Reuse Core Production VPC ID
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
 
 Globals:
   Function:
@@ -664,3 +682,173 @@ Resources:
     Properties:
       AliasName: !Sub "alias/${AWS::StackName}-SQSEncryptionKey"
       TargetKeyId: !GetAtt SQSEncryptionKey.Arn
+  StatusRetrieverFunction:
+    Type: AWS::Serverless::Function
+    # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
+    # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-StatusRetrieverFunction'
+      CodeUri: ../../../dist/handlers/status-retriever-handler
+      Timeout: 10
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
+          METRIC_SERVICE_NAME: !Sub "${AWS::StackName}-StatusRetriever"
+      Handler: status-retriever-handler.handle
+      Role: !GetAtt StatusRetrieverFunctionRole.Arn
+      Tags:
+        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
+  StatusRetrieverFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:  !Sub '${AWS::StackName}-StatusRetrieverFunctionRole'
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  StatusRetrieverFunctionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-StatusRetrieverFunctionPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "dynamodb:Query"
+            Resource:
+              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
+      Roles:
+        - !Ref StatusRetrieverFunctionRole
+
+  # Private API Gateway resources
+  PrivateRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      # checkov:skip=CKV_AWS_120: API Gateway caching not enabled
+      Name: !Sub "${AWS::StackName}-PrivateRestApi"
+      AlwaysDeploy: true
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: "../../specs/api.yaml"
+      Description: "Private REST API that provides method to interact with the account interventions services"
+      StageName: !Ref ApiStageName
+      Auth:
+        ResourcePolicy:
+          IntrinsicVpcWhitelist:
+            - !FindInMap [ EnvConfig, !Ref Environment, AuthenticationVPCID ]
+            - !FindInMap [ EnvConfig, !Ref Environment, OneLoginHomeVPCID ]
+            - !FindInMap [ EnvConfig, !Ref Environment, OrchestrationVPCID ]
+      # AccessLogSetting:
+      #   Format: >-
+      #     {
+      #     "requestId": "$context.requestId",
+      #     "requestTime": "$context.requestTime",
+      #     "requestTimeEpoch": "$context.requestTimeEpoch",
+      #     "httpMethod": "$context.httpMethod",
+      #     "domainName": "$context.domainName",
+      #     "path": "$context.path",
+      #     "routeKey": "$context.routeKey",
+      #     "protocol": "$context.protocol",
+      #     "status": "$context.status",
+      #     "responseLength": "$context.responseLength",
+      #     "responseLatency": "$context.responseLatency",
+      #     "authorizerLatency": "$context.authorizer.latency",
+      #     "integrationStatus": "$context.integrationStatus",
+      #     "integrationLatency": "$context.integrationLatency",
+      #     "integrationErrorMessage": "$context.integrationErrorMessage",
+      #     "errorMessage": "$context.error.message",
+      #     "errorResponseType": "$context.error.responseType",
+      #     "validationErrorString": "$context.error.validationErrorString",
+      #     }
+      #   DestinationArn: !GetAtt PrivateAPIGatewayAccessLogGroup.Arn
+      CacheClusterEnabled: false
+      TracingEnabled: true
+      EndpointConfiguration:
+        Type: PRIVATE
+      Tags:
+        CheckovRulesToSkip: CKV_AWS_120
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
+  PrivateRestApiIDSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: PrivateRestApi ID
+      Name: !Sub /${AWS::StackName}/PrivateRestApi/ID
+      Type: String
+      Value: !Ref PrivateRestApi
+      Tags:
+        Environment: !Ref Environment
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
+  # PrivateAPIGatewayAccessLogGroup:
+  #   Type: AWS::Logs::LogGroup
+  #   Properties:
+  #     LogGroupName: !Sub "/aws/apigateway/${PrivateRestApi}/${ApiStageName}"
+  #     RetentionInDays: 30
+  #     KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+  #     Tags:
+  #       - Key: Product
+  #         Value: !Ref ProductTagValue
+  #       - Key: System
+  #         Value: !Ref SystemTagValue
+  #       - Key: Environment
+  #         Value: !Ref Environment
+  #       - Key: Name
+  #         Value: PrivateApiGatewayAccessLogGroup
+  #       - Key: Owner
+  #         Value: !Ref OwnerTagValue
+  #       - Key: Source
+  #         Value: !Ref SourceTagValue
+  #       - Key: Name
+  #         Value: !Sub "/aws/apigateway/${PrivateRestApi}/${ApiStageName}"
+
+  PrivateGatewayStatusRetrieverFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref StatusRetrieverFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PrivateRestApi}/*/*" # allow any stage and any method to use status retriever
+
+Outputs:
+  PrivateApiEndpoint:
+    Description: "Private API Gateway endpoint URL for AIS methods"
+    Value: !Sub "https://${PrivateRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}"

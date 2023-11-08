@@ -89,3 +89,20 @@ export interface TransitionConfigurationInterface {
     [key: string]: number[];
   };
 }
+
+export interface AccountStatus {
+  updatedAt: number;
+  appliedAt: number;
+  sentAt: number;
+  description: string;
+  reprovedIdentityAt?: number | undefined;
+  resetPasswordAt?: number | undefined;
+  state: {
+    blocked: boolean;
+    suspended: boolean;
+    reproveIdentity: boolean;
+    resetPassword: boolean;
+  };
+  auditLevel: string;
+  history?: object[];
+}
