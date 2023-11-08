@@ -77,7 +77,9 @@ function validateEvent(userId: string) {
  * @param item - received from dynamodb
  * @returns transformed object
  */
-function transformResponseFromDynamoDatabase(item: Record<string, string | number | boolean | object[]>): AccountStatus {
+function transformResponseFromDynamoDatabase(
+  item: Record<string, string | number | boolean | object[]>,
+): AccountStatus {
   const response: Partial<AccountStatus> = {
     updatedAt: Number(item['updatedAt'] ?? Date.now()),
     appliedAt: Number(item['appliedAt'] ?? Date.now()),
