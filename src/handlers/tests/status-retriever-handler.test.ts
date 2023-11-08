@@ -3,9 +3,10 @@ import type { APIGatewayEvent, APIGatewayProxyEventQueryStringParameters } from 
 import { ContextExamples } from '@aws-lambda-powertools/commons';
 import { handle } from '../status-retriever-handler';
 import logger from '../../commons/logger';
-import { DynamoDatabaseService } from '../../services/dynamo-database-service'; 
+import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 
 jest.mock('../../commons/logger.ts');
+jest.mock('../../commons/metrics');
 jest.mock('../../services/dynamo-database-service');
 jest.mock('@smithy/node-http-handler');
 

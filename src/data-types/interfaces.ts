@@ -95,8 +95,8 @@ export interface AccountStatus {
   appliedAt: number;
   sentAt: number;
   description: string;
-  reprovedIdentityAt?: number | undefined;
-  resetPasswordAt?: number | undefined;
+  reprovedIdentityAt: number | undefined;
+  resetPasswordAt: number | undefined;
   state: {
     blocked: boolean;
     suspended: boolean;
@@ -104,5 +104,5 @@ export interface AccountStatus {
     resetPassword: boolean;
   };
   auditLevel: string;
-  history?: object[];
+  history: object[] | undefined;
 }
