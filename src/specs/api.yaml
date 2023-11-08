@@ -4,7 +4,7 @@ openapi: 3.0.3
 info:
   title: "Account Intervention Status API"
   description: |-
-    An API that provides methods to query the OneLogin Account Interventions Service 
+    An API that provides methods to query the OneLogin Account Interventions Service
     for the current intervention state of a User's Account.
 
     This solution was created as part of the Interventions initiative.
@@ -142,32 +142,32 @@ components:
           type: boolean
           example: false
           description: |
-            Indicates that the Account is **BLOCKED** and therefore permanently suspended.  
-            **N.B.** Overrides any other AccountState attributes.  
-            If this value is `true` the user should be completely **BLOCKED** from accessing their account 
+            Indicates that the Account is **BLOCKED** and therefore permanently suspended.
+            **N.B.** Overrides any other AccountState attributes.
+            If this value is `true` the user should be completely **BLOCKED** from accessing their account
             and is normally never expected to regain access.
         suspended:
           type: boolean
           example: false
           description: |
-            Indicates that the Account is **SUSPENDED**.  
-            - If this value is `true` but `reproveIdentity` **AND** `resetPassword` are both set to `false` then the  
-            Account is **SUSPENDED** and does NOT require the User to perform any actions.  
-            - If this value is `true` but `reproveIdentity` **OR** `resetPassword` is `true` then the Account 
-            is **SUSPENDED** and requires the User to perform an action to unsuspend their account.  
-            - If this value is `true` but `reproveIdentity` **AND** `resetPassword` are `true` then the Account 
+            Indicates that the Account is **SUSPENDED**.
+            - If this value is `true` but `reproveIdentity` **AND** `resetPassword` are both set to `false` then the
+            Account is **SUSPENDED** and does NOT require the User to perform any actions.
+            - If this value is `true` but `reproveIdentity` **OR** `resetPassword` is `true` then the Account
+            is **SUSPENDED** and requires the User to perform an action to unsuspend their account.
+            - If this value is `true` but `reproveIdentity` **AND** `resetPassword` are `true` then the Account
             is **SUSPENDED** and requires the User to perform multiple actions to unsuspend their account.
         reproveIdentity:
           type: boolean
           example: false
           description: |
-            Indicates that the Account is **SUSPENDED** and requires the User to reprove their identity as a 
+            Indicates that the Account is **SUSPENDED** and requires the User to reprove their identity as a
             prerequisite to being able to regain access to their account.
         resetPassword:
           type: boolean
           example: false
           description: |
-            Indicates that the Account is **SUSPENDED** and requires the User to reset their password as a 
+            Indicates that the Account is **SUSPENDED** and requires the User to reset their password as a
             prerequisite to being able to regain access to their account.
     AuditLevel:
       title: "Audit Level Schema"
@@ -178,6 +178,11 @@ components:
         - standard
         - enhanced
       default: standard
+    History:
+      title: "Intervention history"
+      description: "History of intervention applied to this account"
+      type: array
+      example: [{}]
     InterventionStatusResponse:
       title: "Account Intervention Status Schema"
       description: "The Intervention Status of the User's OneLogin Account"
@@ -193,6 +198,8 @@ components:
           $ref: "#/components/schemas/AccountState"
         auditLevel:
           $ref: "#/components/schemas/AuditLevel"
+        history:
+          $ref: "#/components/schemas/History"
     Error:
       title: "Error Schema"
       type: "object"
@@ -214,7 +221,7 @@ components:
       name: history
       in: query
       description: "A check to recall the accounts history, of any previous interventions."
-      required: true
+      required: false
       example: false
       schema:
         type: boolean

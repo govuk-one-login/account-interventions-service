@@ -109,7 +109,7 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(suspendedRecord);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(JSON.stringify({ intervention: suspendedAccount }));
+    expect(JSON.parse(response.body)).toEqual({ intervention: suspendedAccount });
   });
 
   it('will return a message if user ID cannot be found in the database', async () => {
@@ -118,8 +118,6 @@ describe('status-retriever-handler', () => {
       appliedAt: 1685404800000,
       sentAt: 1685404800000,
       description: 'AIS_NO_INTERVENTION',
-      reprovedIdentityAt: null,
-      resetPasswordAt: null,
       state: {
         blocked: false,
         suspended: false,
@@ -131,9 +129,9 @@ describe('status-retriever-handler', () => {
 
     mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
     const response = await handle(testEvent, mockConfig);
-    expect(logger.warn).toBeCalledWith('Query matched no records in DynamoDB.');
+    expect(logger.info).toBeCalledWith('Query matched no records in DynamoDB.');
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(JSON.stringify({ intervention: accountNotFoundDefaultObject }));
+    expect(JSON.parse(response.body)).toEqual({ intervention: accountNotFoundDefaultObject });
   });
 
   it('will return the correct response from the database if the user ID matches an account where the state items are all false', async () => {
@@ -174,7 +172,7 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(JSON.stringify({ intervention: accountIsNotSuspended }));
+    expect(JSON.parse(response.body)).toEqual({ intervention: accountIsNotSuspended });
   });
 
   it('will return status 400 if the userId in the event is empty', async () => {
@@ -184,18 +182,17 @@ describe('status-retriever-handler', () => {
     }
     const invalidTestEvent = { ...testEvent, pathParameters: invalidPathParameters };
     const response = await handle(invalidTestEvent, mockConfig);
-    expect(logger.error).toBeCalledTimes(2);
-    expect(logger.error).toBeCalledWith('Attribute invalid: user_id is empty.');
-    expect(logger.error).toBeCalledWith('Subject ID is possibly undefined or empty');
+    expect(logger.warn).toBeCalledTimes(1);
+    expect(logger.warn).toBeCalledWith('Attribute invalid: user_id is empty.');
     expect(response.statusCode).toBe(400);
-    expect(response.body).toEqual(JSON.stringify({ message: 'Invalid Request.' }));
+    expect(JSON.parse(response.body)).toEqual({ message: 'Invalid Request.' });
   });
 
   it('will return the correct response if there is a problem with the query to dynamoDB', async () => {
     mockDynamoDBServiceRetrieveRecords.mockRejectedValueOnce('There was a problem with the query operation');
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(500);
-    expect(response.body).toEqual(JSON.stringify({ message: 'Unable to retrieve records.' }));
+    expect(response.body).toEqual(JSON.stringify({ message: 'Internal Server Error.' }));
   });
 
   it('will return the correct updatedAt field if the field is returned as null', async () => {
@@ -235,6 +232,6 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(nullUpdatedAt);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual(JSON.stringify({ intervention: updatedTime }));
+    expect(JSON.parse(response.body)).toEqual({ intervention: updatedTime });
   });
 });

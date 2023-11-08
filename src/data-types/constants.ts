@@ -5,7 +5,7 @@ export enum MetricNames {
   ACCOUNT_NOT_SUSPENDED = 'ACCOUNT_NOT_SUSPENDED',
   ACCOUNT_NOT_FOUND = 'ACCOUNT_NOT_FOUND',
   DB_DELETE_ERROR_NO_RESPONSE = 'DB_DELETE_ERROR_NO_RESPONSE',
-  DB_QUERY_HAS_LEK = 'DB_QUERY_HAS_LEK',
+  DB_QUERY_ERROR = 'DB_QUERY_ERROR',
   DB_QUERY_ERROR_NO_RESPONSE = 'DB_QUERY_ERROR_NO_RESPONSE',
   INVALID_SUBJECT_ID = 'INVALID_SUBJECT_ID',
   DB_QUERY_ERROR_TOO_MANY_ITEMS = 'DB_QUERY_ERROR_TOO_MANY_ITEMS',
@@ -48,3 +48,17 @@ export enum AISInterventionTypes {
   AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY = 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY', //pragma: allowlist secret
 }
 export const TICF_ACCOUNT_INTERVENTION = 'TICF_ACCOUNT_INTERVENTION';
+
+export const undefinedResponseFromDynamoDatabase: Record<string, any> = {
+  updatedAt: undefined,
+  appliedAt: undefined,
+  sentAt: undefined,
+  description: undefined,
+  state: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
+  },
+  auditLevel: undefined,
+};

@@ -95,5 +95,5 @@ export interface AccountStatus {
     resetPassword: boolean;
   };
   auditLevel: string;
-  history?: [];
+  history?: object[];
 }

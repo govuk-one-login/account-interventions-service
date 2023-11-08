@@ -2,7 +2,7 @@ import type { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda
 import { AppConfigService } from '../services/app-config-service';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
-import { MetricNames, AISInterventionTypes } from '../data-types/constants';
+import { MetricNames, AISInterventionTypes, undefinedResponseFromDynamoDatabase } from '../data-types/constants';
 import { AccountStatus } from '../data-types/interfaces';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
 
@@ -15,62 +15,47 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
 
   const userId = event.pathParameters?.['userId'];
   if (!userId || !validateEvent(userId)) {
-    logger.error('Subject ID is possibly undefined or empty');
     logAndPublishMetric(MetricNames.INVALID_SUBJECT_ID);
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'Invalid Request.' }),
     };
   }
-
   const historyQuery = event.queryStringParameters?.['history'];
 
   try {
     const response = await dynamoDatabaseServiceInstance.queryRecordFromDynamoDatabase(userId);
     if (!response) {
-      logger.warn('Query matched no records in DynamoDB.');
+      logger.info('Query matched no records in DynamoDB.');
       logAndPublishMetric(MetricNames.ACCOUNT_NOT_FOUND);
-      const undefinedResponseFromDynamoDatabase: Record<string, any> = {
-        updatedAt: undefined,
-        appliedAt: undefined,
-        sentAt: undefined,
-        description: undefined,
-        state: {
-          blocked: false,
-          suspended: false,
-          resetPassword: false,
-          reproveIdentity: false,
-        },
-        auditLevel: undefined,
-        history: [],
-      };
 
       const undefinedAccount = transformResponseFromDynamoDatabase(undefinedResponseFromDynamoDatabase);
-
+      if (historyQuery && historyQuery === 'true') {
+        undefinedAccount.history = [];
+      }
       return {
         statusCode: 200,
         body: JSON.stringify({ intervention: undefinedAccount }),
       };
     }
-    if (historyQuery && historyQuery !== '' && historyQuery === 'true') {
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ history: JSON.stringify(response['history']) }),
-      };
-    }
+
     const accountStatus = transformResponseFromDynamoDatabase(response);
+
+    if (historyQuery && historyQuery === 'true') {
+      accountStatus.history = response['history'];
+    }
 
     return {
       statusCode: 200,
       body: JSON.stringify({ intervention: accountStatus }),
     };
   } catch (error) {
-    logger.error('A problem occured with the query', { error });
-    logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
+    logger.error('A problem occurred with the query.', { error });
+    logAndPublishMetric(MetricNames.DB_QUERY_ERROR);
   }
   return {
     statusCode: 500,
-    body: JSON.stringify({ message: 'Unable to retrieve records.' }),
+    body: JSON.stringify({ message: 'Internal Server Error.' }),
   };
 };
 
@@ -82,24 +67,22 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
 function validateEvent(userId: string) {
   const trimmedUserId = userId.trim();
   if (!trimmedUserId) {
-    logger.error('Attribute invalid: user_id is empty.');
+    logger.warn('Attribute invalid: user_id is empty.');
   }
   return trimmedUserId;
 }
 
 /**
  * Helper function to transform the data from dynamodb
- * @param item - recieved from dynamodb
+ * @param item - received from dynamodb
  * @returns transformed object
  */
 function transformResponseFromDynamoDatabase(item: Record<string, string | number | boolean>): AccountStatus {
-  return {
+  const response: Partial<AccountStatus> = {
     updatedAt: Number(item['updatedAt'] ?? Date.now()),
     appliedAt: Number(item['appliedAt'] ?? Date.now()),
     sentAt: Number(item['sentAt'] ?? Date.now()),
     description: String(item['intervention'] ?? AISInterventionTypes.AIS_NO_INTERVENTION),
-    reprovedIdentityAt: Number(item['reprovedIdentityAt'] ?? undefined),
-    resetPasswordAt: Number(item['resetPasswordAt'] ?? undefined),
     state: {
       blocked: Boolean(item['blocked'] ?? false),
       suspended: Boolean(item['suspended'] ?? false),
@@ -108,4 +91,14 @@ function transformResponseFromDynamoDatabase(item: Record<string, string | numbe
     },
     auditLevel: String(item['auditLevel'] ?? 'standard'),
   };
+
+  if (item['reprovedIdentityAt']) {
+    response.reprovedIdentityAt = Number(item['reprovedIdentityAt']);
+  }
+
+  if (item['resetPasswordAt']) {
+    response.resetPasswordAt = Number(item['resetPasswordAt']);
+  }
+
+  return <AccountStatus>response;
 }
