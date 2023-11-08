@@ -72,23 +72,15 @@ export class DynamoDatabaseService {
    * @returns - record from dynamoDB
    */
   public async queryRecordFromDynamoDatabase(userId: string) {
-    const dynamoClient = tracer.captureAWSv3Client(
-      new DynamoDBClient({
-        region: AppConfigService.getInstance().awsRegion,
-        maxAttempts: 2,
-        requestHandler: new NodeHttpHandler({ requestTimeout: 5000 }),
-      }),
-    );
-
     logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db, with ID : ${userId}`);
     const parameters: QueryCommandInput = {
-      TableName: appConfig.tableName,
+      TableName: this.tableName,
       KeyConditionExpression: '#pk = :id_value',
       ExpressionAttributeNames: { '#pk': 'pk' },
       ExpressionAttributeValues: { ':id_value': { S: userId } },
     };
 
-    const response: QueryCommandOutput = await dynamoClient.send(new QueryCommand(parameters));
+    const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
     if (!response.Items) {
       const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
       logger.error(errorMessage);

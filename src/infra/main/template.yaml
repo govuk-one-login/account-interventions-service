@@ -758,3 +758,8 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PrivateRestApi}/*/*" # allow any stage and any method to use status retriever
+
+  Outputs:
+    PrivateApiEndpoint:
+      Description: "Private API Gateway endpoint URL for AIS methods"
+      Value: !Sub "https://${PrivateRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}"
