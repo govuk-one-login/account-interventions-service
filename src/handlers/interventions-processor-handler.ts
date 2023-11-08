@@ -70,7 +70,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       return;
     }
 
-    logger.debug('identified event: ' + intervention);
+    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention received.`, { intervention});
     const itemFromDB = await service.retrieveRecordsByUserId(recordBody.user.user_id);
 
     if (itemFromDB?.isAccountDeleted === true) {
