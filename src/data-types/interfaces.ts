@@ -42,15 +42,18 @@ export interface TxMAEvent {
   event_timestamp_ms?: number;
   component_id?: string;
   user: User;
-  extension?: Extension;
+  extensions?: Extensions;
 }
 
 interface User {
   user_id: string;
 }
 
-interface Extension {
-  intervention: Intervention;
+interface Extensions {
+  intervention?: Intervention;
+  levelOfConfidence?: string;
+  ciFail?: boolean;
+  hasMitigations?: boolean;
 }
 
 interface Intervention {

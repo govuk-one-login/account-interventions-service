@@ -39,7 +39,7 @@ describe('intervention processor handler', () => {
           user_id: 'abc',
         },
         event_name: 'event',
-        extension: {
+        extensions: {
           intervention: {
             intervention_code: '01',
             intervention_reason: 'reason',
@@ -143,7 +143,7 @@ describe('intervention processor handler', () => {
             user_id: 'abc',
           },
           event_name: 'event',
-          extension: {
+          extensions: {
             intervention: {
               intervention_code: '01',
               intervention_reason: 'reason',
@@ -215,7 +215,7 @@ describe('intervention processor handler', () => {
             user_id: 'abc',
           },
           event_name: 'TICF_ACCOUNT_INTERVENTION',
-          extension: {
+          extensions: {
             intervention: {
               intervention_code: '01',
               intervention_reason: 'reason',
@@ -238,5 +238,41 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
     });
+
+    it('should ignore if level of confidence is not P2', async () => {
+      eventValidationMock.mockReturnValueOnce(void 0);
+      mockRecord = {
+        messageId: '123',
+        receiptHandle: '',
+        body: JSON.stringify({
+          timestamp: getCurrentTimestamp().milliseconds + 500_000,
+          user: {
+            user_id: 'abc',
+          },
+          event_name: 'IPV_IDENTITY_ISSUED',
+          extensions: {
+            levelOfConfidence: "P3",
+            ciFail: false,
+            hasMitigations: false
+          },
+        }),
+        attributes: {
+          ApproximateReceiveCount: '',
+          SentTimestamp: '',
+          SenderId: '',
+          ApproximateFirstReceiveTimestamp: '',
+        },
+        messageAttributes: {},
+        md5OfBody: '',
+        eventSource: '',
+        eventSourceARN: '',
+        awsRegion: '',
+      };
+      expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
+        batchItemFailures: [],
+      });
+      expect(logAndPublishMetric).toHaveBeenCalledWith('CONFIDENCE_LEVEL_TOO_LOW');
+      expect(logger.warn).toHaveBeenCalledWith('Received interventions has low level of confidence: P3');
+      });
   });
 });
