@@ -4,10 +4,38 @@
 
 set -u
 
-# Signs the terminal into the AWS account
+# Authenticates the terminal with the AWS account
 function aws_credentials {
 
-  eval $(gds aws ${AWS_ACCOUNT} -e)
+  echo "Sigining into AWS '${AWS_ACCOUNT}'"
+  aws sts get-caller-identity >/dev/null 2>&1
+  if [ $? -gt 0 ]; then
+    echo -e "\nAWS credentials have not been set. Please select how you would like to authenticate to AWS."
+      read -p "Use either gds-cli or aws sso [gds/sso] " gds_or_sso
+        case $gds_or_sso in
+          gds ) echo -e "\nUsing gds cli to authenticate to $AWS_ACCOUNT"
+            eval $(gds aws ${AWS_ACCOUNT} -e)
+            aws sts get-caller-identity || exit 1
+            ;;
+          sso ) echo -e "\nUsing aws sso to authenticate using profile $AWS_ACCOUNT"
+            aws sso login --sso-session gds
+            export AWS_PROFILE=$AWS_ACCOUNT
+            aws sts get-caller-identity || exit 1
+            ;;
+          * ) echo invalid response, please enter gds or sso;;
+        esac
+  else
+    echo "Already signed into AWS account."
+    aws sts get-caller-identity
+    read -p "Would you like to continue with this role? [y/n] " auth_continue
+      case $auth_continue in
+       [Nn] ) echo -e "\nExiting. Please set the correct AWS credentials."
+         exit 1
+         ;;
+       [Yy] ) echo -e "\nContinuing to provision stack with the above credentials.";;
+       * ) echo invalid response, please use Y/y or N/n;;
+      esac
+  fi
 }
 
 function stack_exists {
@@ -64,13 +92,15 @@ function create_stack {
   local stack_name="$1"
   local template_url="$2"
   local parameters_file="$3"
+  local tags_file="$4"
 
   echo -e "\nCreating new stack $stack_name"
   aws cloudformation create-stack \
     --stack-name=${stack_name} \
     --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
     --template-url ${template_url} \
-    --parameters="$(jq '. | tojson' -r ${parameters_file})"
+    --parameters="$(jq '. | tojson' -r ${parameters_file})" \
+    --tags="$(jq '. | tojson' -r ${tags_file})"
 
   # Wait until change set creation is completed
   aws cloudformation wait stack-create-complete \
@@ -86,6 +116,7 @@ function create_change_set {
   local change_set_name="$2"
   local template_url="$3"
   local parameters_file="$4"
+  local tags_file="$5"
 
   echo "Creating ${change_set_name} change set"
   aws cloudformation create-change-set \
@@ -93,7 +124,8 @@ function create_change_set {
     --change-set-name=${change_set_name} \
     --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
     --template-url ${template_url} \
-    --parameters="$(jq '. | tojson' -r ${parameters_file})"
+    --parameters="$(jq '. | tojson' -r ${parameters_file})" \
+    --tags="$(jq '. | tojson' -r ${tags_file})"
 
   # Wait until change set creation is completed
   aws cloudformation wait change-set-create-complete \
@@ -106,6 +138,26 @@ function create_change_set {
   fi
   echo >&2 "Change set successfully created."
   return 0
+}
+
+function describe_change_set {
+
+  local stack_name="$1"
+  local change_set_name="$2"
+  local output_format="table"
+  if [ $# -gt 2 ]; then
+    output_format="$3"
+  fi
+
+  if [[ "$output_format" != "json" ]]; then
+    echo "${change_set_name} changes:"
+  fi
+
+  aws cloudformation describe-change-set \
+    --change-set-name ${change_set_name} \
+    --stack-name ${stack_name} \
+    --query 'Changes[].ResourceChange.{Action: Action, LogicalResourceId: LogicalResourceId, PhysicalResourceId: PhysicalResourceId, ResourceType: ResourceType, Replacement: Replacement}' \
+    --output ${output_format}
 }
 
 # Updates the Cloudformation stack using the changeset created above
@@ -147,8 +199,8 @@ function get_stack_outputs {
 
 function main {
 
-  # Install dependency packages if required
-  if [ "${NO_DEPENDENCY_UPGRADE:=false}" = "false" ]; then
+  # Install dependency packages if required and requested
+  if [ "${AUTO_DEPENDENCY_UPGRADE:=false}" = "true" ]; then
       source ./dependency.sh
   fi
 
@@ -166,9 +218,15 @@ function main {
   TEMPLATE_BUCKET=${TEMPLATE_BUCKET:=template-storage-templatebucket-1upzyw6v9cs42}
   TEMPLATE_URL="https://${TEMPLATE_BUCKET}.s3.amazonaws.com/${STACK_TEMPLATE}/template.yaml"
   PARAMETERS_FILE=${PARAMETERS_FILE:=./configuration/$AWS_ACCOUNT/$STACK_NAME/parameters.json}
+  TAGS_FILE=${TAGS_FILE:=./configuration/$AWS_ACCOUNT/tags.json}
 
   if  [ ! -f "$PARAMETERS_FILE" ]; then
     echo "Configuration file not found. Please see README.md"
+    exit 1
+  fi
+
+  if  [ ! -f "$TAGS_FILE" ]; then
+    echo "Tags file not found. Please see README.md"
     exit 1
   fi
 
@@ -177,9 +235,12 @@ function main {
     exit 1
   fi
 
-  echo "Sigining into AWS '${AWS_ACCOUNT}'"
-  aws_credentials
-  echo "Getting ${STACK_TEMPLATE} template versionId for ${TEMPLATE_VERSION}"
+  # Skip authentication if terminal is already authenticated
+  if [ "${SKIP_AWS_AUTHENTICATION:=false}" != "true" ]; then
+    aws_credentials
+  fi
+
+  echo -e "\nGetting ${STACK_TEMPLATE} template versionId for ${TEMPLATE_VERSION}"
 
   if [[ "$TEMPLATE_VERSION" != "LATEST" ]]; then
     VERSION_ID=$(get_versionid $STACK_TEMPLATE $TEMPLATE_VERSION)
@@ -194,8 +255,9 @@ function main {
   echo "Using template $template_url"
 
   if stack_exists $STACK_NAME; then
-    if create_change_set $STACK_NAME $CHANGE_SET_NAME $template_url $PARAMETERS_FILE; then # True if there is an existing stack.
+    if create_change_set $STACK_NAME $CHANGE_SET_NAME $template_url $PARAMETERS_FILE $TAGS_FILE; then # True if there is an existing stack.
       if [ "${AUTO_APPLY_CHANGESET:=false}" = "false" ]; then # This defaults to false if not set.
+        describe_change_set $STACK_NAME $CHANGE_SET_NAME
         while true; do
           read -p "Apply change set $CHANGE_SET_NAME? [Y/n] " apply_changeset # Script will abort the update and exit unless user selects Y.
           case $apply_changeset in
@@ -206,10 +268,10 @@ function main {
           esac
         done
       fi
-    execute_change_set $STACK_NAME $CHANGE_SET_NAME
+      execute_change_set $STACK_NAME $CHANGE_SET_NAME
     fi
   else
-    create_stack $STACK_NAME $template_url $PARAMETERS_FILE # Creates a new stack
+    create_stack $STACK_NAME $template_url $PARAMETERS_FILE $TAGS_FILE # Creates a new stack
   fi
   get_stack_outputs $STACK_NAME # Print the stack outputs
 }

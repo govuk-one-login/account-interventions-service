@@ -20,6 +20,10 @@
     "ParameterValue": "Yes"
   },
   {
+    "ParameterKey": "CloudWatchLogsApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
     "ParameterKey": "CodeDeployApiEnabled",
     "ParameterValue": "No"
   },
@@ -29,7 +33,7 @@
   },
   {
     "ParameterKey": "ECRApiEnabled",
-    "ParameterValue": "Yes"
+    "ParameterValue": "No"
   },
   {
     "ParameterKey": "EventsApiEnabled",
@@ -89,7 +93,7 @@
   },
   {
     "ParameterKey": "StatesApiEnabled",
-    "ParameterValue": "Yes"
+    "ParameterValue": "No"
   },
   {
     "ParameterKey": "VpcLinkEnabled",
@@ -98,6 +102,30 @@
   {
     "ParameterKey": "XRayApiEnabled",
     "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "GlueApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "AccessLogsCustomBucketNameEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "CloudFormationEndpointEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "SESApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "SESSmtpEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "STSApiEnabled",
+    "ParameterValue": "No"
   },
   {
     "ParameterKey": "ZoneAEIPAllocationId",
