@@ -15,6 +15,7 @@ import { StateTransitionError, TooManyRecordsError, ValidationError } from '../d
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { TxMAIngressEvent } from '../data-types/interfaces';
 import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
+import { sendAuditEvent } from '../services/send-audit-events';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
@@ -57,14 +58,21 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
     const recordBody: TxMAIngressEvent = JSON.parse(record.body);
     validateEvent(recordBody);
     const eventTimestampInMs = recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000;
+    const userId = recordBody.user.user_id;
+    const intervention = getInterventionName(recordBody);
+
     if (isTimestampNotInFuture(eventTimestampInMs)) {
-      const intervention = getInterventionName(recordBody);
       logger.debug('identified event: ' + intervention);
-      const itemFromDB = await service.retrieveRecordsByUserId(recordBody.user.user_id);
+      const itemFromDB = await service.retrieveRecordsByUserId(userId);
       if (itemFromDB?.isAccountDeleted === true) {
-        logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${recordBody.user.user_id} account has been deleted.`);
+        logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
         logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-      } else if (isEventIsAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
+        await sendAuditEvent('AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED', userId, {
+          intervention,
+          appliedAt: undefined,
+          reason: 'Target user account is marked as deleted.',
+        });
+      } else if (isEventAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
         logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
         const statusResult = accountStateEngine.applyEventTransition(intervention, itemFromDB);
         const partialCommandInput = buildPartialUpdateAccountStateCommand(
@@ -74,21 +82,43 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
           statusResult.interventionName,
         );
         logger.debug('processed requested event, sending update request to dynamo db');
-        await service.updateUserStatus(recordBody.user.user_id, partialCommandInput);
+        await service.updateUserStatus(userId, partialCommandInput);
+        await sendAuditEvent('AIS_INTERVENTION_TRANSITION_APPLIED', userId, {
+          intervention,
+          appliedAt: getCurrentTimestamp().milliseconds,
+          reason: undefined,
+        });
       } else {
         logger.warn('Event received predates last applied event for this user.');
         logAndPublishMetric(MetricNames.INTERVENTION_EVENT_STALE);
+        await sendAuditEvent('AIS_INTERVENTION_IGNORED_STALE', userId, {
+          intervention,
+          appliedAt: undefined,
+          reason: 'Received intervention pre-dates latest applied intervention',
+        });
+        return;
       }
     } else {
+      await sendAuditEvent('AIS_INTERVENTION_IGNORED_INFUTURE', userId, {
+        intervention,
+        reason: 'received event is in the future',
+        appliedAt: undefined,
+      });
       itemFailures.push({
         itemIdentifier: record.messageId,
       });
     }
   } catch (error) {
-    if (error instanceof StateTransitionError) {
-      logger.warn('StateTransitionError caught, message will not be retried.');
-    } else if (error instanceof ValidationError) {
+    if (error instanceof ValidationError) {
       logger.warn('ValidationError caught, message will not be retried.');
+    } else if (error instanceof StateTransitionError) {
+      logger.warn('StateTransitionError caught, message will not be retried.');
+      const userId = (JSON.parse(record.body) as TxMAIngressEvent).user.user_id;
+      await sendAuditEvent('AIS_INTERVENTION_TRANSITION_IGNORED', userId, {
+        intervention: error.transition,
+        appliedAt: undefined,
+        reason: error.message,
+      });
     } else if (error instanceof TooManyRecordsError) {
       logger.warn('TooManyRecordsError caught, message will not be retried.');
     } else {
@@ -130,7 +160,7 @@ function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
   return recordBody.event_name as EventsEnum;
 }
 
-function isEventIsAfterLastEvent(eventTimeStamp: number, sentAt?: number, appliedAt?: number) {
+function isEventAfterLastEvent(eventTimeStamp: number, sentAt?: number, appliedAt?: number) {
   const latestIntervention = sentAt ?? appliedAt ?? 0;
   return eventTimeStamp > latestIntervention;
 }

@@ -63,7 +63,6 @@ export class DynamoDatabaseService {
       logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
       throw new TooManyRecordsError(errorMessage);
     }
-    console.log('got a reponse from dynamodb: ' + JSON.stringify(response.Items[0]));
     return response.Items[0] ? (unmarshall(response.Items[0]) as DynamoDBStateResult) : undefined;
   }
 

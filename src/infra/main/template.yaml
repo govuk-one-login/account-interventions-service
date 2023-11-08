@@ -176,6 +176,10 @@ Resources:
             Resource: !GetAtt TxMAIngressQueue.Arn
           - Effect: Allow
             Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt TxMAEgressQueue.Arn
+          - Effect: Allow
+            Action:
               - "kms:Decrypt"
               - "kms:GenerateDataKey"
             Resource: !GetAtt SQSEncryptionKey.Arn

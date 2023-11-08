@@ -278,7 +278,7 @@ jest.mock('../../commons/get-current-timestamp', () => ({
   }),
 }));
 describe('build-partial-upadte-state-command', () => {
-  it('should return a partial update update command given a user action is applied', () => {
+  it('should return a partial update update command given Auth successful password reset is applied is applied', () => {
     const state: StateDetails = {
       blocked: false,
       suspended: false,
@@ -308,6 +308,37 @@ describe('build-partial-upadte-state-command', () => {
     const command = buildPartialUpdateAccountStateCommand(state, userAction, 1111);
     expect(command).toEqual(expectedOutput);
   });
+  it('should return a partial update update command given IPV successful id reset is applied is applied', () => {
+    const state: StateDetails = {
+      blocked: false,
+      suspended: false,
+      resetPassword: true,
+      reproveIdentity: true,
+    };
+    const userAction = EventsEnum.IPV_IDENTITY_ISSUED;
+    const expectedOutput = {
+      ExpressionAttributeNames: {
+        '#B': 'blocked',
+        '#S': 'suspended',
+        '#RP': 'resetPassword',
+        '#RI': 'reproveIdentity',
+        '#UA': 'updatedAt',
+        '#RIdA': 'reprovedIdentityAt',
+      },
+      ExpressionAttributeValues: {
+        ':b': { BOOL: false },
+        ':s': { BOOL: false },
+        ':rp': { BOOL: true },
+        ':ri': { BOOL: true },
+        ':ua': { N: '1234567890' },
+        ':rida': { N: '1111' },
+      },
+      UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida',
+    };
+    const command = buildPartialUpdateAccountStateCommand(state, userAction, 1111);
+    expect(command).toEqual(expectedOutput);
+  });
+
   it('should return a partial update update command given an intervention is applied', () => {
     const state: StateDetails = {
       blocked: false,
@@ -337,7 +368,7 @@ describe('build-partial-upadte-state-command', () => {
         ':sa': { N: '1111' },
         ':aa' : { N: '1234567890'},
         ':empty_list' : { L : [] },
-        ':h' : { L : [{ S: 'AIS_FORCED_USER_PASSWORD_RESET' }]},
+        ':h' : { L : [ { M: { intervention: { S: 'AIS_FORCED_USER_PASSWORD_RESET'}, timestamp: { N : '1111'}}}]},
         ':int' : { S : 'AIS_FORCED_USER_PASSWORD_RESET' }
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',

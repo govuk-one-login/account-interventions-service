@@ -2,7 +2,7 @@ import {
   AccountStateEngine,
 } from '../account-states/account-state-engine';
 import {AISInterventionTypes, EventsEnum, MetricNames} from '../../data-types/constants';
-import { StateTransitionError } from '../../data-types/errors';
+import {StateEngineConfigurationError, StateTransitionError} from '../../data-types/errors';
 import { logAndPublishMetric } from '../../commons/metrics';
 import { TransitionConfigurationInterface } from "../../data-types/interfaces";
 
@@ -266,6 +266,16 @@ describe('account-state-service', () => {
     });
   });
 
+  describe('get intervention enum from code', () => {
+    it('should return the expected account state given a valid code', () => {
+      const expectedState = EventsEnum.FRAUD_BLOCK_ACCOUNT;
+      expect(accountStateEngine.getInterventionEnumFromCode(3)).toEqual(expectedState);
+    });
+    it('should throw a configuration error if code cannot be found in current configurations', () => {
+      expect(() => accountStateEngine.getInterventionEnumFromCode(111)).toThrow(new StateEngineConfigurationError('code: 111 is not found in current configuration'));
+    })
+  })
+
   describe('Unsuccessful state transitions', () => {
     describe('received intervention is not allowed on current account state', () => {
       it.each([
@@ -298,7 +308,7 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsBlocked],
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountIsBlocked],
       ])('%p applied on account state: %p', (intervention, retrievedAccountState) => {
-        expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow();
+        expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(new StateTransitionError(`${intervention} is not allowed from current state`, intervention));
       });
     });
     describe('current state account could not be found in current config', () => {
@@ -311,7 +321,7 @@ describe('account-state-service', () => {
         };
         expect(() =>
           accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, unexpectedAccountState),
-        ).toThrow(new StateTransitionError('Account state does not exists in current configuration.'));
+        ).toThrow(new StateEngineConfigurationError('Account state does not exists in current configuration.'));
         expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
       });
     });
@@ -319,7 +329,7 @@ describe('account-state-service', () => {
 
   describe('Configuration errors', () => {
     it('should throw when given code cannot be found in configuration', () => {
-      expect(() => accountStateEngine.getInterventionEnumFromCode(111)).toThrow(new StateTransitionError('code: 111 is not found in current configuration'));
+      expect(() => accountStateEngine.getInterventionEnumFromCode(111)).toThrow(new StateEngineConfigurationError('code: 111 is not found in current configuration'));
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_CODE_NOT_FOUND_IN_CONFIG);
     })
     it('should throw when the computed state is the same as the current state', () => {
@@ -356,7 +366,7 @@ describe('account-state-service', () => {
 
       expect(() =>
         accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay),
-      ).toThrow(new StateTransitionError('Computed new state is the same as the current state.'));
+      ).toThrow(new StateTransitionError('Computed new state is the same as the current state.', EventsEnum.FRAUD_BLOCK_ACCOUNT));
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.TRANSITION_SAME_AS_CURRENT_STATE);
 
     });
@@ -394,7 +404,7 @@ describe('account-state-service', () => {
 
       expect(() =>
         accountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsBlocked),
-      ).toThrow(new StateTransitionError('There are no allowed transitions from state AccountIsBlocked in current configurations'));
+      ).toThrow(new StateEngineConfigurationError('There are no allowed transitions from state AccountIsBlocked in current configurations'));
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.NO_TRANSITIONS_FOUND_IN_CONFIG);
 
     });
@@ -432,7 +442,7 @@ describe('account-state-service', () => {
 
       expect(() =>
         accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay),
-      ).toThrow(new StateTransitionError('state AccountIsNotOkay not found in current config.'));
+      ).toThrow(new StateEngineConfigurationError('state AccountIsNotOkay not found in current config.'));
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
 
     });
@@ -474,7 +484,7 @@ describe('account-state-service', () => {
 
       expect(() =>
         AccountStateEngine.getInstance()
-      ).toThrow(new StateTransitionError('Invalid state engine configuration detected. Adjacency mismatch'));
+      ).toThrow(new StateEngineConfigurationError('Invalid state engine configuration detected. Adjacency mismatch'));
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION);
     });
     it('should throw when the the configuration object fails validation because at least one edge points to a non-existing node', () => {
@@ -516,7 +526,7 @@ describe('account-state-service', () => {
 
       expect(() =>
         AccountStateEngine.getInstance()
-      ).toThrow(new StateTransitionError('Invalid state engine configuration detected. Edge mismatch'));
+      ).toThrow(new StateEngineConfigurationError('Invalid state engine configuration detected. Edge mismatch'));
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION);
     });
   });

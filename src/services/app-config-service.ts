@@ -33,13 +33,12 @@ export class AppConfigService {
     return this.validateConfiguration('AWS_REGION');
   }
 
-  public get txmaQueueUrl(): string {
-    return this.validateIsHTTPSUrl('TXMA_QUEUE_URL');
+  public get maxRetentionSeconds(): number {
+    return this.validateNumberEnvVars('DELETED_ACCOUNT_RETENTION_SECONDS');
   }
 
-  public get maxRetentionSeconds(): number {
-    const retentionSecond = this.validateNumberEnvVars('DELETED_ACCOUNT_RETENTION_SECONDS');
-    return retentionSecond;
+  public get txmaEgressQueueUrl(): string {
+    return this.validateIsHTTPSUrl('TXMA_QUEUE_URL');
   }
 
   /**

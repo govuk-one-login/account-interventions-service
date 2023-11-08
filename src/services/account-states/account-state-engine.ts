@@ -1,7 +1,7 @@
 import { transitionConfiguration } from './config';
 import { AccountStateEngineOutput, StateDetails } from '../../data-types/interfaces';
 import { AISInterventionTypes, EventsEnum, MetricNames } from '../../data-types/constants';
-import { StateTransitionError } from '../../data-types/errors';
+import { StateEngineConfigurationError, StateTransitionError } from '../../data-types/errors';
 import logger from '../../commons/logger';
 import { logAndPublishMetric } from '../../commons/metrics';
 
@@ -25,13 +25,13 @@ export class AccountStateEngine {
     const accountStates = Object.keys(AccountStateEngine.configuration.nodes).sort(compareStrings);
     const adjacencyLists = Object.keys(AccountStateEngine.configuration.adjacency).sort(compareStrings);
     if (JSON.stringify(adjacencyLists) !== JSON.stringify(accountStates))
-      throw buildError(
+      throw buildConfigurationError(
         MetricNames.INVALID_STATE_ENGINE_CONFIGURATION,
         'Invalid state engine configuration detected. Adjacency mismatch',
       );
     for (const element of Object.values(AccountStateEngine.configuration.edges)) {
       if (!accountStates.includes(element.to))
-        throw buildError(
+        throw buildConfigurationError(
           MetricNames.INVALID_STATE_ENGINE_CONFIGURATION,
           'Invalid state engine configuration detected. Edge mismatch',
         );
@@ -45,7 +45,7 @@ export class AccountStateEngine {
   getInterventionEnumFromCode(code: number) {
     const newStateName = AccountStateEngine.configuration.edges[code]?.name;
     if (!newStateName)
-      throw buildError(
+      throw buildConfigurationError(
         MetricNames.INTERVENTION_CODE_NOT_FOUND_IN_CONFIG,
         `code: ${code} is not found in current configuration`,
       );
@@ -76,9 +76,10 @@ export class AccountStateEngine {
     const transition = this.getTransition(allowedTransition, event);
     const newStateObject = this.getNewStateObject(transition);
     if (areAccountStatesTheSame(newStateObject, currentState))
-      throw buildError(
+      throw buildStateTransitionError(
         MetricNames.TRANSITION_SAME_AS_CURRENT_STATE,
         'Computed new state is the same as the current state.',
+        event,
       );
     return {
       newState: newStateObject,
@@ -94,7 +95,7 @@ export class AccountStateEngine {
   private findAccountStateName(state: StateDetails) {
     for (const key of Object.keys(transitionConfiguration.nodes))
       if (areAccountStatesTheSame(transitionConfiguration.nodes[key]!, state)) return key;
-    throw buildError(
+    throw buildConfigurationError(
       MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG,
       'Account state does not exists in current configuration.',
     );
@@ -108,7 +109,7 @@ export class AccountStateEngine {
   private findPossibleTransitions(nodeKey: string) {
     const allowedTransition = AccountStateEngine.configuration.adjacency[nodeKey];
     if (!allowedTransition)
-      throw buildError(
+      throw buildConfigurationError(
         MetricNames.NO_TRANSITIONS_FOUND_IN_CONFIG,
         `There are no allowed transitions from state ${nodeKey} in current configurations`,
       );
@@ -127,9 +128,10 @@ export class AccountStateEngine {
     for (const edge of allowedTransition) {
       if (AccountStateEngine.configuration.edges[edge]?.name === transition.toString()) return edge;
     }
-    throw buildError(
+    throw buildStateTransitionError(
       MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED,
       `${transition} is not allowed from current state`,
+      transition,
     );
   }
 
@@ -141,7 +143,7 @@ export class AccountStateEngine {
     const newStateName = AccountStateEngine.configuration.edges[edge]!.to;
     const newStateObject = AccountStateEngine.configuration.nodes[newStateName];
     if (!newStateObject)
-      throw buildError(
+      throw buildConfigurationError(
         MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG,
         `state ${newStateName} not found in current config.`,
       );
@@ -153,11 +155,17 @@ export class AccountStateEngine {
  * Helper method to build a StateTransitionError and log relevant information when an error is to br thrown
  * @param metricName - name of the metric to log
  * @param errorMessage - error message to be logged
+ * @param transition - EventEnum representation of transition
  */
-function buildError(metricName: MetricNames, errorMessage: string) {
+function buildStateTransitionError(metricName: MetricNames, errorMessage: string, transition: EventsEnum) {
   logAndPublishMetric(metricName);
   logger.error({ message: errorMessage });
-  return new StateTransitionError(errorMessage);
+  return new StateTransitionError(errorMessage, transition);
+}
+function buildConfigurationError(metricName: MetricNames, errorMessage: string) {
+  logAndPublishMetric(metricName);
+  logger.error({ message: errorMessage });
+  return new StateEngineConfigurationError(errorMessage);
 }
 
 /**

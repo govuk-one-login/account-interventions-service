@@ -2,6 +2,7 @@ import { AppConfigService } from '../app-config-service';
 import { InvalidEnvironmentVariableError } from '../../data-types/errors';
 import 'jest-extended';
 import logger from '../../commons/logger';
+import {LOGS_PREFIX_INVALID_CONFIG} from "../../data-types/constants";
 
 jest.mock('@aws-lambda-powertools/logger');
 
@@ -55,11 +56,11 @@ describe('AppConfigService', () => {
     expect(logger.error).toHaveBeenCalledWith(expectedMessage);
   });
 
-  it('should throw an error if the environment variable CLOUDWATCH_METRICS_NAMESPACE is equal to an empty string', () => {
-    process.env['CLOUDWATCH_METRICS_NAMESPACE'] = '';
+  it('should throw an error if the environment variable TXMA_QUEUE_URL is not a url', () =>{
+    process.env['TXMA_QUEUE_URL'] = 'notAURL';
     const appConfig = AppConfigService.getInstance();
-    const expectedMessage = 'Invalid configuration - Environment variable CLOUDWATCH_METRICS_NAMESPACE is not defined.';
-    expect(() => appConfig.cloudWatchMetricsWorkSpace).toThrowWithMessage(InvalidEnvironmentVariableError, expectedMessage);
+    const expectedMessage = `${LOGS_PREFIX_INVALID_CONFIG} Environment variable TXMA_QUEUE_URL is not a valid HTTPS URL (notAURL).`
+    expect(() => appConfig.txmaEgressQueueUrl).toThrow(new InvalidEnvironmentVariableError(expectedMessage));
     expect(logger.error).toHaveBeenCalledTimes(1);
     expect(logger.error).toHaveBeenCalledWith(expectedMessage);
   });
@@ -71,6 +72,7 @@ describe('AppConfigService', () => {
     expect(appConfig.cloudWatchMetricsWorkSpace).toEqual('test_namespace');
     expect(appConfig.metricServiceName).toEqual('test');
     expect(appConfig.maxRetentionSeconds).toEqual(12345);
+    expect(appConfig.txmaEgressQueueUrl).toEqual('https://sqs.eu-west-2.amazonaws.com/111122223333/TxMAQueue')
   });
 
   it('should throw an error if the environmental variable is not a number', () => {

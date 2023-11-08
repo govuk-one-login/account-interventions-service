@@ -42,8 +42,8 @@ export interface TxMAEgressEvent {
 
 export interface TxMAEgressExtensions {
   intervention: EventsEnum;
-  appliedAt?: number;
-  reason?: string;
+  appliedAt: number | undefined;
+  reason: string | undefined;
 }
 export interface TxMAIngressEvent {
   event_name: string;

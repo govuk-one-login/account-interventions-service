@@ -1,4 +1,4 @@
-import { TxMAIngressEvent } from '../../data-types/interfaces';
+import { TxMAIngressEvent as TxMAEvent } from '../../data-types/interfaces';
 import { validateEvent, validateInterventionEvent } from '../validate-event';
 import logger from '../../commons/logger';
 import { logAndPublishMetric } from '../../commons/metrics';
@@ -12,7 +12,7 @@ describe('event-validation', () => {
   });
 
   it('should return true as event is valid', () => {
-    const TxMAEvent: TxMAIngressEvent = {
+    const TxMAEvent: TxMAEvent = {
       timestamp: 87_298_174,
       user: {
         user_id: 'abc',
@@ -30,7 +30,7 @@ describe('event-validation', () => {
   });
 
   it('should return false as intervention is invalid', () => {
-    const TxMAEvent: TxMAIngressEvent = {
+    const TxMAEvent: TxMAEvent = {
       timestamp: 87_298_174,
       user: {
         user_id: 'abc',
@@ -51,7 +51,7 @@ describe('event-validation', () => {
   });
 
   it('should return false as event is invalid', () => {
-    const TxMAEvent: TxMAIngressEvent = {
+    const TxMAEvent: TxMAEvent = {
       timestamp: 87_298_174,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
