@@ -70,7 +70,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       return;
     }
 
-    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention received.`, { intervention});
+    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention received.`, { intervention });
     const itemFromDB = await service.retrieveRecordsByUserId(recordBody.user.user_id);
 
     if (itemFromDB?.isAccountDeleted === true) {
@@ -79,9 +79,9 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       return;
     }
 
-    logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
+    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Retrieved item from DB.`, { itemFromDB });
     const statusResult = accountStateEngine.applyEventTransition(intervention, itemFromDB);
-    logger.debug('processed requested event, sending update request to dynamo db');
+    logger.debug('Processed requested event, sending update request to Dynamo DB.');
     await service.updateUserStatus(recordBody.user.user_id, statusResult);
   } catch (error) {
     if (error instanceof StateTransitionError) {
@@ -106,7 +106,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
 function isTimestampInFuture(recordBody: TxMAEvent): boolean {
   const now = getCurrentTimestamp().milliseconds;
   if (now < (recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000)) {
-    logger.debug(`Timestamp is in the future (sec): ${recordBody.timestamp}.`);
+    logger.debug(`Timestamp is in the future (sec): ${recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000}.`);
     logAndPublishMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
     return true;
   }
@@ -119,7 +119,7 @@ function isTimestampInFuture(recordBody: TxMAEvent): boolean {
  * @param recordBody - the parsed body of the sqs record
  */
 function getInterventionName(recordBody: TxMAEvent): EventsEnum {
-  logger.debug('event is valid, starting processing');
+  logger.debug('Event is valid, starting processing.');
   if (recordBody.event_name === TICF_ACCOUNT_INTERVENTION) {
     validateInterventionEvent(recordBody);
     const interventionCode = Number.parseInt(recordBody.extensions!.intervention!.intervention_code);

@@ -251,7 +251,7 @@ describe('intervention processor handler', () => {
           },
           event_name: 'IPV_IDENTITY_ISSUED',
           extensions: {
-            levelOfConfidence: "P3",
+            levelOfConfidence: 'P1',
             ciFail: false,
             hasMitigations: false
           },
@@ -272,7 +272,7 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
       expect(logAndPublishMetric).toHaveBeenCalledWith('CONFIDENCE_LEVEL_TOO_LOW');
-      expect(logger.warn).toHaveBeenCalledWith('Received interventions has low level of confidence: P3');
+      expect(logger.warn).toHaveBeenCalledWith('Received interventions has low level of confidence: P1');
       });
   });
 });
