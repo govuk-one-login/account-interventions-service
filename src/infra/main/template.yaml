@@ -714,19 +714,19 @@ Resources:
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
   
-  # PrivateRestApiIDSSM:
-  #   Type: AWS::SSM::Parameter
-  #   Properties:
-  #     Description: PrivateRestApi ID
-  #     Name: !Sub /${AWS::StackName}/PrivateRestApi/ID
-  #     Type: String
-  #     Value: !Ref PrivateRestApi
-  #     Tags:
-  #       Environment: !Ref Environment
-  #       Product: !Ref ProductTagValue
-  #       System: !Ref SystemTagValue
-  #       Owner: !Ref OwnerTagValue
-  #       Source: !Ref SourceTagValue
+  PrivateRestApiIDSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: PrivateRestApi ID
+      Name: !Sub /${AWS::StackName}/PrivateRestApi/ID
+      Type: String
+      Value: !Ref PrivateRestApi
+      Tags:
+        Environment: !Ref Environment
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
 
   # PrivateAPIGatewayAccessLogGroup:
   #   Type: AWS::Logs::LogGroup

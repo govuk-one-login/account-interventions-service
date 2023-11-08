@@ -68,7 +68,3 @@ Outputs:
     Value: !GetAtt AccountStatusTable.Arn
     Export:
       Name: !Sub ${AWS::StackName}-AccountStatusTableArn
-
-  PrivateApiEndpoint:
-    Description: "Private API Gateway endpoint URL for VC Storage methods"
-    Value: !Sub "https://${PrivateRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}"
