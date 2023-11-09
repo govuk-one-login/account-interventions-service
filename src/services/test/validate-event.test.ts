@@ -76,7 +76,7 @@ describe('event-validation', () => {
         user_id: 'abc'
       },
       event_name: 'event',
-      extension: {
+      extensions: {
         intervention: {
           intervention_code: 'nan',
           intervention_reason: 'reason',
