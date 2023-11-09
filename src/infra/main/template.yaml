@@ -593,6 +593,7 @@ Resources:
     Properties:
       AliasName: !Sub "alias/${AWS::StackName}-SQSEncryptionKey"
       TargetKeyId: !GetAtt SQSEncryptionKey.Arn
+
   StatusRetrieverFunction:
     Type: AWS::Serverless::Function
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
@@ -600,6 +601,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-StatusRetrieverFunction'
       CodeUri: ../../../dist/handlers/status-retriever-handler
+      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       Timeout: 10
       Environment:
         Variables:
