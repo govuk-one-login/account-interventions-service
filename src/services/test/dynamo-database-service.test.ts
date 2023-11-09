@@ -174,6 +174,6 @@ describe('Dynamo DB Service', () => {
     const loggerInfoSpy = jest.spyOn(logger, 'info');
     const dynamoDBService = new DynamoDatabaseService('table_name')
     await dynamoDBService.updateDeleteStatus('hello');
-    expect(loggerInfoSpy).toHaveBeenCalledWith("Sensitive info - No intervention exists for this account.", {"userId": "hello"});
+    expect(loggerInfoSpy).toHaveBeenCalledWith("Sensitive info - No intervention exists for this account hello.");
   });
 });
