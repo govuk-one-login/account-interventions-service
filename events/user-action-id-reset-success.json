@@ -11,5 +11,10 @@
     "session_id": "",
     "persistent_session_id": "",
     "govuk_signin_journey_id": ""
+  },
+  "extensions": {
+    "levelOfConfidence": "P2",
+    "ciFail": false,
+    "hasMitigations": false
   }
 }
