@@ -42,7 +42,7 @@ describe('build-partial-update-state-command', () => {
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda',
     };
-    const command = buildPartialUpdateAccountStateCommand(state, userAction, 1111);
+    const command = buildPartialUpdateAccountStateCommand(state, userAction, 1111, 2222);
     expect(command).toEqual(expectedOutput);
   });
   it('should return a partial update update command given IPV successful id reset is applied is applied', () => {
@@ -72,7 +72,7 @@ describe('build-partial-update-state-command', () => {
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida',
     };
-    const command = buildPartialUpdateAccountStateCommand(state, userAction, 1111);
+    const command = buildPartialUpdateAccountStateCommand(state, userAction, 1111, 2222);
     expect(command).toEqual(expectedOutput);
   });
 
@@ -103,14 +103,14 @@ describe('build-partial-update-state-command', () => {
         ':ri': { BOOL: false },
         ':ua': { N: '1234567890' },
         ':sa': { N: '1111' },
-        ':aa' : { N: '1234567890'},
+        ':aa' : { N: '2222'},
         ':empty_list' : { L : [] },
         ':h' : { L : [ { M: { intervention: { S: 'AIS_FORCED_USER_PASSWORD_RESET'}, timestamp: { N : '1111'}}}]},
         ':int' : { S : 'AIS_FORCED_USER_PASSWORD_RESET' }
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
     };
-    const command = buildPartialUpdateAccountStateCommand(state, intervention, 1111, AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET);
+    const command = buildPartialUpdateAccountStateCommand(state, intervention, 1111, 2222, AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET);
     expect(command).toEqual(expectedOutput);
   });
 
@@ -122,7 +122,7 @@ describe('build-partial-update-state-command', () => {
       reproveIdentity: true,
     };
     const intervention = EventsEnum.FRAUD_BLOCK_ACCOUNT;
-    expect(() => buildPartialUpdateAccountStateCommand(state, intervention, 1234)).toThrow(
+    expect(() => buildPartialUpdateAccountStateCommand(state, intervention, 1234, 2222)).toThrow(
       new Error('The intervention received did not have an interventionName field.'),
     );
     expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);

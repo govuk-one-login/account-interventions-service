@@ -91,18 +91,20 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
         });
       } else if (isEventAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
         logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
+        const currentTimestamp = getCurrentTimestamp().milliseconds;
         const statusResult = accountStateEngine.applyEventTransition(intervention, itemFromDB);
         const partialCommandInput = buildPartialUpdateAccountStateCommand(
           statusResult.newState,
           intervention,
           eventTimestampInMs,
+          currentTimestamp,
           statusResult.interventionName,
         );
         logger.debug('processed requested event, sending update request to dynamo db');
         await service.updateUserStatus(userId, partialCommandInput);
         await sendAuditEvent('AIS_INTERVENTION_TRANSITION_APPLIED', userId, {
           intervention,
-          appliedAt: getCurrentTimestamp().milliseconds,
+          appliedAt: currentTimestamp,
           reason: undefined,
         });
       } else {
