@@ -61,6 +61,8 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
     const userId = recordBody.user.user_id;
     const intervention = getInterventionName(recordBody);
 
+    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention received.`, { intervention });
+
     if (intervention === EventsEnum.IPV_IDENTITY_ISSUED && recordBody.extensions?.levelOfConfidence !== 'P2') {
       logger.warn(`Received interventions has low level of confidence: ${recordBody.extensions?.levelOfConfidence}`);
       logAndPublishMetric(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
