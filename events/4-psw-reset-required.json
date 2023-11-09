@@ -4,7 +4,7 @@
   "event_name": "TICF_ACCOUNT_INTERVENTION",
   "component_id": "TICF_CRI",
   "user": { "user_id": "urn:fdc:gov.uk:2022:USER_ONE" },
-  "extension": {
+  "extensions": {
     "intervention": {
       "intervention_code": "04",
       "intervention_reason": "something"

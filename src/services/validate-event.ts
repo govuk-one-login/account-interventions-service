@@ -29,10 +29,10 @@ export function validateEvent(interventionRequest: TxMAEvent): void {
  */
 export function validateInterventionEvent(interventionRequest: TxMAEvent): void {
   if (
-    !interventionRequest.extension ||
-    !interventionRequest.extension.intervention ||
-    !interventionRequest.extension.intervention.intervention_code ||
-    Number.isNaN(Number.parseInt(interventionRequest.extension.intervention.intervention_code))
+    !interventionRequest.extensions ||
+    !interventionRequest.extensions.intervention ||
+    !interventionRequest.extensions.intervention.intervention_code ||
+    Number.isNaN(Number.parseInt(interventionRequest.extensions.intervention.intervention_code))
   ) {
     logger.debug('Invalid intervention request.');
     logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);

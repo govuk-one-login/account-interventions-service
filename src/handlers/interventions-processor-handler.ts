@@ -55,24 +55,34 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
   try {
     const recordBody: TxMAEvent = JSON.parse(record.body);
     validateEvent(recordBody);
-    if (isTimestampNotInFuture(recordBody)) {
-      const intervention = getInterventionName(recordBody);
-      logger.debug('identified event: ' + intervention);
-      const itemFromDB = await service.retrieveRecordsByUserId(recordBody.user.user_id);
-      if (itemFromDB?.isAccountDeleted === true) {
-        logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${recordBody.user.user_id} account has been deleted.`);
-        logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-      } else {
-        logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
-        const statusResult = accountStateEngine.applyEventTransition(intervention, itemFromDB);
-        logger.debug('processed requested event, sending update request to dynamo db');
-        await service.updateUserStatus(recordBody.user.user_id, statusResult);
-      }
-    } else {
+    const intervention = getInterventionName(recordBody);
+
+    if (intervention === EventsEnum.IPV_IDENTITY_ISSUED && recordBody.extensions?.levelOfConfidence !== 'P2') {
+      logger.warn(`Received interventions has low level of confidence: ${recordBody.extensions?.levelOfConfidence}`);
+      logAndPublishMetric(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
+      return;
+    }
+
+    if (isTimestampInFuture(recordBody)) {
       itemFailures.push({
         itemIdentifier: record.messageId,
       });
+      return;
     }
+
+    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention received.`, { intervention });
+    const itemFromDB = await service.retrieveRecordsByUserId(recordBody.user.user_id);
+
+    if (itemFromDB?.isAccountDeleted === true) {
+      logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${recordBody.user.user_id} account has been deleted.`);
+      logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
+      return;
+    }
+
+    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Retrieved item from DB.`, { itemFromDB });
+    const statusResult = accountStateEngine.applyEventTransition(intervention, itemFromDB);
+    logger.debug('Processed requested event, sending update request to Dynamo DB.');
+    await service.updateUserStatus(recordBody.user.user_id, statusResult);
   } catch (error) {
     if (error instanceof StateTransitionError) {
       logger.warn('StateTransitionError caught, message will not be retried.');
@@ -93,14 +103,14 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
  *
  * @param recordBody - the parsed body of the sqs record
  */
-function isTimestampNotInFuture(recordBody: TxMAEvent): boolean {
+function isTimestampInFuture(recordBody: TxMAEvent): boolean {
   const now = getCurrentTimestamp().milliseconds;
   if (now < (recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000)) {
-    logger.debug(`Timestamp is in the future (sec): ${recordBody.timestamp}.`);
+    logger.debug(`Timestamp is in the future (sec): ${recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000}.`);
     logAndPublishMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
-    return false;
+    return true;
   }
-  return true;
+  return false;
 }
 
 /**
@@ -109,10 +119,10 @@ function isTimestampNotInFuture(recordBody: TxMAEvent): boolean {
  * @param recordBody - the parsed body of the sqs record
  */
 function getInterventionName(recordBody: TxMAEvent): EventsEnum {
-  logger.debug('event is valid, starting processing');
+  logger.debug('Event is valid, starting processing.');
   if (recordBody.event_name === TICF_ACCOUNT_INTERVENTION) {
     validateInterventionEvent(recordBody);
-    const interventionCode = Number.parseInt(recordBody.extension!.intervention.intervention_code);
+    const interventionCode = Number.parseInt(recordBody.extensions!.intervention!.intervention_code);
     return accountStateEngine.getInterventionEnumFromCode(interventionCode);
   }
   return recordBody.event_name as EventsEnum;

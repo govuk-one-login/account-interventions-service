@@ -42,15 +42,18 @@ export interface TxMAEvent {
   event_timestamp_ms?: number;
   component_id?: string;
   user: User;
-  extension?: Extension;
+  extensions?: Extensions;
 }
 
 interface User {
   user_id: string;
 }
 
-interface Extension {
-  intervention: Intervention;
+interface Extensions {
+  intervention?: Intervention;
+  levelOfConfidence?: string;
+  ciFail?: boolean;
+  hasMitigations?: boolean;
 }
 
 interface Intervention {
@@ -79,4 +82,21 @@ export interface TransitionConfigurationInterface {
   adjacency: {
     [key: string]: number[];
   };
+}
+
+export interface AccountStatus {
+  updatedAt: number;
+  appliedAt: number;
+  sentAt: number;
+  description: string;
+  reprovedIdentityAt?: number | undefined;
+  resetPasswordAt?: number | undefined;
+  state: {
+    blocked: boolean;
+    suspended: boolean;
+    reproveIdentity: boolean;
+    resetPassword: boolean;
+  };
+  auditLevel: string;
+  history?: object[];
 }
