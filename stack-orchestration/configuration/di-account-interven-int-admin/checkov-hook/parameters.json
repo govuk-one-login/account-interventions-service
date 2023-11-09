@@ -1,0 +1,6 @@
+[
+    {
+      "ParameterKey": "CheckovRulesToSkip",
+      "ParameterValue": "CKV_AWS_111"
+    }
+]
