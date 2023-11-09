@@ -137,19 +137,15 @@ export class DynamoDatabaseService {
     try {
       const response = await this.dynamoClient.send(command);
       logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Account ${userId} marked as deleted.`);
-      if (!response) {
-        logger.error('DynamoDB may have failed to update items, returned a null response.');
-        logAndPublishMetric(MetricNames.DB_UPDATE_ERROR);
-      }
       logAndPublishMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
       return response;
     } catch (error: any) {
-      if (!error.name || error.name !== 'ConditionalCheckFailedException') {
+      if (!error.name || error.name != 'ConditionalCheckFailedException') {
         logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} Error updating item with pk ${userId}.`);
         logAndPublishMetric(MetricNames.DB_UPDATE_ERROR);
         throw new Error('Error was not a Conditional Check Exception.'); //Therefore re-driving message back to the queue.
       }
-      logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} No intervention exists for this account.`, { userId });
+      logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} No intervention exists for this account ${userId}.`);
     }
   }
 }

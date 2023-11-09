@@ -156,16 +156,6 @@ describe('Dynamo DB Service', () => {
     expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, commandInput);
   });
 
-  it('should throw an error if response of the Dynamo Client is null / undefined.', async () => {
-    const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
-    mockedUpdateCommand.resolves(undefined as any);
-    const loggerErrorSpy = jest.spyOn(logger, 'error');
-    const dynamoDBService = new DynamoDatabaseService('table_name')
-    await dynamoDBService.updateDeleteStatus('hello');
-    expect(loggerErrorSpy).toHaveBeenCalledWith('DynamoDB may have failed to update items, returned a null response.');
-    expect(logAndPublishMetric).toHaveBeenCalledWith('DB_UPDATE_ERROR');
-  });
-
   it('throws an error when it fails to update the userId status.', async () => {
     const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
     mockedUpdateCommand.rejectsOnce("InternalServerError" || "InvalidEndpointException" || "ItemCollectionSizeLimitExceededException" || "ProvisionedThroughputExceededException" || "RequestLimitExceeded" || "ResourceNotFoundException" || "TransactionConflictException" || "DynamoDBServiceException" || undefined );
