@@ -55,8 +55,6 @@ function getUserId(record: SQSRecord) {
 async function updateDeleteStatusId(userId: string) {
   try {
     await ddbService.updateDeleteStatus(userId);
-    logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Account ${userId} marked as deleted`);
-    logAndPublishMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
   } catch (error) {
     logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} Error updating account ${userId}`, { error });
     logAndPublishMetric(MetricNames.MARK_AS_DELETED_FAILED);
