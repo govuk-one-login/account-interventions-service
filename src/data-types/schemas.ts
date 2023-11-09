@@ -33,11 +33,10 @@ export const TxMAIngress = {
           title: 'Component_id',
           type: 'string',
         },
-        extension: {
-          $id: '#root/event/extension',
-          title: 'Extension',
+        extensions: {
+          $id: '#root/event/extensions',
+          title: 'Extensions',
           type: 'object',
-          required: ['intervention'],
           properties: {
             intervention: {
               $id: '#root/event/intervention',
@@ -72,13 +71,6 @@ export const TxMAIngress = {
                 },
               },
             },
-          },
-        },
-        extensions: {
-          $id: '#root/event/extensions',
-          title: 'Extensions',
-          type: 'object',
-          properties: {
             levelOfConfidence: {
               $id: '#root/event/levelOfConfidence',
               title: 'LevelOfConfidence',
@@ -95,6 +87,24 @@ export const TxMAIngress = {
               type: 'boolean',
             },
           },
+          oneOf: [
+            {
+              required: ['intervention'],
+              not: {
+                anyOf: [
+                  { required: ['levelOfConfidence'] },
+                  { required: ['ciFail'] },
+                  { required: ['hasMitigations'] },
+                ],
+              },
+            },
+            {
+              required: ['levelOfConfidence'],
+              not: {
+                anyOf: [{ required: ['intervention'] }],
+              },
+            },
+          ],
         },
         user: {
           $id: '#root/event/user',
