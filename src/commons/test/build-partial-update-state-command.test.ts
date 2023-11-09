@@ -1,7 +1,7 @@
-import {StateDetails} from '../../data-types/interfaces';
-import {AISInterventionTypes, EventsEnum, MetricNames} from '../../data-types/constants';
-import {buildPartialUpdateAccountStateCommand} from '../build-partial-update-state-command';
-import {logAndPublishMetric} from '../metrics';
+import { StateDetails } from '../../data-types/interfaces';
+import { AISInterventionTypes, EventsEnum, MetricNames } from '../../data-types/constants';
+import { buildPartialUpdateAccountStateCommand } from '../build-partial-update-state-command';
+import { logAndPublishMetric } from '../metrics';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -92,9 +92,9 @@ describe('build-partial-update-state-command', () => {
         '#RI': 'reproveIdentity',
         '#UA': 'updatedAt',
         '#SA': 'sentAt',
-        "#AA": "appliedAt",
-        "#H": "history",
-        "#INT": "intervention",
+        '#AA': 'appliedAt',
+        '#H': 'history',
+        '#INT': 'intervention',
       },
       ExpressionAttributeValues: {
         ':b': { BOOL: false },
@@ -103,14 +103,21 @@ describe('build-partial-update-state-command', () => {
         ':ri': { BOOL: false },
         ':ua': { N: '1234567890' },
         ':sa': { N: '1111' },
-        ':aa' : { N: '2222'},
-        ':empty_list' : { L : [] },
-        ':h' : { L : [ { M: { intervention: { S: 'AIS_FORCED_USER_PASSWORD_RESET'}, timestamp: { N : '1111'}}}]},
-        ':int' : { S : 'AIS_FORCED_USER_PASSWORD_RESET' }
+        ':aa': { N: '2222' },
+        ':empty_list': { L: [] },
+        ':h': { L: [{ M: { intervention: { S: 'AIS_FORCED_USER_PASSWORD_RESET' }, timestamp: { N: '1111' } } }] },
+        ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET' },
       },
-      UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
+      UpdateExpression:
+        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
     };
-    const command = buildPartialUpdateAccountStateCommand(state, intervention, 1111, 2222, AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET);
+    const command = buildPartialUpdateAccountStateCommand(
+      state,
+      intervention,
+      1111,
+      2222,
+      AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
+    );
     expect(command).toEqual(expectedOutput);
   });
 

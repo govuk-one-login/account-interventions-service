@@ -103,7 +103,7 @@ describe('status-retriever-handler', () => {
         resetPassword: false,
         reproveIdentity: false,
       },
-      auditLevel: 'standard'
+      auditLevel: 'standard',
     };
 
     mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'testUserID');
@@ -125,7 +125,7 @@ describe('status-retriever-handler', () => {
         resetPassword: false,
         reproveIdentity: false,
       },
-      auditLevel: 'standard'
+      auditLevel: 'standard',
     };
 
     mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
@@ -166,8 +166,8 @@ describe('status-retriever-handler', () => {
         resetPassword: false,
         reproveIdentity: false,
       },
-      auditLevel: 'standard'
-    }
+      auditLevel: 'standard',
+    };
 
     mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'testUserID');
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
@@ -180,7 +180,7 @@ describe('status-retriever-handler', () => {
     const invalidPathParameters = {
       proxy: '/ais/{user_id}',
       userId: ' ',
-    }
+    };
     const invalidTestEvent = { ...testEvent, pathParameters: invalidPathParameters };
     const response = await handle(invalidTestEvent, mockConfig);
     expect(logger.warn).toBeCalledTimes(1);
@@ -227,7 +227,7 @@ describe('status-retriever-handler', () => {
         resetPassword: false,
         reproveIdentity: false,
       },
-      auditLevel: 'standard'
+      auditLevel: 'standard',
     };
 
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(nullUpdatedAt);
@@ -237,7 +237,7 @@ describe('status-retriever-handler', () => {
   });
 
   it('will add the history field to the default object if no user id is passed in but the query parameters are', async () => {
-    const queryParams: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
+    const queryParameters: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
     const accountNotFoundDefaultObject = {
       updatedAt: 1685404800000,
       appliedAt: 1685404800000,
@@ -250,12 +250,12 @@ describe('status-retriever-handler', () => {
         reproveIdentity: false,
       },
       auditLevel: 'standard',
-      history: []
+      history: [],
     };
 
-    const addedQueryParamTestEvent = { ...testEvent, queryStringParameters: queryParams };
-    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user')
-    const response = await handle(addedQueryParamTestEvent, mockConfig);
+    const addedQueryParameterTestEvent = { ...testEvent, queryStringParameters: queryParameters };
+    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
+    const response = await handle(addedQueryParameterTestEvent, mockConfig);
     expect(response.statusCode).toBe(200);
     expect(JSON.parse(response.body)).toEqual({ intervention: accountNotFoundDefaultObject });
   });
@@ -292,15 +292,15 @@ describe('status-retriever-handler', () => {
         reproveIdentity: false,
       },
       auditLevel: 'standard',
-      history: []
-    }
+      history: [],
+    };
 
-    const queryParams: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
-    const addedQueryParamTestEvent = { ...testEvent, queryStringParameters: queryParams }
+    const queryParameters: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
+    const addedQueryParameterTestEvent = { ...testEvent, queryStringParameters: queryParameters };
     mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
-    const response = await handle(addedQueryParamTestEvent, mockConfig);
+    const response = await handle(addedQueryParameterTestEvent, mockConfig);
     expect(response.statusCode).toBe(200);
     expect(JSON.parse(response.body)).toEqual({ intervention: accountIsNotSuspended });
-  })
+  });
 });

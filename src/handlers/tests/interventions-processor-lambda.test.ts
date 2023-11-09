@@ -1,15 +1,15 @@
-import {handler} from '../interventions-processor-handler';
-import {ContextExamples} from '@aws-lambda-powertools/commons';
+import { handler } from '../interventions-processor-handler';
+import { ContextExamples } from '@aws-lambda-powertools/commons';
 import logger from '../../commons/logger';
-import type {SQSEvent, SQSRecord} from 'aws-lambda';
-import {logAndPublishMetric} from '../../commons/metrics';
-import {DynamoDatabaseService} from '../../services/dynamo-database-service';
-import {validateEvent, validateInterventionEvent} from '../../services/validate-event';
-import {AccountStateEngine,} from '../../services/account-states/account-state-engine';
-import {getCurrentTimestamp} from '../../commons/get-current-timestamp';
-import {StateTransitionError, TooManyRecordsError, ValidationError} from '../../data-types/errors';
-import {EventsEnum, MetricNames, TICF_ACCOUNT_INTERVENTION} from "../../data-types/constants";
-import {sendAuditEvent} from "../../services/send-audit-events";
+import type { SQSEvent, SQSRecord } from 'aws-lambda';
+import { logAndPublishMetric } from '../../commons/metrics';
+import { DynamoDatabaseService } from '../../services/dynamo-database-service';
+import { validateEvent, validateInterventionEvent } from '../../services/validate-event';
+import { AccountStateEngine } from '../../services/account-states/account-state-engine';
+import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
+import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
+import { EventsEnum, MetricNames, TICF_ACCOUNT_INTERVENTION } from '../../data-types/constants';
+import { sendAuditEvent } from '../../services/send-audit-events';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -45,7 +45,7 @@ const interventionEventBody = {
       intervention_reason: 'reason',
     },
   },
-}
+};
 
 const interventionEventBodyInTheFuture = {
   timestamp: getCurrentTimestamp().seconds + 5,
@@ -60,30 +60,32 @@ const interventionEventBodyInTheFuture = {
       intervention_reason: 'reason',
     },
   },
-}
+};
 
 const resetPasswordEventBody = {
-  "event_name": "AUTH_PASSWORD_RESET_SUCCESSFUL",
-  "timestamp": t0s,
-  "client_id": "UNKNOWN",
-  "component_id": "UNKNOWN",
-  "user": {
-    "user_id": "abc",
-    "email": "",
-    "phone": "UNKNOWN",
-    "ip_address": "",
-    "session_id": "",
-    "persistent_session_id": "",
-    "govuk_signin_journey_id": ""
-  }
-}
+  event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+  timestamp: t0s,
+  client_id: 'UNKNOWN',
+  component_id: 'UNKNOWN',
+  user: {
+    user_id: 'abc',
+    email: '',
+    phone: 'UNKNOWN',
+    ip_address: '',
+    session_id: '',
+    persistent_session_id: '',
+    govuk_signin_journey_id: '',
+  },
+};
 
 const mockRetrieveRecords = DynamoDatabaseService.prototype.retrieveRecordsByUserId as jest.Mock;
 const mockUpdateRecords = DynamoDatabaseService.prototype.updateUserStatus as jest.Mock;
 const eventValidationMock = validateEvent as jest.Mock;
 const interventionEventValidationMock = validateInterventionEvent as jest.Mock;
 const accountStateEngine = AccountStateEngine.getInstance();
-accountStateEngine.getInterventionEnumFromCode = jest.fn().mockImplementation(() => { return EventsEnum.FRAUD_BLOCK_ACCOUNT });
+accountStateEngine.getInterventionEnumFromCode = jest.fn().mockImplementation(() => {
+  return EventsEnum.FRAUD_BLOCK_ACCOUNT;
+});
 describe('intervention processor handler', () => {
   let mockEvent: SQSEvent;
   let mockRecord: SQSRecord;
@@ -146,8 +148,8 @@ describe('intervention processor handler', () => {
       expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried.');
       expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_TRANSITION_IGNORED', 'abc', {
         intervention: EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
-        reason: 'State transition Error'
-      })
+        reason: 'State transition Error',
+      });
     });
 
     it('should succeed when an intervention event is received', async () => {
@@ -159,15 +161,15 @@ describe('intervention processor handler', () => {
           resetPassword: false,
           reproveIdentity: false,
         },
-        interventionName: EventsEnum.FRAUD_BLOCK_ACCOUNT
+        interventionName: EventsEnum.FRAUD_BLOCK_ACCOUNT,
       });
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_TRANSITION_APPLIED', 'abc', {
         intervention: EventsEnum.FRAUD_BLOCK_ACCOUNT,
-        appliedAt: 1_234_567_890
-      })
+        appliedAt: 1_234_567_890,
+      });
     });
 
     it('should succeed when an user action event is received', async () => {
@@ -187,8 +189,8 @@ describe('intervention processor handler', () => {
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_TRANSITION_APPLIED', 'abc', {
         intervention: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
-        appliedAt: 1_234_567_890
-      })
+        appliedAt: 1_234_567_890,
+      });
     });
 
     it('should not process the event if the user account is marked as deleted', async () => {
@@ -198,7 +200,7 @@ describe('intervention processor handler', () => {
         reproveIdentity: false,
         resetPassword: false,
         suspended: false,
-        isAccountDeleted: true
+        isAccountDeleted: true,
       });
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
@@ -207,8 +209,8 @@ describe('intervention processor handler', () => {
       expect(logger.warn).toHaveBeenLastCalledWith('Sensitive info - user abc account has been deleted.');
       expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED', 'abc', {
         intervention: EventsEnum.FRAUD_BLOCK_ACCOUNT,
-        reason: 'Target user account is marked as deleted.'
-      })
+        reason: 'Target user account is marked as deleted.',
+      });
     });
 
     it('should fail as timestamp is in the future', async () => {
@@ -224,8 +226,8 @@ describe('intervention processor handler', () => {
       expect(logAndPublishMetric).toHaveBeenCalledWith('INTERVENTION_IGNORED_IN_FUTURE');
       expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_IGNORED_INFUTURE', 'abc', {
         intervention: EventsEnum.FRAUD_BLOCK_ACCOUNT,
-        reason: 'received event is in the future'
-      })
+        reason: 'received event is in the future',
+      });
     });
 
     it('should ignore the event if body is invalid', async () => {
@@ -259,9 +261,9 @@ describe('intervention processor handler', () => {
         suspended: false,
         isAccountDeleted: false,
         appliedAt: t0ms + 10,
-        sentAt: t0ms + 10000,
+        sentAt: t0ms + 10_000,
       });
-      expect(await handler({Records: [mockRecord]}, mockContext)).toEqual({
+      expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
         batchItemFailures: [],
       });
       expect(logger.warn).toHaveBeenCalledWith('Event received predates last applied event for this user.');
@@ -269,8 +271,8 @@ describe('intervention processor handler', () => {
       expect(sendAuditEvent).toHaveBeenCalledWith('AIS_INTERVENTION_IGNORED_STALE', 'abc', {
         intervention: EventsEnum.FRAUD_BLOCK_ACCOUNT,
         reason: 'Received intervention pre-dates latest applied intervention',
-      })
-    })
+      });
+    });
 
     it('should do additional checks if event is from fraud', async () => {
       eventValidationMock.mockReturnValueOnce(undefined);
@@ -280,7 +282,7 @@ describe('intervention processor handler', () => {
         reproveIdentity: false,
         resetPassword: false,
         suspended: false,
-        isAccountDeleted: true
+        isAccountDeleted: true,
       });
       mockRecord = {
         messageId: '123',
@@ -338,7 +340,7 @@ describe('intervention processor handler', () => {
           extensions: {
             levelOfConfidence: 'P1',
             ciFail: false,
-            hasMitigations: false
+            hasMitigations: false,
           },
         }),
         attributes: {
@@ -358,6 +360,6 @@ describe('intervention processor handler', () => {
       });
       expect(logAndPublishMetric).toHaveBeenCalledWith('CONFIDENCE_LEVEL_TOO_LOW');
       expect(logger.warn).toHaveBeenCalledWith('Received interventions has low level of confidence: P1');
-      });
+    });
   });
 });

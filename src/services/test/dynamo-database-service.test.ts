@@ -2,7 +2,8 @@ import {
   DynamoDBClient,
   QueryCommand,
   QueryCommandOutput,
-  UpdateItemCommand, UpdateItemCommandInput,
+  UpdateItemCommand,
+  UpdateItemCommandInput,
 } from '@aws-sdk/client-dynamodb';
 import { DynamoDatabaseService } from '../dynamo-database-service';
 import 'aws-sdk-client-mock-jest';
@@ -70,7 +71,6 @@ describe('Dynamo DB Service', () => {
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
   };
 
-
   it('should get all items successfully', async () => {
     queryCommandMock.resolves({ Items: items });
     const allItems = await new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc');
@@ -135,7 +135,7 @@ describe('Dynamo DB Service', () => {
   });
 
   it('should update the isAccountDeleted status of the userId in DynamoDB and log info', async () => {
-    updateCommandMock.resolves({$metadata : { httpStatusCode: 200 }});
+    updateCommandMock.resolves({ $metadata: { httpStatusCode: 200 } });
     const commandInput: UpdateItemCommandInput = {
       TableName: 'table_name',
       Key: { pk: { S: 'hello' } },
@@ -151,7 +151,7 @@ describe('Dynamo DB Service', () => {
       },
       ConditionExpression: 'attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false',
     };
-    const dynamoDBService = new DynamoDatabaseService('table_name')
+    const dynamoDBService = new DynamoDatabaseService('table_name');
     await dynamoDBService.updateDeleteStatus('hello');
     expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, commandInput);
   });
@@ -160,7 +160,7 @@ describe('Dynamo DB Service', () => {
     const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
     mockedUpdateCommand.resolves(undefined as any);
     const loggerErrorSpy = jest.spyOn(logger, 'error');
-    const dynamoDBService = new DynamoDatabaseService('table_name')
+    const dynamoDBService = new DynamoDatabaseService('table_name');
     await dynamoDBService.updateDeleteStatus('hello');
     expect(loggerErrorSpy).toHaveBeenCalledWith('DynamoDB may have failed to update items, returned a null response.');
     expect(logAndPublishMetric).toHaveBeenCalledWith('DB_UPDATE_ERROR');

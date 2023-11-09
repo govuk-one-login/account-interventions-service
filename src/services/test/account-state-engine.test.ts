@@ -1,10 +1,8 @@
-import {
-  AccountStateEngine,
-} from '../account-states/account-state-engine';
-import {AISInterventionTypes, EventsEnum, MetricNames} from '../../data-types/constants';
-import {StateEngineConfigurationError, StateTransitionError} from '../../data-types/errors';
+import { AccountStateEngine } from '../account-states/account-state-engine';
+import { AISInterventionTypes, EventsEnum, MetricNames } from '../../data-types/constants';
+import { StateEngineConfigurationError, StateTransitionError } from '../../data-types/errors';
 import { logAndPublishMetric } from '../../commons/metrics';
-import { TransitionConfigurationInterface } from "../../data-types/interfaces";
+import { TransitionConfigurationInterface } from '../../data-types/interfaces';
 
 const accountStateEngine = AccountStateEngine.getInstance();
 const accountIsSuspended = {
@@ -50,7 +48,7 @@ const blockAccountUpdate = {
     resetPassword: false,
     reproveIdentity: false,
   },
-  interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
 };
 const suspendAccountUpdate = {
   newState: {
@@ -59,7 +57,7 @@ const suspendAccountUpdate = {
     resetPassword: false,
     reproveIdentity: false,
   },
-  interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
 };
 const passwordResetRequiredUpdate = {
   newState: {
@@ -68,7 +66,7 @@ const passwordResetRequiredUpdate = {
     resetPassword: true,
     reproveIdentity: false,
   },
-  interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET
+  interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
 };
 const idResetRequiredUpdate = {
   newState: {
@@ -77,7 +75,7 @@ const idResetRequiredUpdate = {
     resetPassword: false,
     reproveIdentity: true,
   },
-  interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY
+  interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
 };
 const pswAndIdResetRequiredUpdate = {
   newState: {
@@ -86,7 +84,7 @@ const pswAndIdResetRequiredUpdate = {
     resetPassword: true,
     reproveIdentity: true,
   },
-  interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY
+  interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
 };
 const unsuspendAccountUpdate = {
   newState: {
@@ -95,7 +93,7 @@ const unsuspendAccountUpdate = {
     resetPassword: false,
     reproveIdentity: false,
   },
-  interventionName: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
 };
 const unblockAccountUpdate = {
   newState: {
@@ -104,15 +102,15 @@ const unblockAccountUpdate = {
     resetPassword: false,
     reproveIdentity: false,
   },
-  interventionName: AISInterventionTypes.AIS_ACCOUNT_UNBLOCKED
-}
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_UNBLOCKED,
+};
 const pswResetSuccessfulUpdateUnsuspended = {
   newState: {
     blocked: false,
     suspended: false,
     resetPassword: false,
     reproveIdentity: false,
-  }
+  },
 };
 const pswResetSuccessfulUpdateSuspended = {
   newState: {
@@ -137,7 +135,7 @@ const idResetSuccessfulUpdateSuspended = {
     resetPassword: true,
     reproveIdentity: false,
   },
-}
+};
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -272,9 +270,11 @@ describe('account-state-service', () => {
       expect(accountStateEngine.getInterventionEnumFromCode(3)).toEqual(expectedState);
     });
     it('should throw a configuration error if code cannot be found in current configurations', () => {
-      expect(() => accountStateEngine.getInterventionEnumFromCode(111)).toThrow(new StateEngineConfigurationError('code: 111 is not found in current configuration'));
-    })
-  })
+      expect(() => accountStateEngine.getInterventionEnumFromCode(111)).toThrow(
+        new StateEngineConfigurationError('code: 111 is not found in current configuration'),
+      );
+    });
+  });
 
   describe('Unsuccessful state transitions', () => {
     describe('received intervention is not allowed on current account state', () => {
@@ -308,7 +308,9 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsBlocked],
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountIsBlocked],
       ])('%p applied on account state: %p', (intervention, retrievedAccountState) => {
-        expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(new StateTransitionError(`${intervention} is not allowed from current state`, intervention));
+        expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(
+          new StateTransitionError(`${intervention} is not allowed from current state`, intervention),
+        );
       });
     });
     describe('current state account could not be found in current config', () => {
@@ -329,9 +331,11 @@ describe('account-state-service', () => {
 
   describe('Configuration errors', () => {
     it('should throw when given code cannot be found in configuration', () => {
-      expect(() => accountStateEngine.getInterventionEnumFromCode(111)).toThrow(new StateEngineConfigurationError('code: 111 is not found in current configuration'));
+      expect(() => accountStateEngine.getInterventionEnumFromCode(111)).toThrow(
+        new StateEngineConfigurationError('code: 111 is not found in current configuration'),
+      );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_CODE_NOT_FOUND_IN_CONFIG);
-    })
+    });
     it('should throw when the computed state is the same as the current state', () => {
       const invalidConfig: TransitionConfigurationInterface = {
         nodes: {
@@ -356,19 +360,21 @@ describe('account-state-service', () => {
             to: 'AccountIsBlocked',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
-          }
-        }
-      }
+          },
+        },
+      };
       Object.defineProperty(AccountStateEngine, 'configuration', {
         writable: true,
         value: invalidConfig,
       });
 
-      expect(() =>
-        accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay),
-      ).toThrow(new StateTransitionError('Computed new state is the same as the current state.', EventsEnum.FRAUD_BLOCK_ACCOUNT));
+      expect(() => accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay)).toThrow(
+        new StateTransitionError(
+          'Computed new state is the same as the current state.',
+          EventsEnum.FRAUD_BLOCK_ACCOUNT,
+        ),
+      );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.TRANSITION_SAME_AS_CURRENT_STATE);
-
     });
     it('should throw when there are no configured transition for a given state', () => {
       const invalidConfig: TransitionConfigurationInterface = {
@@ -394,19 +400,20 @@ describe('account-state-service', () => {
             to: 'AccountIsBlocked',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
-          }
-        }
-      }
+          },
+        },
+      };
       Object.defineProperty(AccountStateEngine, 'configuration', {
         writable: true,
         value: invalidConfig,
       });
 
-      expect(() =>
-        accountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsBlocked),
-      ).toThrow(new StateEngineConfigurationError('There are no allowed transitions from state AccountIsBlocked in current configurations'));
+      expect(() => accountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsBlocked)).toThrow(
+        new StateEngineConfigurationError(
+          'There are no allowed transitions from state AccountIsBlocked in current configurations',
+        ),
+      );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.NO_TRANSITIONS_FOUND_IN_CONFIG);
-
     });
     it('should throw when the proposed transition points to a non-existing state in current config', () => {
       const invalidConfig: TransitionConfigurationInterface = {
@@ -432,19 +439,18 @@ describe('account-state-service', () => {
             to: 'AccountIsNotOkay',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
-          }
-        }
-      }
+          },
+        },
+      };
       Object.defineProperty(AccountStateEngine, 'configuration', {
         writable: true,
         value: invalidConfig,
       });
 
-      expect(() =>
-        accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay),
-      ).toThrow(new StateEngineConfigurationError('state AccountIsNotOkay not found in current config.'));
+      expect(() => accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay)).toThrow(
+        new StateEngineConfigurationError('state AccountIsNotOkay not found in current config.'),
+      );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
-
     });
     it('should throw when the the configuration object fails validation because not all nodes have an adjacency list', () => {
       const invalidConfig: TransitionConfigurationInterface = {
@@ -470,9 +476,9 @@ describe('account-state-service', () => {
             to: 'AccountIsOkay',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
-          }
-        }
-      }
+          },
+        },
+      };
       Object.defineProperty(AccountStateEngine, 'instance', {
         writable: true,
         value: undefined,
@@ -482,9 +488,9 @@ describe('account-state-service', () => {
         value: invalidConfig,
       });
 
-      expect(() =>
-        AccountStateEngine.getInstance()
-      ).toThrow(new StateEngineConfigurationError('Invalid state engine configuration detected. Adjacency mismatch'));
+      expect(() => AccountStateEngine.getInstance()).toThrow(
+        new StateEngineConfigurationError('Invalid state engine configuration detected. Adjacency mismatch'),
+      );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION);
     });
     it('should throw when the the configuration object fails validation because at least one edge points to a non-existing node', () => {
@@ -505,16 +511,16 @@ describe('account-state-service', () => {
         },
         adjacency: {
           AccountIsOkay: [1],
-          AccountIsBlocked: [1]
+          AccountIsBlocked: [1],
         },
         edges: {
           1: {
             to: 'AccountIsNotOkay',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
-          }
-        }
-      }
+          },
+        },
+      };
       Object.defineProperty(AccountStateEngine, 'instance', {
         writable: true,
         value: undefined,
@@ -524,9 +530,9 @@ describe('account-state-service', () => {
         value: invalidConfig,
       });
 
-      expect(() =>
-        AccountStateEngine.getInstance()
-      ).toThrow(new StateEngineConfigurationError('Invalid state engine configuration detected. Edge mismatch'));
+      expect(() => AccountStateEngine.getInstance()).toThrow(
+        new StateEngineConfigurationError('Invalid state engine configuration detected. Edge mismatch'),
+      );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION);
     });
   });

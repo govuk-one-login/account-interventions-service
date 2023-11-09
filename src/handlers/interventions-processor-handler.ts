@@ -78,7 +78,6 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       itemFailures.push({
         itemIdentifier: record.messageId,
       });
-      return;
     } else {
       const itemFromDB = await service.retrieveRecordsByUserId(userId);
       if (itemFromDB?.isAccountDeleted === true) {
