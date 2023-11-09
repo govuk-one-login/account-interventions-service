@@ -39,7 +39,7 @@ const interventionEventBody = {
     user_id: 'abc',
   },
   event_name: TICF_ACCOUNT_INTERVENTION,
-  extension: {
+  extensions: {
     intervention: {
       intervention_code: '01',
       intervention_reason: 'reason',
@@ -54,7 +54,7 @@ const interventionEventBodyInTheFuture = {
     user_id: 'abc',
   },
   event_name: TICF_ACCOUNT_INTERVENTION,
-  extension: {
+  extensions: {
     intervention: {
       intervention_code: '01',
       intervention_reason: 'reason',

@@ -67,8 +67,17 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       return;
     }
 
-    if (isTimestampNotInFuture(eventTimestampInMs)) {
-      logger.debug('identified event: ' + intervention);
+    if (isTimestampInFuture(eventTimestampInMs)) {
+      await sendAuditEvent('AIS_INTERVENTION_IGNORED_INFUTURE', userId, {
+        intervention,
+        reason: 'received event is in the future',
+        appliedAt: undefined,
+      });
+      itemFailures.push({
+        itemIdentifier: record.messageId,
+      });
+      return;
+    } else {
       const itemFromDB = await service.retrieveRecordsByUserId(userId);
       if (itemFromDB?.isAccountDeleted === true) {
         logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
@@ -104,16 +113,6 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
         });
         return;
       }
-    } else {
-      await sendAuditEvent('AIS_INTERVENTION_IGNORED_INFUTURE', userId, {
-        intervention,
-        reason: 'received event is in the future',
-        appliedAt: undefined,
-      });
-      itemFailures.push({
-        itemIdentifier: record.messageId,
-      });
-      return;
     }
   } catch (error) {
     if (error instanceof ValidationError) {
@@ -142,7 +141,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
  *
  * @param recordTimeStampInMs - timestamp in ms from record
  */
-function isTimestampNotInFuture(recordTimeStampInMs: number): boolean {
+function isTimestampInFuture(recordTimeStampInMs: number): boolean {
   const now = getCurrentTimestamp().milliseconds;
   if (now < recordTimeStampInMs) {
     logger.debug(`Timestamp is in the future (sec): ${recordTimeStampInMs}.`);
