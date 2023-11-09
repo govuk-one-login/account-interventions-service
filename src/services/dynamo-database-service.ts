@@ -140,7 +140,7 @@ export class DynamoDatabaseService {
       logAndPublishMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
       return response;
     } catch (error: any) {
-      if (!error.name || error.name != 'ConditionalCheckFailedException') {
+      if (!error.name || error.name !== 'ConditionalCheckFailedException') {
         logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} Error updating item with pk ${userId}.`);
         logAndPublishMetric(MetricNames.DB_UPDATE_ERROR);
         throw new Error('Error was not a Conditional Check Exception.'); //Therefore re-driving message back to the queue.

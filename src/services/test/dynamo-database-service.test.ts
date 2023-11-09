@@ -11,7 +11,7 @@ import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import logger from '../../commons/logger';
 import { TooManyRecordsError } from '../../data-types/errors';
 import { logAndPublishMetric } from '../../commons/metrics';
-import { MetricNames} from '../../data-types/constants';
+import { MetricNames } from '../../data-types/constants';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -151,7 +151,7 @@ describe('Dynamo DB Service', () => {
       },
       ConditionExpression: 'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
     };
-    const dynamoDBService = new DynamoDatabaseService('table_name')
+    const dynamoDBService = new DynamoDatabaseService('table_name');
     await dynamoDBService.updateDeleteStatus('hello');
     expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, commandInput);
   });
