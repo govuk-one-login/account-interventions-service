@@ -51,7 +51,7 @@ export interface TxMAIngressEvent {
   event_timestamp_ms?: number;
   component_id?: string;
   user: TxmaUser;
-  extension?: IngressEventExtension;
+  extensions?: IngressEventExtension;
 }
 
 export interface TxmaUser {
@@ -59,7 +59,10 @@ export interface TxmaUser {
 }
 
 interface IngressEventExtension {
-  intervention: Intervention;
+  intervention?: Intervention;
+  levelOfConfidence?: string;
+  ciFail?: boolean;
+  hasMitigations?: boolean;
 }
 
 interface Intervention {

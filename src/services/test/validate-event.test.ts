@@ -18,7 +18,7 @@ describe('event-validation', () => {
         user_id: 'abc',
       },
       event_name: 'event',
-      extension: {
+      extensions: {
         intervention: {
           intervention_code: '01',
           intervention_reason: 'reason',
@@ -36,7 +36,7 @@ describe('event-validation', () => {
         user_id: 'abc',
       },
       event_name: 'event',
-      extension: {
+      extensions: {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         intervention: {
@@ -57,7 +57,7 @@ describe('event-validation', () => {
       // @ts-ignore
       user: {},
       event_name: 'event',
-      extension: {
+      extensions: {
         intervention: {
           intervention_code: '01',
           intervention_reason: 'reason',

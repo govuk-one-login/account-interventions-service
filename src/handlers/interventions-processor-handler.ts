@@ -61,6 +61,12 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
     const userId = recordBody.user.user_id;
     const intervention = getInterventionName(recordBody);
 
+    if (intervention === EventsEnum.IPV_IDENTITY_ISSUED && recordBody.extensions?.levelOfConfidence !== 'P2') {
+      logger.warn(`Received interventions has low level of confidence: ${recordBody.extensions?.levelOfConfidence}`);
+      logAndPublishMetric(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
+      return;
+    }
+
     if (isTimestampNotInFuture(eventTimestampInMs)) {
       logger.debug('identified event: ' + intervention);
       const itemFromDB = await service.retrieveRecordsByUserId(userId);
@@ -107,6 +113,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       itemFailures.push({
         itemIdentifier: record.messageId,
       });
+      return;
     }
   } catch (error) {
     if (error instanceof ValidationError) {
@@ -140,9 +147,9 @@ function isTimestampNotInFuture(recordTimeStampInMs: number): boolean {
   if (now < recordTimeStampInMs) {
     logger.debug(`Timestamp is in the future (sec): ${recordTimeStampInMs}.`);
     logAndPublishMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
-    return false;
+    return true;
   }
-  return true;
+  return false;
 }
 
 /**
@@ -154,7 +161,7 @@ function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
   if (recordBody.event_name === TICF_ACCOUNT_INTERVENTION) {
     validateInterventionEvent(recordBody);
-    const interventionCode = Number.parseInt(recordBody.extension!.intervention.intervention_code);
+    const interventionCode = Number.parseInt(recordBody.extensions!.intervention!.intervention_code);
     return accountStateEngine.getInterventionEnumFromCode(interventionCode);
   }
   return recordBody.event_name as EventsEnum;
