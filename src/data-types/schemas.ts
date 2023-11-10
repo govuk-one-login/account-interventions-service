@@ -1,7 +1,9 @@
+import { EventsEnum, TICF_ACCOUNT_INTERVENTION } from './constants';
+
 export const TxMAIngress = {
   definitions: {},
   $schema: 'http://json-schema.org/draft-07/schema#',
-  $id: 'https://example.com/object1689242392.json',
+  $id: 'https://github.com/govuk-one-login/account-interventions-service/tree/main/data-types/schemas.ts',
   title: 'Fraud Risk Engine Intervention Event',
   description: 'This schema validates the event that is received from TxMA Ingress',
   type: 'object',
@@ -12,6 +14,9 @@ export const TxMAIngress = {
       title: 'Event',
       type: 'object',
       required: ['timestamp', 'event_name', 'user'],
+      if: { properties: { event_name: { enum: [EventsEnum.IPV_IDENTITY_ISSUED, TICF_ACCOUNT_INTERVENTION] } } },
+      // eslint-disable-next-line unicorn/no-thenable
+      then: { required: ['extensions'] },
       properties: {
         timestamp: {
           $id: '#root/event/timestamp',
@@ -26,7 +31,12 @@ export const TxMAIngress = {
         event_name: {
           $id: '#root/event/event_name',
           title: 'Event_Name',
-          type: 'string',
+          enum: [
+            TICF_ACCOUNT_INTERVENTION,
+            EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
+            EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+            EventsEnum.IPV_IDENTITY_ISSUED,
+          ],
         },
         component_id: {
           $id: '#root/event/component_id',
@@ -119,37 +129,8 @@ export const TxMAIngress = {
               pattern: '^[^,\\s]+$',
               minLength: 3,
             },
-            email: {
-              $id: '#root/event/email',
-              title: 'Email',
-              type: 'string',
-            },
-            phone: {
-              $id: '#root/event/phone',
-              title: 'Phone',
-              type: 'string',
-            },
-            ip_address: {
-              $id: '#root/event/ip_address',
-              title: 'Ip_address',
-              type: 'string',
-            },
-            session_id: {
-              $id: '#root/event/session_id',
-              title: 'Session_id',
-              type: 'string',
-            },
-            persistent_session_id: {
-              $id: '#root/event/persistent_session_id',
-              title: 'Persistent_session_id',
-              type: 'string',
-            },
-            govuk_signin_journey_id: {
-              $id: '#root/event/govuk_signin_journey_id',
-              title: 'GOVUK_signin_journey_id',
-              type: 'string',
-            },
           },
+          additionalProperties: true,
         },
       },
     },

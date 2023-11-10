@@ -1,7 +1,7 @@
 import { TxMAIngressEvent } from '../data-types/interfaces';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
-import { MetricNames } from '../data-types/constants';
+import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
 import { ValidationError } from '../data-types/errors';
 import { compileSchema } from '../commons/compile-schema';
 import { TxMAIngress } from '../data-types/schemas';
@@ -15,7 +15,9 @@ const validateInterventionDataInput = compileSchema(TxMAIngress);
  */
 export function validateEvent(interventionRequest: TxMAIngressEvent): void {
   if (!validateInterventionDataInput({ event: interventionRequest })) {
-    logger.debug('event has failed schema validation');
+    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Event has failed schema validation.`, {
+      validationErrors: validateInterventionDataInput.errors,
+    });
     logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
     throw new ValidationError('Invalid intervention event.');
   }
@@ -28,7 +30,7 @@ export function validateEvent(interventionRequest: TxMAIngressEvent): void {
  */
 export function validateInterventionEvent(interventionRequest: TxMAIngressEvent): void {
   if (Number.isNaN(Number.parseInt(interventionRequest.extensions!.intervention!.intervention_code))) {
-    logger.debug('Invalid intervention request.');
+    logger.debug('Invalid intervention request. Intervention code is NAN');
     logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
     throw new ValidationError('Invalid intervention event.');
   }
