@@ -251,7 +251,7 @@ describe('intervention processor handler', () => {
       });
     });
 
-    it('should not process the event and return if the event timestamp pre-dates the latest applied intervention for the user ', async () => {
+    it('should not process the event and return if the event timestamp predates the latest applied intervention for the user ', async () => {
       eventValidationMock.mockReturnValueOnce(undefined);
       interventionEventValidationMock.mockReturnValue(void 0);
       mockRetrieveRecords.mockReturnValue({
@@ -270,7 +270,7 @@ describe('intervention processor handler', () => {
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
       expect(sendAuditEvent).toHaveBeenCalledWith('AIS_INTERVENTION_IGNORED_STALE', 'abc', {
         intervention: EventsEnum.FRAUD_BLOCK_ACCOUNT,
-        reason: 'Received intervention pre-dates latest applied intervention',
+        reason: 'Received intervention predates latest applied intervention',
       });
     });
 
@@ -317,7 +317,7 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
     });
-    it('should not retry if too many items returned', async () => {
+    it('should not retry if too many items are returned', async () => {
       eventValidationMock.mockReturnValueOnce(undefined);
       mockRetrieveRecords.mockRejectedValueOnce(new TooManyRecordsError('Too many records'));
       expect(await handler(mockEvent, mockContext)).toEqual({

@@ -112,7 +112,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
         await sendAuditEvent('AIS_INTERVENTION_IGNORED_STALE', userId, {
           intervention,
           appliedAt: undefined,
-          reason: 'Received intervention pre-dates latest applied intervention',
+          reason: 'Received intervention predates latest applied intervention',
         });
         return;
       }
