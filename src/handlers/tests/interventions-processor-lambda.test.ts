@@ -224,7 +224,7 @@ describe('intervention processor handler', () => {
         ],
       });
       expect(logAndPublishMetric).toHaveBeenCalledWith('INTERVENTION_IGNORED_IN_FUTURE');
-      expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_IGNORED_INFUTURE', 'abc', {
+      expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_IGNORED_IN_FUTURE', 'abc', {
         intervention: EventsEnum.FRAUD_BLOCK_ACCOUNT,
         reason: 'received event is in the future',
       });

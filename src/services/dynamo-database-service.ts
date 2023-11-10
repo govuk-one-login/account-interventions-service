@@ -14,9 +14,9 @@ import { NodeHttpHandler } from '@smithy/node-http-handler';
 import tracer from '../commons/tracer';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { logAndPublishMetric } from '../commons/metrics';
-import { TooManyRecordsError } from '../data-types/errors';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { DynamoDBStateResult } from '../data-types/interfaces';
+import { TooManyRecordsError } from '../data-types/errors';
 
 const appConfig = AppConfigService.getInstance();
 export class DynamoDatabaseService {
@@ -130,15 +130,22 @@ export class DynamoDatabaseService {
         ':ttl': { N: ttl.toString() },
         ':false': { BOOL: false },
       },
-      ConditionExpression: 'attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false',
+      ConditionExpression:
+        'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
     };
     const command = new UpdateItemCommand(commandInput);
-    const response = await this.dynamoClient.send(command);
-    if (!response) {
-      const errorMessage = 'DynamoDB may have failed to update items, returned a null response.';
-      logger.error(errorMessage);
-      logAndPublishMetric(MetricNames.DB_UPDATE_ERROR);
+    try {
+      const response = await this.dynamoClient.send(command);
+      logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Account ${userId} marked as deleted.`);
+      logAndPublishMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
+      return response;
+    } catch (error: any) {
+      if (!error.name || error.name !== 'ConditionalCheckFailedException') {
+        logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} Error updating item with pk ${userId}.`);
+        logAndPublishMetric(MetricNames.DB_UPDATE_ERROR);
+        throw new Error('Error was not a Conditional Check Exception.'); //Therefore re-driving message back to the queue.
+      }
+      logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} No intervention exists for this account ${userId}.`);
     }
-    return response;
   }
 }

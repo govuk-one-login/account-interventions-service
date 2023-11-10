@@ -127,11 +127,4 @@ describe('Account Deletion Processor', () => {
     await expect(handler(mockEvent, mockContext)).rejects.toThrowError('Failed to update the account status.');
     expect(loggerErrorSpy).toHaveBeenCalledWith(`Sensitive info - Error updating account hello`, { error: 'Error' });
   });
-
-  it('should update the status of the userId in DynamoDB and log info', async () => {
-    mockDynamoDBServiceUpdateDeleteStatus.mockReturnValue(['1']);
-    const loggerInfoSpy = jest.spyOn(logger, 'info');
-    await handler(mockEvent, mockContext);
-    expect(loggerInfoSpy).toHaveBeenCalledWith(`Sensitive info - Account hello marked as deleted`);
-  });
 });
