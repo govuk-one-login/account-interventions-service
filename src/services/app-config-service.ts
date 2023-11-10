@@ -55,6 +55,10 @@ export class AppConfigService {
     return prefix + endpoint;
   }
 
+  public get queryParameters() {
+    return this.validateConfiguration('QUERY_PARAMETERS');
+  }
+
   public get httpRequestMethod() {
     return this.validateConfiguration('HTTP_REQUEST_METHOD');
   }

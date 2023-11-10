@@ -734,6 +734,7 @@ Resources:
               - !GetAtt PrivateRestApi.RestApiId
               - !Sub .execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}
           END_POINT: /ais
+          QUERY_PARAMETERS: ""
           HTTP_REQUEST_METHOD: GET
       Handler: invoke-private-api.handle
       VpcConfig:

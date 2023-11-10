@@ -3,6 +3,7 @@ import logger from '../commons/logger';
 
 interface CustomEvent {
   userId?: string;
+  queryParameters?: string
   headers?: {
     [key: string]: string;
   };
@@ -12,6 +13,7 @@ const appConfig = AppConfigService.getInstance();
 
 export const handle = async (event: CustomEvent) => {
   const userId = event.userId || appConfig.userId;
+  const queryParameters = event.queryParameters || appConfig.queryParameters;
 
   if (!userId) {
     return {
@@ -25,7 +27,7 @@ export const handle = async (event: CustomEvent) => {
   const endpoint = appConfig.endpoint;
   const httpRequestMethod = appConfig.httpRequestMethod;
 
-  const url = `${baseUrl}${endpoint}/${userId}`;
+  const url = `${baseUrl}${endpoint}/${userId}?${queryParameters}`;
   logger.info(`invoking the url: ${url}`);
 
   const responsePromise = await fetch(url, {
