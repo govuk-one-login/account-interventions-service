@@ -13,6 +13,7 @@ import logger from '../../commons/logger';
 import { TooManyRecordsError } from '../../data-types/errors';
 import { logAndPublishMetric } from '../../commons/metrics';
 import { MetricNames } from '../../data-types/constants';
+import { undefinedResponseFromDynamoDatabase } from '../../data-types/constants';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -81,7 +82,7 @@ describe('Dynamo DB Service', () => {
       suspended: false,
     });
   });
-
+  
   it('should return undefined if a user has no record.', async () => {
     queryCommandMock.resolves({ Items: [] });
     const allItems = await new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc');
@@ -100,6 +101,18 @@ describe('Dynamo DB Service', () => {
     await new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc');
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, QueryCommandInput);
   });
+
+  it('should check that the query of the full record is being called correctly.', async () => {
+    const QueryCommandInput = {
+      TableName: 'abc',
+      KeyConditionExpression: '#pk = :id_value',
+      ExpressionAttributeNames: { '#pk': 'pk' },
+      ExpressionAttributeValues: { ':id_value': { S: 'abc' } },
+    };
+    queryCommandMock.resolvesOnce({ Items: items });
+    await new DynamoDatabaseService('abc').queryRecordFromDynamoDatabase('abc');
+    expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, QueryCommandInput);
+  })
 
   it('should return expected response if update was successful.', async () => {
     queryCommandMock.resolvesOnce({ Items: items });
