@@ -109,6 +109,11 @@ Deployments to the dev environment will create a lambda that can be used to invo
 
 #### How to use the InvokePrivateAPIGatewayFunction lambda:
 The environment variables contain the configurations for the baseurl, endpoint and the http request method. These values are generated automatically, but they can also be updated if required. Note that at the moment the lambda is not set up to work for a post request, so changes to the lambda will need to be made if post requests become a requirement.
+
 The endpoint also requires a userId as a path parameter. This lambda allows you to set the userId in two ways:
-1. Update the environment variable: USER_ID
+1. Update the environment variable: USER_ID.
 2. Pass the userId in the lambda's event body in this format: `{ "userId": "<the-userId>" }`
+
+If you require the history as part of the response you can pass this as a query string parameter to the endpoint. The lambda allows you to do this in two ways:
+1. Update the environment variable: QUERY_PARAMETERS with the value `history=true`
+2. Add the key queryParameters in the lambda's event body. The event body will be in this format: `{ "userId": "<the-useId>", "queryParameters": "history=true" }`
