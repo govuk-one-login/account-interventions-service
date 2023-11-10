@@ -1,7 +1,7 @@
 [
   {
     "ParameterKey": "AllowedAccounts",
-    "ParameterValue": ""
+    "ParameterValue": "217747075921"
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
@@ -41,7 +41,7 @@
   },
   {
     "ParameterKey": "IncludePromotion",
-    "ParameterValue": "No"
+    "ParameterValue": "Yes"
   },
   {
     "ParameterKey": "InvokableLambdaAccounts",

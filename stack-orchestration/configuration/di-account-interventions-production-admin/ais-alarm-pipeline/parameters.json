@@ -1,11 +1,11 @@
 [
   {
     "ParameterKey": "AllowedAccounts",
-    "ParameterValue": "217747075921"
+    "ParameterValue": ""
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
-    "ParameterValue": "arn:aws:s3:::ais-core-pipeline-artifactpromotionbucket-fbdxmvogrdqf"
+    "ParameterValue": ""
   },
   {
     "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
@@ -17,7 +17,7 @@
   },
   {
     "ParameterKey": "BuildNotificationStackName",
-    "ParameterValue": "infra-alerting"
+    "ParameterValue": "none"
   },
   {
     "ParameterKey": "ContainerSignerKmsKeyArn",
@@ -29,7 +29,7 @@
   },
   {
     "ParameterKey": "Environment",
-    "ParameterValue": "staging"
+    "ParameterValue": "production"
   },
   {
     "ParameterKey": "GitHubRepositoryName",
@@ -41,7 +41,7 @@
   },
   {
     "ParameterKey": "IncludePromotion",
-    "ParameterValue": "Yes"
+    "ParameterValue": "No"
   },
   {
     "ParameterKey": "InvokableLambdaAccounts",
@@ -61,7 +61,7 @@
   },
   {
     "ParameterKey": "SAMStackName",
-    "ParameterValue": "ais-core"
+    "ParameterValue": "ais-alarm"
   },
   {
     "ParameterKey": "SigningProfileArn",

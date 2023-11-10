@@ -1,7 +1,7 @@
 [
   {
     "ParameterKey": "AllowedAccounts",
-    "ParameterValue": "217747075921"
+    "ParameterValue": "324281879537"
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
@@ -17,7 +17,7 @@
   },
   {
     "ParameterKey": "BuildNotificationStackName",
-    "ParameterValue": "infra-alerting"
+    "ParameterValue": "none"
   },
   {
     "ParameterKey": "ContainerSignerKmsKeyArn",
@@ -29,7 +29,7 @@
   },
   {
     "ParameterKey": "Environment",
-    "ParameterValue": "staging"
+    "ParameterValue": "integration"
   },
   {
     "ParameterKey": "GitHubRepositoryName",
@@ -41,7 +41,7 @@
   },
   {
     "ParameterKey": "IncludePromotion",
-    "ParameterValue": "Yes"
+    "ParameterValue": "No"
   },
   {
     "ParameterKey": "InvokableLambdaAccounts",
