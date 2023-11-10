@@ -1,11 +1,11 @@
 [
   {
     "ParameterKey": "AllowedAccounts",
-    "ParameterValue": "324281879537"
+    "ParameterValue": ""
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
-    "ParameterValue": "arn:aws:s3:::ais-core-pipeline-artifactpromotionbucket-fbdxmvogrdqf"
+    "ParameterValue": "arn:aws:s3:::ais-core-pipeline-artifactpromotionbucket-dmwyj3pzhxvx"
   },
   {
     "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
