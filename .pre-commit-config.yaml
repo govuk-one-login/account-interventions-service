@@ -39,7 +39,7 @@ repos:
     hooks:
       - id: detect-secrets
         args: [ '--baseline', '.secrets.baseline' ]
-        exclude: 'package.json|yarn.lock|jest.config.js|src/.*/.*.test.ts|src/infra/main/template.yaml'
+        exclude: 'package.json|yarn.lock|jest.config.js|src/.*/.*.test.ts'
 
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.4.0

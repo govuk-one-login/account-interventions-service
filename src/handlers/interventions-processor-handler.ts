@@ -70,7 +70,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
     }
 
     if (isTimestampInFuture(eventTimestampInMs)) {
-      await sendAuditEvent('AIS_INTERVENTION_IGNORED_INFUTURE', userId, {
+      await sendAuditEvent('AIS_INTERVENTION_IGNORED_IN_FUTURE', userId, {
         intervention,
         reason: 'received event is in the future',
         appliedAt: undefined,

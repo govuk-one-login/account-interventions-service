@@ -131,7 +131,7 @@ describe('intervention processor handler', () => {
       expect(logAndPublishMetric).toHaveBeenCalledWith('INTERVENTION_EVENT_INVALID');
     });
 
-    it('it should not retry the record if a StateTransitionError is received', async () => {
+    it('should not retry the record if a StateTransitionError is received', async () => {
       eventValidationMock.mockReturnValueOnce(undefined);
       mockRetrieveRecords.mockReturnValue({
         blocked: false,

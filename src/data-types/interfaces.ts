@@ -27,7 +27,7 @@ export type TxMAEgressEventName =
   | 'AIS_INTERVENTION_TRANSITION_APPLIED'
   | 'AIS_INTERVENTION_TRANSITION_IGNORED'
   | 'AIS_INTERVENTION_IGNORED_STALE'
-  | 'AIS_INTERVENTION_IGNORED_INFUTURE'
+  | 'AIS_INTERVENTION_IGNORED_IN_FUTURE'
   | 'AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED';
 
 export interface TxMAEgressEvent {
@@ -98,8 +98,8 @@ export interface AccountStatus {
   appliedAt: number;
   sentAt: number;
   description: string;
-  reprovedIdentityAt: number | undefined;
-  resetPasswordAt: number | undefined;
+  reprovedIdentityAt?: number;
+  resetPasswordAt?: number;
   state: {
     blocked: boolean;
     suspended: boolean;

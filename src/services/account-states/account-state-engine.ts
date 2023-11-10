@@ -152,7 +152,7 @@ export class AccountStateEngine {
 }
 
 /**
- * Helper method to build a StateTransitionError and log relevant information when an error is to br thrown
+ * Helper method to build a StateTransitionError and log relevant information when this type of error is to be thrown
  * @param metricName - name of the metric to log
  * @param errorMessage - error message to be logged
  * @param transition - EventEnum representation of transition
@@ -162,6 +162,12 @@ function buildStateTransitionError(metricName: MetricNames, errorMessage: string
   logger.error({ message: errorMessage });
   return new StateTransitionError(errorMessage, transition);
 }
+
+/**
+ * Helper method to build a ConfigurationError and log relevant information when this type of error is to be thrown
+ * @param metricName
+ * @param errorMessage
+ */
 function buildConfigurationError(metricName: MetricNames, errorMessage: string) {
   logAndPublishMetric(metricName);
   logger.error({ message: errorMessage });

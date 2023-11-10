@@ -25,11 +25,11 @@ export async function sendAuditEvent(
 ): Promise<SendMessageCommandOutput | undefined> {
   logger.debug('sendAuditEvent function.');
 
-  const timestamps = getCurrentTimestamp();
+  const timestamp = getCurrentTimestamp();
   const txmaEvent: TxMAEgressEvent = {
-    timestamp: timestamps.seconds,
-    event_timestamp_ms: timestamps.milliseconds,
-    event_timestamp_ms_formatted: timestamps.isoString,
+    timestamp: timestamp.seconds,
+    event_timestamp_ms: timestamp.milliseconds,
+    event_timestamp_ms_formatted: timestamp.isoString,
     component_id: COMPONENT_ID,
     event_name: eventName,
     user: { user_id: userId },

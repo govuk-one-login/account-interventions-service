@@ -15,7 +15,7 @@ jest.mock('../../commons/get-current-timestamp', () => ({
   }),
 }));
 describe('build-partial-update-state-command', () => {
-  it('should return a partial update update command given Auth successful password reset is applied is applied', () => {
+  it('should return a partial update command given Auth successful password reset is applied', () => {
     const state: StateDetails = {
       blocked: false,
       suspended: false,
@@ -45,7 +45,7 @@ describe('build-partial-update-state-command', () => {
     const command = buildPartialUpdateAccountStateCommand(state, userAction, 1111, 2222);
     expect(command).toEqual(expectedOutput);
   });
-  it('should return a partial update update command given IPV successful id reset is applied is applied', () => {
+  it('should return a partial update command given IPV successful id reset is applied', () => {
     const state: StateDetails = {
       blocked: false,
       suspended: false,
@@ -76,7 +76,7 @@ describe('build-partial-update-state-command', () => {
     expect(command).toEqual(expectedOutput);
   });
 
-  it('should return a partial update update command given an intervention is applied', () => {
+  it('should return a partial update command given an intervention is applied', () => {
     const state: StateDetails = {
       blocked: false,
       suspended: true,
