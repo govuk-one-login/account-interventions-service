@@ -53,10 +53,6 @@ Parameters:
     Description: Value for the Source Tag
     Type: String
     Default: govuk-one-login/account-interventions-service/src/infra/main/template.yaml
-  ApiStageName:
-    Description: The stage name of the API
-    Type: String
-    Default: v1
 
 Conditions:
   IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
