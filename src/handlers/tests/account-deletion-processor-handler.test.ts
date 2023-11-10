@@ -8,7 +8,7 @@ import { ContextExamples } from '@aws-lambda-powertools/commons';
 jest.mock('../../services/dynamo-database-service');
 jest.mock('@aws-sdk/util-dynamodb');
 jest.mock('../../commons/logger');
-jest.mock('@aws-lambda-powertools/metrics')
+jest.mock('@aws-lambda-powertools/metrics');
 
 const mockDynamoDBServiceUpdateDeleteStatus = DynamoDatabaseService.prototype.updateDeleteStatus as jest.Mock;
 
@@ -124,7 +124,7 @@ describe('Account Deletion Processor', () => {
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     const loggerErrorSpy = jest.spyOn(logger, 'error');
-    await expect (handler(mockEvent, mockContext)).rejects.toThrowError('Failed to update the account status.');
+    await expect(handler(mockEvent, mockContext)).rejects.toThrowError('Failed to update the account status.');
     expect(loggerErrorSpy).toHaveBeenCalledWith(`Sensitive info - Error updating account hello`, { error: 'Error' });
   });
 });

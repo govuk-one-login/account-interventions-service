@@ -1,4 +1,4 @@
-import { TxMAEvent } from '../data-types/interfaces';
+import { TxMAIngressEvent } from '../data-types/interfaces';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
 import { MetricNames } from '../data-types/constants';
@@ -9,7 +9,7 @@ import { ValidationError } from '../data-types/errors';
  *
  * @param interventionRequest - the TxMA request
  */
-export function validateEvent(interventionRequest: TxMAEvent): void {
+export function validateEvent(interventionRequest: TxMAIngressEvent): void {
   if (
     !interventionRequest.timestamp ||
     Number.isNaN(interventionRequest.timestamp) ||
@@ -27,7 +27,7 @@ export function validateEvent(interventionRequest: TxMAEvent): void {
  *
  * @param interventionRequest - the TxMA event
  */
-export function validateInterventionEvent(interventionRequest: TxMAEvent): void {
+export function validateInterventionEvent(interventionRequest: TxMAIngressEvent): void {
   if (
     !interventionRequest.extensions ||
     !interventionRequest.extensions.intervention ||

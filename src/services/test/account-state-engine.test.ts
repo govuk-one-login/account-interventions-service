@@ -1,316 +1,142 @@
-import {
-  AccountStateEngine,
-} from '../account-states/account-state-engine';
-import {AISInterventionTypes, EventsEnum, MetricNames} from '../../data-types/constants';
-import { StateTransitionError } from '../../data-types/errors';
+import { AccountStateEngine } from '../account-states/account-state-engine';
+import { AISInterventionTypes, EventsEnum, MetricNames } from '../../data-types/constants';
+import { StateEngineConfigurationError, StateTransitionError } from '../../data-types/errors';
 import { logAndPublishMetric } from '../../commons/metrics';
-import { TransitionConfigurationInterface } from "../../data-types/interfaces";
+import { TransitionConfigurationInterface } from '../../data-types/interfaces';
 
 const accountStateEngine = AccountStateEngine.getInstance();
-
 const accountIsSuspended = {
   blocked: false,
   suspended: true,
   resetPassword: false,
   reproveIdentity: false,
 };
-
 const accountNeedsPswReset = {
   blocked: false,
   suspended: true,
   resetPassword: true,
   reproveIdentity: false,
 };
-
 const accountIsOkay = {
   blocked: false,
   suspended: false,
   resetPassword: false,
   reproveIdentity: false,
 };
-
 const accountNeedsIDReset = {
   blocked: false,
   suspended: true,
   resetPassword: false,
   reproveIdentity: true,
 };
-
 const accountNeedsIDResetAdnPswReset = {
   blocked: false,
   suspended: true,
   resetPassword: true,
   reproveIdentity: true,
 };
-
 const accountIsBlocked = {
   blocked: true,
   suspended: false,
   resetPassword: false,
   reproveIdentity: false,
 };
-
 const blockAccountUpdate = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#INT': 'intervention',
-    '#AA': 'appliedAt',
-    '#H': 'history',
+  newState: {
+    blocked: true,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: true },
-    ':s': { BOOL: false },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':int': { S: 'AIS_ACCOUNT_BLOCKED' },
-    ':aa': { N: '1234567890' },
-    ':empty_list': { L: [] },
-    ':h': { L: [{ S: 'AIS_ACCOUNT_BLOCKED' }] },
-  },
-  UpdateExpression:
-    'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
 };
-
-const unblockAccountUpdate = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#INT': 'intervention',
-    '#AA': 'appliedAt',
-    '#H': 'history',
-  },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: false },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':int': { S: 'AIS_ACCOUNT_UNBLOCKED' },
-    ':aa': { N: '1234567890' },
-    ':empty_list': { L: [] },
-    ':h': { L: [{ S: 'AIS_ACCOUNT_UNBLOCKED' }] },
-  },
-  UpdateExpression:
-    'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
-};
-
 const suspendAccountUpdate = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#INT': 'intervention',
-    '#AA': 'appliedAt',
-    '#H': 'history',
+  newState: {
+    blocked: false,
+    suspended: true,
+    resetPassword: false,
+    reproveIdentity: false,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: true },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':int': { S: 'AIS_ACCOUNT_SUSPENDED' },
-    ':aa': { N: '1234567890' },
-    ':empty_list': { L: [] },
-    ':h': { L: [{ S: 'AIS_ACCOUNT_SUSPENDED' }] },
-  },
-  UpdateExpression:
-    'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
 };
-
-const unsuspendAccountUpdate = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#INT': 'intervention',
-    '#AA': 'appliedAt',
-    '#H': 'history',
-  },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: false },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':int': { S: 'AIS_ACCOUNT_UNSUSPENDED' },
-    ':aa': { N: '1234567890' },
-    ':empty_list': { L: [] },
-    ':h': { L: [{ S: 'AIS_ACCOUNT_UNSUSPENDED' }] },
-  },
-  UpdateExpression:
-    'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
-};
-
 const passwordResetRequiredUpdate = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#INT': 'intervention',
-    '#AA': 'appliedAt',
-    '#H': 'history',
+  newState: {
+    blocked: false,
+    suspended: true,
+    resetPassword: true,
+    reproveIdentity: false,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: true },
-    ':rp': { BOOL: true },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET' },
-    ':aa': { N: '1234567890' },
-    ':empty_list': { L: [] },
-    ':h': { L: [{ S: 'AIS_FORCED_USER_PASSWORD_RESET' }] },
-  },
-  UpdateExpression:
-    'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
+  interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
 };
-
 const idResetRequiredUpdate = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#INT': 'intervention',
-    '#AA': 'appliedAt',
-    '#H': 'history',
+  newState: {
+    blocked: false,
+    suspended: true,
+    resetPassword: false,
+    reproveIdentity: true,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: true },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: true },
-    ':ua': { N: '1234567890' },
-    ':int': { S: 'AIS_FORCED_USER_IDENTITY_VERIFY' },
-    ':aa': { N: '1234567890' },
-    ':empty_list': { L: [] },
-    ':h': { L: [{ S: 'AIS_FORCED_USER_IDENTITY_VERIFY' }] },
-  },
-  UpdateExpression:
-    'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
+  interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
 };
-
 const pswAndIdResetRequiredUpdate = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#INT': 'intervention',
-    '#AA': 'appliedAt',
-    '#H': 'history',
+  newState: {
+    blocked: false,
+    suspended: true,
+    resetPassword: true,
+    reproveIdentity: true,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: true },
-    ':rp': { BOOL: true },
-    ':ri': { BOOL: true },
-    ':ua': { N: '1234567890' },
-    ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY' },
-    ':aa': { N: '1234567890' },
-    ':empty_list': { L: [] },
-    ':h': { L: [{ S: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY' }] },
-  },
-  UpdateExpression:
-    'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
+  interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
 };
-
+const unsuspendAccountUpdate = {
+  newState: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
+  },
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
+};
+const unblockAccountUpdate = {
+  newState: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
+  },
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_UNBLOCKED,
+};
 const pswResetSuccessfulUpdateUnsuspended = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#RPswdA': 'resetPasswordAt',
+  newState: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: false },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':rpswda': { N: '1234567890' },
-  },
-  UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda',
 };
-
 const pswResetSuccessfulUpdateSuspended = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#RPswdA': 'resetPasswordAt',
+  newState: {
+    blocked: false,
+    suspended: true,
+    resetPassword: false,
+    reproveIdentity: true,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: true },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: true },
-    ':ua': { N: '1234567890' },
-    ':rpswda': { N: '1234567890' },
-  },
-  UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda',
 };
-
 const idResetSuccessfulUpdateUnsuspended = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#RIdA': 'reprovedIdentityAt',
+  newState: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
   },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: false },
-    ':rp': { BOOL: false },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':rida': { N: '1234567890' },
+};
+const idResetSuccessfulUpdateSuspended = {
+  newState: {
+    blocked: false,
+    suspended: true,
+    resetPassword: true,
+    reproveIdentity: false,
   },
-  UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida',
 };
 
-const idResetSuccessfulUpdateSuspended = {
-  ExpressionAttributeNames: {
-    '#B': 'blocked',
-    '#S': 'suspended',
-    '#RP': 'resetPassword',
-    '#RI': 'reproveIdentity',
-    '#UA': 'updatedAt',
-    '#RIdA': 'reprovedIdentityAt',
-  },
-  ExpressionAttributeValues: {
-    ':b': { BOOL: false },
-    ':s': { BOOL: true },
-    ':rp': { BOOL: true },
-    ':ri': { BOOL: false },
-    ':ua': { N: '1234567890' },
-    ':rida': { N: '1234567890' },
-  },
-  UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida',
-};
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
 jest.mock('../../commons/get-current-timestamp', () => ({
@@ -438,6 +264,18 @@ describe('account-state-service', () => {
     });
   });
 
+  describe('get intervention enum from code', () => {
+    it('should return the expected account state given a valid code', () => {
+      const expectedState = EventsEnum.FRAUD_BLOCK_ACCOUNT;
+      expect(accountStateEngine.getInterventionEnumFromCode(3)).toEqual(expectedState);
+    });
+    it('should throw a configuration error if code cannot be found in current configurations', () => {
+      expect(() => accountStateEngine.getInterventionEnumFromCode(111)).toThrow(
+        new StateEngineConfigurationError('code: 111 is not found in current configuration'),
+      );
+    });
+  });
+
   describe('Unsuccessful state transitions', () => {
     describe('received intervention is not allowed on current account state', () => {
       it.each([
@@ -470,7 +308,9 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsBlocked],
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountIsBlocked],
       ])('%p applied on account state: %p', (intervention, retrievedAccountState) => {
-        expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow();
+        expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(
+          new StateTransitionError(`${intervention} is not allowed from current state`, intervention),
+        );
       });
     });
     describe('current state account could not be found in current config', () => {
@@ -483,7 +323,7 @@ describe('account-state-service', () => {
         };
         expect(() =>
           accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, unexpectedAccountState),
-        ).toThrow(new StateTransitionError('Account state does not exists in current configuration.'));
+        ).toThrow(new StateEngineConfigurationError('Account state does not exists in current configuration.'));
         expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
       });
     });
@@ -491,9 +331,11 @@ describe('account-state-service', () => {
 
   describe('Configuration errors', () => {
     it('should throw when given code cannot be found in configuration', () => {
-      expect(() => accountStateEngine.getInterventionEnumFromCode(111)).toThrow(new StateTransitionError('code: 111 is not found in current configuration'));
+      expect(() => accountStateEngine.getInterventionEnumFromCode(111)).toThrow(
+        new StateEngineConfigurationError('code: 111 is not found in current configuration'),
+      );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_CODE_NOT_FOUND_IN_CONFIG);
-    })
+    });
     it('should throw when the computed state is the same as the current state', () => {
       const invalidConfig: TransitionConfigurationInterface = {
         nodes: {
@@ -518,19 +360,21 @@ describe('account-state-service', () => {
             to: 'AccountIsBlocked',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
-          }
-        }
-      }
+          },
+        },
+      };
       Object.defineProperty(AccountStateEngine, 'configuration', {
         writable: true,
         value: invalidConfig,
       });
 
-      expect(() =>
-        accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay),
-      ).toThrow(new StateTransitionError('Computed new state is the same as the current state.'));
+      expect(() => accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay)).toThrow(
+        new StateTransitionError(
+          'Computed new state is the same as the current state.',
+          EventsEnum.FRAUD_BLOCK_ACCOUNT,
+        ),
+      );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.TRANSITION_SAME_AS_CURRENT_STATE);
-
     });
     it('should throw when there are no configured transition for a given state', () => {
       const invalidConfig: TransitionConfigurationInterface = {
@@ -556,19 +400,20 @@ describe('account-state-service', () => {
             to: 'AccountIsBlocked',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
-          }
-        }
-      }
+          },
+        },
+      };
       Object.defineProperty(AccountStateEngine, 'configuration', {
         writable: true,
         value: invalidConfig,
       });
 
-      expect(() =>
-        accountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsBlocked),
-      ).toThrow(new StateTransitionError('There are no allowed transitions from state AccountIsBlocked in current configurations'));
+      expect(() => accountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsBlocked)).toThrow(
+        new StateEngineConfigurationError(
+          'There are no allowed transitions from state AccountIsBlocked in current configurations',
+        ),
+      );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.NO_TRANSITIONS_FOUND_IN_CONFIG);
-
     });
     it('should throw when the proposed transition points to a non-existing state in current config', () => {
       const invalidConfig: TransitionConfigurationInterface = {
@@ -594,19 +439,18 @@ describe('account-state-service', () => {
             to: 'AccountIsNotOkay',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
-          }
-        }
-      }
+          },
+        },
+      };
       Object.defineProperty(AccountStateEngine, 'configuration', {
         writable: true,
         value: invalidConfig,
       });
 
-      expect(() =>
-        accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay),
-      ).toThrow(new StateTransitionError('state AccountIsNotOkay not found in current config.'));
+      expect(() => accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay)).toThrow(
+        new StateEngineConfigurationError('state AccountIsNotOkay not found in current config.'),
+      );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
-
     });
     it('should throw when the the configuration object fails validation because not all nodes have an adjacency list', () => {
       const invalidConfig: TransitionConfigurationInterface = {
@@ -632,9 +476,9 @@ describe('account-state-service', () => {
             to: 'AccountIsOkay',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
-          }
-        }
-      }
+          },
+        },
+      };
       Object.defineProperty(AccountStateEngine, 'instance', {
         writable: true,
         value: undefined,
@@ -644,9 +488,9 @@ describe('account-state-service', () => {
         value: invalidConfig,
       });
 
-      expect(() =>
-        AccountStateEngine.getInstance()
-      ).toThrow(new StateTransitionError('Invalid state engine configuration detected. Adjacency mismatch'));
+      expect(() => AccountStateEngine.getInstance()).toThrow(
+        new StateEngineConfigurationError('Invalid state engine configuration detected. Adjacency mismatch'),
+      );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION);
     });
     it('should throw when the the configuration object fails validation because at least one edge points to a non-existing node', () => {
@@ -667,16 +511,16 @@ describe('account-state-service', () => {
         },
         adjacency: {
           AccountIsOkay: [1],
-          AccountIsBlocked: [1]
+          AccountIsBlocked: [1],
         },
         edges: {
           1: {
             to: 'AccountIsNotOkay',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
-          }
-        }
-      }
+          },
+        },
+      };
       Object.defineProperty(AccountStateEngine, 'instance', {
         writable: true,
         value: undefined,
@@ -686,9 +530,9 @@ describe('account-state-service', () => {
         value: invalidConfig,
       });
 
-      expect(() =>
-        AccountStateEngine.getInstance()
-      ).toThrow(new StateTransitionError('Invalid state engine configuration detected. Edge mismatch'));
+      expect(() => AccountStateEngine.getInstance()).toThrow(
+        new StateEngineConfigurationError('Invalid state engine configuration detected. Edge mismatch'),
+      );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION);
     });
   });

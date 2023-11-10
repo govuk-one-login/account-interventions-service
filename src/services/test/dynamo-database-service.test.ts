@@ -2,7 +2,8 @@ import {
   DynamoDBClient,
   QueryCommand,
   QueryCommandOutput,
-  UpdateItemCommand, UpdateItemCommandInput,
+  UpdateItemCommand,
+  UpdateItemCommandInput,
 } from '@aws-sdk/client-dynamodb';
 import { DynamoDatabaseService } from '../dynamo-database-service';
 import 'aws-sdk-client-mock-jest';
@@ -70,7 +71,6 @@ describe('Dynamo DB Service', () => {
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
   };
 
-
   it('should get all items successfully.', async () => {
     queryCommandMock.resolves({ Items: items });
     const allItems = await new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc');
@@ -94,7 +94,7 @@ describe('Dynamo DB Service', () => {
       KeyConditionExpression: '#pk = :id_value',
       ExpressionAttributeNames: { '#pk': 'pk' },
       ExpressionAttributeValues: { ':id_value': { S: 'abc' } },
-      ProjectionExpression: 'blocked, suspended, resetPassword, reproveIdentity, isAccountDeleted',
+      ProjectionExpression: 'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted',
     };
     queryCommandMock.resolvesOnce({ Items: items });
     await new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc');

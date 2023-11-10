@@ -8,25 +8,12 @@ export interface StateDetails {
 }
 
 export interface DynamoDBStateResult extends StateDetails {
+  sentAt?: number;
+  appliedAt?: number;
   isAccountDeleted?: boolean;
 }
-
-export interface InterventionTransitionConfigurations {
-  [key: string]: InterventionEventDetails;
-}
-
-export interface UserLedActionTransitionConfigurations {
-  [key: string]: UserLedActionEventDetails;
-}
-export interface UserLedActionEventDetails {
-  code: number;
-  state: { resetPassword?: boolean; reproveIdentity?: boolean };
-  allowedFromStates: EventsEnum[];
-}
-export interface InterventionEventDetails {
-  code: number;
-  state: StateDetails;
-  allowedTransitions: EventsEnum[];
+export interface AccountStateEngineOutput {
+  newState: StateDetails;
   interventionName?: AISInterventionTypes;
 }
 
@@ -36,20 +23,42 @@ export interface CurrentTimeDescriptor {
   seconds: number;
 }
 
-export interface TxMAEvent {
+export type TxMAEgressEventName =
+  | 'AIS_INTERVENTION_TRANSITION_APPLIED'
+  | 'AIS_INTERVENTION_TRANSITION_IGNORED'
+  | 'AIS_INTERVENTION_IGNORED_STALE'
+  | 'AIS_INTERVENTION_IGNORED_IN_FUTURE'
+  | 'AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED';
+
+export interface TxMAEgressEvent {
+  event_name: TxMAEgressEventName;
+  timestamp: number;
+  event_timestamp_ms?: number;
+  event_timestamp_ms_formatted?: string;
+  component_id?: string;
+  user: TxmaUser;
+  extensions: TxMAEgressExtensions;
+}
+
+export interface TxMAEgressExtensions {
+  intervention: EventsEnum;
+  appliedAt: number | undefined;
+  reason: string | undefined;
+}
+export interface TxMAIngressEvent {
   event_name: string;
   timestamp: number;
   event_timestamp_ms?: number;
   component_id?: string;
-  user: User;
-  extensions?: Extensions;
+  user: TxmaUser;
+  extensions?: IngressEventExtension;
 }
 
-interface User {
+export interface TxmaUser {
   user_id: string;
 }
 
-interface Extensions {
+interface IngressEventExtension {
   intervention?: Intervention;
   levelOfConfidence?: string;
   ciFail?: boolean;
@@ -89,8 +98,8 @@ export interface AccountStatus {
   appliedAt: number;
   sentAt: number;
   description: string;
-  reprovedIdentityAt?: number | undefined;
-  resetPasswordAt?: number | undefined;
+  reprovedIdentityAt?: number;
+  resetPasswordAt?: number;
   state: {
     blocked: boolean;
     suspended: boolean;
@@ -98,5 +107,5 @@ export interface AccountStatus {
     resetPassword: boolean;
   };
   auditLevel: string;
-  history?: object[];
+  history: object[] | undefined;
 }

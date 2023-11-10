@@ -1,4 +1,4 @@
-import { TxMAEvent } from '../../data-types/interfaces';
+import { TxMAIngressEvent as TxMAEvent } from '../../data-types/interfaces';
 import { validateEvent, validateInterventionEvent } from '../validate-event';
 import logger from '../../commons/logger';
 import { logAndPublishMetric } from '../../commons/metrics';

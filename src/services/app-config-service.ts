@@ -34,8 +34,11 @@ export class AppConfigService {
   }
 
   public get maxRetentionSeconds(): number {
-    const retentionSecond = this.validateNumberEnvVars('DELETED_ACCOUNT_RETENTION_SECONDS');
-    return retentionSecond;
+    return this.validateNumberEnvVars('DELETED_ACCOUNT_RETENTION_SECONDS');
+  }
+
+  public get txmaEgressQueueUrl(): string {
+    return this.validateIsHTTPSUrl('TXMA_QUEUE_URL');
   }
 
   /**
@@ -64,5 +67,15 @@ export class AppConfigService {
       throw new InvalidEnvironmentVariableError(message);
     }
     return process.env[environmentVariable] as string;
+  }
+
+  private validateIsHTTPSUrl(environmentVariable: string) {
+    const url = this.validateConfiguration(environmentVariable);
+    if (!url.startsWith('https://')) {
+      const message = `${LOGS_PREFIX_INVALID_CONFIG} Environment variable ${environmentVariable} is not a valid HTTPS URL (${url}).`;
+      logger.error(message);
+      throw new InvalidEnvironmentVariableError(message);
+    }
+    return url;
   }
 }

@@ -1,19 +1,23 @@
 import { StateDetails } from '../data-types/interfaces';
 import { UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { getCurrentTimestamp } from './get-current-timestamp';
-import { EventsEnum, MetricNames } from '../data-types/constants';
+import { AISInterventionTypes, EventsEnum, MetricNames } from '../data-types/constants';
 import { logAndPublishMetric } from './metrics';
 
 /**
  * Method to build a Partial of UpdateItemCommandInput
  * @param newState - new account state object
  * @param eventName - the name of the event received
+ * @param eventTimestamp - timestamp of received event
+ * @param currentTimestamp - timestamp of now
  * @param interventionName - optional intervention name if the event was a fraud intervention
  */
 export const buildPartialUpdateAccountStateCommand = (
   newState: StateDetails,
   eventName: EventsEnum,
-  interventionName?: string,
+  eventTimestamp: number,
+  currentTimestamp: number,
+  interventionName?: AISInterventionTypes,
 ): Partial<UpdateItemCommandInput> => {
   const currentTime = getCurrentTimestamp();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,11 +40,11 @@ export const buildPartialUpdateAccountStateCommand = (
   };
   if (eventName === EventsEnum.IPV_IDENTITY_ISSUED) {
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RIdA'] = 'reprovedIdentityAt';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rida'] = { N: `${currentTime.milliseconds}` };
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rida'] = { N: `${eventTimestamp}` };
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RIdA = :rida';
   } else if (eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL) {
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RPswdA'] = 'resetPasswordAt';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rpswda'] = { N: `${currentTime.milliseconds}` };
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rpswda'] = { N: `${eventTimestamp}` };
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RPswdA = :rpswda';
   } else {
     if (!interventionName) {
@@ -50,12 +54,16 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#INT'] = 'intervention';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':int'] = { S: interventionName };
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#AA'] = 'appliedAt';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':aa'] = { N: `${currentTime.milliseconds}` };
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':aa'] = { N: `${currentTimestamp}` };
+    baseUpdateItemCommandInput['ExpressionAttributeNames']['#SA'] = 'sentAt';
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':sa'] = { N: `${eventTimestamp}` };
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':empty_list'] = { L: [] };
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = { L: [{ S: interventionName }] };
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
+      L: [{ M: { intervention: { S: interventionName }, timestamp: { N: `${eventTimestamp}` } } }],
+    };
     baseUpdateItemCommandInput['UpdateExpression'] +=
-      ', #INT = :int, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
+      ', #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
   }
   return baseUpdateItemCommandInput;
 };
