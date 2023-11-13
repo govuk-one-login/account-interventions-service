@@ -13,7 +13,7 @@ const config: Config = {
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },
-  reporters: ['default', ['jest-junit', { outputDirectory: 'results', outputName: 'report.xml' }]],
+  //reporters: ['default', ['jest-junit', { outputDirectory: 'results', outputName: 'report.xml' }]],
   testTimeout: 100_000,
 };
 export default config;

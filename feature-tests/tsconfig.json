@@ -4,7 +4,7 @@
     "transpileOnly": true,
     "files": true
   },
-  "include": ["tests", "apiEndpoints", "jest.config.ts", "utils"],
+  "include": ["tests", "apiEndpoints", "jest.config.ts", "utils","jest-cucumber-config.js"],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */
 
