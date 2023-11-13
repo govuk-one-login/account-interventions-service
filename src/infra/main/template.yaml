@@ -80,25 +80,25 @@ Mappings:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
       TxMAAccountARN: arn:aws:iam::178023842775:root
-      OrchestrationVPCID: vpc-09cfe19dc5f8fcb47 # ID Reuse Core Staging VPC ID
-      AuthenticationVPCID: vpc-09cfe19dc5f8fcb47 # ID Reuse Core Staging VPC ID
-      OneLoginHomeVPCID: vpc-09cfe19dc5f8fcb47 # ID Reuse Core Staging VPC ID
+      OrchestrationVPCID: vpc-0ca40c7d13490419d # Orchestation Staging VPC ID
+      AuthenticationVPCID: vpc-0ca40c7d13490419d # Authentication Staging VPC ID
+      OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
     integration:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
       TxMAAccountARN: arn:aws:iam::729485541398:root
-      OrchestrationVPCID: vpc-0ae72461a035c0934 # ID Reuse Core Integration VPC ID
-      AuthenticationVPCID: vpc-0ae72461a035c0934 # ID Reuse Core Integration VPC ID
-      OneLoginHomeVPCID: vpc-0ae72461a035c0934 # ID Reuse Core Integration VPC ID
+      OrchestrationVPCID: vpc-04444d1dc96d8822c # Orchestation Integration VPC ID
+      AuthenticationVPCID: vpc-04444d1dc96d8822c # Authentication Integration VPC ID
+      OneLoginHomeVPCID: vpc-048c9133a5998efe7 # One Login Home Integration VPC ID
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
     production:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
       TxMAAccountARN: arn:aws:iam::451773080033:root
-      OrchestrationVPCID: vpc-0744a49090620ce26 # ID Reuse Core Production VPC ID
-      AuthenticationVPCID: vpc-0744a49090620ce26 # ID Reuse Core Production VPC ID
-      OneLoginHomeVPCID: vpc-0744a49090620ce26 # ID Reuse Core Production VPC ID
+      OrchestrationVPCID: vpc-00012e96e1cd0bf95 # Orchestration Production VPC ID
+      AuthenticationVPCID: vpc-00012e96e1cd0bf95 # Authentication Production VPC ID
+      OneLoginHomeVPCID: vpc-0c94e753d20410154 # One Login Home Production VPC ID
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
 
 Globals:
