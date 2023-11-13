@@ -98,7 +98,7 @@ Mappings:
       TxMAAccountARN: arn:aws:iam::451773080033:root
       OrchestrationVPCID: vpc-00012e96e1cd0bf95 # Orchestration Production VPC ID
       AuthenticationVPCID: vpc-00012e96e1cd0bf95 # Authentication Production VPC ID
-      OneLoginHomeVPCID: vpc-0744a49090620ce26 # One Login Home Production VPC ID
+      OneLoginHomeVPCID: vpc-0c94e753d20410154 # One Login Home Production VPC ID
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
 
 Globals:
