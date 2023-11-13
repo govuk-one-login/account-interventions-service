@@ -8,6 +8,10 @@
     "ParameterValue": "arn:aws:s3:::ais-alarm-pipeline-artifactpromotionbucket-9zjxdwt6itx4"
   },
   {
+    "ParameterKey": "ArtifactSourceBucketEventTriggerRoleArn",
+    "ParameterValue": "arn:aws:iam::688341086169:role/PL-ais-alarm-pipeline-PromoTrigRole-06f06c770454"
+  },
+  {
     "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
     "ParameterValue": "None"
   },

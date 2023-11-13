@@ -8,6 +8,10 @@
     "ParameterValue": "arn:aws:s3:::ais-main-pipeline-artifactpromotionbucket-1xjfrmo8poo86"
   },
   {
+    "ParameterKey": "ArtifactSourceBucketEventTriggerRoleArn",
+    "ParameterValue": "arn:aws:iam::922902741880:role/PL-ais-main-pipeline-PromoTrigRole-0a8826ffa486"
+  },
+  {
     "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
     "ParameterValue": "None"
   },
@@ -73,7 +77,7 @@
   },
   {
     "ParameterKey": "SlackNotificationType",
-    "ParameterValue": "Failures"
+    "ParameterValue": "None"
   },
   {
     "ParameterKey": "TestImageRepositoryUri",
