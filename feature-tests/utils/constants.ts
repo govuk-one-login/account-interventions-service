@@ -1,2 +1,0 @@
-export const DEFAULT_TOKEN_TYPE = 'DEFAULT';
-export const DEFAULT_SIGNATURE_TYPE = 'DEFAULT';
