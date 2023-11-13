@@ -80,8 +80,8 @@ Mappings:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
       TxMAAccountARN: arn:aws:iam::178023842775:root
-      OrchestrationVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
-      AuthenticationVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
+      OrchestrationVPCID: vpc-0ca40c7d13490419d # Orchestation Staging VPC ID
+      AuthenticationVPCID: vpc-0ca40c7d13490419d # Authentication Staging VPC ID
       OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
     integration:
