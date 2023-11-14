@@ -37,7 +37,6 @@ export const handle = async (event: CustomEvent) => {
   });
 
   const response = await responsePromise.json();
-  logger.debug('parsed response:', { response });
 
   if (Object.keys(response).length === 0) {
     return {
