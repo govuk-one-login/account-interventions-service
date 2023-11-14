@@ -41,7 +41,8 @@ export class DynamoDatabaseService {
    */
   public async retrieveRecordsByUserId(userId: string) {
     const parameters = this.inputParametersForDatabaseQuery(userId);
-    parameters.ProjectionExpression = 'blocked, suspended, resetPassword, reproveIdentity, isAccountDeleted';
+    parameters.ProjectionExpression =
+      'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted';
     const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
     this.validateQueryResponse(response);
     if (response.Items) {
@@ -52,7 +53,7 @@ export class DynamoDatabaseService {
   /**
    * Function to retrieve the full record from DynamoDB
    * @param userId - user ID passed in via path params
-   * @returns - record from dynamoDB
+   * @returns - unmarshalled record from dynamoDB or undefined
    */
   public async queryRecordFromDynamoDatabase(userId: string) {
     const parameters = this.inputParametersForDatabaseQuery(userId);
