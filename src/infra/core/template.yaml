@@ -44,6 +44,10 @@ Resources:
         - AttributeName: pk
           KeyType: HASH  # partition key
       BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        KMSMasterKeyId: !Ref AccountStatusTableEncryptionKey
+        SSEEnabled: true
+        SSEType: KMS
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -55,6 +59,54 @@ Resources:
           Value: !Ref OwnerTagValue
         - Key: Source
           Value: !Ref SourceTagValue
+
+  AccountStatusTableEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: AWS KMS key for encrypting the data stored within our Account Status Table
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - kms:*
+            Resource: "*"
+          - Effect: Allow
+            Principal:
+              Service: "dynamodb.amazonaws.com"
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:DescribeKey"
+              - "kms:CreateGrant"
+            Resource: "*"
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AWS::StackName}-AccountStatusTable"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-AccountStatusTableEncryptionKey"
+
+  AccountStatusTableEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-AccountStatusTableEncryptionKey"
+      TargetKeyId: !GetAtt AccountStatusTableEncryptionKey.Arn
 
 Outputs:
   AccountStatusTableName:
@@ -68,3 +120,9 @@ Outputs:
     Value: !GetAtt AccountStatusTable.Arn
     Export:
       Name: !Sub ${AWS::StackName}-AccountStatusTableArn
+
+  AccountStatusTableKeyArn:
+    Description: "The ARN of the Account Status Table KMS key"
+    Value: !GetAtt AccountStatusTableEncryptionKey.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-AccountStatusTableKeyArn
