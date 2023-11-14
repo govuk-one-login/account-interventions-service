@@ -35,42 +35,6 @@ export class DynamoDatabaseService {
   }
 
   /**
-   * Function to configure query parameters for DynamoDB
-   * @param userId - userId from the relevant event
-   * @returns - the parameters needed to query DynamoDB
-   */
-  private inputParametersForDatabaseQuery(userId: string): QueryCommandInput {
-    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db, with ID : ${userId}`);
-    const parameters: QueryCommandInput = {
-      TableName: this.tableName,
-      KeyConditionExpression: '#pk = :id_value',
-      ExpressionAttributeNames: { '#pk': 'pk' },
-      ExpressionAttributeValues: { ':id_value': { S: userId } },
-    };
-    return parameters;
-  }
-
-  /**
-   * Function to validate the response and send metrics if there is a problem with the received response
-   * @param response - the response from dynamoDB
-   */
-  private validateQueryResponse(response: QueryCommandOutput): void {
-    if (!response.Items) {
-      const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
-      logger.error(errorMessage);
-      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
-      throw new Error(errorMessage);
-    }
-
-    if (response.Items.length > 1) {
-      const errorMessage = 'DynamoDB returned more than one element.';
-      logger.error(errorMessage);
-      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
-      throw new TooManyRecordsError(errorMessage);
-    }
-  }
-
-  /**
    * A function to retrieve the DynamoDB record according to the given userId
    *
    * @param userId - the userId that comes from the request
@@ -148,6 +112,42 @@ export class DynamoDatabaseService {
         throw new Error('Error was not a Conditional Check Exception.'); //Therefore re-driving message back to the queue.
       }
       logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} No intervention exists for this account ${userId}.`);
+    }
+  }
+
+  /**
+   * Function to configure query parameters for DynamoDB
+   * @param userId - userId from the relevant event
+   * @returns - the parameters needed to query DynamoDB
+   */
+  private inputParametersForDatabaseQuery(userId: string): QueryCommandInput {
+    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db, with ID : ${userId}`);
+    const parameters: QueryCommandInput = {
+      TableName: this.tableName,
+      KeyConditionExpression: '#pk = :id_value',
+      ExpressionAttributeNames: { '#pk': 'pk' },
+      ExpressionAttributeValues: { ':id_value': { S: userId } },
+    };
+    return parameters;
+  }
+
+  /**
+   * Function to validate the response and send metrics if there is a problem with the received response
+   * @param response - the response from dynamoDB
+   */
+  private validateQueryResponse(response: QueryCommandOutput): void {
+    if (!response.Items) {
+      const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
+      logger.error(errorMessage);
+      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
+      throw new Error(errorMessage);
+    }
+
+    if (response.Items.length > 1) {
+      const errorMessage = 'DynamoDB returned more than one element.';
+      logger.error(errorMessage);
+      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
+      throw new TooManyRecordsError(errorMessage);
     }
   }
 }

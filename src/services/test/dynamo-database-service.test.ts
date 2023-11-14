@@ -13,7 +13,6 @@ import logger from '../../commons/logger';
 import { TooManyRecordsError } from '../../data-types/errors';
 import { logAndPublishMetric } from '../../commons/metrics';
 import { MetricNames } from '../../data-types/constants';
-import { undefinedResponseFromDynamoDatabase } from '../../data-types/constants';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
