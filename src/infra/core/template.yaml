@@ -45,7 +45,7 @@ Resources:
           KeyType: HASH  # partition key
       BillingMode: PAY_PER_REQUEST
       SSESpecification:
-        KMSMasterKeyId: !Ref DynamoDBEncryptionKey
+        KMSMasterKeyId: !Ref AccountStatusTableEncryptionKey
         SSEEnabled: true
         SSEType: KMS
       Tags:
@@ -60,10 +60,10 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-  DynamoDBEncryptionKey:
+  AccountStatusTableEncryptionKey:
     Type: AWS::KMS::Key
     Properties:
-      Description: AWS KMS key for encrypting the data stored within DynamoDB tables
+      Description: AWS KMS key for encrypting the data stored within our Account Status Table
       EnableKeyRotation: true
       KeyPolicy:
         Version: "2012-10-17"
@@ -100,13 +100,13 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
         - Key: Name
-          Value: !Sub "${AWS::StackName}-DynamoDBEncryptionKey"
+          Value: !Sub "${AWS::StackName}-AccountStatusTableEncryptionKey"
 
-  DynamoDBEncryptionKeyAlias:
+  AccountStatusTableEncryptionKeyAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub "alias/${AWS::StackName}-DynamoDBEncryptionKey"
-      TargetKeyId: !GetAtt DynamoDBEncryptionKey.Arn
+      AliasName: !Sub "alias/${AWS::StackName}-AccountStatusTableEncryptionKey"
+      TargetKeyId: !GetAtt AccountStatusTableEncryptionKey.Arn
 
 Outputs:
   AccountStatusTableName:
@@ -121,8 +121,8 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}-AccountStatusTableArn
 
-  AISDynamoDBKeyArn:
-    Description: "The ARN of AIS DynamoDB KMS key"
-    Value: !GetAtt DynamoDBEncryptionKey.Arn
+  AccountStatusTableKeyArn:
+    Description: "The ARN of the Account Status Table KMS key"
+    Value: !GetAtt AccountStatusTableEncryptionKey.Arn
     Export:
-      Name: !Sub ${AWS::StackName}-AISDynamoDBKeyArn
+      Name: !Sub ${AWS::StackName}-AccountStatusTableKeyArn
