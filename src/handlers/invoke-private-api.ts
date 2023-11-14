@@ -3,7 +3,7 @@ import logger from '../commons/logger';
 
 interface CustomEvent {
   userId?: string;
-  queryParameters?: string
+  queryParameters?: string;
   headers?: {
     [key: string]: string;
   };
@@ -14,7 +14,7 @@ const appConfig = AppConfigService.getInstance();
 export const handle = async (event: CustomEvent) => {
   const userId = event.userId || appConfig.userId;
   let queryParameters = event.queryParameters || appConfig.queryParameters;
-  queryParameters = queryParameters ? "?" + queryParameters : "";
+  queryParameters = queryParameters ? '?' + queryParameters : '';
 
   if (!userId) {
     return {
