@@ -48,6 +48,8 @@ Resources:
         KMSMasterKeyId: !Ref AccountStatusTableEncryptionKey
         SSEEnabled: true
         SSEType: KMS
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
