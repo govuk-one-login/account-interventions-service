@@ -1,15 +1,15 @@
 [
   {
     "ParameterKey": "AllowedAccounts",
-    "ParameterValue": "217747075921"
+    "ParameterValue": ""
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
-    "ParameterValue": "arn:aws:s3:::ais-main-pipeline-artifactpromotionbucket-16d4c7szcc2hi"
+    "ParameterValue": "arn:aws:s3:::ais-main-pipeline-artifactpromotionbucket-1xjfrmo8poo86"
   },
   {
     "ParameterKey": "ArtifactSourceBucketEventTriggerRoleArn",
-    "ParameterValue": "arn:aws:iam::688341086169:role/PL-ais-main-pipeline-PromoTrigRole-06a759f94336"
+    "ParameterValue": "arn:aws:iam::922902741880:role/PL-ais-main-pipeline-PromoTrigRole-0a8826ffa486"
   },
   {
     "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
@@ -21,7 +21,7 @@
   },
   {
     "ParameterKey": "BuildNotificationStackName",
-    "ParameterValue": "infra-alerting"
+    "ParameterValue": "none"
   },
   {
     "ParameterKey": "ContainerSignerKmsKeyArn",
@@ -33,7 +33,7 @@
   },
   {
     "ParameterKey": "Environment",
-    "ParameterValue": "staging"
+    "ParameterValue": "integration"
   },
   {
     "ParameterKey": "GitHubRepositoryName",
@@ -45,7 +45,7 @@
   },
   {
     "ParameterKey": "IncludePromotion",
-    "ParameterValue": "Yes"
+    "ParameterValue": "No"
   },
   {
     "ParameterKey": "InvokableLambdaAccounts",
@@ -77,7 +77,7 @@
   },
   {
     "ParameterKey": "SlackNotificationType",
-    "ParameterValue": "Failures"
+    "ParameterValue": "None"
   },
   {
     "ParameterKey": "TestImageRepositoryUri",
