@@ -51,7 +51,7 @@ export class AppConfigService {
 
   public get endpoint() {
     const endpoint = this.validateConfiguration('END_POINT');
-    const prefix = endpoint.charAt(0) === '/' ? '' : '/';
+    const prefix = endpoint.startsWith('/') ? '' : '/';
     return prefix + endpoint;
   }
 

@@ -12,8 +12,8 @@ interface CustomEvent {
 const appConfig = AppConfigService.getInstance();
 
 export const handle = async (event: CustomEvent) => {
-  const userId = event.userId || appConfig.userId;
-  let queryParameters = event.queryParameters || appConfig.queryParameters;
+  const userId = event.userId ?? appConfig.userId;
+  let queryParameters = event.queryParameters ?? appConfig.queryParameters;
   queryParameters = queryParameters ? '?' + queryParameters : '';
 
   if (!userId) {
@@ -23,7 +23,7 @@ export const handle = async (event: CustomEvent) => {
     };
   }
 
-  const headers = event.headers || { 'Content-Type': 'application/json' };
+  const headers = event.headers ?? { 'Content-Type': 'application/json' };
   const baseUrl = appConfig.baseUrl;
   const endpoint = appConfig.endpoint;
   const httpRequestMethod = appConfig.httpRequestMethod;
