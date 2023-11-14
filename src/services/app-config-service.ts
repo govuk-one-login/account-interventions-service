@@ -42,7 +42,7 @@ export class AppConfigService {
   }
 
   public get userId() {
-    return this.validateConfiguration('USER_ID');
+    return process.env['USER_ID']
   }
 
   public get baseUrl() {
@@ -56,7 +56,7 @@ export class AppConfigService {
   }
 
   public get queryParameters() {
-    return this.validateConfiguration('QUERY_PARAMETERS');
+    return process.env['QUERY_PARAMETERS']
   }
 
   public get httpRequestMethod() {
