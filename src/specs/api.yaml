@@ -22,17 +22,17 @@ info:
     url: "https://github.com/govuk-one-login/account-interventions-service/blob/main/LICENCE.md"
 
 servers:
-  - url: "https://{environment}.account.gov.uk" # TODO
-    description: defaults to dev environment
+  - url: "https://{environment}.execute-api.eu-west-2.amazonaws.com/v1"
+    description: defaults to staging environment
     variables:
       environment:
-        default: credential-store.dev # TODO
-        enum: # TODO
-          - credential-store.dev
-          - credential-store.build
-          - credential-store.staging
-          - credential-store.integration
-          - credential-store             # Production
+        default: 6c8dsd04i1 # staging
+        enum:
+          - 072ifz6cp9 # dev
+          - wxn8p5hxkg # build
+          - 6c8dsd04i1 # staging
+          - kgsdlzd95d # integration
+          - please-ask # Production
 
 paths:
   /ais/{userId}:
