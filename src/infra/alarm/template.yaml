@@ -97,3 +97,158 @@ Resources:
       Period: 60
       Statistic: Sum
       Unit: Count
+
+#
+# Account Interventions Processor Alarms
+#
+  EventValidationFailed:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Intervention event failed validation."
+      Namespace: !Ref SystemTagValue
+      MetricName: INTERVENTION_EVENT_INVALID
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  TooManyEventsValidationFailed:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Too many intervention events failed validation."
+      Namespace: !Ref MainCloudWatchMetricNamespace
+      MetricName: INTERVENTION_EVENT_INVALID
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  InvalidEventReceived:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Received intervention event is invalid."
+      Namespace: !Ref SystemTagValue
+      MetricName: INVALID_EVENT_RECEIVED
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  TooManyInvalidEventsReceived:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Too many received intervention events are invalid."
+      Namespace: !Ref MainCloudWatchMetricNamespace
+      MetricName: INVALID_EVENT_RECEIVED
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  AccountMarkedAsDeleted:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Intervention event failed validation."
+      Namespace: !Ref SystemTagValue
+      MetricName: ACCOUNT_IS_MARKED_AS_DELETED
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  InterventionIgnoredInFuture:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Intervention event has timestamp in future."
+      Namespace: !Ref SystemTagValue
+      MetricName: INTERVENTION_IGNORED_IN_FUTURE
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  InterventionEventStale:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Intervention event messages are out of order."
+      Namespace: !Ref SystemTagValue
+      MetricName: INTERVENTION_EVENT_STALE
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  TooManyInterventionEventStale:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Too many intervention event messages are out of order."
+      Namespace: !Ref MainCloudWatchMetricNamespace
+      MetricName: INTERVENTION_EVENT_STALE
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
