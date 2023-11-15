@@ -39,12 +39,13 @@ export class DynamoDatabaseService {
    *
    * @param userId - the userId that comes from the request
    */
-  public async getAccountStateInformation(userId: string) {
+  public async getAccountStateInformation(userId: string): Promise<DynamoDBStateResult | undefined> {
     const parameters = this.getInputParameterForDatabaseQuery(userId);
     parameters.ProjectionExpression =
       'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted';
     const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
-    return this.validateQueryResponse(response) as DynamoDBStateResult;
+    const validatedResponse = this.validateQueryResponse(response);
+    return validatedResponse ? (validatedResponse as DynamoDBStateResult) : undefined;
   }
 
   /**
