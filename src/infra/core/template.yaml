@@ -51,7 +51,7 @@ Resources:
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       TimeToLiveSpecification:
-        AttributeName: TimeToLive
+        AttributeName: ttl
         Enabled: TRUE
       Tags:
         - Key: Product
