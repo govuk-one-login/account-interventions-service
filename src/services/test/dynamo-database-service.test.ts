@@ -170,13 +170,13 @@ describe('Dynamo DB Service', () => {
 
   it('throws an error when it fails to update the userId status.', async () => {
     const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
-    mockedUpdateCommand.rejectsOnce("InternalServerError" || "InvalidEndpointException" || "ItemCollectionSizeLimitExceededException" || "ProvisionedThroughputExceededException" || "RequestLimitExceeded" || "ResourceNotFoundException" || "TransactionConflictException" || "DynamoDBServiceException" || undefined );
+    mockedUpdateCommand.rejectsOnce("InternalServerError");
     const loggerErrorSpy = jest.spyOn(logger, 'error');
     const dynamoDBService = new DynamoDatabaseService('table_name')
     await expect(async () => await dynamoDBService.updateDeleteStatus('hello')).rejects.toThrow(
       new Error('Error was not a Conditional Check Exception.'),
     );
-    expect(loggerErrorSpy).toHaveBeenCalledWith('Sensitive info - Error updating item with pk hello.');
+    expect(loggerErrorSpy).toHaveBeenCalledWith("Sensitive info - Error updating Dynamo DB Error: InternalServerError.");
     expect(logAndPublishMetric).toHaveBeenCalledWith('DB_UPDATE_ERROR');
   });
 
