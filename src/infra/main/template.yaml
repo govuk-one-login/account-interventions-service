@@ -747,6 +747,11 @@ Resources:
               - "dynamodb:Query"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
+          - Effect: Allow
+            Action:
+              - "kms:decrypt"
+            Resource:
+              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableEncryptionKeyArn"
       Roles:
         - !Ref StatusRetrieverFunctionRole
 
