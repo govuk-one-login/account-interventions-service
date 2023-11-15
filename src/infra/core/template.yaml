@@ -130,7 +130,7 @@ Outputs:
       Name: !Sub ${AWS::StackName}-AccountStatusTableKeyArn
 
   AccountStatusTableEncryptionKeyArn:
-    Description: "The ARN of the VC Storage DynamoDB KMS key"
+    Description: "The ARN of the Account Status DynamoDB KMS key"
     Value: !GetAtt AccountStatusTableEncryptionKey.Arn
     Export:
       Name: !Sub ${AWS::StackName}-AccountStatusTableEncryptionKeyArn
