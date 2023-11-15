@@ -242,6 +242,11 @@ Resources:
             Condition:
               StringEquals:
                 cloudwatch:namespace: !Ref SystemTagValue
+          - Effect: Allow
+            Action:
+              - "kms:decrypt"
+            Resource:
+              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableEncryptionKeyArn"
       Roles:
         - !Ref InterventionsProcessorFunctionRole
 
@@ -375,6 +380,12 @@ Resources:
               - "dynamodb:UpdateItem"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
+          - Effect: Allow
+            Action:
+              - "kms:decrypt"
+            Resource:
+              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableEncryptionKeyArn"
+          
       Roles:
         - !Ref AccountDeletionProcessorFunctionRole
 
