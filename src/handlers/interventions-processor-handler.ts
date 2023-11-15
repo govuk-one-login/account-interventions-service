@@ -79,7 +79,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
         itemIdentifier: record.messageId,
       });
     } else {
-      const itemFromDB = await service.retrieveRecordsByUserId(userId);
+      const itemFromDB = await service.getAccountStateInformation(userId);
       if (itemFromDB?.isAccountDeleted === true) {
         logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
         logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);

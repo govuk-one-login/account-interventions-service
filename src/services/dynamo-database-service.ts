@@ -39,62 +39,24 @@ export class DynamoDatabaseService {
    *
    * @param userId - the userId that comes from the request
    */
-  public async retrieveRecordsByUserId(userId: string) {
-    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db, with ID : ${userId}`);
-    const parameters: QueryCommandInput = {
-      TableName: this.tableName,
-      KeyConditionExpression: '#pk = :id_value',
-      ExpressionAttributeNames: { '#pk': 'pk' },
-      ExpressionAttributeValues: { ':id_value': { S: userId } },
-      ProjectionExpression: 'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted',
-    };
-
+  public async getAccountStateInformation(userId: string): Promise<DynamoDBStateResult | undefined> {
+    const parameters = this.getInputParameterForDatabaseQuery(userId);
+    parameters.ProjectionExpression =
+      'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted';
     const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
-    if (!response.Items) {
-      const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
-      logger.error(errorMessage);
-      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
-      throw new Error(errorMessage);
-    }
-
-    if (response.Items.length > 1) {
-      const errorMessage = 'DynamoDB returned more than one element.';
-      logger.error(errorMessage);
-      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
-      throw new TooManyRecordsError(errorMessage);
-    }
-    return response.Items[0] ? (unmarshall(response.Items[0]) as DynamoDBStateResult) : undefined;
+    const validatedResponse = this.validateQueryResponse(response);
+    return validatedResponse ? (validatedResponse as DynamoDBStateResult) : undefined;
   }
 
   /**
    * Function to retrieve the full record from DynamoDB
    * @param userId - user ID passed in via path params
-   * @returns - record from dynamoDB
+   * @returns - unmarshalled record from dynamoDB or undefined
    */
-  public async queryRecordFromDynamoDatabase(userId: string) {
-    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db, with ID : ${userId}`);
-    const parameters: QueryCommandInput = {
-      TableName: this.tableName,
-      KeyConditionExpression: '#pk = :id_value',
-      ExpressionAttributeNames: { '#pk': 'pk' },
-      ExpressionAttributeValues: { ':id_value': { S: userId } },
-    };
-
+  public async getFullAccountInformation(userId: string) {
+    const parameters = this.getInputParameterForDatabaseQuery(userId);
     const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
-    if (!response.Items) {
-      const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
-      logger.error(errorMessage);
-      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
-      throw new Error(errorMessage);
-    }
-
-    if (response.Items.length > 1) {
-      const errorMessage = 'DynamoDB returned more than one element.';
-      logger.error(errorMessage);
-      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
-      throw new TooManyRecordsError(errorMessage);
-    }
-    return response.Items[0] ? unmarshall(response.Items[0]) : undefined;
+    return this.validateQueryResponse(response);
   }
 
   /**
@@ -147,5 +109,42 @@ export class DynamoDatabaseService {
       }
       logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} No intervention exists for this account ${userId}.`);
     }
+  }
+
+  /**
+   * Function to configure query parameters for DynamoDB
+   * @param userId - userId from the relevant event
+   * @returns - the parameters needed to query DynamoDB
+   */
+  private getInputParameterForDatabaseQuery(userId: string): QueryCommandInput {
+    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db, with ID : ${userId}`);
+    const parameters: QueryCommandInput = {
+      TableName: this.tableName,
+      KeyConditionExpression: '#pk = :id_value',
+      ExpressionAttributeNames: { '#pk': 'pk' },
+      ExpressionAttributeValues: { ':id_value': { S: userId } },
+    };
+    return parameters;
+  }
+
+  /**
+   * Function to validate the response and send metrics if there is a problem with the received response
+   * @param response - the response from dynamoDB
+   */
+  private validateQueryResponse(response: QueryCommandOutput) {
+    if (!response.Items) {
+      const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
+      logger.error(errorMessage);
+      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
+      throw new Error(errorMessage);
+    }
+
+    if (response.Items.length > 1) {
+      const errorMessage = 'DynamoDB returned more than one element.';
+      logger.error(errorMessage);
+      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
+      throw new TooManyRecordsError(errorMessage);
+    }
+    return response.Items[0] ? unmarshall(response.Items[0]) : undefined;
   }
 }
