@@ -16,7 +16,7 @@ export const handle = async (event: CustomEvent) => {
   if (!userId) {
     return {
       statusCode: 400,
-      message: 'UserId is required. Provide by either adding userId to event, or providing as an environment variable.',
+      message: 'UserId is required. Provide by either adding userId to the event, or update the USER_ID environment variable.',
     };
   }
 
