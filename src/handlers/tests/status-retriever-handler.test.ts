@@ -59,7 +59,7 @@ const testEvent: APIGatewayEvent = {
 };
 
 const mockConfig = ContextExamples.helloworldContext;
-const mockDynamoDBServiceRetrieveRecords = DynamoDatabaseService.prototype.queryRecordFromDynamoDatabase as jest.Mock;
+const mockDynamoDBServiceRetrieveRecords = DynamoDatabaseService.prototype.getFullAccountInformation as jest.Mock;
 
 describe('status-retriever-handler', () => {
   beforeAll(() => {

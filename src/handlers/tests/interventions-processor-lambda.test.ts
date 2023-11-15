@@ -78,7 +78,7 @@ const resetPasswordEventBody = {
   },
 };
 
-const mockRetrieveRecords = DynamoDatabaseService.prototype.retrieveRecordsByUserId as jest.Mock;
+const mockRetrieveRecords = DynamoDatabaseService.prototype.getAccountStateInformation as jest.Mock;
 const mockUpdateRecords = DynamoDatabaseService.prototype.updateUserStatus as jest.Mock;
 const eventValidationMock = validateEvent as jest.Mock;
 const interventionEventValidationMock = validateInterventionEvent as jest.Mock;

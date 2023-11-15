@@ -39,15 +39,12 @@ export class DynamoDatabaseService {
    *
    * @param userId - the userId that comes from the request
    */
-  public async retrieveRecordsByUserId(userId: string) {
-    const parameters = this.inputParametersForDatabaseQuery(userId);
+  public async getAccountStateInformation(userId: string) {
+    const parameters = this.getInputParameterForDatabaseQuery(userId);
     parameters.ProjectionExpression =
       'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted';
     const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
-    this.validateQueryResponse(response);
-    if (response.Items) {
-      return response.Items[0] ? (unmarshall(response.Items[0]) as DynamoDBStateResult) : undefined;
-    }
+    return this.validateQueryResponse(response) as DynamoDBStateResult;
   }
 
   /**
@@ -55,13 +52,10 @@ export class DynamoDatabaseService {
    * @param userId - user ID passed in via path params
    * @returns - unmarshalled record from dynamoDB or undefined
    */
-  public async queryRecordFromDynamoDatabase(userId: string) {
-    const parameters = this.inputParametersForDatabaseQuery(userId);
+  public async getFullAccountInformation(userId: string) {
+    const parameters = this.getInputParameterForDatabaseQuery(userId);
     const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
-    this.validateQueryResponse(response);
-    if (response.Items) {
-      return response.Items[0] ? unmarshall(response.Items[0]) : undefined;
-    }
+    return this.validateQueryResponse(response);
   }
 
   /**
@@ -121,7 +115,7 @@ export class DynamoDatabaseService {
    * @param userId - userId from the relevant event
    * @returns - the parameters needed to query DynamoDB
    */
-  private inputParametersForDatabaseQuery(userId: string): QueryCommandInput {
+  private getInputParameterForDatabaseQuery(userId: string): QueryCommandInput {
     logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db, with ID : ${userId}`);
     const parameters: QueryCommandInput = {
       TableName: this.tableName,
@@ -129,14 +123,14 @@ export class DynamoDatabaseService {
       ExpressionAttributeNames: { '#pk': 'pk' },
       ExpressionAttributeValues: { ':id_value': { S: userId } },
     };
-    return parameters;
+      return parameters;
   }
 
   /**
    * Function to validate the response and send metrics if there is a problem with the received response
    * @param response - the response from dynamoDB
    */
-  private validateQueryResponse(response: QueryCommandOutput): void {
+  private validateQueryResponse(response: QueryCommandOutput) {
     if (!response.Items) {
       const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
       logger.error(errorMessage);
@@ -150,5 +144,6 @@ export class DynamoDatabaseService {
       logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
       throw new TooManyRecordsError(errorMessage);
     }
+    return response.Items[0] ? unmarshall(response.Items[0]) : undefined;
   }
 }

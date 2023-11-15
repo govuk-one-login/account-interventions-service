@@ -24,7 +24,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
   const historyQuery = event.queryStringParameters?.['history'];
 
   try {
-    const response = await dynamoDatabaseServiceInstance.queryRecordFromDynamoDatabase(userId);
+    const response = await dynamoDatabaseServiceInstance.getFullAccountInformation(userId);
     if (!response) {
       logger.info('Query matched no records in DynamoDB.');
       logAndPublishMetric(MetricNames.ACCOUNT_NOT_FOUND);

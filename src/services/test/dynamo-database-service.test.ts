@@ -73,7 +73,7 @@ describe('Dynamo DB Service', () => {
 
   it('should get all items successfully.', async () => {
     queryCommandMock.resolves({ Items: items });
-    const allItems = await new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc');
+    const allItems = await new DynamoDatabaseService('abc').getAccountStateInformation('abc');
     expect(allItems).toEqual({
       blocked: false,
       reproveIdentity: false,
@@ -84,7 +84,7 @@ describe('Dynamo DB Service', () => {
   
   it('should return undefined if a user has no record.', async () => {
     queryCommandMock.resolves({ Items: [] });
-    const allItems = await new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc');
+    const allItems = await new DynamoDatabaseService('abc').getAccountStateInformation('abc');
     expect(allItems).toEqual(undefined);
   });
 
@@ -97,7 +97,7 @@ describe('Dynamo DB Service', () => {
       ProjectionExpression: 'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted',
     };
     queryCommandMock.resolvesOnce({ Items: items });
-    await new DynamoDatabaseService('abc').retrieveRecordsByUserId('abc');
+    await new DynamoDatabaseService('abc').getAccountStateInformation('abc');
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, QueryCommandInput);
   });
 
@@ -109,7 +109,7 @@ describe('Dynamo DB Service', () => {
       ExpressionAttributeValues: { ':id_value': { S: 'abc' } },
     };
     queryCommandMock.resolvesOnce({ Items: items });
-    await new DynamoDatabaseService('abc').queryRecordFromDynamoDatabase('abc');
+    await new DynamoDatabaseService('abc').getFullAccountInformation('abc');
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, QueryCommandInput);
   })
 
@@ -131,7 +131,7 @@ describe('Dynamo DB Service', () => {
   it('should throw a TooManyRecordsError error if more than one record is retrieved for one user id.', async () => {
     queryCommandMock.resolves({ Items: [{ key: { S: 'valueOne' } }, { key: { S: 'valueTwo' } }] });
     const service = await new DynamoDatabaseService('table_name');
-    await expect(async () => await service.retrieveRecordsByUserId('userId')).rejects.toThrow(
+    await expect(async () => await service.getAccountStateInformation('userId')).rejects.toThrow(
       new TooManyRecordsError('DynamoDB returned more than one element.'),
     );
     expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
@@ -140,7 +140,7 @@ describe('Dynamo DB Service', () => {
   it('should throw an error if Items field is undefined in response from DynamoDB.', async () => {
     queryCommandMock.resolves({ Items: undefined } as unknown as QueryCommandOutput);
     const service = await new DynamoDatabaseService('table_name');
-    await expect(async () => await service.retrieveRecordsByUserId('userId')).rejects.toThrow(
+    await expect(async () => await service.getAccountStateInformation('userId')).rejects.toThrow(
       new TooManyRecordsError('DynamoDB may have failed to query, returned a null response.'),
     );
     expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
