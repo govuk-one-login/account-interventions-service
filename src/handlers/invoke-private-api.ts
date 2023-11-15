@@ -1,4 +1,3 @@
-import { AppConfigService } from '../services/app-config-service';
 import logger from '../commons/logger';
 
 interface CustomEvent {
@@ -9,11 +8,9 @@ interface CustomEvent {
   };
 }
 
-const appConfig = AppConfigService.getInstance();
-
 export const handle = async (event: CustomEvent) => {
-  const userId = event.userId ?? appConfig.userId;
-  let queryParameters = event.queryParameters ?? appConfig.queryParameters;
+  const userId = event.userId ?? getUserId();
+  let queryParameters = event.queryParameters ?? getQueryParameters();
   queryParameters = queryParameters ? '?' + queryParameters : '';
 
   if (!userId) {
@@ -24,9 +21,9 @@ export const handle = async (event: CustomEvent) => {
   }
 
   const headers = event.headers ?? { 'Content-Type': 'application/json' };
-  const baseUrl = appConfig.baseUrl;
-  const endpoint = appConfig.endpoint;
-  const httpRequestMethod = appConfig.httpRequestMethod;
+  const baseUrl = getBaseUrl();
+  const endpoint = getEndpoint();
+  const httpRequestMethod = getHttpRequestMethod();
 
   const url = `${baseUrl}${endpoint}/${userId}${queryParameters}`;
   logger.info(`invoking the url: ${url}`);
@@ -47,6 +44,37 @@ export const handle = async (event: CustomEvent) => {
 
   return {
     statusCode: response.status,
-    message: JSON.stringify(response),
+    body: JSON.stringify(response),
   };
 };
+
+function getUserId() {
+  return process.env['USER_ID'];
+}
+
+function getBaseUrl() {
+  return validateConfiguration('BASE_URL');
+}
+
+function getEndpoint() {
+  const endpoint = validateConfiguration('END_POINT');
+  const prefix = endpoint.startsWith('/') ? '' : '/';
+  return prefix + endpoint;
+}
+
+function getQueryParameters() {
+  return process.env['QUERY_PARAMETERS'];
+}
+
+function getHttpRequestMethod() {
+  return validateConfiguration('HTTP_REQUEST_METHOD');
+}
+
+function validateConfiguration(environmentVariable: string): string {
+  if (!process.env[environmentVariable] || process.env[environmentVariable] === 'undefined') {
+    const message = `Environment variable ${environmentVariable} is not defined.`;
+    logger.error(message);
+    throw new Error(message);
+  }
+  return process.env[environmentVariable] as string;
+}

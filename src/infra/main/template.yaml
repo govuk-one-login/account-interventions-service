@@ -719,6 +719,7 @@ Resources:
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
     Properties:
       FunctionName: !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunction'
+      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       CodeUri: ../../../dist/handlers/invoke-private-api
       Timeout: 10
       Environment:
