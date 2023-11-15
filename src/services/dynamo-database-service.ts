@@ -123,7 +123,7 @@ export class DynamoDatabaseService {
       ExpressionAttributeNames: { '#pk': 'pk' },
       ExpressionAttributeValues: { ':id_value': { S: userId } },
     };
-      return parameters;
+    return parameters;
   }
 
   /**
