@@ -298,7 +298,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "DynamoDB query no response error five times within a minute."
+      AlarmDescription: "The query to DynamoDB has provided the no response error five times within a minute."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       DatapointsToAlarm: 1
       Threshold: 5
