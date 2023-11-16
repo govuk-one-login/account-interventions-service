@@ -105,15 +105,37 @@ declarations in order to find the handler files, i.e. the webpack entry files, t
 5. Runs the webpack process and writes the bundle in to the `dist` folder in the locations expected by the SAM template.
 
 ### Testing the Private Api Gateway endpoint
-Deployments to the dev environment will create a lambda that can be used to invoke the private api gateway. This lambda is called: `{stack-name}-InvokePrivateAPIGatewayFunction`. Since this lambda is created within the application's VPC, it meets the required security measures so it is able to successfully invoke the endpoint.
+The api in this application is a private api, which means testing it can't be done using tools like postman. The lambda `{stack-name}-InvokePrivateAPIGatewayFunction` has been created to allow the api to be tested. Since this lambda is created within the application's VPC, it meets the required security measures so it is able to successfully invoke the endpoint.
 
-#### How to use the InvokePrivateAPIGatewayFunction lambda:
-The environment variables contain the configurations for the baseurl, endpoint and the http request method. These values are generated automatically, but they can also be updated if required. Note that at the moment the lambda is not set up to work for a post request, so changes to the lambda will need to be made if post requests become a requirement.
+The api has the following format:
+```
+<baseurl>/ais/:userId?history=true
+```
+Note: the query string parameter (`history=true`) is optional.
 
-The endpoint also requires a userId as a path parameter. This lambda allows you to set the userId in two ways:
-1. Update the environment variable: USER_ID.
-2. Pass the userId in the lambda's event body in this format: `{ "userId": "<the-userId>" }`
+This lambda sets default values for the baseUrl and the endpoint (e.g. `ais`) in the environment variables.
 
-If you require the history as part of the response you can pass this as a query string parameter to the endpoint. The lambda allows you to do this in two ways:
-1. Update the environment variable: QUERY_PARAMETERS with the value `history=true`
-2. Add the key queryParameters in the lambda's event body. The event body will be in this format: `{ "userId": "<the-useId>", "queryParameters": "history=true" }`
+There are two ways to use this lambda:
+
+### :calendar: Using the lambda event:
+All of these keys are optional. Anything provided in the event will override the default value in the environment variable.
+```
+{
+    "userId": "<theUserId>",
+    "queryParameters": "history=true",
+    "baseUrl": "<theBaseUrl eg http://hello-world.com>",
+    "endpoint": "<theEndpoint eg /ais>",
+    "headers": { 'Content-Type': 'application/json' } // add any headers here
+}
+```
+
+### :seedling: Using the environment variables:
+Update the values for these variables. Note, if you also provide the equivalent value in the lambda event, the lambda will use the lambda event values.
+```
+USER_ID
+QUERY_PARAMETERS
+BASE_URL
+END_POINT
+```
+
+Note: that at the moment the lambda is not set up to work for a post request, so changes to the lambda will need to be made if post requests become a requirement.
