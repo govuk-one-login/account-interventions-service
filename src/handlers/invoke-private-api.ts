@@ -31,13 +31,6 @@ export const handle = async (event: CustomEvent) => {
 
   const response = await responsePromise.json();
 
-  if (Object.keys(response).length === 0) {
-    return {
-      statusCode: response.status || 400,
-      message: "Request didn't return a valid response",
-    };
-  }
-
   return {
     statusCode: response.status,
     body: JSON.stringify(response),
