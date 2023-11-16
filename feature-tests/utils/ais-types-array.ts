@@ -22,7 +22,7 @@ export const ais = {
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
-      extension: {
+      extensions: {
         intervention: {
           intervention_code: '02',
           intervention_reason: 'something',
@@ -37,9 +37,9 @@ export const ais = {
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
-      extension: {
+      extensions: {
         intervention: {
-          intervention_code: '02',
+          intervention_code: '03',
           intervention_reason: 'something',
         },
       },
@@ -52,7 +52,7 @@ export const ais = {
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
-      extension: {
+      extensions: {
         intervention: {
           intervention_code: '04',
           intervention_reason: 'something',
@@ -67,7 +67,7 @@ export const ais = {
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
-      extension: {
+      extensions: {
         intervention: {
           intervention_code: '05',
           intervention_reason: 'something',
@@ -82,7 +82,7 @@ export const ais = {
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
-      extension: {
+      extensions: {
         intervention: {
           intervention_code: '06',
           intervention_reason: 'something',
@@ -97,7 +97,7 @@ export const ais = {
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
-      extension: {
+      extensions: {
         intervention: {
           intervention_code: '07',
           intervention_reason: 'something',
@@ -119,6 +119,11 @@ export const ais = {
         session_id: '',
         persistent_session_id: '',
         govuk_signin_journey_id: '',
+      },
+      extensions: {
+        levelOfConfidence: 'P2',
+        ciFail: false,
+        hasMitigations: false,
       },
     },
   ],
