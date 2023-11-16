@@ -3,32 +3,27 @@ import logger from '../commons/logger';
 interface CustomEvent {
   userId?: string;
   queryParameters?: string;
+  baseUrl?: string;
+  endpoint?: string;
   headers?: {
     [key: string]: string;
   };
 }
 
 export const handle = async (event: CustomEvent) => {
-  const userId = event.userId ?? getUserId();
+  const baseUrl = event.baseUrl ?? getBaseUrl();
+  const endpoint = event.endpoint ?? getEndpoint();
+  const userId = encodeURI(event.userId ?? getUserId());
+  const headers = event.headers ?? { 'Content-Type': 'application/json' };
+  const httpRequestMethod = getHttpRequestMethod();
+  
   let queryParameters = event.queryParameters ?? getQueryParameters();
   queryParameters = queryParameters ? '?' + queryParameters : '';
-
-  if (!userId) {
-    return {
-      statusCode: 400,
-      message:
-        'UserId is required. Provide by either adding userId to the event, or update the USER_ID environment variable.',
-    };
-  }
-
-  const headers = event.headers ?? { 'Content-Type': 'application/json' };
-  const baseUrl = getBaseUrl();
-  const endpoint = getEndpoint();
-  const httpRequestMethod = getHttpRequestMethod();
-
+  
   const url = `${baseUrl}${endpoint}/${userId}${queryParameters}`;
-  logger.info(`invoking the url: ${url}`);
 
+  logger.info(`invoking the url: ${url}`);
+  
   const responsePromise = await fetch(url, {
     method: httpRequestMethod,
     headers,
@@ -50,7 +45,7 @@ export const handle = async (event: CustomEvent) => {
 };
 
 function getUserId() {
-  return process.env['USER_ID'];
+  return process.env['USER_ID'] as string;
 }
 
 function getBaseUrl() {
@@ -64,7 +59,7 @@ function getEndpoint() {
 }
 
 function getQueryParameters() {
-  return process.env['QUERY_PARAMETERS'];
+  return process.env['QUERY_PARAMETERS'] as string;
 }
 
 function getHttpRequestMethod() {
