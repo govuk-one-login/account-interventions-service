@@ -393,3 +393,22 @@ Resources:
       Period: 60
       Statistic: SampleCount
       Unit: Count
+
+  InvalidSchema:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Schema is invalid"
+      Namespace: !Ref SystemTagValue
+      MetricName: INVALID_SCHEMA
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 1
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
