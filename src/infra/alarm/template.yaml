@@ -215,6 +215,25 @@ Resources:
         - Name: service
           Value: InterventionsProcessorFunction
 
+  LevelOfConfidenceTooLow:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Level of confidence is too low."
+      Namespace: !Ref SystemTagValue
+      MetricName: CONFIDENCE_LEVEL_TOO_LOW
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
   InterventionEventStale:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -268,7 +287,7 @@ Resources:
       Namespace: !Ref SystemTagValue
       Dimensions:
         - Name: service
-          Value: DeleteAllDataFunction
+          Value: InterventionsProcessorFunction
       Period: 60
       Statistic: Sum
       Unit: Count
@@ -289,7 +308,88 @@ Resources:
       Namespace: !Ref SystemTagValue
       Dimensions:
         - Name: service
-          Value: DeleteAllDataFunction
+          Value: InterventionsProcessorFunction
       Period: 60
       Statistic: Sum
+      Unit: Count
+
+  DBQueryTooManyItemsError:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "DynamoDB query returned too many items"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: DB_QUERY_ERROR_TOO_MANY_ITEMS
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  TooManyDBQueryTooManyItemsError:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "DynamoDB query too many items error five times within a minute."
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      DatapointsToAlarm: 1
+      Threshold: 5
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: DB_QUERY_ERROR_TOO_MANY_ITEMS
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  TxMAPublishFailed:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Publishing to TxMA failed"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  TxMAPublishFailures:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Publishing to TxMA failed once every minute for 10 minutes"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 10
+      TreatMissingData: notBreaching
+      MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+      Period: 60
+      Statistic: SampleCount
       Unit: Count

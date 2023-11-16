@@ -57,10 +57,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
   try {
     const recordBody: TxMAIngressEvent = JSON.parse(record.body);
     validateEvent(recordBody);
-    const eventTimestampInMs = recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000;
-    const userId = recordBody.user.user_id;
     const intervention = getInterventionName(recordBody);
-
     logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention received.`, { intervention });
 
     if (intervention === EventsEnum.IPV_IDENTITY_ISSUED && recordBody.extensions?.levelOfConfidence !== 'P2') {
@@ -69,6 +66,8 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       return;
     }
 
+    const userId = recordBody.user.user_id;
+    const eventTimestampInMs = recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000;
     if (isTimestampInFuture(eventTimestampInMs)) {
       await sendAuditEvent('AIS_INTERVENTION_IGNORED_IN_FUTURE', userId, {
         intervention,
