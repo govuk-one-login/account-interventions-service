@@ -12,11 +12,11 @@ Parameters:
   AlertingSNSLowAlertNotificationTopicARN:
     Description: "The ARN of the Alerting SNS Low Alert Notification topic"
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/infra-alerting/SNS/LowAlertNotificationTopic/ARN" #pragma: allowlist secret
+    Default: "/ais-infra-alerting/SNS/LowAlertNotificationTopic/ARN" #pragma: allowlist secret
   AlertingSNSHighAlertNotificationTopicARN:
     Description: "The ARN of the Alerting SNS High Alert Notification topic"
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
+    Default: "/ais-infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
 
 #
 # CloudWatch Alarms for SQS Queues
