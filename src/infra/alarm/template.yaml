@@ -241,7 +241,7 @@ Resources:
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
       AlarmDescription: "Too many intervention event messages are out of order."
-      Namespace: !Ref MainCloudWatchMetricNamespace
+      Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_EVENT_STALE
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
@@ -252,3 +252,44 @@ Resources:
       Dimensions:
         - Name: service
           Value: InterventionsProcessorFunction
+
+  DBQueryNoResponseError:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "DynamoDB query no response error"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: DB_QUERY_ERROR_NO_RESPONSE
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: DeleteAllDataFunction
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  TooManyDBQueryNoResponseError:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "DynamoDB query no response error five times within a minute."
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      DatapointsToAlarm: 1
+      Threshold: 5
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: DB_QUERY_ERROR_NO_RESPONSE
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: DeleteAllDataFunction
+      Period: 60
+      Statistic: Sum
+      Unit: Count
