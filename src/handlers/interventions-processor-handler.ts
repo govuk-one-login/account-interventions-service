@@ -68,6 +68,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
 
     const userId = recordBody.user.user_id;
     const eventTimestampInMs = recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000;
+
     if (isTimestampInFuture(eventTimestampInMs)) {
       await sendAuditEvent('AIS_INTERVENTION_IGNORED_IN_FUTURE', userId, {
         intervention,
@@ -77,45 +78,51 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       itemFailures.push({
         itemIdentifier: record.messageId,
       });
-    } else {
-      const itemFromDB = await service.getAccountStateInformation(userId);
-      if (itemFromDB?.isAccountDeleted === true) {
-        logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
-        logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-        await sendAuditEvent('AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED', userId, {
-          intervention,
-          appliedAt: undefined,
-          reason: 'Target user account is marked as deleted.',
-        });
-      } else if (isEventAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
-        logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
-        const currentTimestamp = getCurrentTimestamp().milliseconds;
-        const statusResult = accountStateEngine.applyEventTransition(intervention, itemFromDB);
-        const partialCommandInput = buildPartialUpdateAccountStateCommand(
-          statusResult.newState,
-          intervention,
-          eventTimestampInMs,
-          currentTimestamp,
-          statusResult.interventionName,
-        );
-        logger.debug('processed requested event, sending update request to dynamo db');
-        await service.updateUserStatus(userId, partialCommandInput);
-        await sendAuditEvent('AIS_INTERVENTION_TRANSITION_APPLIED', userId, {
-          intervention,
-          appliedAt: currentTimestamp,
-          reason: undefined,
-        });
-      } else {
-        logger.warn('Event received predates last applied event for this user.');
-        logAndPublishMetric(MetricNames.INTERVENTION_EVENT_STALE);
-        await sendAuditEvent('AIS_INTERVENTION_IGNORED_STALE', userId, {
-          intervention,
-          appliedAt: undefined,
-          reason: 'Received intervention predates latest applied intervention',
-        });
-        return;
-      }
     }
+
+    const itemFromDB = await service.getAccountStateInformation(userId);
+
+    if (itemFromDB?.isAccountDeleted === true) {
+      logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
+      logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
+      await sendAuditEvent('AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED', userId, {
+        intervention,
+        appliedAt: undefined,
+        reason: 'Target user account is marked as deleted.',
+      });
+      return;
+    }
+
+    if (isEventAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
+      logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
+      const currentTimestamp = getCurrentTimestamp().milliseconds;
+      const statusResult = accountStateEngine.applyEventTransition(intervention, itemFromDB);
+      const partialCommandInput = buildPartialUpdateAccountStateCommand(
+        statusResult.newState,
+        intervention,
+        eventTimestampInMs,
+        currentTimestamp,
+        statusResult.interventionName,
+      );
+
+      logger.debug('processed requested event, sending update request to dynamo db');
+      await service.updateUserStatus(userId, partialCommandInput);
+      await sendAuditEvent('AIS_INTERVENTION_TRANSITION_APPLIED', userId, {
+        intervention,
+        appliedAt: currentTimestamp,
+        reason: undefined,
+      });
+      return;
+    }
+
+    logger.warn('Event received predates last applied event for this user.');
+    logAndPublishMetric(MetricNames.INTERVENTION_EVENT_STALE);
+    await sendAuditEvent('AIS_INTERVENTION_IGNORED_STALE', userId, {
+      intervention,
+      appliedAt: undefined,
+      reason: 'Received intervention predates latest applied intervention',
+    });
+    return;
   } catch (error) {
     if (error instanceof ValidationError) {
       logger.warn('ValidationError caught, message will not be retried.');
