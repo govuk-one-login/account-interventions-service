@@ -81,7 +81,7 @@ describe('Dynamo DB Service', () => {
       suspended: false,
     });
   });
-  
+
   it('should return undefined if a user has no record.', async () => {
     queryCommandMock.resolves({ Items: [] });
     const allItems = await new DynamoDatabaseService('abc').getAccountStateInformation('abc');
@@ -170,22 +170,25 @@ describe('Dynamo DB Service', () => {
 
   it('throws an error when it fails to update the userId status.', async () => {
     const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
-    mockedUpdateCommand.rejectsOnce("InternalServerError");
+    const err = new Error("InternalServerError");
+    mockedUpdateCommand.rejectsOnce(err);
     const loggerErrorSpy = jest.spyOn(logger, 'error');
     const dynamoDBService = new DynamoDatabaseService('table_name')
     await expect(async () => await dynamoDBService.updateDeleteStatus('hello')).rejects.toThrow(
-      new Error('Error was not a Conditional Check Exception.'),
+      new Error('Error was not a Conditional Check Failed Exception.'),
     );
-    expect(loggerErrorSpy).toHaveBeenCalledWith("Sensitive info - Error updating Dynamo DB Error: InternalServerError.");
+    expect(loggerErrorSpy).toHaveBeenCalledWith("Sensitive info - Error updating Dynamo DB.", { error: err, userId: 'hello'});
     expect(logAndPublishMetric).toHaveBeenCalledWith('DB_UPDATE_ERROR');
   });
 
   it('does not throw an error and logs an info when there is a Conditional Check Exception.', async () => {
     const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
-    mockedUpdateCommand.rejectsOnce({ name: "ConditionalCheckFailedException" });
+    const err = new Error();
+    err.name = 'ConditionalCheckFailedException';
+    mockedUpdateCommand.rejectsOnce(err);
     const loggerInfoSpy = jest.spyOn(logger, 'info');
     const dynamoDBService = new DynamoDatabaseService('table_name')
     await dynamoDBService.updateDeleteStatus('hello');
-    expect(loggerInfoSpy).toHaveBeenCalledWith("Sensitive info - No intervention exists for this account hello.");
+    expect(loggerInfoSpy).toHaveBeenCalledWith("Sensitive info - No intervention exists for this account.",  {"error": err, "userId": "hello"});
   });
 });

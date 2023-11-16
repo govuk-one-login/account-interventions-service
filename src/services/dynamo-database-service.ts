@@ -98,16 +98,16 @@ export class DynamoDatabaseService {
     const command = new UpdateItemCommand(commandInput);
     try {
       const response = await this.dynamoClient.send(command);
-      logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Account ${userId} marked as deleted.`);
+      logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Account marked as deleted.`, { userId });
       logAndPublishMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
       return response;
-    } catch (error: any) {
-      if (!error.name || error.name !== 'ConditionalCheckFailedException') {
-        logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} Error updating Dynamo DB ${error}.`);
+    } catch (error: unknown) {
+      if (error instanceof Error && (!error.name || error.name !== 'ConditionalCheckFailedException')) {
+        logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} Error updating Dynamo DB.`, { error, userId });
         logAndPublishMetric(MetricNames.DB_UPDATE_ERROR);
-        throw new Error('Error was not a Conditional Check Exception.'); //Therefore re-driving message back to the queue.
+        throw new Error('Error was not a Conditional Check Failed Exception.'); //Therefore re-driving message back to the queue.
       }
-      logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} No intervention exists for this account ${userId}.`);
+      logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} No intervention exists for this account.`, { error, userId });
     }
   }
 
@@ -117,7 +117,7 @@ export class DynamoDatabaseService {
    * @returns - the parameters needed to query DynamoDB
    */
   private getInputParameterForDatabaseQuery(userId: string): QueryCommandInput {
-    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db, with ID : ${userId}`);
+    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db.`, { userId });
     const parameters: QueryCommandInput = {
       TableName: this.tableName,
       KeyConditionExpression: '#pk = :id_value',
