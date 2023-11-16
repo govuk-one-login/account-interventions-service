@@ -189,7 +189,7 @@ describe('status-retriever-handler', () => {
 
   it('will return a standard 200 response when there is a request with an encoded user id', async () => {
     const suspendedRecord = {
-      pk: encodeURIComponent('testUserID'),
+      pk: encodeURIComponent('test&User?ID'),
       intervention: 'some intervention',
       updatedAt: 123455,
       appliedAt: 12345685809,
@@ -221,7 +221,7 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
     };
 
-    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : encodeURIComponent('testUserID'));
+    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : encodeURIComponent('test&User?ID'));
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(suspendedRecord);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
