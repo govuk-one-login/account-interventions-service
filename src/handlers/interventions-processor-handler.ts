@@ -78,6 +78,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       itemFailures.push({
         itemIdentifier: record.messageId,
       });
+      return;
     }
 
     const itemFromDB = await service.getAccountStateInformation(userId);
