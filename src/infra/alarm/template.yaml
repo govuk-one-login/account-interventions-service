@@ -127,7 +127,7 @@ Resources:
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
       AlarmDescription: "Too many intervention events failed validation."
-      Namespace: !Ref MainCloudWatchMetricNamespace
+      Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_EVENT_INVALID
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
@@ -165,7 +165,7 @@ Resources:
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
       AlarmDescription: "Too many received intervention events are invalid."
-      Namespace: !Ref MainCloudWatchMetricNamespace
+      Namespace: !Ref SystemTagValue
       MetricName: INVALID_EVENT_RECEIVED
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
