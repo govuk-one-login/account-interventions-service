@@ -189,7 +189,7 @@ describe('status-retriever-handler', () => {
 
   it('will return a standard 200 response when there is a request with an encoded user id', async () => {
     const suspendedRecord = {
-      pk: encodeURIComponent('test&User?ID'),
+      pk: 'test&User?ID',
       intervention: 'some intervention',
       updatedAt: 123455,
       appliedAt: 12345685809,
