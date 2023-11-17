@@ -16,14 +16,14 @@ export const handle = async (event: CustomEvent) => {
   const userId = encodeURI(event.userId ?? getUserId());
   const headers = event.headers ?? { 'Content-Type': 'application/json' };
   const httpRequestMethod = getHttpRequestMethod();
-  
+
   let queryParameters = event.queryParameters ?? getQueryParameters();
   queryParameters = queryParameters ? '?' + queryParameters : '';
-  
+
   const url = `${baseUrl}${endpoint}/${userId}${queryParameters}`;
 
   logger.info(`invoking the url: ${url}`);
-  
+
   const responsePromise = await fetch(url, {
     method: httpRequestMethod,
     headers,
