@@ -1,6 +1,6 @@
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 
-export async function invokeApiGateWayLambda(testUserId: string, historyValue: any) {
+export async function invokeApiGateWayLambda(testUserId: string, historyValue: boolean) {
   const client = new LambdaClient({});
   const command = new InvokeCommand({
     FunctionName: 'ais-main-kg-InvokePrivateAPIGatewayFunction',

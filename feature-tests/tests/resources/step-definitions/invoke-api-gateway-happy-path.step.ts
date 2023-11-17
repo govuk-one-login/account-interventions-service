@@ -26,7 +26,7 @@ defineFeature(feature, (test) => {
       /^I should receive the appropriate (.*), (.*), (.*), (.*) and (.*) for the ais endpoint$/,
       async (interventionType, blockedState, suspendedState, resetPassword, reproveIdentity) => {
         const responseInJson = await JSON.parse(await JSON.parse(await response).body);
-        expect(await responseInJson.intervention.history[0].intervention).toContain(interventionType);
+        expect(await responseInJson.intervention.description).toContain(interventionType);
         expect(await responseInJson.intervention.state.blocked).toBe(JSON.parse(blockedState));
         expect(await responseInJson.intervention.state.suspended).toBe(JSON.parse(suspendedState));
         expect(await responseInJson.intervention.state.resetPassword).toBe(JSON.parse(resetPassword));
