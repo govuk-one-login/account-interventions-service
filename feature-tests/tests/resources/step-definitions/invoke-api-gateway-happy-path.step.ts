@@ -7,7 +7,7 @@ const feature = loadFeature('tests/resources/features/vcsGET/invokeApiGateway-Ha
 
 defineFeature(feature, (test) => {
   let testUserId: string;
-  let response:any
+  let response: any;
 
   beforeEach(() => {
     testUserId = generateRandomTestUserId();
@@ -22,13 +22,16 @@ defineFeature(feature, (test) => {
       response = await invokeApiGateWayLambda(testUserId, historyValue);
     });
 
-    then(/^I should receive the appropriate (.*) for the ais endpoint$/, async (interventionType) => {
-      const responseInJson = await JSON.parse(await JSON.parse(await response).body);
-      expect(await responseInJson.intervention.history[0].intervention).toContain(interventionType);
-      expect(await responseInJson.intervention.state.blocked).toBe(false);
-      expect(await responseInJson.intervention.state.suspended).toBe(true);
-      expect(await responseInJson.intervention.state.resetPassword).toBe(true);
-      expect(await responseInJson.intervention.state.reproveIdentity).toBe(false);
-    });
+    then(
+      /^I should receive the appropriate (.*), (.*), (.*), (.*) and (.*) for the ais endpoint$/,
+      async (interventionType, blockedState, suspendedState, resetPassword, reproveIdentity) => {
+        const responseInJson = await JSON.parse(await JSON.parse(await response).body);
+        expect(await responseInJson.intervention.history[0].intervention).toContain(interventionType);
+        expect(await responseInJson.intervention.state.blocked).toBe(JSON.parse(blockedState));
+        expect(await responseInJson.intervention.state.suspended).toBe(JSON.parse(suspendedState));
+        expect(await responseInJson.intervention.state.resetPassword).toBe(JSON.parse(resetPassword));
+        expect(await responseInJson.intervention.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
+      },
+    );
   });
 });

@@ -8,5 +8,6 @@ export async function invokeApiGateWayLambda(testUserId: string, historyValue: a
   });
   const { Payload } = await client.send(command);
   const result = Payload ? Buffer.from(Payload).toString() : undefined;
-  return result ;
+  console.log('result' + result);
+  return result;
 }

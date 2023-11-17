@@ -1,18 +1,6 @@
 #! /bin/bash
 set -u
 
-if test -f ".env"; then
- echo ".env exists."
-else
-  touch .env
-  if [[ $TEST_ENVIRONMENT = "dev" ]]
-  then
-    echo X_API_KEY=$(aws secretsmanager get-secret-value --secret-id /$SAM_STACK_NAME/Config/API/Key/IPVCore --query "SecretString" --output text) > .env
-  else
-    echo X_API_KEY=$(aws secretsmanager get-secret-value --secret-id /id-reuse-storage-core/Config/API/Key/IPVCore --query "SecretString" --output text) > .env
-  fi
-fi
-
 # in pipeline copy files to CODEBUILD_SRC_DIR where next to the .env file is created
 cp /package.json . 2>/dev/null || :
 cp /yarn.lock . 2>/dev/null || :

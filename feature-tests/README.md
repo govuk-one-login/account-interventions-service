@@ -8,7 +8,6 @@ Supertest allows for HTTP assertions.
 - Cucumber-Jest
 - Supertest
 - Typescript
-- cucumber reporting
 - yarn
 - docker
 
@@ -19,7 +18,6 @@ Set up the following env vars.
 cd feature-tests
 yarn install && yarn build
 export TEST_ENVIRONMENT=dev
-export SAM_STACK_NAME=id-reuse-storage-main
 export AWS_REGION=eu-west-2
 export AWS_PROFILE=dev
 ```
@@ -44,12 +42,12 @@ Builds an image using assets in project then create a running instance of the im
 
 ```shell
 cd feature-tests
-docker build -t di-id-reuse-storage-feature-tests-image .
+docker build -t account-intervention-service-feature-tests-image .
 ```
 
 once the docker image is built, run the following the execute the dockerfile
 ```shell
-docker run di-id-reuse-storage-feature-tests-image:latest
+docker run account-intervention-service-feature-tests-image:latest
 ```
 
 

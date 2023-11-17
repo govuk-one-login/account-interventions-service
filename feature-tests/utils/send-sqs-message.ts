@@ -11,7 +11,6 @@ export async function sendSQSEvent(testUserId: string, aisType: keyof typeof ais
   const queueURL = 'https://sqs.eu-west-2.amazonaws.com/013758878511/ais-main-TxMAIngressQueue';
   ais[aisType][0]!.user.user_id = testUserId;
   const messageBody = JSON.stringify(ais[aisType][0]);
-  console.log('print' + messageBody);
 
   const parameters = {
     MessageBody: messageBody,
