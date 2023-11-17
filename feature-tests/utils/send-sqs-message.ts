@@ -18,8 +18,8 @@ export async function sendSQSEvent(testUserId: string, aisType: keyof typeof ais
   };
 
   try {
-    const data = sqs.sendMessage(parameters);
-    console.log('Success, messageId is', (await data).MessageId);
+    const data = await sqs.sendMessage(parameters);
+    console.log('Success, messageId is', data.MessageId);
   } catch (error) {
     console.log('Error', error);
   }
