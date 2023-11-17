@@ -1,6 +1,6 @@
 import { fromSSO } from '@aws-sdk/credential-providers';
 import { SQS } from '@aws-sdk/client-sqs';
-import { aisEvents } from './ais-types-array';
+import { aisEvents } from './ais-events-array';
 
 export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeof aisEvents) {
   const credentials = await fromSSO({
