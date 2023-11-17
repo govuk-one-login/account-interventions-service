@@ -3,7 +3,7 @@ import { generateRandomTestUserId } from '../../../utils/generate-random-test-us
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
 import { invokeApiGateWayLambda } from '../../../utils/invoke-apigateway-lambda';
 
-const feature = loadFeature('tests/resources/features/vcsGET/invokeApiGateway-HappyPath.feature');
+const feature = loadFeature('tests/resources/features/aisGET/invokeApiGateway-HappyPath.feature');
 
 defineFeature(feature, (test) => {
   let testUserId: string;
