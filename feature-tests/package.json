@@ -1,6 +1,6 @@
 {
   "name": "feature-tests",
-  "description": "VC Storage BDD Feature tests",
+  "description": "Account Interventions Service BDD Feature tests",
   "version": "1.0.0",
   "author": "GDS",
   "license": "UNLICENSED",
