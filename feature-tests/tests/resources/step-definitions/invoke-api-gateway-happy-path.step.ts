@@ -14,8 +14,8 @@ defineFeature(feature, (test) => {
   });
 
   test('Happy Path - Get Request to /ais/userId - Returns Data for a userId', ({ given, when, then }) => {
-    given(/^I send a request to sqs queue with (.*) data$/, async (aisType) => {
-      await sendSQSEvent(testUserId, aisType);
+    given(/^I send a request to sqs queue with (.*) data$/, async (aisEventType) => {
+      await sendSQSEvent(testUserId, aisEventType);
     });
 
     when(/^I invoke apiGateway to retreive the status of the userId with (.*)$/, async (historyValue) => {

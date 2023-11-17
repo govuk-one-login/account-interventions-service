@@ -1,4 +1,4 @@
-export const ais = {
+export const aisEvents = {
   suspendNoAction: [
     {
       timestamp: 1234,
