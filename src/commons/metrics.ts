@@ -13,11 +13,17 @@ export const metric: Metrics = new Metrics({ namespace: namespace, serviceName: 
 /**
  * wrapper function that flushes stored metrics and logs a JSON formatted logging line in related lambda's log group with the serialised metric object
  */
-export function logAndPublishMetric(metricName: string, metadata: { key: string; value: string }[] = [], count = 1) {
+export function logAndPublishMetric(
+  metricName: string,
+  metadata: { key: string; value: string }[] = [],
+  count = 1,
+  dimensions?: { [key: string]: string },
+) {
   for (const data of metadata) {
     metric.addMetadata(data.key, data.value);
   }
   metric.addMetric(metricName, MetricUnits.Count, count);
+  if (dimensions) metric.addDimensions(dimensions);
   logger.info('logging metric', { metric: metric.serializeMetrics() });
   metric.publishStoredMetrics();
 }
