@@ -1,7 +1,7 @@
-import { StateDetails } from '../data-types/interfaces';
+import { StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
 import { UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { getCurrentTimestamp } from './get-current-timestamp';
-import { AISInterventionTypes, EventsEnum, MetricNames } from '../data-types/constants';
+import { AISInterventionTypes, EventsEnum, MetricNames, SEPARATOR } from '../data-types/constants';
 import { logAndPublishMetric } from './metrics';
 
 /**
@@ -11,12 +11,14 @@ import { logAndPublishMetric } from './metrics';
  * @param eventTimestamp - timestamp of received event
  * @param currentTimestamp - timestamp of now
  * @param interventionName - optional intervention name if the event was a fraud intervention
+ * @param interventionEvent
  */
 export const buildPartialUpdateAccountStateCommand = (
   newState: StateDetails,
   eventName: EventsEnum,
   eventTimestamp: number,
   currentTimestamp: number,
+  interventionEvent: TxMAIngressEvent,
   interventionName?: AISInterventionTypes,
 ): Partial<UpdateItemCommandInput> => {
   const currentTime = getCurrentTimestamp();
@@ -60,10 +62,34 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':empty_list'] = { L: [] };
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
-      L: [{ M: { intervention: { S: interventionName }, timestamp: { N: `${eventTimestamp}` } } }],
+      L: [{ S: formHistoryString(interventionEvent, eventTimestamp) }],
     };
     baseUpdateItemCommandInput['UpdateExpression'] +=
       ', #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
   }
   return baseUpdateItemCommandInput;
 };
+
+function formHistoryString(event: TxMAIngressEvent, timeStamp: number) {
+  const interventionInformation = event.extensions?.intervention;
+  return buildHistoryString(
+    `${timeStamp}`,
+    event.component_id,
+    interventionInformation?.intervention_code,
+    interventionInformation?.intervention_reason,
+    interventionInformation?.originating_component_id,
+    interventionInformation?.intervention_predecessor_id,
+    interventionInformation?.requester_id,
+  );
+}
+function buildHistoryString(
+  event_timestamp_ms = '',
+  component_id = '',
+  intervention_code = '',
+  intervention_reason = '',
+  originating_component_id = '',
+  intervention_predecessor_id = '',
+  requester_id = '',
+) {
+  return `${event_timestamp_ms}${SEPARATOR}${component_id}${SEPARATOR}${intervention_code}${SEPARATOR}${intervention_reason}${SEPARATOR}${originating_component_id}${SEPARATOR}${intervention_predecessor_id}${SEPARATOR}${requester_id}`;
+}

@@ -1,5 +1,10 @@
-import { StateDetails } from '../../data-types/interfaces';
-import { AISInterventionTypes, EventsEnum, MetricNames } from '../../data-types/constants';
+import {StateDetails, TxMAIngressEvent} from '../../data-types/interfaces';
+import {
+  AISInterventionTypes,
+  EventsEnum,
+  MetricNames,
+  TICF_ACCOUNT_INTERVENTION
+} from '../../data-types/constants';
 import { buildPartialUpdateAccountStateCommand } from '../build-partial-update-state-command';
 import { logAndPublishMetric } from '../metrics';
 
@@ -14,6 +19,41 @@ jest.mock('../../commons/get-current-timestamp', () => ({
     };
   }),
 }));
+const interventionEventBody: TxMAIngressEvent = {
+  timestamp: 1000,
+  event_timestamp_ms: 123456,
+  user: {
+    user_id: 'abc',
+  },
+  component_id: 'TICF_CRI',
+  event_name: TICF_ACCOUNT_INTERVENTION,
+  extensions: {
+    intervention: {
+      intervention_code: '01',
+      intervention_reason: 'reason',
+      cms_id: "cms_id",
+      requester_id: "requester_id",
+      originating_component_id: "originating_component_id",
+      intervention_predecessor_id: "intervention_predecessor_id",
+    },
+  },
+};
+const resetPasswordEventBody = {
+  event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+  timestamp: 10000,
+  client_id: 'UNKNOWN',
+  component_id: 'UNKNOWN',
+  user: {
+    user_id: 'abc',
+    email: '',
+    phone: 'UNKNOWN',
+    ip_address: '',
+    session_id: '',
+    persistent_session_id: '',
+    govuk_signin_journey_id: '',
+  },
+};
+
 describe('build-partial-update-state-command', () => {
   it('should return a partial update command given Auth successful password reset is applied', () => {
     const state: StateDetails = {
@@ -42,7 +82,7 @@ describe('build-partial-update-state-command', () => {
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda',
     };
-    const command = buildPartialUpdateAccountStateCommand(state, userAction, 1111, 2222);
+    const command = buildPartialUpdateAccountStateCommand(state, userAction, 1111, 2222, resetPasswordEventBody);
     expect(command).toEqual(expectedOutput);
   });
   it('should return a partial update command given IPV successful id reset is applied', () => {
@@ -72,7 +112,7 @@ describe('build-partial-update-state-command', () => {
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida',
     };
-    const command = buildPartialUpdateAccountStateCommand(state, userAction, 1111, 2222);
+    const command = buildPartialUpdateAccountStateCommand(state, userAction, 1111, 2222, resetPasswordEventBody);
     expect(command).toEqual(expectedOutput);
   });
 
@@ -105,7 +145,7 @@ describe('build-partial-update-state-command', () => {
         ':sa': { N: '1111' },
         ':aa': { N: '2222' },
         ':empty_list': { L: [] },
-        ':h': { L: [{ M: { intervention: { S: 'AIS_FORCED_USER_PASSWORD_RESET' }, timestamp: { N: '1111' } } }] },
+        ':h': { L: [{S : "1111|TICF_CRI|01|reason|originating_component_id|intervention_predecessor_id|requester_id"}] },
         ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET' },
       },
       UpdateExpression:
@@ -116,6 +156,7 @@ describe('build-partial-update-state-command', () => {
       intervention,
       1111,
       2222,
+      interventionEventBody,
       AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
     );
     expect(command).toEqual(expectedOutput);
@@ -129,7 +170,7 @@ describe('build-partial-update-state-command', () => {
       reproveIdentity: true,
     };
     const intervention = EventsEnum.FRAUD_BLOCK_ACCOUNT;
-    expect(() => buildPartialUpdateAccountStateCommand(state, intervention, 1234, 2222)).toThrow(
+    expect(() => buildPartialUpdateAccountStateCommand(state, intervention, 1234, 2222, interventionEventBody)).toThrow(
       new Error('The intervention received did not have an interventionName field.'),
     );
     expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);

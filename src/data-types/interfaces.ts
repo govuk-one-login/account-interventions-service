@@ -58,7 +58,7 @@ export interface TxmaUser {
   user_id: string;
 }
 
-interface IngressEventExtension {
+export interface IngressEventExtension {
   intervention?: Intervention;
   levelOfConfidence?: string;
   ciFail?: boolean;
@@ -70,6 +70,8 @@ interface Intervention {
   intervention_reason: string;
   cms_id?: string;
   requester_id?: string;
+  originating_component_id?: string;
+  intervention_predecessor_id?: string;
   audit_level?: string;
 }
 

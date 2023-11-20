@@ -55,6 +55,8 @@ export enum AISInterventionTypes {
 export const TICF_ACCOUNT_INTERVENTION = 'TICF_ACCOUNT_INTERVENTION';
 export const COMPONENT_ID = 'Account Interventions Services';
 
+export const SEPARATOR = '|';
+
 export const undefinedResponseFromDynamoDatabase: Record<string, any> = {
   updatedAt: undefined,
   appliedAt: undefined,
