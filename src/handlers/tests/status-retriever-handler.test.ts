@@ -176,7 +176,73 @@ describe('status-retriever-handler', () => {
     expect(JSON.parse(response.body)).toEqual({ intervention: accountIsNotSuspended });
   });
 
-  it('will return status 400 if the userId in the event is empty', async () => {
+  it('will return a 400 error if the request has a missing user id in path parameters', async () => {
+    const invalidPathParameters = {
+      proxy: '/ais/{user_id}',
+      userId: undefined,
+    };
+    const invalidTestEvent = { ...testEvent, pathParameters: invalidPathParameters };
+    const response = await handle(invalidTestEvent, mockConfig);
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.body)).toEqual({ message: 'Invalid Request.' });
+  });
+
+  it('will return a standard 200 response when there is a request with an encoded user id', async () => {
+    const suspendedRecord = {
+      pk: 'test&User?ID',
+      intervention: 'some intervention',
+      updatedAt: 123455,
+      appliedAt: 12345685809,
+      sentAt: 123456789,
+      reprovedIdentityAt: 849473,
+      resetPasswordAt: 5847392,
+      blocked: false,
+      suspended: true,
+      resetPassword: false,
+      reproveIdentity: false,
+      auditLevel: 'standard',
+      ttl: 1234567890,
+      history: 'some intervention',
+    };
+
+    const suspendedAccount = {
+      updatedAt: 123455,
+      appliedAt: 12345685809,
+      sentAt: 123456789,
+      description: suspendedRecord.intervention,
+      reprovedIdentityAt: 849473,
+      resetPasswordAt: 5847392,
+      state: {
+        blocked: false,
+        suspended: true,
+        resetPassword: false,
+        reproveIdentity: false,
+      },
+      auditLevel: 'standard',
+    };
+
+    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : encodeURIComponent('test&User?ID'));
+    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(suspendedRecord);
+    const response = await handle(testEvent, mockConfig);
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({ intervention: suspendedAccount });
+  });
+
+  it('will return a default response if the userId contains whitespace and cannot find a userId that matches', async () => {
+    const accountNotFoundDefaultObject = {
+      updatedAt: 1685404800000,
+      appliedAt: 1685404800000,
+      sentAt: 1685404800000,
+      description: 'AIS_NO_INTERVENTION',
+      state: {
+        blocked: false,
+        suspended: false,
+        resetPassword: false,
+        reproveIdentity: false,
+      },
+      auditLevel: 'standard',
+    };
+
     const invalidPathParameters = {
       proxy: '/ais/{user_id}',
       userId: ' ',
@@ -184,9 +250,9 @@ describe('status-retriever-handler', () => {
     const invalidTestEvent = { ...testEvent, pathParameters: invalidPathParameters };
     const response = await handle(invalidTestEvent, mockConfig);
     expect(logger.warn).toBeCalledTimes(1);
-    expect(logger.warn).toBeCalledWith('Attribute invalid: user_id is empty.');
-    expect(response.statusCode).toBe(400);
-    expect(JSON.parse(response.body)).toEqual({ message: 'Invalid Request.' });
+    expect(logger.warn).toBeCalledWith('Attribute invalid: user_id is empty.')
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({ intervention: accountNotFoundDefaultObject });
   });
 
   it('will return the correct response if there is a problem with the query to dynamoDB', async () => {

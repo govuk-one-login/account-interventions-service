@@ -13,14 +13,15 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
   logger.addContext(context);
   logger.debug('Status-Retriever-Handler.');
 
-  const userId = event.pathParameters?.['userId'];
-  if (!userId || !validateEvent(userId)) {
+  if (!event.pathParameters || !event.pathParameters['userId']) {
     logAndPublishMetric(MetricNames.INVALID_SUBJECT_ID);
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'Invalid Request.' }),
     };
   }
+
+  const userId = decodeURIComponent(validateEvent(event.pathParameters?.['userId']));
   const historyQuery = event.queryStringParameters?.['history'];
 
   try {
