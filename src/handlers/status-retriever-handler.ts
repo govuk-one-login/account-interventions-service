@@ -13,7 +13,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
   logger.addContext(context);
   logger.debug('Status-Retriever-Handler.');
 
-  if (!event.pathParameters || !event.pathParameters?.['userId']) {
+  if (!event.pathParameters || !event.pathParameters['userId']) {
     logAndPublishMetric(MetricNames.INVALID_SUBJECT_ID);
     return {
       statusCode: 400,
