@@ -50,6 +50,9 @@ Resources:
         SSEType: KMS
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: TRUE
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
