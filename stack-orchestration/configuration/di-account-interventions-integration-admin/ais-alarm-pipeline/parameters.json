@@ -21,7 +21,7 @@
   },
   {
     "ParameterKey": "BuildNotificationStackName",
-    "ParameterValue": "none"
+    "ParameterValue": "ais-infra-alerting"
   },
   {
     "ParameterKey": "ContainerSignerKmsKeyArn",
