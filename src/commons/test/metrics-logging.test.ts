@@ -32,7 +32,7 @@ describe('metrics logging', () => {
         testMetricName: 1,
         eventName: 'interventionEventName'
       },
-    }); //pragma: allowlist secret
+    });
   });
 
   it('should log and publish metric with given metadata and default count in the expected seriliased format', () => {
@@ -57,7 +57,7 @@ describe('metrics logging', () => {
         secret: 'testSecretId',
         testKey: 'testValue',
       },
-    }); //pragma: allowlist secret
+    });
   });
 
   it('should log and publish metric with no metadata and custom count valuemin the expected seriliased format', () => {
@@ -77,6 +77,6 @@ describe('metrics logging', () => {
         service: 'test',
         testMetricName: 4,
       },
-    }); //pragma: allowlist secret
+    });
   });
 });
