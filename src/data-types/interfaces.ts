@@ -109,7 +109,18 @@ export interface AccountStatus {
     resetPassword: boolean;
   };
   auditLevel: string;
-  history: object[] | undefined;
+  history: History[] | undefined;
+}
+
+export interface History {
+  sentAt: string;
+  component: string;
+  code: string;
+  intervention: string;
+  reason: string;
+  originatingComponent?: string;
+  interventionPredecessorId?: string;
+  requesterId?: string;
 }
 
 export interface HistoryObject {

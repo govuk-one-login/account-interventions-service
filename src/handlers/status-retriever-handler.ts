@@ -105,3 +105,43 @@ function transformResponseFromDynamoDatabase(
 
   return <AccountStatus>response;
 }
+
+function removePipeFromHistoryString(input: string[]) {
+  const output = [];
+  for (const elements of input) {
+    if (elements.split('|').length === 7) {
+      output.push(...elements.split('|'));
+    }
+    if (elements.split('|').length !== 7) {
+      logger.warn('The history event is possibly malformed.');
+      logAndPublishMetric(MetricNames.INVALID_HISTORY_STRING);
+    }
+  }
+  return output;
+}
+
+function createHistoryObject(input: string[]) {
+  const historyArray = removePipeFromHistoryString(input);
+  console.log(historyArray);
+  for (let index = 0; index <= 6; index++) {
+    const historyObj = {
+      sentAt: String(historyArray[0]),
+      component: String(historyArray[1]),
+      code: String(historyArray[2]),
+      reason: String(historyArray[3]),
+      originatingComponent: String(historyArray[4]),
+      interventionPredecessorId: String(historyArray[5]),
+      requesterId: String(historyArray[6]),
+    };
+    return historyObj;
+  }
+}
+console.log(createHistoryObject);
+// const example = [
+//   '1609462861000|TICF_CRI|01|01|CMS|1234567|1234567', '18493759573684|somecode|02|02|LOL|12345675|194859670485'
+// ]
+// console.log(createHistoryObject(example));
+
+//console.log(createHistoryObject(['1609462861000|TICF_CRI|01|01|CMS|1234567|1234567']));
+
+// console.log(removePipeFromHistoryString(example));
