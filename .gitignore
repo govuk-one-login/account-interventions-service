@@ -65,3 +65,7 @@ public/
 .idea/
 dist/
 .DS_Store
+
+# Test specific
+**/test-report.html
+/feature-tests/results/
