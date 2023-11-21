@@ -18,11 +18,10 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/ais-infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
 
+Resources:
 #
 # CloudWatch Alarms for SQS Queues
 #
-
-Resources:
   TxMAIngressQueueProcessingSlowly:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -99,7 +98,139 @@ Resources:
       Unit: Count
 
 #
-# Account Interventions Processor Alarms
+# Cloudwatch alarms for State Engine
+#
+  AccountStateEngineConfigurationIssue:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "There is a configuration issue with the Account State Engine."
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: m1
+          Label: "configuration file failed validation"
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: !Ref SystemTagValue
+              MetricName: INVALID_STATE_ENGINE_CONFIGURATION
+              Dimensions:
+                - Name: service
+                  Value: InterventionsProcessorFunction
+            Period: 60
+            Stat: Sum
+        - Id: m2
+          Label: "No intervention was found in configuration file for given code."
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: !Ref SystemTagValue
+              MetricName: INTERVENTION_CODE_NOT_FOUND_IN_CONFIG
+              Dimensions:
+                - Name: service
+                  Value: InterventionsProcessorFunction
+            Period: 60
+            Stat: Sum
+        - Id: m3
+          Label: "The applied intervention resulted in no state changes."
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: !Ref SystemTagValue
+              MetricName: TRANSITION_SAME_AS_CURRENT_STATE
+              Dimensions:
+                - Name: service
+                  Value: InterventionsProcessorFunction
+            Period: 60
+            Stat: Sum
+        - Id: m4
+          Label: "The user's state could not be found in current config file."
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: !Ref SystemTagValue
+              MetricName: STATE_NOT_FOUND_IN_CURRENT_CONFIG
+              Dimensions:
+                - Name: service
+                  Value: InterventionsProcessorFunction
+            Period: 60
+            Stat: Sum
+        - Id: m5
+          Label: "The current account state has no transitions in current config file."
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: !Ref SystemTagValue
+              MetricName: NO_TRANSITIONS_FOUND_IN_CONFIG
+              Dimensions:
+                - Name: service
+                  Value: InterventionsProcessorFunction
+            Period: 60
+            Stat: Sum
+        - Id: m6
+          Label: "The intervention did not have an intervention name field in current config."
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: !Ref SystemTagValue
+              MetricName: INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG
+              Dimensions:
+                - Name: service
+                  Value: InterventionsProcessorFunction
+            Period: 60
+            Stat: Sum
+        - Id: sum_of_occurrences
+          Label: 'total number of configuration issues'
+          ReturnData: true
+          Expression: SUM([m1,m2,m3,m4,m5,m6])
+
+  InterventionNotAllowed:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Intervention received was not allowed on current account state."
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 5
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+      Period: 120
+      Statistic: Sum
+      Unit: Count
+
+  TooManyInterventionNotAllowed:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Too many Interventions received were not allowed on current account state."
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 5
+      EvaluationPeriods: 5
+      TreatMissingData: notBreaching
+      MetricName: STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+#
+# Cloudwatch alarms for Account Interventions Processor
 #
   EventValidationFailed:
     Type: AWS::CloudWatch::Alarm

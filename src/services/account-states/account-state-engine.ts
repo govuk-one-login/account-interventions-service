@@ -165,8 +165,8 @@ function buildStateTransitionError(metricName: MetricNames, errorMessage: string
 
 /**
  * Helper method to build a ConfigurationError and log relevant information when this type of error is to be thrown
- * @param metricName
- * @param errorMessage
+ * @param metricName - name of the metric
+ * @param errorMessage - error message to be logged
  */
 function buildConfigurationError(metricName: MetricNames, errorMessage: string) {
   logAndPublishMetric(metricName);

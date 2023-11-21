@@ -14,6 +14,27 @@ describe('metrics logging', () => {
     jest.useRealTimers();
   });
 
+  it('should log and publish metric with dimensions', () => {
+    logAndPublishMetric('testMetricName', undefined, 1, { eventName: "interventionEventName"});
+    expect(logger.info).toHaveBeenCalledWith('logging metric', {
+      metric: {
+        _aws: {
+          Timestamp: 1_678_665_600_000,
+          CloudWatchMetrics: [
+            {
+              Namespace: 'test_namespace',
+              Dimensions: [['service', 'eventName']],
+              Metrics: [{ Name: 'testMetricName', Unit: 'Count' }],
+            },
+          ],
+        },
+        service: 'test',
+        testMetricName: 1,
+        eventName: 'interventionEventName'
+      },
+    });
+  });
+
   it('should log and publish metric with given metadata and default count in the expected seriliased format', () => {
     logAndPublishMetric('testMetricName', [
       { key: 'secret', value: 'testSecretId' },
@@ -36,7 +57,7 @@ describe('metrics logging', () => {
         secret: 'testSecretId',
         testKey: 'testValue',
       },
-    }); //pragma: allowlist secret
+    });
   });
 
   it('should log and publish metric with no metadata and custom count valuemin the expected seriliased format', () => {
@@ -56,6 +77,6 @@ describe('metrics logging', () => {
         service: 'test',
         testMetricName: 4,
       },
-    }); //pragma: allowlist secret
+    });
   });
 });
