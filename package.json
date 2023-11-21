@@ -7,7 +7,7 @@
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "^yarn@1.22.21",
+  "packageManager": "yarn@1.22.21",
   "scripts": {
     "test": "yarn test:unit",
     "test:unit": "jest --group=unit --coverage --runInBand",

@@ -18,11 +18,10 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/ais-infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
 
+Resources:
 #
 # CloudWatch Alarms for SQS Queues
 #
-
-Resources:
   TxMAIngressQueueProcessingSlowly:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -98,7 +97,9 @@ Resources:
       Statistic: Sum
       Unit: Count
 
-# Cloudwatch alarms for State Engine #
+#
+# Cloudwatch alarms for State Engine
+#
   AccountStateEngineConfigurationIssue:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -227,3 +228,318 @@ Resources:
       Period: 60
       Statistic: Sum
       Unit: Count
+
+#
+# Cloudwatch alarms for Account Interventions Processor
+#
+  EventValidationFailed:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Intervention event failed validation."
+      Namespace: !Ref SystemTagValue
+      MetricName: INTERVENTION_EVENT_INVALID
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  TooManyEventsValidationFailed:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Too many intervention events failed validation."
+      Namespace: !Ref SystemTagValue
+      MetricName: INTERVENTION_EVENT_INVALID
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  InvalidEventReceived:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Received intervention event is invalid."
+      Namespace: !Ref SystemTagValue
+      MetricName: INVALID_EVENT_RECEIVED
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  TooManyInvalidEventsReceived:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Too many received intervention events are invalid."
+      Namespace: !Ref SystemTagValue
+      MetricName: INVALID_EVENT_RECEIVED
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  AccountMarkedAsDeleted:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Intervention event failed validation."
+      Namespace: !Ref SystemTagValue
+      MetricName: ACCOUNT_IS_MARKED_AS_DELETED
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  InterventionIgnoredInFuture:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Intervention event has timestamp in future."
+      Namespace: !Ref SystemTagValue
+      MetricName: INTERVENTION_IGNORED_IN_FUTURE
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  LevelOfConfidenceTooLow:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Level of confidence is too low."
+      Namespace: !Ref SystemTagValue
+      MetricName: CONFIDENCE_LEVEL_TOO_LOW
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  InterventionEventStale:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Intervention event messages are out of order."
+      Namespace: !Ref SystemTagValue
+      MetricName: INTERVENTION_EVENT_STALE
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  TooManyInterventionEventStale:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Too many intervention event messages are out of order."
+      Namespace: !Ref SystemTagValue
+      MetricName: INTERVENTION_EVENT_STALE
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 5
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  DBQueryNoResponseError:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "DynamoDB query no response error"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: DB_QUERY_ERROR_NO_RESPONSE
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  TooManyDBQueryNoResponseError:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "The query to DynamoDB has provided the no response error five times within a minute."
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      DatapointsToAlarm: 1
+      Threshold: 5
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: DB_QUERY_ERROR_NO_RESPONSE
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  DBQueryTooManyItemsError:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "DynamoDB query returned too many items"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: DB_QUERY_ERROR_TOO_MANY_ITEMS
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  TooManyDBQueryTooManyItemsError:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "DynamoDB query too many items error five times within a minute."
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      DatapointsToAlarm: 1
+      Threshold: 5
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: DB_QUERY_ERROR_TOO_MANY_ITEMS
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  TxMAPublishFailed:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Publishing to TxMA failed"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  TxMAPublishFailures:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Publishing to TxMA failed once every minute for 10 minutes"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 10
+      TreatMissingData: notBreaching
+      MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  InvalidSchema:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Schema is invalid"
+      Namespace: !Ref SystemTagValue
+      MetricName: INVALID_SCHEMA
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 1
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
