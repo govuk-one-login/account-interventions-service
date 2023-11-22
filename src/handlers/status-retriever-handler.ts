@@ -80,7 +80,7 @@ function validateEvent(userId: string) {
  * @returns transformed object
  */
 function transformResponseFromDynamoDatabase(
-  item: Record<string, string | number | boolean | object[]>,
+  item: Record<string, string | number | boolean | History[]>,
 ): AccountStatus {
   const response: Partial<AccountStatus> = {
     updatedAt: Number(item['updatedAt'] ?? Date.now()),
@@ -115,7 +115,7 @@ function removePipeFromHistoryString(input: string[]) {
       output.push(split);
     }
     if (elements.split('|').length !== 7) {
-      logger.warn('The history event is possibly malformed.');
+      logger.warn('The history event received is malformed.');
       logAndPublishMetric(MetricNames.INVALID_HISTORY_STRING);
     }
   }
