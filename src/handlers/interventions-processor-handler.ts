@@ -101,11 +101,9 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       const partialCommandInput = buildPartialUpdateAccountStateCommand(
         statusResult.newState,
         intervention,
-        eventTimestampInMs,
         currentTimestamp,
         statusResult.interventionName,
       );
-      console.log(partialCommandInput);
       logger.debug('processed requested event, sending update request to dynamo db');
       await service.updateUserStatus(userId, partialCommandInput);
       logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: intervention.toString() });

@@ -1,27 +1,26 @@
 import { StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
 import { UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
-import { getCurrentTimestamp } from './get-current-timestamp';
-import { AISInterventionTypes, EventsEnum, MetricNames, SEPARATOR } from '../data-types/constants';
+import { AISInterventionTypes, EventsEnum, MetricNames } from '../data-types/constants';
 import { logAndPublishMetric } from './metrics';
+import { HistoryStringBuilder } from './history-string-builder';
 
 /**
  * Method to build a Partial of UpdateItemCommandInput
  * @param newState - new account state object
  * @param eventName - the name of the event received
- * @param eventTimestamp - timestamp of received event
- * @param currentTimestamp - timestamp of now
+ * @param eventTimestamp - timestamp of received event in ms
+ * @param currentTimestamp - timestamp of now in ms
  * @param interventionName - optional intervention name if the event was a fraud intervention
  * @param interventionEvent
  */
 export const buildPartialUpdateAccountStateCommand = (
   newState: StateDetails,
   eventName: EventsEnum,
-  eventTimestamp: number,
   currentTimestamp: number,
   interventionEvent: TxMAIngressEvent,
   interventionName?: AISInterventionTypes,
 ): Partial<UpdateItemCommandInput> => {
-  const currentTime = getCurrentTimestamp();
+  const eventTimestamp = interventionEvent.event_timestamp_ms ?? interventionEvent.timestamp * 1000;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const baseUpdateItemCommandInput: Record<string, any> = {
     ExpressionAttributeNames: {
@@ -36,7 +35,7 @@ export const buildPartialUpdateAccountStateCommand = (
       ':s': { BOOL: newState.suspended },
       ':rp': { BOOL: newState.resetPassword },
       ':ri': { BOOL: newState.reproveIdentity },
-      ':ua': { N: `${currentTime.milliseconds}` },
+      ':ua': { N: `${currentTimestamp}` },
     },
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
   };
@@ -59,37 +58,14 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':aa'] = { N: `${currentTimestamp}` };
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#SA'] = 'sentAt';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':sa'] = { N: `${eventTimestamp}` };
+    const stringBuilder = new HistoryStringBuilder();
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':empty_list'] = { L: [] };
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
-      L: [{ S: getHistoryString(interventionEvent, eventTimestamp) }],
+      L: [{ S: stringBuilder.getHistoryString(interventionEvent, eventTimestamp) }],
     };
     baseUpdateItemCommandInput['UpdateExpression'] +=
       ', #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
   }
   return baseUpdateItemCommandInput;
 };
-
-function getHistoryString(event: TxMAIngressEvent, timeStamp: number) {
-  const interventionInformation = event.extensions?.intervention;
-  return buildHistoryString(
-    `${timeStamp}`,
-    event.component_id,
-    interventionInformation?.intervention_code,
-    interventionInformation?.intervention_reason,
-    interventionInformation?.originating_component_id,
-    interventionInformation?.intervention_predecessor_id,
-    interventionInformation?.requester_id,
-  );
-}
-function buildHistoryString(
-  event_timestamp_ms = '',
-  component_id = '',
-  intervention_code = '',
-  intervention_reason = '',
-  originating_component_id = '',
-  intervention_predecessor_id = '',
-  requester_id = '',
-) {
-  return `${event_timestamp_ms}${SEPARATOR}${component_id}${SEPARATOR}${intervention_code}${SEPARATOR}${intervention_reason}${SEPARATOR}${originating_component_id}${SEPARATOR}${intervention_predecessor_id}${SEPARATOR}${requester_id}`;
-}

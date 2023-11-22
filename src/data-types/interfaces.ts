@@ -111,3 +111,14 @@ export interface AccountStatus {
   auditLevel: string;
   history: object[] | undefined;
 }
+
+export interface HistoryObject {
+  sentAt: string;
+  component: string;
+  code: string;
+  intervention: EventsEnum;
+  reason: string;
+  originatingComponent: string | undefined;
+  originatorReferenceId: string | undefined;
+  requester: string | undefined;
+}

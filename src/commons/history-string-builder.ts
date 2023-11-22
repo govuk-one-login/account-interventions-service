@@ -1,5 +1,6 @@
-import { SEPARATOR } from '../data-types/constants';
-import { TxMAIngressEvent } from '../data-types/interfaces';
+import { HistoryStringParts, SEPARATOR } from '../data-types/constants';
+import { HistoryObject, TxMAIngressEvent } from '../data-types/interfaces';
+import { AccountStateEngine } from '../services/account-states/account-state-engine';
 
 export class HistoryStringBuilder {
   private buildHistoryString(
@@ -28,7 +29,38 @@ export class HistoryStringBuilder {
     );
   }
 
-  // public getHistoryObject(historyString: string){
-  //
-  // }
+  public getHistoryObject(historyString: string): HistoryObject {
+    const array = historyString.split(SEPARATOR);
+    if (array.length !== Object.keys(HistoryStringParts).length / 2)
+      throw new Error('History string does not contain the right amount of components.');
+    return this.buildHistoryObject(array);
+  }
+
+  private buildHistoryObject(array: string[]): HistoryObject {
+    const timestamp = array[HistoryStringParts.EVENT_TIMESTAMP_MS];
+    const code = array[HistoryStringParts.INTERVENTION_CODE];
+    const component = array[HistoryStringParts.COMPONENT_ID];
+    const reason = array[HistoryStringParts.INTERVENTION_REASON];
+    if (!timestamp || !code || !component || !reason)
+      throw new Error('One of the required property was not found in the history string.');
+    const sentAt = convertStringToIsoString(Number.parseInt(timestamp));
+    const intervention = AccountStateEngine.getInstance().getInterventionEnumFromCode(Number.parseInt(code));
+    const originatingComponent = array[HistoryStringParts.ORIGINATING_COMPONENT_ID];
+    const originatorReference = array[HistoryStringParts.ORIGINATOR_REFERENCE_ID];
+    const requesterId = array[HistoryStringParts.REQUESTER_ID];
+    return {
+      sentAt,
+      component,
+      code,
+      intervention,
+      reason,
+      originatingComponent: originatingComponent === '' ? undefined : originatingComponent,
+      originatorReferenceId: originatorReference === '' ? undefined : originatorReference,
+      requester: requesterId === '' ? undefined : requesterId,
+    };
+  }
+}
+
+function convertStringToIsoString(input: number) {
+  return new Date(input).toISOString();
 }

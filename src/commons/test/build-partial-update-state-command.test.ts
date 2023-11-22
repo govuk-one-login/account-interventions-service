@@ -41,6 +41,7 @@ const interventionEventBody: TxMAIngressEvent = {
 const resetPasswordEventBody = {
   event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
   timestamp: 10000,
+  event_timestamp_ms: 10000000,
   client_id: 'UNKNOWN',
   component_id: 'UNKNOWN',
   user: {
@@ -77,12 +78,12 @@ describe('build-partial-update-state-command', () => {
         ':s': { BOOL: false },
         ':rp': { BOOL: true },
         ':ri': { BOOL: true },
-        ':ua': { N: '1234567890' },
-        ':rpswda': { N: '1111' },
+        ':ua': { N: '2222' },
+        ':rpswda': { N: '10000000' },
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda',
     };
-    const command = buildPartialUpdateAccountStateCommand(state, userAction, 1111, 2222, resetPasswordEventBody);
+    const command = buildPartialUpdateAccountStateCommand(state, userAction, 2222, resetPasswordEventBody);
     expect(command).toEqual(expectedOutput);
   });
   it('should return a partial update command given IPV successful id reset is applied', () => {
@@ -107,12 +108,12 @@ describe('build-partial-update-state-command', () => {
         ':s': { BOOL: false },
         ':rp': { BOOL: true },
         ':ri': { BOOL: true },
-        ':ua': { N: '1234567890' },
-        ':rida': { N: '1111' },
+        ':ua': { N: '2222' },
+        ':rida': { N: '10000000' },
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida',
     };
-    const command = buildPartialUpdateAccountStateCommand(state, userAction, 1111, 2222, resetPasswordEventBody);
+    const command = buildPartialUpdateAccountStateCommand(state, userAction, 2222, resetPasswordEventBody);
     expect(command).toEqual(expectedOutput);
   });
 
@@ -141,11 +142,11 @@ describe('build-partial-update-state-command', () => {
         ':s': { BOOL: true },
         ':rp': { BOOL: true },
         ':ri': { BOOL: false },
-        ':ua': { N: '1234567890' },
-        ':sa': { N: '1111' },
+        ':ua': { N: '2222' },
+        ':sa': { N: '123456' },
         ':aa': { N: '2222' },
         ':empty_list': { L: [] },
-        ':h': { L: [{S : "1111|TICF_CRI|01|reason|originating_component_id|intervention_predecessor_id|requester_id"}] },
+        ':h': { L: [{S : "123456|TICF_CRI|01|reason|originating_component_id|intervention_predecessor_id|requester_id"}] },
         ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET' },
       },
       UpdateExpression:
@@ -154,7 +155,6 @@ describe('build-partial-update-state-command', () => {
     const command = buildPartialUpdateAccountStateCommand(
       state,
       intervention,
-      1111,
       2222,
       interventionEventBody,
       AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
@@ -170,7 +170,7 @@ describe('build-partial-update-state-command', () => {
       reproveIdentity: true,
     };
     const intervention = EventsEnum.FRAUD_BLOCK_ACCOUNT;
-    expect(() => buildPartialUpdateAccountStateCommand(state, intervention, 1234, 2222, interventionEventBody)).toThrow(
+    expect(() => buildPartialUpdateAccountStateCommand(state, intervention, 2222, interventionEventBody)).toThrow(
       new Error('The intervention received did not have an interventionName field.'),
     );
     expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
