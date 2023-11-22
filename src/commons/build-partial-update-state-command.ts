@@ -62,7 +62,7 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':empty_list'] = { L: [] };
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
-      L: [{ S: formHistoryString(interventionEvent, eventTimestamp) }],
+      L: [{ S: getHistoryString(interventionEvent, eventTimestamp) }],
     };
     baseUpdateItemCommandInput['UpdateExpression'] +=
       ', #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
@@ -70,7 +70,7 @@ export const buildPartialUpdateAccountStateCommand = (
   return baseUpdateItemCommandInput;
 };
 
-function formHistoryString(event: TxMAIngressEvent, timeStamp: number) {
+function getHistoryString(event: TxMAIngressEvent, timeStamp: number) {
   const interventionInformation = event.extensions?.intervention;
   return buildHistoryString(
     `${timeStamp}`,

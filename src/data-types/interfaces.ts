@@ -48,8 +48,8 @@ export interface TxMAEgressExtensions {
 export interface TxMAIngressEvent {
   event_name: string;
   timestamp: number;
-  event_timestamp_ms?: number;
-  component_id?: string;
+  event_timestamp_ms: number;
+  component_id: string;
   user: TxmaUser;
   extensions?: IngressEventExtension;
 }

@@ -57,6 +57,16 @@ export const COMPONENT_ID = 'Account Interventions Services';
 
 export const SEPARATOR = '|';
 
+export enum HistoryStringParts {
+  EVENT_TIMESTAMP_MS,
+  COMPONENT_ID,
+  INTERVENTION_CODE,
+  INTERVENTION_REASON,
+  ORIGINATING_COMPONENT_ID,
+  ORIGINATOR_REFERENCE_ID,
+  REQUESTER_ID,
+}
+
 export const undefinedResponseFromDynamoDatabase: Record<string, any> = {
   updatedAt: undefined,
   appliedAt: undefined,
