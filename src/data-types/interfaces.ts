@@ -119,7 +119,7 @@ export interface History {
   intervention: string;
   reason: string;
   originatingComponent?: string;
-  interventionPredecessorId?: string;
+  originatorReferenceId?: string;
   requesterId?: string;
 }
 

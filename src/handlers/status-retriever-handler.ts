@@ -5,6 +5,7 @@ import { logAndPublishMetric } from '../commons/metrics';
 import { MetricNames, AISInterventionTypes, undefinedResponseFromDynamoDatabase } from '../data-types/constants';
 import { AccountStatus } from '../data-types/interfaces';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
+import { transitionConfiguration } from '../services/account-states/config';
 
 const appConfig = AppConfigService.getInstance();
 const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableName);
@@ -43,7 +44,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
     const accountStatus = transformResponseFromDynamoDatabase(response);
 
     if (historyQuery && historyQuery === 'true') {
-      accountStatus.history = response['history'];
+      accountStatus.history = createHistoryObject(response['history']);
     }
 
     return {
@@ -110,7 +111,8 @@ function removePipeFromHistoryString(input: string[]) {
   const output = [];
   for (const elements of input) {
     if (elements.split('|').length === 7) {
-      output.push(...elements.split('|'));
+      const split = elements.split('|');
+      output.push(split);
     }
     if (elements.split('|').length !== 7) {
       logger.warn('The history event is possibly malformed.');
@@ -122,26 +124,40 @@ function removePipeFromHistoryString(input: string[]) {
 
 function createHistoryObject(input: string[]) {
   const historyArray = removePipeFromHistoryString(input);
+  const output = [];
   console.log(historyArray);
-  for (let index = 0; index <= 6; index++) {
-    const historyObj = {
-      sentAt: String(historyArray[0]),
-      component: String(historyArray[1]),
-      code: String(historyArray[2]),
-      reason: String(historyArray[3]),
-      originatingComponent: String(historyArray[4]),
-      interventionPredecessorId: String(historyArray[5]),
-      requesterId: String(historyArray[6]),
-    };
-    return historyObj;
+  for (let i = 0; i <= historyArray.length; i++) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+    for (let index = 0; index <= historyArray[i]?.length!; index++) {
+      const historyObj = {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+        sentAt: String(convertStringToIsoString(historyArray[i]?.[index++]!)),
+        component: String(historyArray[i]?.[index++]),
+        code: String(historyArray[i]?.[index++]),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+        intervention: String(transitionConfiguration.edges[Number.parseInt(historyArray[i]?.[index]!)]?.name),
+        reason: String(historyArray[i]?.[index++]),
+        originatingComponent: String(historyArray[i]?.[index++] ?? ''),
+        originatorReferenceId: String(historyArray[i]?.[index++] ?? ''),
+        requesterId: String(historyArray[i]?.[index++] ?? ''),
+      };
+      output.push(historyObj);
+    }
   }
+  return output;
 }
-console.log(createHistoryObject);
-// const example = [
-//   '1609462861000|TICF_CRI|01|01|CMS|1234567|1234567', '18493759573684|somecode|02|02|LOL|12345675|194859670485'
-// ]
-// console.log(createHistoryObject(example));
 
+const example = [
+  '1609462861000|TICF_CRI|01|01|CMS|1234567|1234567',
+  '1609462861000|somecode|02|02|string|12345675|194859670485',
+  '1609462861000|TICF_CRI|01|01|CMS||',
+];
+
+console.log(createHistoryObject(example));
+
+function convertStringToIsoString(input: string) {
+  return new Date(Number.parseInt(input)).toISOString();
+}
 //console.log(createHistoryObject(['1609462861000|TICF_CRI|01|01|CMS|1234567|1234567']));
 
 // console.log(removePipeFromHistoryString(example));
