@@ -71,7 +71,7 @@ interface Intervention {
   cms_id?: string;
   requester_id?: string;
   originating_component_id?: string;
-  intervention_predecessor_id?: string;
+  originator_reference_id?: string;
   audit_level?: string;
 }
 

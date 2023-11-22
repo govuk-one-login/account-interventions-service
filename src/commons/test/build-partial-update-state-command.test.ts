@@ -34,7 +34,7 @@ const interventionEventBody: TxMAIngressEvent = {
       cms_id: "cms_id",
       requester_id: "requester_id",
       originating_component_id: "originating_component_id",
-      intervention_predecessor_id: "intervention_predecessor_id",
+      originator_reference_id: "intervention_predecessor_id",
     },
   },
 };

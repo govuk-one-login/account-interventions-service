@@ -24,7 +24,7 @@ export class HistoryStringBuilder {
       interventionInformation?.intervention_code,
       interventionInformation?.intervention_reason,
       interventionInformation?.originating_component_id,
-      interventionInformation?.intervention_predecessor_id,
+      interventionInformation?.originator_reference_id,
       interventionInformation?.requester_id,
     );
   }

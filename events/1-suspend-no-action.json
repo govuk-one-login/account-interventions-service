@@ -9,7 +9,7 @@
       "intervention_code": "01",
       "intervention_reason": "something",
       "originating_component_id": "CMS",
-      "intervention_predecessor_id": "1234567",
+      "originator_reference_id": "1234567",
       "requester_id": "1234567"
     }
   }
