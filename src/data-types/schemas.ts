@@ -14,9 +14,47 @@ export const TxMAIngress = {
       title: 'Event',
       type: 'object',
       required: ['timestamp', 'event_name', 'user'],
-      if: { properties: { event_name: { enum: [EventsEnum.IPV_IDENTITY_ISSUED, TICF_ACCOUNT_INTERVENTION] } } },
-      // eslint-disable-next-line unicorn/no-thenable
-      then: { required: ['extensions'] },
+      allOf: [
+        {
+          if: { properties: { event_name: { enum: [EventsEnum.IPV_IDENTITY_ISSUED] } } },
+          // eslint-disable-next-line unicorn/no-thenable
+          then: {
+            required: ['extensions'],
+            properties: {
+              extensions: {
+                required: ['levelOfConfidence', 'ciFail', 'hasMitigations'],
+                not: {
+                  anyOf: [{ required: ['intervention'] }],
+                },
+              },
+            },
+          },
+        },
+        {
+          if: { properties: { event_name: { enum: [TICF_ACCOUNT_INTERVENTION] } } },
+          // eslint-disable-next-line unicorn/no-thenable
+          then: {
+            required: ['event_timestamp_ms', 'extensions'],
+            properties: {
+              extensions: {
+                required: ['intervention'],
+                not: {
+                  anyOf: [
+                    { required: ['levelOfConfidence'] },
+                    { required: ['ciFail'] },
+                    { required: ['hasMitigations'] },
+                  ],
+                },
+                properties: {
+                  intervention: {
+                    required: ['intervention_code', 'intervention_reason'],
+                  },
+                },
+              },
+            },
+          },
+        },
+      ],
       properties: {
         timestamp: {
           $id: '#root/event/timestamp',
