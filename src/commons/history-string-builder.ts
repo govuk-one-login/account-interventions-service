@@ -56,7 +56,7 @@ export class HistoryStringBuilder {
       reason,
       originatingComponent: originatingComponent === '' ? undefined : originatingComponent,
       originatorReferenceId: originatorReference === '' ? undefined : originatorReference,
-      requester: requesterId === '' ? undefined : requesterId,
+      requesterId: requesterId === '' ? undefined : requesterId,
     };
   }
 }

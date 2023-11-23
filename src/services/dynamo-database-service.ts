@@ -8,15 +8,16 @@ import {
   UpdateItemCommandOutput,
 } from '@aws-sdk/client-dynamodb';
 import logger from '../commons/logger';
-import {LOGS_PREFIX_SENSITIVE_INFO, MetricNames} from '../data-types/constants';
-import {AppConfigService} from './app-config-service';
-import {NodeHttpHandler} from '@smithy/node-http-handler';
+import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
+import { AppConfigService } from './app-config-service';
+import { NodeHttpHandler } from '@smithy/node-http-handler';
 import tracer from '../commons/tracer';
-import {unmarshall} from '@aws-sdk/util-dynamodb';
-import {logAndPublishMetric} from '../commons/metrics';
-import {getCurrentTimestamp} from '../commons/get-current-timestamp';
-import {DynamoDBStateResult, FullAccountInformation} from '../data-types/interfaces';
-import {TooManyRecordsError} from '../data-types/errors';
+import { unmarshall } from '@aws-sdk/util-dynamodb';
+import { logAndPublishMetric } from '../commons/metrics';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { DynamoDBStateResult } from '../data-types/interfaces';
+import { TooManyRecordsError } from '../data-types/errors';
+import { FullAccountInformation } from '../data-types/interfaces';
 
 const appConfig = AppConfigService.getInstance();
 export class DynamoDatabaseService {
@@ -121,8 +122,8 @@ export class DynamoDatabaseService {
     return {
       TableName: this.tableName,
       KeyConditionExpression: '#pk = :id_value',
-      ExpressionAttributeNames: {'#pk': 'pk'},
-      ExpressionAttributeValues: {':id_value': {S: userId}},
+      ExpressionAttributeNames: { '#pk': 'pk' },
+      ExpressionAttributeValues: { ':id_value': { S: userId } },
     };
   }
 
@@ -130,7 +131,7 @@ export class DynamoDatabaseService {
    * Function to validate the response and send metrics if there is a problem with the received response
    * @param response - the response from dynamoDB
    */
-  private validateQueryResponse <T>(response: QueryCommandOutput) {
+  private validateQueryResponse<T>(response: QueryCommandOutput) {
     if (!response.Items) {
       const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
       logger.error(errorMessage);
@@ -144,6 +145,6 @@ export class DynamoDatabaseService {
       logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
       throw new TooManyRecordsError(errorMessage);
     }
-    return response.Items[0] ? unmarshall(response.Items[0]) as T: undefined;
+    return response.Items[0] ? (unmarshall(response.Items[0]) as T) : undefined;
   }
 }

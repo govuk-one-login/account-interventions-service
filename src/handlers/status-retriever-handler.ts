@@ -3,9 +3,10 @@ import { AppConfigService } from '../services/app-config-service';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
 import { MetricNames, AISInterventionTypes, undefinedResponseFromDynamoDatabase } from '../data-types/constants';
-import { AccountStatus } from '../data-types/interfaces';
+import { AccountStatus, FullAccountInformation, HistoryObject } from '../data-types/interfaces';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
-import { transitionConfiguration } from '../services/account-states/config';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { HistoryStringBuilder } from '../commons/history-string-builder';
 
 const appConfig = AppConfigService.getInstance();
 const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableName);
@@ -44,7 +45,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
     const accountStatus = transformResponseFromDynamoDatabase(response);
 
     if (historyQuery && historyQuery === 'true') {
-      accountStatus.history = createHistoryObject(response['history']);
+      accountStatus.history = response.history ? constructHistoryObjectField(response.history) : undefined;
     }
 
     return {
@@ -79,85 +80,109 @@ function validateEvent(userId: string) {
  * @param item - received from dynamodb
  * @returns transformed object
  */
-function transformResponseFromDynamoDatabase(
-  item: Record<string, string | number | boolean | History[]>,
-): AccountStatus {
-  const response: Partial<AccountStatus> = {
-    updatedAt: Number(item['updatedAt'] ?? Date.now()),
-    appliedAt: Number(item['appliedAt'] ?? Date.now()),
-    sentAt: Number(item['sentAt'] ?? Date.now()),
-    description: String(item['intervention'] ?? AISInterventionTypes.AIS_NO_INTERVENTION),
-    state: {
-      blocked: Boolean(item['blocked'] ?? false),
-      suspended: Boolean(item['suspended'] ?? false),
-      resetPassword: Boolean(item['resetPassword'] ?? false),
-      reproveIdentity: Boolean(item['reproveIdentity'] ?? false),
-    },
-    auditLevel: String(item['auditLevel'] ?? 'standard'),
-  };
+// function transformResponseFromDynamoDatabase(
+//   item: Record<string, string | number | boolean | History[]>,
+// ): AccountStatus {
+//   const response: Partial<AccountStatus> = {
+//     updatedAt: (item['updatedAt'] ?? Date.now()),
+//     appliedAt: Number(item['appliedAt'] ?? Date.now()),
+//     sentAt: Number(item['sentAt'] ?? Date.now()),
+//     description: String(item['intervention'] ?? AISInterventionTypes.AIS_NO_INTERVENTION),
+//     state: {
+//       blocked: Boolean(item['blocked'] ?? false),
+//       suspended: Boolean(item['suspended'] ?? false),
+//       resetPassword: Boolean(item['resetPassword'] ?? false),
+//       reproveIdentity: Boolean(item['reproveIdentity'] ?? false),
+//     },
+//     auditLevel: String(item['auditLevel'] ?? 'standard'),
+//   };
 
-  if (item['reprovedIdentityAt']) {
-    response.reprovedIdentityAt = Number(item['reprovedIdentityAt']);
-  }
+//   if (item['reprovedIdentityAt']) {
+//     response.reprovedIdentityAt = Number(item['reprovedIdentityAt']);
+//   }
 
-  if (item['resetPasswordAt']) {
-    response.resetPasswordAt = Number(item['resetPasswordAt']);
-  }
+//   if (item['resetPasswordAt']) {
+//     response.resetPasswordAt = Number(item['resetPasswordAt']);
+//   }
 
-  return <AccountStatus>response;
-}
+//   return <AccountStatus>response;
+// }
 
-function removePipeFromHistoryString(input: string[]) {
-  const output = [];
-  for (const elements of input) {
-    if (elements.split('|').length === 7) {
-      const split = elements.split('|');
-      output.push(split);
-    }
-    if (elements.split('|').length !== 7) {
-      logger.warn('The history event received is malformed.');
-      logAndPublishMetric(MetricNames.INVALID_HISTORY_STRING);
-    }
-  }
-  return output;
-}
+// function removePipeFromHistoryString(input: string[]) {
+//   const output = [];
+//   for (const elements of input) {
+//     if (elements.split('|').length === 7) {
+//       const split = elements.split('|');
+//       output.push(split);
+//     }
+//     if (elements.split('|').length !== 7) {
+//       logger.warn('The history event received is malformed.');
+//       logAndPublishMetric(MetricNames.INVALID_HISTORY_STRING);
+//     }
+//   }
+//   return output;
+// }
 
-function createHistoryObject(input: string[]) {
-  const historyArray = removePipeFromHistoryString(input);
-  const output = [];
-  console.log(historyArray);
-  for (let i = 0; i <= historyArray.length; i++) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-    for (let index = 0; index <= historyArray[i]?.length!; index++) {
-      const historyObj = {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-        sentAt: String(convertStringToIsoString(historyArray[i]?.[index++]!)),
-        component: String(historyArray[i]?.[index++]),
-        code: String(historyArray[i]?.[index++]),
-        // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-        intervention: String(transitionConfiguration.edges[Number.parseInt(historyArray[i]?.[index]!)]?.name),
-        reason: String(historyArray[i]?.[index++]),
-        originatingComponent: String(historyArray[i]?.[index++] ?? ''),
-        originatorReferenceId: String(historyArray[i]?.[index++] ?? ''),
-        requesterId: String(historyArray[i]?.[index++] ?? ''),
-      };
-      output.push(historyObj);
-    }
-  }
-  return output;
-}
+// function createHistoryObject(input: string[]) {
+//   const historyArray = removePipeFromHistoryString(input);
+//   const output = [];
+//   console.log(historyArray);
+//   for (let i = 0; i <= historyArray.length; i++) {
+//     // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+//     for (let index = 0; index <= historyArray[i]?.length!; index++) {
+//       const historyObj = {
+//         // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+//         sentAt: String(convertStringToIsoString(historyArray[i]?.[index++]!)),
+//         component: String(historyArray[i]?.[index++]),
+//         code: String(historyArray[i]?.[index++]),
+//         // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+//         intervention: String(transitionConfiguration.edges[Number.parseInt(historyArray[i]?.[index]!)]?.name),
+//         reason: String(historyArray[i]?.[index++]),
+//         originatingComponent: String(historyArray[i]?.[index++] ?? ''),
+//         originatorReferenceId: String(historyArray[i]?.[index++] ?? ''),
+//         requesterId: String(historyArray[i]?.[index++] ?? ''),
+//       };
+//       output.push(historyObj);
+//     }
+//   }
+//   return output;
+// }
 
-const example = [
-  '1609462861000|TICF_CRI|01|01|CMS|1234567|1234567',
-  '1609462861000|somecode|02|02|string|12345675|194859670485',
-  '1609462861000|TICF_CRI|01|01|CMS||',
-];
+// const example = [
+//   '1609462861000|TICF_CRI|01|01|CMS|1234567|1234567',
+//   '1609462861000|somecode|02|02|string|12345675|194859670485',
+//   '1609462861000|TICF_CRI|01|01|CMS||',
+// ];
 
-console.log(createHistoryObject(example));
+// console.log(createHistoryObject(example));
 
-function convertStringToIsoString(input: string) {
-  return new Date(Number.parseInt(input)).toISOString();
-}
+// function convertStringToIsoString(input: string) {
+//   return new Date(Number.parseInt(input)).toISOString();
+// }
 //console.log(createHistoryObject(['1609462861000|TICF_CRI|01|01|CMS|1234567|1234567']));
 
 // console.log(removePipeFromHistoryString(example));
+function transformResponseFromDynamoDatabase(item: FullAccountInformation) {
+  const currentTimestampMs = getCurrentTimestamp().milliseconds;
+  const accountStatus: AccountStatus = {
+    updatedAt: item.updatedAt ?? currentTimestampMs,
+    appliedAt: item.appliedAt ?? currentTimestampMs,
+    sentAt: item.sentAt ?? currentTimestampMs,
+    description: item.intervention ?? AISInterventionTypes.AIS_NO_INTERVENTION,
+    state: {
+      blocked: item.blocked ?? false,
+      suspended: item.suspended ?? false,
+      resetPassword: item.resetPassword ?? false,
+      reproveIdentity: item.reproveIdentity ?? false,
+    },
+    auditLevel: item.auditLevel ?? 'standard',
+    reprovedIdentityAt: item.reprovedIdentityAt ?? undefined,
+    resetPasswordAt: item.resetPasswordAt ?? undefined,
+  };
+  return accountStatus;
+}
+
+function constructHistoryObjectField(input: string[]): HistoryObject[] {
+  const historyStringBuilder = new HistoryStringBuilder();
+  return input.map((element) => historyStringBuilder.getHistoryObject(element));
+}

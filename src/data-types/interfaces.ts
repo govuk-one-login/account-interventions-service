@@ -14,18 +14,19 @@ export interface DynamoDBStateResult extends StateDetails {
 }
 
 export interface FullAccountInformation {
-  blocked: boolean;
-  suspended: boolean;
-  resetPassword: boolean;
-  reproveIdentity: boolean;
-  sentAt: number;
-  appliedAt: number;
+  blocked?: boolean;
+  suspended?: boolean;
+  resetPassword?: boolean;
+  reproveIdentity?: boolean;
+  sentAt?: number;
+  appliedAt?: number;
   isAccountDeleted?: boolean;
-  history: string[];
-  intervention: string;
-  updatedAt: string;
+  history?: string[];
+  intervention?: string;
+  updatedAt?: number;
   reprovedIdentityAt?: number;
   resetPasswordAt?: number;
+  auditLevel?: string;
 }
 export interface AccountStateEngineOutput {
   newState: StateDetails;
@@ -115,8 +116,8 @@ export interface AccountStatus {
   appliedAt: number;
   sentAt: number;
   description: string;
-  reprovedIdentityAt?: number;
-  resetPasswordAt?: number;
+  reprovedIdentityAt: number | undefined;
+  resetPasswordAt: number | undefined;
   state: {
     blocked: boolean;
     suspended: boolean;
@@ -124,7 +125,7 @@ export interface AccountStatus {
     resetPassword: boolean;
   };
   auditLevel: string;
-  history: History[] | undefined;
+  history?: HistoryObject[] | undefined;
 }
 
 export interface History {
@@ -142,9 +143,9 @@ export interface HistoryObject {
   sentAt: string;
   component: string;
   code: string;
-  intervention: EventsEnum;
+  intervention: string;
   reason: string;
   originatingComponent: string | undefined;
   originatorReferenceId: string | undefined;
-  requester: string | undefined;
+  requesterId: string | undefined;
 }

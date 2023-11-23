@@ -47,7 +47,7 @@ describe("history-string-builder", () => {
       reason: 'reason',
       originatingComponent: 'originating_component_id',
       originatorReferenceId: 'intervention_predecessor_id',
-      requester: 'requester_id'
+      requesterId: 'requester_id'
     }
     expect(result).toEqual(expectedResult);
   });
