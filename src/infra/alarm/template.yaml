@@ -27,7 +27,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingLowToBeRevertdARN
       AlarmDescription: "The TxMA Ingress Queue is processing slowly."
       Namespace: AWS/SQS
       MetricName: TXMA_INGRESS_QUEUE_PROCESSING_SLOWLY
@@ -43,7 +43,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingHighToBeRevertedARN
       AlarmDescription: "The TxMA Ingress Queue is processing slowly."
       Namespace: AWS/SQS
       MetricName: TXMA_INGRESS_QUEUE_PROCESSING_TOO_SLOWLY
@@ -62,7 +62,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingLowToBeRevertdARN
       AlarmDescription: "User's deletion status failed to be updated."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -82,7 +82,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingLowToBeRevertdARN
       AlarmDescription: "User's deletion status failed to be updated due to DynamoDB."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -105,7 +105,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingHighToBeRevertedARN
       AlarmDescription: "There is a configuration issue with the Account State Engine."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -194,7 +194,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingLowToBeRevertdARN
       AlarmDescription: "Intervention received was not allowed on current account state."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 5
@@ -214,7 +214,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingHighToBeRevertedARN
       AlarmDescription: "Too many Interventions received were not allowed on current account state."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 5
@@ -237,7 +237,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingLowToBeRevertdARN
       AlarmDescription: "Intervention event failed validation."
       Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_EVENT_INVALID
@@ -256,7 +256,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingHighToBeRevertedARN
       AlarmDescription: "Too many intervention events failed validation."
       Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_EVENT_INVALID
@@ -275,7 +275,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingLowToBeRevertdARN
       AlarmDescription: "Received intervention event is invalid."
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_EVENT_RECEIVED
@@ -294,7 +294,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingHighToBeRevertedARN
       AlarmDescription: "Too many received intervention events are invalid."
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_EVENT_RECEIVED
@@ -313,7 +313,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingLowToBeRevertdARN
       AlarmDescription: "Intervention event failed validation."
       Namespace: !Ref SystemTagValue
       MetricName: ACCOUNT_IS_MARKED_AS_DELETED
@@ -332,7 +332,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingLowToBeRevertdARN
       AlarmDescription: "Intervention event has timestamp in future."
       Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_IGNORED_IN_FUTURE
@@ -351,7 +351,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingLowToBeRevertdARN
       AlarmDescription: "Level of confidence is too low."
       Namespace: !Ref SystemTagValue
       MetricName: CONFIDENCE_LEVEL_TOO_LOW
@@ -370,7 +370,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingLowToBeRevertdARN
       AlarmDescription: "Intervention event messages are out of order."
       Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_EVENT_STALE
@@ -389,7 +389,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingHighToBeRevertedARN
       AlarmDescription: "Too many intervention event messages are out of order."
       Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_EVENT_STALE
@@ -408,7 +408,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingLowToBeRevertdARN
       AlarmDescription: "DynamoDB query no response error"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -428,7 +428,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingHighToBeRevertedARN
       AlarmDescription: "The query to DynamoDB has provided the no response error five times within a minute."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       DatapointsToAlarm: 1
@@ -449,7 +449,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingLowToBeRevertdARN
       AlarmDescription: "DynamoDB query returned too many items"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -469,7 +469,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingHighToBeRevertedARN
       AlarmDescription: "DynamoDB query too many items error five times within a minute."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       DatapointsToAlarm: 1
@@ -490,7 +490,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingLowToBeRevertdARN
       AlarmDescription: "Publishing to TxMA failed"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -510,7 +510,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingHighToBeRevertedARN
       AlarmDescription: "Publishing to TxMA failed once every minute for 10 minutes"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -530,7 +530,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingHighToBeRevertedARN
       AlarmDescription: "Schema is invalid"
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_SCHEMA
