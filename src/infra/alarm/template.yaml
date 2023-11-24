@@ -9,11 +9,11 @@ Parameters:
     Description: Value for the System Tag
     Type: String
     Default: Account Interventions Service
-  AlertingSNSLowAlertNotificationTopicARN:
+  AlertingLowToBeRevertdARN:
     Description: "The ARN of the Alerting SNS Low Alert Notification topic"
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/ais-infra-alerting/SNS/LowAlertNotificationTopic/ARN" #pragma: allowlist secret
-  AlertingSNSHighAlertNotificationTopicARN:
+  AlertingHighToBeRevertedARN:
     Description: "The ARN of the Alerting SNS High Alert Notification topic"
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/ais-infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
