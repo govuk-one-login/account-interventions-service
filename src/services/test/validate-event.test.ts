@@ -73,7 +73,7 @@ describe('event-validation', () => {
     const TxMAEvent: TxMAEvent = {
       timestamp: 87_298_174,
       user: { user_id: 'USERID' },
-      event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+      event_name: 'TICF_ACCOUNT_INTERVENTION',
       extensions: { },
     };
     expect(() => validateEvent(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
