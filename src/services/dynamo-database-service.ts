@@ -15,9 +15,8 @@ import tracer from '../commons/tracer';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { logAndPublishMetric } from '../commons/metrics';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-import { DynamoDBStateResult } from '../data-types/interfaces';
+import { DynamoDBStateResult, FullAccountInformation } from '../data-types/interfaces';
 import { TooManyRecordsError } from '../data-types/errors';
-import { FullAccountInformation } from '../data-types/interfaces';
 
 const appConfig = AppConfigService.getInstance();
 export class DynamoDatabaseService {

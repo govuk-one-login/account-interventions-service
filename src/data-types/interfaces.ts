@@ -124,7 +124,7 @@ export interface AccountStatus {
     resetPassword: boolean;
   };
   auditLevel: string;
-  history?: HistoryObject[] | undefined;
+  history?: HistoryObject[];
 }
 
 export interface History {

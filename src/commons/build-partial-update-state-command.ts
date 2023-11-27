@@ -11,7 +11,7 @@ import { HistoryStringBuilder } from './history-string-builder';
  * @param eventTimestamp - timestamp of received event in ms
  * @param currentTimestamp - timestamp of now in ms
  * @param interventionName - optional intervention name if the event was a fraud intervention
- * @param interventionEvent
+ * @param interventionEvent - intervention type
  */
 export const buildPartialUpdateAccountStateCommand = (
   newState: StateDetails,
