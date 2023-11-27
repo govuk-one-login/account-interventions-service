@@ -64,7 +64,7 @@ const interventionEventBodyInTheFuture = {
 
 const resetPasswordEventBody = {
   event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
-  timestamp: t0s,
+  timestamp: t0s - 5,
   client_id: 'UNKNOWN',
   component_id: 'UNKNOWN',
   user: {
@@ -170,6 +170,8 @@ describe('intervention processor handler', () => {
         intervention: EventsEnum.FRAUD_BLOCK_ACCOUNT,
         appliedAt: 1_234_567_890,
       });
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5);
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: "FRAUD_BLOCK_ACCOUNT"});
     });
 
     it('should succeed when an user action event is received', async () => {
@@ -191,6 +193,10 @@ describe('intervention processor handler', () => {
         intervention: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
         appliedAt: 1_234_567_890,
       });
+
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5);
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: "AUTH_PASSWORD_RESET_SUCCESSFUL"});
+
     });
 
     it('should not process the event if the user account is marked as deleted', async () => {
@@ -317,6 +323,7 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
     });
+
     it('should not retry if too many items are returned', async () => {
       eventValidationMock.mockReturnValueOnce(undefined);
       mockRetrieveRecords.mockRejectedValueOnce(new TooManyRecordsError('Too many records'));
