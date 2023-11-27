@@ -4,6 +4,7 @@ import {
   EventsEnum,
   LOGS_PREFIX_SENSITIVE_INFO,
   MetricNames,
+  noMetadata,
   TICF_ACCOUNT_INTERVENTION,
 } from '../data-types/constants';
 import { logAndPublishMetric } from '../commons/metrics';
@@ -54,6 +55,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
  * @param record - sqs record
  */
 async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQSRecord) {
+  const currentTimestamp = getCurrentTimestamp();
   try {
     const recordBody: TxMAIngressEvent = JSON.parse(record.body);
     validateEvent(recordBody);
@@ -81,6 +83,11 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       return;
     }
 
+    logAndPublishMetric(
+      MetricNames.EVENT_DELIVERY_LATENCY,
+      noMetadata,
+      currentTimestamp.seconds - recordBody.timestamp,
+    );
     const itemFromDB = await service.getAccountStateInformation(userId);
 
     if (itemFromDB?.isAccountDeleted === true) {
@@ -96,13 +103,12 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
 
     if (isEventAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
       logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
-      const currentTimestamp = getCurrentTimestamp().milliseconds;
       const statusResult = accountStateEngine.applyEventTransition(intervention, itemFromDB);
       const partialCommandInput = buildPartialUpdateAccountStateCommand(
         statusResult.newState,
         intervention,
         eventTimestampInMs,
-        currentTimestamp,
+        currentTimestamp.milliseconds,
         statusResult.interventionName,
       );
 
@@ -111,7 +117,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: intervention.toString() });
       await sendAuditEvent('AIS_INTERVENTION_TRANSITION_APPLIED', userId, {
         intervention,
-        appliedAt: currentTimestamp,
+        appliedAt: currentTimestamp.milliseconds,
         reason: undefined,
       });
       return;
