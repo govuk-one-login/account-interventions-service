@@ -102,8 +102,10 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
         statusResult.newState,
         intervention,
         currentTimestamp,
+        recordBody,
         statusResult.interventionName,
       );
+
       logger.debug('processed requested event, sending update request to dynamo db');
       await service.updateUserStatus(userId, partialCommandInput);
       logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: intervention.toString() });

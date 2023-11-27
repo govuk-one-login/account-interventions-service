@@ -8,7 +8,6 @@ import { HistoryStringBuilder } from './history-string-builder';
  * Method to build a Partial of UpdateItemCommandInput
  * @param newState - new account state object
  * @param eventName - the name of the event received
- * @param eventTimestamp - timestamp of received event in ms
  * @param currentTimestamp - timestamp of now in ms
  * @param interventionName - optional intervention name if the event was a fraud intervention
  * @param interventionEvent - intervention type
