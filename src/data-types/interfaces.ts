@@ -84,7 +84,6 @@ export interface IngressEventExtension {
 interface Intervention {
   intervention_code: string;
   intervention_reason: string;
-  cms_id?: string;
   requester_id?: string;
   originating_component_id?: string;
   originator_reference_id?: string;

@@ -14,7 +14,6 @@ const interventionEventBody: TxMAIngressEvent = {
     intervention: {
       intervention_code: '01',
       intervention_reason: 'reason',
-      cms_id: "cms_id",
       requester_id: "requester_id",
       originating_component_id: "originating_component_id",
       originator_reference_id: "intervention_predecessor_id",

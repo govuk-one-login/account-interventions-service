@@ -45,7 +45,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
     const accountStatus = transformResponseFromDynamoDatabase(response);
 
     if (historyQuery && historyQuery === 'true') {
-      accountStatus.history = response.history ? constructHistoryObjectField(response.history) : undefined;
+      accountStatus.history = response.history ? constructHistoryObjectField(response.history) : [];
     }
 
     return {
@@ -97,5 +97,16 @@ function transformResponseFromDynamoDatabase(item: FullAccountInformation) {
 
 function constructHistoryObjectField(input: string[]): HistoryObject[] {
   const historyStringBuilder = new HistoryStringBuilder();
-  return input.map((element) => historyStringBuilder.getHistoryObject(element));
+  const arrayOfHistoryStrings = [];
+  for (const historyString of input) {
+    try {
+      const historyObject = historyStringBuilder.getHistoryObject(historyString);
+      arrayOfHistoryStrings.push(historyObject);
+    } catch (error) {
+      logger.error('History string is malformed.', { error });
+      logAndPublishMetric(MetricNames.INVALID_HISTORY_STRING);
+      continue;
+    }
+  }
+  return arrayOfHistoryStrings;
 }

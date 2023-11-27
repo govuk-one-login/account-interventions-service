@@ -31,10 +31,9 @@ const interventionEventBody: TxMAIngressEvent = {
     intervention: {
       intervention_code: '01',
       intervention_reason: 'reason',
-      cms_id: "cms_id",
       requester_id: "requester_id",
       originating_component_id: "originating_component_id",
-      originator_reference_id: "intervention_predecessor_id",
+      originator_reference_id: "originator_reference_id",
     },
   },
 };
@@ -146,7 +145,7 @@ describe('build-partial-update-state-command', () => {
         ':sa': { N: '123456' },
         ':aa': { N: '2222' },
         ':empty_list': { L: [] },
-        ':h': { L: [{S : "123456|TICF_CRI|01|reason|originating_component_id|intervention_predecessor_id|requester_id"}] },
+        ':h': { L: [{S : "123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id"}] },
         ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET' },
       },
       UpdateExpression:
