@@ -32,7 +32,7 @@
     "@aws-lambda-powertools/metrics": "^1.17.0",
     "@aws-lambda-powertools/tracer": "^1.15.0",
     "@aws-sdk/client-dynamodb": "^3.451.0",
-    "@aws-sdk/client-sqs": "^3.454.0",
+    "@aws-sdk/client-sqs": "^3.460.0",
     "@aws-sdk/util-dynamodb": "^3.454.0",
     "@smithy/node-http-handler": "^2.1.9"
   },
