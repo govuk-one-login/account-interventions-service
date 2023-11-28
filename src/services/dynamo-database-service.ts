@@ -15,7 +15,7 @@ import tracer from '../commons/tracer';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { logAndPublishMetric } from '../commons/metrics';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-import { DynamoDBStateResult } from '../data-types/interfaces';
+import { DynamoDBStateResult, FullAccountInformation } from '../data-types/interfaces';
 import { TooManyRecordsError } from '../data-types/errors';
 
 const appConfig = AppConfigService.getInstance();
@@ -44,8 +44,8 @@ export class DynamoDatabaseService {
     parameters.ProjectionExpression =
       'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted';
     const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
-    const validatedResponse = this.validateQueryResponse(response);
-    return validatedResponse ? (validatedResponse as DynamoDBStateResult) : undefined;
+    const validatedResponse = this.validateQueryResponse<DynamoDBStateResult>(response);
+    return validatedResponse ?? undefined;
   }
 
   /**
@@ -56,7 +56,7 @@ export class DynamoDatabaseService {
   public async getFullAccountInformation(userId: string) {
     const parameters = this.getInputParameterForDatabaseQuery(userId);
     const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
-    return this.validateQueryResponse(response);
+    return this.validateQueryResponse<FullAccountInformation>(response);
   }
 
   /**
@@ -118,20 +118,19 @@ export class DynamoDatabaseService {
    */
   private getInputParameterForDatabaseQuery(userId: string): QueryCommandInput {
     logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Attempting request to dynamo db.`, { userId });
-    const parameters: QueryCommandInput = {
+    return {
       TableName: this.tableName,
       KeyConditionExpression: '#pk = :id_value',
       ExpressionAttributeNames: { '#pk': 'pk' },
       ExpressionAttributeValues: { ':id_value': { S: userId } },
     };
-    return parameters;
   }
 
   /**
    * Function to validate the response and send metrics if there is a problem with the received response
    * @param response - the response from dynamoDB
    */
-  private validateQueryResponse(response: QueryCommandOutput) {
+  private validateQueryResponse<T>(response: QueryCommandOutput) {
     if (!response.Items) {
       const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
       logger.error(errorMessage);
@@ -145,6 +144,6 @@ export class DynamoDatabaseService {
       logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
       throw new TooManyRecordsError(errorMessage);
     }
-    return response.Items[0] ? unmarshall(response.Items[0]) : undefined;
+    return response.Items[0] ? (unmarshall(response.Items[0]) as T) : undefined;
   }
 }

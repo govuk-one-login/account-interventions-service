@@ -4,6 +4,7 @@ import { ContextExamples } from '@aws-lambda-powertools/commons';
 import { handle } from '../status-retriever-handler';
 import logger from '../../commons/logger';
 import { DynamoDatabaseService } from '../../services/dynamo-database-service';
+import { logAndPublishMetric } from '../../commons/metrics';
 
 jest.mock('../../commons/logger.ts');
 jest.mock('../../commons/metrics');
@@ -368,5 +369,134 @@ describe('status-retriever-handler', () => {
     const response = await handle(addedQueryParameterTestEvent, mockConfig);
     expect(response.statusCode).toBe(200);
     expect(JSON.parse(response.body)).toEqual({ intervention: accountIsNotSuspended });
+  });
+
+  it('will return the history field as an object', async () => {
+    const accountFoundNotSuspendedRecord = {
+      pk: 'testUserID',
+      intervention: 'no intervention',
+      updatedAt: 123455,
+      appliedAt: 12345685809,
+      sentAt: 123456789,
+      reprovedIdentityAt: 849473,
+      resetPasswordAt: 5847392,
+      blocked: false,
+      suspended: false,
+      resetPassword: false,
+      reproveIdentity: false,
+      auditLevel: 'standard',
+      ttl: 1234567890,
+      history: ['123456|TICF_CRI|01|reason|originating_component_id|intervention_predecessor_id|requester_id'],
+    };
+
+    const accountIsNotSuspended = {
+      updatedAt: 123455,
+      appliedAt: 12345685809,
+      sentAt: 123456789,
+      description: accountFoundNotSuspendedRecord.intervention,
+      reprovedIdentityAt: 849473,
+      resetPasswordAt: 5847392,
+      state: {
+        blocked: false,
+        suspended: false,
+        resetPassword: false,
+        reproveIdentity: false,
+      },
+      auditLevel: 'standard',
+      history: [
+        {
+          code: "01",
+          component: "TICF_CRI",
+          intervention: "FRAUD_SUSPEND_ACCOUNT",
+          originatingComponent: "originating_component_id",
+          originatorReferenceId: "intervention_predecessor_id",
+          reason: "reason",
+          requesterId: "requester_id",
+          sentAt: "1970-01-01T00:02:03.456Z",
+        }
+      ],
+    };
+
+    const queryParameters: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
+    const addedQueryParameterTestEvent = { ...testEvent, queryStringParameters: queryParameters };
+    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
+    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
+    const response = await handle(addedQueryParameterTestEvent, mockConfig);
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({ intervention: accountIsNotSuspended });
+  });
+
+  it('will publish a metric if a history string is malformed and continue processing the others', async () => {
+    const accountFoundNotSuspendedRecord = {
+      pk: 'testUserID',
+      intervention: 'no intervention',
+      updatedAt: 123455,
+      appliedAt: 12345685809,
+      sentAt: 123456789,
+      reprovedIdentityAt: 849473,
+      resetPasswordAt: 5847392,
+      blocked: false,
+      suspended: false,
+      resetPassword: false,
+      reproveIdentity: false,
+      auditLevel: 'standard',
+      ttl: 1234567890,
+      history: [
+        '123456|TICF_CRI|01|reason|originating_component_id|intervention_predecessor_id|requester_id',
+        'something|somethingElse',
+        '7895646|TICF_CRI|02|reason|originating_component_id|intervention_predecessor_id|requester_id',
+        'anotherInvalidString'
+      ],
+    };
+
+    const accountIsNotSuspended = {
+      updatedAt: 123455,
+      appliedAt: 12345685809,
+      sentAt: 123456789,
+      description: accountFoundNotSuspendedRecord.intervention,
+      reprovedIdentityAt: 849473,
+      resetPasswordAt: 5847392,
+      state: {
+        blocked: false,
+        suspended: false,
+        resetPassword: false,
+        reproveIdentity: false,
+      },
+      auditLevel: 'standard',
+      history: [
+        {
+          code: "01",
+          component: "TICF_CRI",
+          intervention: "FRAUD_SUSPEND_ACCOUNT",
+          originatingComponent: "originating_component_id",
+          originatorReferenceId: "intervention_predecessor_id",
+          reason: "reason",
+          requesterId: "requester_id",
+          sentAt: "1970-01-01T00:02:03.456Z",
+        },
+        {
+          code: "02",
+          component: "TICF_CRI",
+          intervention: "FRAUD_UNSUSPEND_ACCOUNT",
+          originatingComponent: "originating_component_id",
+          originatorReferenceId: "intervention_predecessor_id",
+          reason: "reason",
+          requesterId: "requester_id",
+          sentAt: "1970-01-01T02:11:35.646Z"
+        }
+      ],
+    };
+
+    const error = new Error('History string does not contain the right amount of components.')
+
+    const queryParameters: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
+    const addedQueryParameterTestEvent = { ...testEvent, queryStringParameters: queryParameters };
+    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
+    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
+    const response = await handle(addedQueryParameterTestEvent, mockConfig);
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({ intervention: accountIsNotSuspended });
+    expect(logger.error).toBeCalledWith('History string is malformed.', { error });
+    expect(logAndPublishMetric).toBeCalled();
   });
 });

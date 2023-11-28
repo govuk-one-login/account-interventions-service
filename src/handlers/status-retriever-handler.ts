@@ -3,8 +3,10 @@ import { AppConfigService } from '../services/app-config-service';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
 import { MetricNames, AISInterventionTypes, undefinedResponseFromDynamoDatabase } from '../data-types/constants';
-import { AccountStatus } from '../data-types/interfaces';
+import { AccountStatus, FullAccountInformation, HistoryObject } from '../data-types/interfaces';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { HistoryStringBuilder } from '../commons/history-string-builder';
 
 const appConfig = AppConfigService.getInstance();
 const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableName);
@@ -43,7 +45,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
     const accountStatus = transformResponseFromDynamoDatabase(response);
 
     if (historyQuery && historyQuery === 'true') {
-      accountStatus.history = response['history'];
+      accountStatus.history = response.history ? constructHistoryObjectField(response.history) : [];
     }
 
     return {
@@ -73,35 +75,38 @@ function validateEvent(userId: string) {
   return trimmedUserId;
 }
 
-/**
- * Helper function to transform the data from dynamodb
- * @param item - received from dynamodb
- * @returns transformed object
- */
-function transformResponseFromDynamoDatabase(
-  item: Record<string, string | number | boolean | object[]>,
-): AccountStatus {
-  const response: Partial<AccountStatus> = {
-    updatedAt: Number(item['updatedAt'] ?? Date.now()),
-    appliedAt: Number(item['appliedAt'] ?? Date.now()),
-    sentAt: Number(item['sentAt'] ?? Date.now()),
-    description: String(item['intervention'] ?? AISInterventionTypes.AIS_NO_INTERVENTION),
+function transformResponseFromDynamoDatabase(item: FullAccountInformation) {
+  const currentTimestampMs = getCurrentTimestamp().milliseconds;
+  const accountStatus: AccountStatus = {
+    updatedAt: item.updatedAt ?? currentTimestampMs,
+    appliedAt: item.appliedAt ?? currentTimestampMs,
+    sentAt: item.sentAt ?? currentTimestampMs,
+    description: item.intervention ?? AISInterventionTypes.AIS_NO_INTERVENTION,
     state: {
-      blocked: Boolean(item['blocked'] ?? false),
-      suspended: Boolean(item['suspended'] ?? false),
-      resetPassword: Boolean(item['resetPassword'] ?? false),
-      reproveIdentity: Boolean(item['reproveIdentity'] ?? false),
+      blocked: item.blocked ?? false,
+      suspended: item.suspended ?? false,
+      resetPassword: item.resetPassword ?? false,
+      reproveIdentity: item.reproveIdentity ?? false,
     },
-    auditLevel: String(item['auditLevel'] ?? 'standard'),
+    auditLevel: item.auditLevel ?? 'standard',
+    reprovedIdentityAt: item.reprovedIdentityAt ?? undefined,
+    resetPasswordAt: item.resetPasswordAt ?? undefined,
   };
+  return accountStatus;
+}
 
-  if (item['reprovedIdentityAt']) {
-    response.reprovedIdentityAt = Number(item['reprovedIdentityAt']);
+function constructHistoryObjectField(input: string[]): HistoryObject[] {
+  const historyStringBuilder = new HistoryStringBuilder();
+  const arrayOfHistoryStrings = [];
+  for (const historyString of input) {
+    try {
+      const historyObject = historyStringBuilder.getHistoryObject(historyString);
+      arrayOfHistoryStrings.push(historyObject);
+    } catch (error) {
+      logger.error('History string is malformed.', { error });
+      logAndPublishMetric(MetricNames.INVALID_HISTORY_STRING);
+      continue;
+    }
   }
-
-  if (item['resetPasswordAt']) {
-    response.resetPasswordAt = Number(item['resetPasswordAt']);
-  }
-
-  return <AccountStatus>response;
+  return arrayOfHistoryStrings;
 }
