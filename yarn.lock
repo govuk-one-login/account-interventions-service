@@ -521,18 +521,10 @@
     "@smithy/util-utf8" "^2.0.2"
     tslib "^2.5.0"
 
-"@aws-sdk/types@3.460.0":
+"@aws-sdk/types@3.460.0", "@aws-sdk/types@^3.222.0", "@aws-sdk/types@^3.4.1":
   version "3.460.0"
   resolved "https://registry.yarnpkg.com/@aws-sdk/types/-/types-3.460.0.tgz#f87602928a57473f724b6efca0158e64f658be71"
   integrity sha512-MyZSWS/FV8Bnux5eD9en7KLgVxevlVrGNEP3X2D7fpnUlLhl0a7k8+OpSI2ozEQB8hIU2DLc/XXTKRerHSefxQ==
-  dependencies:
-    "@smithy/types" "^2.5.0"
-    tslib "^2.5.0"
-
-"@aws-sdk/types@^3.222.0", "@aws-sdk/types@^3.4.1":
-  version "3.451.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/types/-/types-3.451.0.tgz#37ab4b25074c6a36152eb36abb7399b3768c2e7b"
-  integrity sha512-rhK+qeYwCIs+laJfWCcrYEjay2FR/9VABZJ2NRM89jV/fKqGVQR52E5DQqrI+oEIL5JHMhhnr4N4fyECMS35lw==
   dependencies:
     "@smithy/types" "^2.5.0"
     tslib "^2.5.0"
@@ -2815,9 +2807,9 @@ aws-sdk-client-mock@^3.0.0:
     tslib "^2.1.0"
 
 aws-sdk@^2.814.0:
-  version "2.1503.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1503.0.tgz#30d6e28cc2b42c65766e1c987a6d8d2b09bfb36c"
-  integrity sha512-tDXgUp8RvVLkCI1cgDWh4zjz5V2N8K5GpCwNszqzFEHf87fSwqjFj11QZbyr+r/xktk78dpPMT0RjB1fOoJjjA==
+  version "2.1505.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1505.0.tgz#25591cbf123b40af4e923a10d784212036d8f7ac"
+  integrity sha512-z7LeSpQpP0P3xWvJiLMhleQNXebj+jHj6A2tdoL36B7Qk1dDxIKm2Xzfd+JUdyq9Yra7/fOH/BXy/K5/2KPLsA==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
@@ -3503,9 +3495,9 @@ eastasianwidth@^0.2.0:
   integrity sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==
 
 electron-to-chromium@^1.4.535:
-  version "1.4.594"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.594.tgz#f69f207fba80735a44a988df42f3f439115d0515"
-  integrity sha512-xT1HVAu5xFn7bDfkjGQi9dNpMqGchUkebwf1GL7cZN32NSwwlHRPMSDJ1KN6HkS0bWUtndbSQZqvpQftKG2uFQ==
+  version "1.4.595"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.595.tgz#fa33309eb9aabb7426915f8e166ec60f664e9ad4"
+  integrity sha512-+ozvXuamBhDOKvMNUQvecxfbyICmIAwS4GpLmR0bsiSBlGnLaOcs2Cj7J8XSbW+YEaN3Xl3ffgpm+srTUWFwFQ==
 
 emitter-listener@^1.0.1:
   version "1.1.2"
@@ -4062,9 +4054,9 @@ fs-extra@^10.0.0:
     universalify "^2.0.0"
 
 fs-extra@^11.1.1:
-  version "11.1.1"
-  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-11.1.1.tgz#da69f7c39f3b002378b0954bb6ae7efdc0876e2d"
-  integrity sha512-MGIE4HOvQCeUCzmlHs0vXpih4ysz4wg9qiSAu6cd42lVwPbTM1TjV7RusoyQqMmk/95gdQZX72u+YW+c3eEpFQ==
+  version "11.2.0"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-11.2.0.tgz#e70e17dfad64232287d01929399e0ea7c86b0e5b"
+  integrity sha512-PmDi3uwK5nFuXh7XDTlVnS17xJS7vW36is2+w3xcv8SVxiB4NyATf4ctkVY5bkSjX0Y4nbvZCq1/EjtEyr9ktw==
   dependencies:
     graceful-fs "^4.2.0"
     jsonfile "^6.0.1"
