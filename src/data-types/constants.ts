@@ -27,6 +27,7 @@ export enum MetricNames {
   INTERVENTION_EVENT_APPLIED = 'INTERVENTION_EVENT_APPLIED',
   INVALID_SCHEMA = 'INVALID_SCHEMA',
   CONFIDENCE_LEVEL_TOO_LOW = 'CONFIDENCE_LEVEL_TOO_LOW',
+  INVALID_HISTORY_STRING = 'INVALID_HISTORY_STRING',
   EVENT_DELIVERY_LATENCY = 'EVENT_DELIVERY_LATENCY',
 }
 
@@ -57,6 +58,16 @@ export enum AISInterventionTypes {
 export const TICF_ACCOUNT_INTERVENTION = 'TICF_ACCOUNT_INTERVENTION';
 export const COMPONENT_ID = 'Account Interventions Services';
 
+export enum HistoryStringParts {
+  EVENT_TIMESTAMP_MS,
+  COMPONENT_ID,
+  INTERVENTION_CODE,
+  INTERVENTION_REASON,
+  ORIGINATING_COMPONENT_ID,
+  ORIGINATOR_REFERENCE_ID,
+  REQUESTER_ID,
+}
+
 export const undefinedResponseFromDynamoDatabase: Record<string, any> = {
   updatedAt: undefined,
   appliedAt: undefined,
@@ -70,3 +81,5 @@ export const undefinedResponseFromDynamoDatabase: Record<string, any> = {
   },
   auditLevel: undefined,
 };
+
+export const expectedHistoryStringLength = Object.keys(HistoryStringParts).length / 2;

@@ -7,7 +7,10 @@
   "extensions": {
     "intervention": {
       "intervention_code": "04",
-      "intervention_reason": "something"
+      "intervention_reason": "something",
+      "originating_component_id": "CMS",
+      "originator_reference_id": "1234567",
+      "requester_id": "1234567"
     }
   }
 }

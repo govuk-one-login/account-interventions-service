@@ -13,6 +13,8 @@ describe('event-validation', () => {
 
   it('should not return anything as event is valid', () => {
     const TxMAEvent: TxMAEvent = {
+      event_timestamp_ms: 87_298_174000,
+      component_id: 'AUTH',
       timestamp: 87_298_174,
       user: {
         user_id: 'abc',
@@ -32,6 +34,8 @@ describe('event-validation', () => {
   it('should return an error as intervention is invalid', () => {
     const TxMAEvent: TxMAEvent = {
       timestamp: 87_298_174,
+      event_timestamp_ms: 87_298_174000,
+      component_id: 'TCIF',
       user: {
         user_id: 'abc',
       },
@@ -71,6 +75,8 @@ describe('event-validation', () => {
 
   it('should return an error as extensions do not contain required fields', () => {
     const TxMAEvent: TxMAEvent = {
+      event_timestamp_ms: 87_298_174000,
+      component_id: 'AUTH',
       timestamp: 87_298_174,
       user: { user_id: 'USERID' },
       event_name: 'TICF_ACCOUNT_INTERVENTION',
@@ -83,6 +89,8 @@ describe('event-validation', () => {
 
   it('should return an error as intervention code is NAN', () => {
     const TxMAEvent: TxMAEvent = {
+      event_timestamp_ms: 87_298_174000,
+      component_id: 'AUTH',
       timestamp: 87_298_174,
       user: {
         user_id: 'abc'

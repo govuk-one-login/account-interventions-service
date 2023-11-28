@@ -107,8 +107,8 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       const partialCommandInput = buildPartialUpdateAccountStateCommand(
         statusResult.newState,
         intervention,
-        eventTimestampInMs,
         currentTimestamp.milliseconds,
+        recordBody,
         statusResult.interventionName,
       );
 
