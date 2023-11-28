@@ -55,6 +55,7 @@ Parameters:
     Default: govuk-one-login/account-interventions-service/src/infra/main/template.yaml
 
 Conditions:
+  IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
 
@@ -67,7 +68,7 @@ Mappings:
       OrchestrationVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
       AuthenticationVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
       OneLoginHomeVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     build:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #This will point to the internal SNS topic
@@ -75,7 +76,7 @@ Mappings:
       OrchestrationVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
       AuthenticationVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
       OneLoginHomeVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     staging:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
@@ -83,7 +84,7 @@ Mappings:
       OrchestrationVPCID: vpc-0ca40c7d13490419d # Orchestation Staging VPC ID
       AuthenticationVPCID: vpc-0ca40c7d13490419d # Authentication Staging VPC ID
       OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     integration:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
@@ -91,7 +92,7 @@ Mappings:
       OrchestrationVPCID: vpc-04444d1dc96d8822c # Orchestation Integration VPC ID
       AuthenticationVPCID: vpc-04444d1dc96d8822c # Authentication Integration VPC ID
       OneLoginHomeVPCID: vpc-048c9133a5998efe7 # One Login Home Integration VPC ID
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     production:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
@@ -99,7 +100,7 @@ Mappings:
       OrchestrationVPCID: vpc-00012e96e1cd0bf95 # Orchestration Production VPC ID
       AuthenticationVPCID: vpc-00012e96e1cd0bf95 # Authentication Production VPC ID
       OneLoginHomeVPCID: vpc-0c94e753d20410154 # One Login Home Production VPC ID
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
+      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables # pragma: allowlist secret
 
 Globals:
   Function:
@@ -115,19 +116,19 @@ Globals:
         CLOUDWATCH_METRICS_NAMESPACE: !Ref SystemTagValue
         AWS_LAMBDA_EXEC_WRAPPER: /opt/dynatrace
         DT_CONNECTION_AUTH_TOKEN: !Sub
-          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_AUTH_TOKEN}}'
+          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_AUTH_TOKEN}}' # pragma: allowlist secret
           - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, dynatraceSecretArn ]
         DT_CONNECTION_BASE_URL: !Sub
-          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_BASE_URL}}'
+          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_BASE_URL}}' # pragma: allowlist secret
           - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, dynatraceSecretArn ]
         DT_CLUSTER_ID: !Sub
-          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CLUSTER_ID}}'
+          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CLUSTER_ID}}' # pragma: allowlist secret
           - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, dynatraceSecretArn ]
         DT_LOG_COLLECTION_AUTH_TOKEN: !Sub
-          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_LOG_COLLECTION_AUTH_TOKEN}}'
+          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_LOG_COLLECTION_AUTH_TOKEN}}' # pragma: allowlist secret
           - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, dynatraceSecretArn ]
         DT_TENANT: !Sub
-          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANT}}'
+          - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANT}}' # pragma: allowlist secret
           - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, dynatraceSecretArn ]
         DT_OPEN_TELEMETRY_ENABLE_INTEGRATION: "true"
     VpcConfig:
@@ -139,7 +140,7 @@ Globals:
         - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
     Layers: #Dynatrace lambda layer
       - !Sub
-        - '{{resolve:secretsmanager:${SecretArn}:SecretString:NODEJS_LAYER}}' # Node.js layer for all Lambda's
+        - '{{resolve:secretsmanager:${SecretArn}:SecretString:NODEJS_LAYER}}' # pragma: allowlist secret # Node.js layer for all Lambda's
         - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, dynatraceSecretArn ]
 
 Resources:
@@ -385,7 +386,7 @@ Resources:
               - "kms:decrypt"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableEncryptionKeyArn"
-          
+
       Roles:
         - !Ref AccountDeletionProcessorFunctionRole
 
@@ -707,9 +708,40 @@ Resources:
         Variables:
           TABLE_NAME:
             Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
-          METRIC_SERVICE_NAME: !Sub "${AWS::StackName}-StatusRetriever"
+          METRIC_SERVICE_NAME: StatusRetrieverFunction
       Handler: status-retriever-handler.handle
       Role: !GetAtt StatusRetrieverFunctionRole.Arn
+
+  InvokePrivateAPIGatewayFunction:
+    Condition: IsInternal
+    Type: AWS::Serverless::Function
+    # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
+    # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunction'
+      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      CodeUri: ../../../dist/handlers/invoke-private-api
+      Timeout: 10
+      Role: !GetAtt InvokePrivateAPIGatewayFunctionRole.Arn
+      Environment:
+        Variables:
+          USER_ID: ""
+          BASE_URL: !Join
+            - ""
+            - - https://
+              - !GetAtt PrivateRestApi.RestApiId
+              - !Sub .execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}
+          END_POINT: /ais
+          QUERY_PARAMETERS: ""
+          HTTP_REQUEST_METHOD: GET
+      Handler: invoke-private-api.handle
+      VpcConfig:
+        SubnetIds:
+          - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdA
+          - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdB
+          - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdC
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
         Product: !Ref ProductTagValue
@@ -717,6 +749,34 @@ Resources:
         Environment: !Ref Environment
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
+
+  InvokePrivateAPIGatewayFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:  !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunctionRole'
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
 
   StatusRetrieverFunctionRole:
     Type: AWS::IAM::Role

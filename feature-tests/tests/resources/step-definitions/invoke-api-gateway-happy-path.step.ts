@@ -1,9 +1,10 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
-import { invokeApiGateWayLambda } from '../../../utils/invoke-apigateway-lambda';
+import { invokePrivateApiGateWayAndLambdaFunction } from '../../../utils/invoke-apigateway-lambda';
+import { timeDelayForTestEnvironment } from '../../../utils/utility';
 
-const feature = loadFeature('tests/resources/features/aisGET/invokeApiGateway-HappyPath.feature');
+const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
 defineFeature(feature, (test) => {
   let testUserId: string;
@@ -19,18 +20,27 @@ defineFeature(feature, (test) => {
     });
 
     when(/^I invoke apiGateway to retreive the status of the userId with (.*)$/, async (historyValue) => {
-      response = await invokeApiGateWayLambda(testUserId, historyValue);
+      await timeDelayForTestEnvironment(500);
+      response = await invokePrivateApiGateWayAndLambdaFunction(testUserId, historyValue);
+      console.log(`${response}`);
     });
 
     then(
       /^I should receive the appropriate (.*), (.*), (.*), (.*) and (.*) for the ais endpoint$/,
-      async (interventionType, blockedState, suspendedState, resetPassword, reproveIdentity) => {
-        const responseInJson = await JSON.parse(await JSON.parse(await response).body);
-        expect(await responseInJson.intervention.description).toContain(interventionType);
-        expect(await responseInJson.intervention.state.blocked).toBe(JSON.parse(blockedState));
-        expect(await responseInJson.intervention.state.suspended).toBe(JSON.parse(suspendedState));
-        expect(await responseInJson.intervention.state.resetPassword).toBe(JSON.parse(resetPassword));
-        expect(await responseInJson.intervention.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
+      async (
+        interventionType: string,
+        blockedState: string,
+        suspendedState: string,
+        resetPassword: string,
+        reproveIdentity: string,
+      ) => {
+        console.log(`Expected`, { interventionType, blockedState, suspendedState, resetPassword, reproveIdentity });
+        console.log(`Response: ${response}`, { response });
+        expect(response.intervention.description).toContain(interventionType);
+        expect(response.intervention.state.blocked).toEqual(JSON.parse(blockedState));
+        expect(response.intervention.state.suspended).toEqual(JSON.parse(suspendedState));
+        expect(response.intervention.state.resetPassword).toEqual(JSON.parse(resetPassword));
+        expect(response.intervention.state.reproveIdentity).toEqual(JSON.parse(reproveIdentity));
       },
     );
   });

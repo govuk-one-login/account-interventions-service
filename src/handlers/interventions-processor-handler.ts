@@ -4,6 +4,7 @@ import {
   EventsEnum,
   LOGS_PREFIX_SENSITIVE_INFO,
   MetricNames,
+  noMetadata,
   TICF_ACCOUNT_INTERVENTION,
 } from '../data-types/constants';
 import { logAndPublishMetric } from '../commons/metrics';
@@ -13,9 +14,10 @@ import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { AppConfigService } from '../services/app-config-service';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-import { TxMAIngressEvent } from '../data-types/interfaces';
+import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
 import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
 import { sendAuditEvent } from '../services/send-audit-events';
+import { updateAccountStateCountMetric } from '../commons/update-account-state-metrics';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
@@ -54,6 +56,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
  * @param record - sqs record
  */
 async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQSRecord) {
+  const currentTimestamp = getCurrentTimestamp();
   try {
     const recordBody: TxMAIngressEvent = JSON.parse(record.body);
     validateEvent(recordBody);
@@ -81,6 +84,11 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
       return;
     }
 
+    logAndPublishMetric(
+      MetricNames.EVENT_DELIVERY_LATENCY,
+      noMetadata,
+      currentTimestamp.milliseconds - eventTimestampInMs,
+    );
     const itemFromDB = await service.getAccountStateInformation(userId);
 
     if (itemFromDB?.isAccountDeleted === true) {
@@ -96,22 +104,23 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
 
     if (isEventAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
       logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
-      const currentTimestamp = getCurrentTimestamp().milliseconds;
-      const statusResult = accountStateEngine.applyEventTransition(intervention, itemFromDB);
+      const currentAccountState: StateDetails = formCurrentAccountStateObject(itemFromDB);
+      const statusResult = accountStateEngine.applyEventTransition(intervention, currentAccountState);
       const partialCommandInput = buildPartialUpdateAccountStateCommand(
         statusResult.newState,
         intervention,
-        eventTimestampInMs,
-        currentTimestamp,
+        currentTimestamp.milliseconds,
+        recordBody,
         statusResult.interventionName,
       );
 
       logger.debug('processed requested event, sending update request to dynamo db');
       await service.updateUserStatus(userId, partialCommandInput);
+      updateAccountStateCountMetric(currentAccountState, statusResult.newState);
       logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: intervention.toString() });
       await sendAuditEvent('AIS_INTERVENTION_TRANSITION_APPLIED', userId, {
         intervention,
-        appliedAt: currentTimestamp,
+        appliedAt: currentTimestamp.milliseconds,
         reason: undefined,
       });
       return;
@@ -177,7 +186,23 @@ function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
   return recordBody.event_name as EventsEnum;
 }
 
+/**
+ * Function to ascertain that the event timestamp is after the latest intervention applied on the account.
+ * @param eventTimeStamp - Event timestamp received from the SQS Record.
+ * @param sentAt - Sent At field recieved from the DynamoDB table.
+ * @param appliedAt - Applied At field recieved from the DynamoDB table.
+ * @returns - Boolean logic, true if the time stamp is greater than the latest intervention. False, if it is not.
+ */
 function isEventAfterLastEvent(eventTimeStamp: number, sentAt?: number, appliedAt?: number) {
   const latestIntervention = sentAt ?? appliedAt ?? 0;
   return eventTimeStamp > latestIntervention;
+}
+
+function formCurrentAccountStateObject(itemFromDB?: DynamoDBStateResult) {
+  return {
+    blocked: itemFromDB ? itemFromDB.blocked : false,
+    suspended: itemFromDB ? itemFromDB.suspended : false,
+    resetPassword: itemFromDB ? itemFromDB.resetPassword : false,
+    reproveIdentity: itemFromDB ? itemFromDB.reproveIdentity : false,
+  };
 }

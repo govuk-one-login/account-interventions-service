@@ -12,6 +12,22 @@ export interface DynamoDBStateResult extends StateDetails {
   appliedAt?: number;
   isAccountDeleted?: boolean;
 }
+
+export interface FullAccountInformation {
+  blocked: boolean;
+  suspended: boolean;
+  resetPassword: boolean;
+  reproveIdentity: boolean;
+  sentAt: number;
+  appliedAt: number;
+  isAccountDeleted?: boolean;
+  history: string[];
+  intervention: string;
+  updatedAt: number;
+  reprovedIdentityAt?: number;
+  resetPasswordAt?: number;
+  auditLevel?: string;
+}
 export interface AccountStateEngineOutput {
   newState: StateDetails;
   interventionName?: AISInterventionTypes;
@@ -48,8 +64,8 @@ export interface TxMAEgressExtensions {
 export interface TxMAIngressEvent {
   event_name: string;
   timestamp: number;
-  event_timestamp_ms?: number;
-  component_id?: string;
+  event_timestamp_ms: number;
+  component_id: string;
   user: TxmaUser;
   extensions?: IngressEventExtension;
 }
@@ -68,8 +84,9 @@ interface IngressEventExtension {
 interface Intervention {
   intervention_code: string;
   intervention_reason: string;
-  cms_id?: string;
   requester_id?: string;
+  originating_component_id?: string;
+  originator_reference_id?: string;
   audit_level?: string;
 }
 
@@ -98,8 +115,8 @@ export interface AccountStatus {
   appliedAt: number;
   sentAt: number;
   description: string;
-  reprovedIdentityAt?: number;
-  resetPasswordAt?: number;
+  reprovedIdentityAt: number | undefined;
+  resetPasswordAt: number | undefined;
   state: {
     blocked: boolean;
     suspended: boolean;
@@ -107,5 +124,27 @@ export interface AccountStatus {
     resetPassword: boolean;
   };
   auditLevel: string;
-  history: object[] | undefined;
+  history?: HistoryObject[];
+}
+
+export interface History {
+  sentAt: string;
+  component: string;
+  code: string;
+  intervention: string;
+  reason: string;
+  originatingComponent?: string;
+  originatorReferenceId?: string;
+  requesterId?: string;
+}
+
+export interface HistoryObject {
+  sentAt: string;
+  component: string;
+  code: string;
+  intervention: string;
+  reason: string;
+  originatingComponent: string | undefined;
+  originatorReferenceId: string | undefined;
+  requesterId: string | undefined;
 }

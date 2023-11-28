@@ -6,7 +6,7 @@ const namespace = AppConfigService.getInstance().cloudWatchMetricsWorkSpace;
 const service = AppConfigService.getInstance().metricServiceName;
 
 /**
- * metric utility which instantiate a Metrics object from aws-lambda-powertools/metrics
+ * Metric utility which instantiate a Metrics object from aws-lambda-powertools/metrics.
  */
 export const metric: Metrics = new Metrics({ namespace: namespace, serviceName: service });
 
@@ -16,13 +16,13 @@ export const metric: Metrics = new Metrics({ namespace: namespace, serviceName: 
 export function logAndPublishMetric(
   metricName: string,
   metadata: { key: string; value: string }[] = [],
-  count = 1,
+  value = 1,
   dimensions?: { [key: string]: string },
 ) {
   for (const data of metadata) {
     metric.addMetadata(data.key, data.value);
   }
-  metric.addMetric(metricName, MetricUnits.Count, count);
+  metric.addMetric(metricName, MetricUnits.Count, value);
   if (dimensions) metric.addDimensions(dimensions);
   logger.info('logging metric', { metric: metric.serializeMetrics() });
   metric.publishStoredMetrics();

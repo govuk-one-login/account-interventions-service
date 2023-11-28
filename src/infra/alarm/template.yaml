@@ -543,3 +543,144 @@ Resources:
       Dimensions:
         - Name: service
           Value: InterventionsProcessorFunction
+
+#
+# Cloudwatch alarms for TxMA Latency
+#
+
+  AverageTxMALatencyOver1Sec:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Messages from TxMA have an average latency of 1s."
+      Namespace: !Ref SystemTagValue
+      MetricName: EVENT_DELIVERY_LATENCY
+      ComparisonOperator: GreaterThanThreshold
+      Statistic: Average
+      Threshold: 1000
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  AverageTxMALatencyOver2Sec:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Messages from TxMA have an average latency above 2s."
+      Namespace: !Ref SystemTagValue
+      MetricName: EVENT_DELIVERY_LATENCY
+      ComparisonOperator: GreaterThanThreshold
+      Statistic: Average
+      Threshold: 2000
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  AverageTxMALatencyOver5Sec:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Messages from TxMA have an average latency above 5s."
+      Namespace: !Ref SystemTagValue
+      MetricName: EVENT_DELIVERY_LATENCY
+      ComparisonOperator: GreaterThanThreshold
+      Statistic: Average
+      Threshold: 5000
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+  MaxTxMALatencyOver10Sec:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Messages from TxMA have a maximum latency above 10s."
+      Namespace: !Ref SystemTagValue
+      MetricName: EVENT_DELIVERY_LATENCY
+      ComparisonOperator: GreaterThanThreshold
+      Statistic: Average
+      Threshold: 10000
+      EvaluationPeriods: 1
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+
+#
+# Cloudwatch alarms for Status Retriever
+#
+
+  DbQueryError:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "An error occured with the query to DynamoDB"
+      Namespace: !Ref SystemTagValue
+      MetricName: DB_QUERY_ERROR
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 1
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: StatusRetrieverFunction
+
+  InvalidSubjectId:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "User ID was not found in the event"
+      Namespace: !Ref SystemTagValue
+      MetricName: INVALID_SUBJECT_ID
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 1
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: StatusRetrieverFunction
+
+  InvalidHistoryString:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "History string may be missing required components"
+      Namespace: !Ref SystemTagValue
+      MetricName: INVALID_HISTORY_STRING
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 1
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: StatusRetrieverFunction

@@ -27,8 +27,13 @@ export enum MetricNames {
   INTERVENTION_EVENT_APPLIED = 'INTERVENTION_EVENT_APPLIED',
   INVALID_SCHEMA = 'INVALID_SCHEMA',
   CONFIDENCE_LEVEL_TOO_LOW = 'CONFIDENCE_LEVEL_TOO_LOW',
+  INVALID_HISTORY_STRING = 'INVALID_HISTORY_STRING',
+  EVENT_DELIVERY_LATENCY = 'EVENT_DELIVERY_LATENCY',
+  ACCOUNTS_BLOCKED = 'ACCOUNTS_BLOCKED',
+  ACCOUNTS_SUSPENDED = 'ACCOUNTS_SUSPENDED',
 }
 
+export const noMetadata: { key: string; value: string }[] = [];
 export enum EventsEnum {
   NO_EXISTING_INTERVENTIONS = 'NO_EXISTING_INTERVENTIONS',
   FRAUD_SUSPEND_ACCOUNT = 'FRAUD_SUSPEND_ACCOUNT',
@@ -55,16 +60,14 @@ export enum AISInterventionTypes {
 export const TICF_ACCOUNT_INTERVENTION = 'TICF_ACCOUNT_INTERVENTION';
 export const COMPONENT_ID = 'Account Interventions Services';
 
-export const undefinedResponseFromDynamoDatabase: Record<string, any> = {
-  updatedAt: undefined,
-  appliedAt: undefined,
-  sentAt: undefined,
-  description: undefined,
-  state: {
-    blocked: false,
-    suspended: false,
-    resetPassword: false,
-    reproveIdentity: false,
-  },
-  auditLevel: undefined,
-};
+export enum HistoryStringParts {
+  EVENT_TIMESTAMP_MS,
+  COMPONENT_ID,
+  INTERVENTION_CODE,
+  INTERVENTION_REASON,
+  ORIGINATING_COMPONENT_ID,
+  ORIGINATOR_REFERENCE_ID,
+  REQUESTER_ID,
+}
+
+export const expectedHistoryStringLength = Object.keys(HistoryStringParts).length / 2;

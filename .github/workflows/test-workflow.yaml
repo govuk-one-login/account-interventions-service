@@ -1,18 +1,78 @@
 ---
-name: 'Test Workflow'
+name: "Test Publish Feature Tests to Dev"
 
 on:
+  push:
+    paths:
+      - "feature-tests/**"
+      - ".github/workflows/manual-publish-feature-tests-to-dev.yaml"
+    branches:
+      - main
   workflow_dispatch:
+    inputs:
+      gitRef:
+        description: "Input branch name, commit SHA, or tag"
+        required: true
+        type: string
+        default: main
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  test_workflow:
-    name: 'Test Workflow'
+  publish_artifacts:
+    name: "Publish Feature Tests Image to Dev"
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - name: Step Placeholder
-        run: echo "This workflow is designed for testing new workflows from feature branches that have not yet been merged into the main branch."
+      # - name: Deploy SAM app to ECR
+      #   uses: govuk-one-login/devplatform-upload-action-ecr@4e97f7e56e8be55c3cfe2198a3349c5d6b9104ea # pin@v1
+      #   with:
+      #     artifact-bucket-name: ${{ secrets.DEV_MAIN_ARTIFACT_BUCKET_NAME }}
+      #     container-sign-kms-key-arn: ${{ secrets.DEV_TEST_CONTAINER_SIGN_KMS_KEY }}
+      #     # working-directory: feature-tests/
+      #     # template-file: custom-template.yaml
+      #     role-to-assume-arn: ${{ secrets.DEV_TEST_GH_ACTIONS_ROLE_ARN }}
+      #     ecr-repo-name: ${{ secrets.DEV_TEST_ECR_REPOSITORY }}
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # pin@v3
+        with:
+          ref: ${{ inputs.gitRef }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@67fbcbb121271f7775d2e7715933280b06314838 # pin@v1.7.0
+        with:
+          role-to-assume: ${{ secrets.DEV_TEST_GH_ACTIONS_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@2f9f10ea3fa2eed41ac443fee8bfbd059af2d0a4 # pin@v1
+
+      - name: Build & Publish Docker Image as latest
+        working-directory: feature-tests/
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.DEV_TEST_ECR_REPOSITORY }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
+      # ---
+      # name: 'Test Workflow'
+
+      # on:
+      #  workflow_dispatch:
+
+      # permissions:
+      #  id-token: write
+      #  contents: read
+
+      # jobs:
+      #  test_workflow:
+      #    name: 'Test Workflow'
+      #    runs-on: ubuntu-latest
+      #    timeout-minutes: 60
+      #    steps:
+      #      - name: Step Placeholder
+      #        run: echo "This workflow is designed for testing new workflows from feature branches that have not yet been merged into the main branch."

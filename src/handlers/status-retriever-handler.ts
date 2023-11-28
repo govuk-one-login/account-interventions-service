@@ -2,18 +2,26 @@ import type { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda
 import { AppConfigService } from '../services/app-config-service';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
-import { MetricNames, AISInterventionTypes, undefinedResponseFromDynamoDatabase } from '../data-types/constants';
-import { AccountStatus } from '../data-types/interfaces';
+import { MetricNames, AISInterventionTypes } from '../data-types/constants';
+import { AccountStatus, FullAccountInformation, HistoryObject } from '../data-types/interfaces';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { HistoryStringBuilder } from '../commons/history-string-builder';
 
 const appConfig = AppConfigService.getInstance();
 const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableName);
 
+/**
+ * Status Retriever Handler. Queries DynamoDB and returns the intervention status of the account.
+ * @param event - Event passed in from API Gateway.
+ * @param context - This object provides methods and properties that provide information about the invocation, function, and execution environment.
+ * @returns - The status of the account when matched with the User ID. Returns a default object if unable to do so. Also returns the relevant status code.
+ */
 export const handle = async (event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> => {
   logger.addContext(context);
   logger.debug('Status-Retriever-Handler.');
 
-  if (!event.pathParameters || !event.pathParameters['userId']) {
+  if (!event.pathParameters?.['userId']) {
     logAndPublishMetric(MetricNames.INVALID_SUBJECT_ID);
     return {
       statusCode: 400,
@@ -30,7 +38,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
       logger.info('Query matched no records in DynamoDB.');
       logAndPublishMetric(MetricNames.ACCOUNT_NOT_FOUND);
 
-      const undefinedAccount = transformResponseFromDynamoDatabase(undefinedResponseFromDynamoDatabase);
+      const undefinedAccount = transformResponseFromDynamoDatabase({});
       if (historyQuery && historyQuery === 'true') {
         undefinedAccount.history = [];
       }
@@ -43,7 +51,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
     const accountStatus = transformResponseFromDynamoDatabase(response);
 
     if (historyQuery && historyQuery === 'true') {
-      accountStatus.history = response['history'];
+      accountStatus.history = response.history ? constructHistoryObjectField(response.history) : [];
     }
 
     return {
@@ -63,7 +71,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
 /**
  * Helper function to remove whitespace from the user id and to validate that the event contains a valid user id
  * @param userId - Obtained from APIGateway
- * @returns the userId that is passed in, trimmed of any whitespace
+ * @returns - the userId that is passed in, trimmed of any whitespace
  */
 function validateEvent(userId: string) {
   const trimmedUserId = userId.trim();
@@ -74,34 +82,47 @@ function validateEvent(userId: string) {
 }
 
 /**
- * Helper function to transform the data from dynamodb
- * @param item - received from dynamodb
- * @returns transformed object
+ * Function to transform the response from DynamobDB into an object.
+ * @param item - Response from DynamoDB
+ * @returns - An object with all the required fields for the handler response. Creates a default object if any fields are undefined.
+ * Updates timestamps to now if they are returned as null.
  */
-function transformResponseFromDynamoDatabase(
-  item: Record<string, string | number | boolean | object[]>,
-): AccountStatus {
-  const response: Partial<AccountStatus> = {
-    updatedAt: Number(item['updatedAt'] ?? Date.now()),
-    appliedAt: Number(item['appliedAt'] ?? Date.now()),
-    sentAt: Number(item['sentAt'] ?? Date.now()),
-    description: String(item['intervention'] ?? AISInterventionTypes.AIS_NO_INTERVENTION),
+function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformation>) {
+  const currentTimestampMs = getCurrentTimestamp().milliseconds;
+  const accountStatus: AccountStatus = {
+    updatedAt: item.updatedAt ?? currentTimestampMs,
+    appliedAt: item.appliedAt ?? currentTimestampMs,
+    sentAt: item.sentAt ?? currentTimestampMs,
+    description: item.intervention ?? AISInterventionTypes.AIS_NO_INTERVENTION,
     state: {
-      blocked: Boolean(item['blocked'] ?? false),
-      suspended: Boolean(item['suspended'] ?? false),
-      resetPassword: Boolean(item['resetPassword'] ?? false),
-      reproveIdentity: Boolean(item['reproveIdentity'] ?? false),
+      blocked: item.blocked ?? false,
+      suspended: item.suspended ?? false,
+      resetPassword: item.resetPassword ?? false,
+      reproveIdentity: item.reproveIdentity ?? false,
     },
-    auditLevel: String(item['auditLevel'] ?? 'standard'),
+    auditLevel: item.auditLevel ?? 'standard',
+    reprovedIdentityAt: item.reprovedIdentityAt ?? undefined,
+    resetPasswordAt: item.resetPasswordAt ?? undefined,
   };
+  return accountStatus;
+}
 
-  if (item['reprovedIdentityAt']) {
-    response.reprovedIdentityAt = Number(item['reprovedIdentityAt']);
+/**
+ * Function to transform the history string into the required object.
+ * @param input - The array of history strings received from DynamoDB when Query Parameters are passed in.
+ * @returns - An array of history objects. If any history objects are malformed, it filters them out.
+ */
+function constructHistoryObjectField(input: string[]): HistoryObject[] {
+  const historyStringBuilder = new HistoryStringBuilder();
+  const arrayOfHistoryStrings = [];
+  for (const historyString of input) {
+    try {
+      const historyObject = historyStringBuilder.getHistoryObject(historyString);
+      arrayOfHistoryStrings.push(historyObject);
+    } catch (error) {
+      logger.error('History string is malformed.', { error });
+      logAndPublishMetric(MetricNames.INVALID_HISTORY_STRING);
+    }
   }
-
-  if (item['resetPasswordAt']) {
-    response.resetPasswordAt = Number(item['resetPasswordAt']);
-  }
-
-  return <AccountStatus>response;
+  return arrayOfHistoryStrings;
 }

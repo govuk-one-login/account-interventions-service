@@ -18,6 +18,13 @@ const sqsClient = tracer.captureAWSv3Client(
   }),
 );
 
+/**
+ * Function that sends Audit Events to the TxMA Egress queue.
+ * @param eventName - The event name used for sending off the event to identify the action taken.
+ * @param userId - The User ID that is sent off in the event.
+ * @param txmaExtensions - Information regarding interventions.
+ * @returns - Response from sending the message to the Queue.
+ */
 export async function sendAuditEvent(
   eventName: TxMAEgressEventName,
   userId: string,

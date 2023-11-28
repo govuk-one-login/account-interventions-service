@@ -61,15 +61,15 @@
   },
   {
     "ParameterKey": "SAMStackName",
-    "ParameterValue": "ais-main"
+    "ParameterValue": "ais-test-ecr"
   },
   {
     "ParameterKey": "SigningProfileArn",
-    "ParameterValue": "arn:aws:signer:eu-west-2:013758878511:/signing-profiles/SigningProfile_h2ElE6mRDyik"
+    "ParameterValue": "none"
   },
   {
     "ParameterKey": "SigningProfileVersionArn",
-    "ParameterValue": "arn:aws:signer:eu-west-2:013758878511:/signing-profiles/SigningProfile_h2ElE6mRDyik/CG85oc4Ahg"
+    "ParameterValue": "none"
   },
   {
     "ParameterKey": "SlackNotificationType",
@@ -86,9 +86,5 @@
   {
     "ParameterKey": "VpcStackName",
     "ParameterValue": "vpc"
-  },
-  {
-    "ParameterKey": "RunTestContainerInVPC",
-    "ParameterValue": "True"
   }
 ]
