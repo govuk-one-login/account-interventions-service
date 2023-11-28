@@ -1,7 +1,6 @@
-import { HistoryStringParts } from '../data-types/constants';
+import { HistoryStringParts, expectedHistoryStringLength } from '../data-types/constants';
 import { HistoryObject, TxMAIngressEvent } from '../data-types/interfaces';
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
-import { expectedHistoryStringLength } from '../data-types/constants';
 
 export class HistoryStringBuilder {
   separator: string = '|';
