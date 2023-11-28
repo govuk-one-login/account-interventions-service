@@ -56,8 +56,6 @@ export enum AISInterventionTypes {
 export const TICF_ACCOUNT_INTERVENTION = 'TICF_ACCOUNT_INTERVENTION';
 export const COMPONENT_ID = 'Account Interventions Services';
 
-export const SEPARATOR = '|';
-
 export enum HistoryStringParts {
   EVENT_TIMESTAMP_MS,
   COMPONENT_ID,
@@ -81,3 +79,5 @@ export const undefinedResponseFromDynamoDatabase: Record<string, any> = {
   },
   auditLevel: undefined,
 };
+
+export const expectedHistoryStringLength = Object.keys(HistoryStringParts).length / 2;

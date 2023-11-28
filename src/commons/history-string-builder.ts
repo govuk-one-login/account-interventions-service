@@ -1,8 +1,10 @@
-import { HistoryStringParts, SEPARATOR } from '../data-types/constants';
+import { HistoryStringParts } from '../data-types/constants';
 import { HistoryObject, TxMAIngressEvent } from '../data-types/interfaces';
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
+import { expectedHistoryStringLength } from '../data-types/constants';
 
 export class HistoryStringBuilder {
+  separator: string = '|';
   /**
    * Method to build the history string from parts
    * @param event_timestamp_ms - sentAt part of the history string
@@ -23,7 +25,7 @@ export class HistoryStringBuilder {
     intervention_predecessor_id = '',
     requester_id = '',
   ) {
-    return `${event_timestamp_ms}${SEPARATOR}${component_id}${SEPARATOR}${intervention_code}${SEPARATOR}${intervention_reason}${SEPARATOR}${originating_component_id}${SEPARATOR}${intervention_predecessor_id}${SEPARATOR}${requester_id}`;
+    return `${event_timestamp_ms}${this.separator}${component_id}${this.separator}${intervention_code}${this.separator}${intervention_reason}${this.separator}${originating_component_id}${this.separator}${intervention_predecessor_id}${this.separator}${requester_id}`;
   }
 
   /**
@@ -54,11 +56,10 @@ export class HistoryStringBuilder {
    * @returns - The history string transformed into an object.
    */
   public getHistoryObject(historyString: string): HistoryObject {
-    const array = historyString.split(SEPARATOR);
-    const historyStringPartsValidate = Object.keys(HistoryStringParts).length / 2;
-    if (historyStringPartsValidate !== array.length)
+    const historyArray = historyString.split(this.separator);
+    if (historyArray.length !== expectedHistoryStringLength)
       throw new Error('History string does not contain the right amount of components.');
-    return this.buildHistoryObject(array);
+    return this.buildHistoryObject(historyArray);
   }
 
   /**
