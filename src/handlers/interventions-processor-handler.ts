@@ -17,6 +17,7 @@ import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
 import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
 import { sendAuditEvent } from '../services/send-audit-events';
+import { updateAccountStateCountMetric } from '../commons/update-account-state-metrics';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
@@ -197,10 +198,4 @@ function formCurrentAccountStateObject(itemFromDB?: DynamoDBStateResult) {
     resetPassword: itemFromDB ? itemFromDB.resetPassword : false,
     reproveIdentity: itemFromDB ? itemFromDB.reproveIdentity : false,
   };
-}
-function updateAccountStateCountMetric(oldState: StateDetails, newState: StateDetails) {
-  const blockedChange = (Number(oldState.blocked) - Number(newState.blocked)) * -1;
-  if (blockedChange !== 0) logAndPublishMetric(MetricNames.ACCOUNTS_BLOCKED, noMetadata, blockedChange);
-  const suspendChange = (Number(oldState.suspended) - Number(newState.suspended)) * -1;
-  if (suspendChange !== 0) logAndPublishMetric(MetricNames.ACCOUNTS_SUSPENDED, noMetadata, suspendChange);
 }

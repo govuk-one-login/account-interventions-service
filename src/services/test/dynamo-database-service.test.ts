@@ -13,9 +13,11 @@ import logger from '../../commons/logger';
 import { TooManyRecordsError } from '../../data-types/errors';
 import { logAndPublishMetric } from '../../commons/metrics';
 import { MetricNames } from '../../data-types/constants';
+import {updateAccountStateCountMetricAfterDeletion} from "../../commons/update-account-state-metrics";
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
+jest.mock('../../commons/update-account-state-metrics')
 jest.mock('@smithy/node-http-handler');
 
 const ddbMock = mockClient(DynamoDBClient);
@@ -147,7 +149,22 @@ describe('Dynamo DB Service', () => {
   });
 
   it('should update the isAccountDeleted status of the userId in DynamoDB and log info.', async () => {
-    updateCommandMock.resolves({$metadata : { httpStatusCode: 200 }});
+    updateCommandMock.resolves({
+      $metadata : { httpStatusCode: 200 },
+      Attributes : {
+        "resetPassword": {
+          "BOOL": true
+        },
+        "suspended": {
+          "BOOL": true
+        },
+        "blocked": {
+          "BOOL": false
+        },
+        "reproveIdentity": {
+          "BOOL": false
+        },
+      }});
     const commandInput: UpdateItemCommandInput = {
       TableName: 'table_name',
       Key: { pk: { S: 'hello' } },
@@ -161,11 +178,13 @@ describe('Dynamo DB Service', () => {
         ':ttl': { N: '1685417145' },
         ':false': { BOOL: false },
       },
+      ReturnValues: 'ALL_NEW',
       ConditionExpression: 'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
     };
     const dynamoDBService = new DynamoDatabaseService('table_name');
     await dynamoDBService.updateDeleteStatus('hello');
     expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, commandInput);
+    expect(updateAccountStateCountMetricAfterDeletion).toHaveBeenCalledWith(false, true)
   });
 
   it('throws an error when it fails to update the userId status.', async () => {

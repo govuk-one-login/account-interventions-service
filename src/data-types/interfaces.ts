@@ -14,16 +14,16 @@ export interface DynamoDBStateResult extends StateDetails {
 }
 
 export interface FullAccountInformation {
-  blocked?: boolean;
-  suspended?: boolean;
-  resetPassword?: boolean;
-  reproveIdentity?: boolean;
-  sentAt?: number;
-  appliedAt?: number;
+  blocked: boolean;
+  suspended: boolean;
+  resetPassword: boolean;
+  reproveIdentity: boolean;
+  sentAt: number;
+  appliedAt: number;
   isAccountDeleted?: boolean;
-  history?: string[];
-  intervention?: string;
-  updatedAt?: number;
+  history: string[];
+  intervention: string;
+  updatedAt: number;
   reprovedIdentityAt?: number;
   resetPasswordAt?: number;
   auditLevel?: string;

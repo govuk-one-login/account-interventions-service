@@ -175,6 +175,30 @@ describe('intervention processor handler', () => {
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: "FRAUD_BLOCK_ACCOUNT"});
     });
 
+    it('should succeed when an intervention event is received for a non existing user', async () => {
+      eventValidationMock.mockReturnValueOnce(undefined);
+      mockRetrieveRecords.mockReturnValue(undefined);
+      accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
+        newState: {
+          blocked: false,
+          suspended: true,
+          resetPassword: false,
+          reproveIdentity: false,
+        },
+        interventionName: EventsEnum.FRAUD_BLOCK_ACCOUNT,
+      });
+      expect(await handler(mockEvent, mockContext)).toEqual({
+        batchItemFailures: [],
+      });
+      expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_TRANSITION_APPLIED', 'abc', {
+        intervention: EventsEnum.FRAUD_BLOCK_ACCOUNT,
+        appliedAt: 1_234_567_890,
+      });
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: "FRAUD_BLOCK_ACCOUNT"});
+    });
+
+
     it('should succeed when an user action event is received', async () => {
       eventValidationMock.mockReturnValueOnce(undefined);
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({

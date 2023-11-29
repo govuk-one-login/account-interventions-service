@@ -17,6 +17,7 @@ import { logAndPublishMetric } from '../commons/metrics';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { DynamoDBStateResult, FullAccountInformation } from '../data-types/interfaces';
 import { TooManyRecordsError } from '../data-types/errors';
+import { updateAccountStateCountMetricAfterDeletion } from '../commons/update-account-state-metrics';
 
 const appConfig = AppConfigService.getInstance();
 export class DynamoDatabaseService {
@@ -44,8 +45,7 @@ export class DynamoDatabaseService {
     parameters.ProjectionExpression =
       'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted';
     const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
-    const validatedResponse = this.validateQueryResponse<DynamoDBStateResult>(response);
-    return validatedResponse ?? undefined;
+    return this.validateQueryResponse<DynamoDBStateResult>(response);
   }
 
   /**
@@ -99,7 +99,10 @@ export class DynamoDatabaseService {
     const command = new UpdateItemCommand(commandInput);
     try {
       const response = await this.dynamoClient.send(command);
-      console.log(JSON.stringify(response.Attributes));
+      if (response.Attributes) {
+        const responseObject = unmarshall(response.Attributes) as FullAccountInformation;
+        updateAccountStateCountMetricAfterDeletion(responseObject.blocked, responseObject.suspended);
+      }
       logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Account marked as deleted.`, { userId });
       logAndPublishMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
       return response;

@@ -70,18 +70,4 @@ export enum HistoryStringParts {
   REQUESTER_ID,
 }
 
-export const undefinedResponseFromDynamoDatabase: Record<string, any> = {
-  updatedAt: undefined,
-  appliedAt: undefined,
-  sentAt: undefined,
-  description: undefined,
-  state: {
-    blocked: false,
-    suspended: false,
-    resetPassword: false,
-    reproveIdentity: false,
-  },
-  auditLevel: undefined,
-};
-
 export const expectedHistoryStringLength = Object.keys(HistoryStringParts).length / 2;
