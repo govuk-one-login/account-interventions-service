@@ -65,6 +65,7 @@ const interventionEventBodyInTheFuture = {
 const resetPasswordEventBody = {
   event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
   timestamp: t0s - 5,
+  event_timestamp_ms: t0ms - 5000,
   client_id: 'UNKNOWN',
   component_id: 'UNKNOWN',
   user: {
@@ -170,7 +171,7 @@ describe('intervention processor handler', () => {
         intervention: EventsEnum.FRAUD_BLOCK_ACCOUNT,
         appliedAt: 1_234_567_890,
       });
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5);
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: "FRAUD_BLOCK_ACCOUNT"});
     });
 
@@ -194,7 +195,7 @@ describe('intervention processor handler', () => {
         appliedAt: 1_234_567_890,
       });
 
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5);
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: "AUTH_PASSWORD_RESET_SUCCESSFUL"});
 
     });

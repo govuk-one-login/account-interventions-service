@@ -86,7 +86,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
     logAndPublishMetric(
       MetricNames.EVENT_DELIVERY_LATENCY,
       noMetadata,
-      currentTimestamp.seconds - recordBody.timestamp,
+      currentTimestamp.milliseconds - eventTimestampInMs,
     );
     const itemFromDB = await service.getAccountStateInformation(userId);
 
