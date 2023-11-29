@@ -14,7 +14,7 @@ import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { AppConfigService } from '../services/app-config-service';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-import { TxMAIngressEvent } from '../data-types/interfaces';
+import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
 import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
 import { sendAuditEvent } from '../services/send-audit-events';
 
@@ -103,7 +103,8 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
 
     if (isEventAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
       logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
-      const statusResult = accountStateEngine.applyEventTransition(intervention, itemFromDB);
+      const currentAccountState: StateDetails = formCurrentAccountStateObject(itemFromDB);
+      const statusResult = accountStateEngine.applyEventTransition(intervention, currentAccountState);
       const partialCommandInput = buildPartialUpdateAccountStateCommand(
         statusResult.newState,
         intervention,
@@ -114,6 +115,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
 
       logger.debug('processed requested event, sending update request to dynamo db');
       await service.updateUserStatus(userId, partialCommandInput);
+      updateAccountStateCountMetric(currentAccountState, statusResult.newState);
       logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: intervention.toString() });
       await sendAuditEvent('AIS_INTERVENTION_TRANSITION_APPLIED', userId, {
         intervention,
@@ -186,4 +188,19 @@ function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
 function isEventAfterLastEvent(eventTimeStamp: number, sentAt?: number, appliedAt?: number) {
   const latestIntervention = sentAt ?? appliedAt ?? 0;
   return eventTimeStamp > latestIntervention;
+}
+
+function formCurrentAccountStateObject(itemFromDB?: DynamoDBStateResult) {
+  return {
+    blocked: itemFromDB ? itemFromDB.blocked : false,
+    suspended: itemFromDB ? itemFromDB.suspended : false,
+    resetPassword: itemFromDB ? itemFromDB.resetPassword : false,
+    reproveIdentity: itemFromDB ? itemFromDB.reproveIdentity : false,
+  };
+}
+function updateAccountStateCountMetric(oldState: StateDetails, newState: StateDetails) {
+  const blockedChange = (Number(oldState.blocked) - Number(newState.blocked)) * -1;
+  if (blockedChange !== 0) logAndPublishMetric(MetricNames.ACCOUNTS_BLOCKED, noMetadata, blockedChange);
+  const suspendChange = (Number(oldState.suspended) - Number(newState.suspended)) * -1;
+  if (suspendChange !== 0) logAndPublishMetric(MetricNames.ACCOUNTS_SUSPENDED, noMetadata, suspendChange);
 }

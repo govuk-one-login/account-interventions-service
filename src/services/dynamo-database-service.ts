@@ -92,12 +92,14 @@ export class DynamoDatabaseService {
         ':ttl': { N: ttl.toString() },
         ':false': { BOOL: false },
       },
+      ReturnValues: 'ALL_NEW',
       ConditionExpression:
         'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
     };
     const command = new UpdateItemCommand(commandInput);
     try {
       const response = await this.dynamoClient.send(command);
+      console.log(JSON.stringify(response.Attributes));
       logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Account marked as deleted.`, { userId });
       logAndPublishMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
       return response;

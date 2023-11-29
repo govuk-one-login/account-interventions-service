@@ -63,14 +63,7 @@ export class AccountStateEngine {
    * @param event - EventEnum representation of event received
    * @param currentState - optional state object representation the current state of the account, it defaults to account unsuspended if nothing is passed
    */
-  applyEventTransition(event: EventsEnum, currentState?: StateDetails): AccountStateEngineOutput {
-    if (!currentState)
-      currentState = {
-        blocked: false,
-        suspended: false,
-        resetPassword: false,
-        reproveIdentity: false,
-      };
+  applyEventTransition(event: EventsEnum, currentState: StateDetails): AccountStateEngineOutput {
     const currentStateName = this.findAccountStateName(currentState);
     const allowedTransition = this.findPossibleTransitions(currentStateName);
     const transition = this.getTransition(allowedTransition, event);
