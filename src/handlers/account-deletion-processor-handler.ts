@@ -9,6 +9,12 @@ import { logAndPublishMetric } from '../commons/metrics';
 const appConfig = AppConfigService.getInstance();
 const ddbService = new DynamoDatabaseService(appConfig.tableName);
 
+/**
+ * Account deletion processor handler. Updates accounts and marks them for deletion.
+ * @param event - SQS event. Consumes these events from a queue and takes the User ID from the record to match the account.
+ * @param context -  This object provides methods and properties that provide information about the invocation, function, and execution environment.
+ * @returns - Void. Sends off response to DynamoDB.
+ */
 export const handler = async (event: SQSEvent, context: Context): Promise<void> => {
   logger.addContext(context);
   if (!event.Records[0]) {
@@ -23,6 +29,11 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
   await Promise.all(updateRecordsByIdPromises);
 };
 
+/**
+ * Function to take the User ID from the SQS Record.
+ * @param record - The record passed in from the event.
+ * @returns - User ID as a string, with whitespace removed.
+ */
 function getUserId(record: SQSRecord) {
   let messageBody: SNSMessage;
   let message: DeleteStatusUpdateSNSMessage;
@@ -52,6 +63,11 @@ function getUserId(record: SQSRecord) {
   return userId.trim();
 }
 
+/**
+ * Function to call DynamoDB and mark the account as deleted.
+ * @param userId - User ID taken from the record of the SQS Event.
+ * @throws - Error if there is a problem updating the account.
+ */
 async function updateDeleteStatusId(userId: string) {
   try {
     await ddbService.updateDeleteStatus(userId);

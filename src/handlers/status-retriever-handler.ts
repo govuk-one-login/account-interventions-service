@@ -11,6 +11,12 @@ import { HistoryStringBuilder } from '../commons/history-string-builder';
 const appConfig = AppConfigService.getInstance();
 const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableName);
 
+/**
+ * Status Retriever Handler. Queries DynamoDB and returns the intervention status of the account.
+ * @param event - Event passed in from API Gateway.
+ * @param context - This object provides methods and properties that provide information about the invocation, function, and execution environment.
+ * @returns - The status of the account when matched with the User ID. Returns a default object if unable to do so. Also returns the relevant status code.
+ */
 export const handle = async (event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> => {
   logger.addContext(context);
   logger.debug('Status-Retriever-Handler.');
@@ -65,7 +71,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
 /**
  * Helper function to remove whitespace from the user id and to validate that the event contains a valid user id
  * @param userId - Obtained from APIGateway
- * @returns the userId that is passed in, trimmed of any whitespace
+ * @returns - the userId that is passed in, trimmed of any whitespace
  */
 function validateEvent(userId: string) {
   const trimmedUserId = userId.trim();
@@ -75,7 +81,13 @@ function validateEvent(userId: string) {
   return trimmedUserId;
 }
 
-function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformation>) {
+/**
+ * Function to transform the response from DynamobDB into an object.
+ * @param item - Response from DynamoDB
+ * @returns - An object with all the required fields for the handler response. Creates a default object if any fields are undefined.
+ * Updates timestamps to now if they are returned as null.
+ */
+function transformResponseFromDynamoDatabase(item: FullAccountInformation) {
   const currentTimestampMs = getCurrentTimestamp().milliseconds;
   const accountStatus: AccountStatus = {
     updatedAt: item.updatedAt ?? currentTimestampMs,
@@ -95,6 +107,11 @@ function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformatio
   return accountStatus;
 }
 
+/**
+ * Function to transform the history string into the required object.
+ * @param input - The array of history strings received from DynamoDB when Query Parameters are passed in.
+ * @returns - An array of history objects. If any history objects are malformed, it filters them out.
+ */
 function constructHistoryObjectField(input: string[]): HistoryObject[] {
   const historyStringBuilder = new HistoryStringBuilder();
   const arrayOfHistoryStrings = [];
