@@ -103,3 +103,39 @@ declarations in order to find the handler files, i.e. the webpack entry files, t
 3. Uses the function resource's `Handler` value as the file to use as a webpack entry.
 4. Per web pack entry, finds the function's handler file in the `src/handlers` folder.
 5. Runs the webpack process and writes the bundle in to the `dist` folder in the locations expected by the SAM template.
+
+### Testing the Private Api Gateway endpoint
+The api in this application is a private api, which means testing it can't be done using tools like postman. The lambda `{stack-name}-InvokePrivateAPIGatewayFunction` has been created to allow the api to be tested. Since this lambda is created within the application's VPC, it meets the required security measures so it is able to successfully invoke the endpoint.
+
+The api has the following format:
+```
+<baseurl>/ais/:userId?history=true
+```
+Note: the query string parameter (`history=true`) is optional.
+
+This lambda sets default values for the baseUrl and the endpoint (e.g. `ais`) in the environment variables.
+
+There are two ways to use this lambda:
+
+### :calendar: Using the lambda event:
+All of these keys are optional. Anything provided in the event will override the default value in the environment variable.
+```
+{
+    "userId": "<theUserId>",
+    "queryParameters": "history=true",
+    "baseUrl": "<theBaseUrl eg http://hello-world.com>",
+    "endpoint": "<theEndpoint eg /ais>",
+    "headers": { 'Content-Type': 'application/json' } // add any headers here
+}
+```
+
+### :seedling: Using the environment variables:
+Update the values for these variables. Note, if you also provide the equivalent value in the lambda event, the lambda will use the lambda event values.
+```
+USER_ID
+QUERY_PARAMETERS
+BASE_URL
+END_POINT
+```
+
+Note: that at the moment the lambda is not set up to work for a post request, so changes to the lambda will need to be made if post requests become a requirement.

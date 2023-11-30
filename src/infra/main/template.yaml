@@ -55,6 +55,7 @@ Parameters:
     Default: govuk-one-login/account-interventions-service/src/infra/main/template.yaml
 
 Conditions:
+  IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
 
@@ -710,6 +711,36 @@ Resources:
           METRIC_SERVICE_NAME: !Sub "${AWS::StackName}-StatusRetriever"
       Handler: status-retriever-handler.handle
       Role: !GetAtt StatusRetrieverFunctionRole.Arn
+
+  InvokePrivateAPIGatewayFunction:
+    Condition: IsInternal
+    Type: AWS::Serverless::Function
+    # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
+    # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunction'
+      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      CodeUri: ../../../dist/handlers/invoke-private-api
+      Timeout: 10
+      Environment:
+        Variables:
+          USER_ID: ""
+          BASE_URL: !Join
+            - ""
+            - - https://
+              - !GetAtt PrivateRestApi.RestApiId
+              - !Sub .execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}
+          END_POINT: /ais
+          QUERY_PARAMETERS: ""
+          HTTP_REQUEST_METHOD: GET
+      Handler: invoke-private-api.handle
+      VpcConfig:
+        SubnetIds:
+          - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdA
+          - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdB
+          - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdC
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
         Product: !Ref ProductTagValue
