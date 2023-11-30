@@ -722,6 +722,7 @@ Resources:
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       CodeUri: ../../../dist/handlers/invoke-private-api
       Timeout: 10
+      Role: !GetAtt InvokePrivateAPIGatewayFunctionRole.Arn
       Environment:
         Variables:
           USER_ID: ""
