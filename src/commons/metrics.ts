@@ -6,7 +6,7 @@ const namespace = AppConfigService.getInstance().cloudWatchMetricsWorkSpace;
 const service = AppConfigService.getInstance().metricServiceName;
 
 /**
- * metric utility which instantiate a Metrics object from aws-lambda-powertools/metrics
+ * Metric utility which instantiate a Metrics object from aws-lambda-powertools/metrics.
  */
 export const metric: Metrics = new Metrics({ namespace: namespace, serviceName: service });
 

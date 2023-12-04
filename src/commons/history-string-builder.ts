@@ -3,8 +3,8 @@ import { HistoryObject, TxMAIngressEvent } from '../data-types/interfaces';
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
 
 /**
- * History string builder class, builds the string, gets the information and sets it
- * then transforms it into an object
+ * Class to provide utility methods to build a history string from the provided components
+ * and converts a history string into an object containing the required fields.
  */
 export class HistoryStringBuilder {
   separator: string = '|';

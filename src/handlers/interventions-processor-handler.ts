@@ -187,7 +187,7 @@ function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
 }
 
 /**
- * Function to ascertain that the time stamp is after the intervention has been applied.
+ * Function to ascertain that the event timestamp is after the latest intervention applied on the account.
  * @param eventTimeStamp - Event timestamp received from the SQS Record.
  * @param sentAt - Sent At field recieved from the DynamoDB table.
  * @param appliedAt - Applied At field recieved from the DynamoDB table.
