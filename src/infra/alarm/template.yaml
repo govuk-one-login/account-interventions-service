@@ -623,3 +623,64 @@ Resources:
       Dimensions:
         - Name: service
           Value: InterventionsProcessorFunction
+
+#
+# Cloudwatch alarms for Status Retriever
+#
+
+  DbQueryError:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "An error occured with the query to DynamoDB"
+      Namespace: !Ref SystemTagValue
+      MetricName: DB_QUERY_ERROR
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 1
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: StatusRetrieverFunction
+
+  InvalidSubjectId:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "User ID was not found in the event"
+      Namespace: !Ref SystemTagValue
+      MetricName: INVALID_SUBJECT_ID
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 1
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: StatusRetrieverFunction
+
+  InvalidHistoryString:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "History string may be missing required components"
+      Namespace: !Ref SystemTagValue
+      MetricName: INVALID_HISTORY_STRING
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Statistic: Sum
+      Threshold: 1
+      EvaluationPeriods: 5
+      Period: 60
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: service
+          Value: StatusRetrieverFunction
