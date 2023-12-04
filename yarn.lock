@@ -529,10 +529,10 @@
     "@smithy/types" "^2.5.0"
     tslib "^2.5.0"
 
-"@aws-sdk/util-dynamodb@^3.460.0":
-  version "3.460.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/util-dynamodb/-/util-dynamodb-3.460.0.tgz#4cf55d8c6a6107fec9f746fceae5dd444fa5d72a"
-  integrity sha512-nbXOdPJbOiy4Rgf+NCc/68XikH1qMKyBpj5vvXESyIK9tJCw2RD/OI/dPX6iRuCWW8YW50ERJZOa/Fd54rdErA==
+"@aws-sdk/util-dynamodb@^3.465.0":
+  version "3.465.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/util-dynamodb/-/util-dynamodb-3.465.0.tgz#051f97a7c135bf8e80c609182eb6abff13b8a006"
+  integrity sha512-Zi3ThmR7zfNH32CV5nsVf4Ce6gkX1N/wnxMdTQv2qnu1zoA/6o7RPzrGs92EafDHugvRXJFoWM5oHjYBreK61Q==
   dependencies:
     tslib "^2.5.0"
 
