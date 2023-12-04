@@ -152,13 +152,13 @@ describe('account-state-service', () => {
   describe('Successful state transitions', () => {
     describe('from no intervention', () => {
       it.each([
-        [EventsEnum.FRAUD_BLOCK_ACCOUNT, undefined, blockAccountUpdate],
-        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, undefined, suspendAccountUpdate],
-        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, undefined, passwordResetRequiredUpdate],
-        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, undefined, idResetRequiredUpdate],
+        [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay, blockAccountUpdate],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountIsOkay, suspendAccountUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsOkay, passwordResetRequiredUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsOkay, idResetRequiredUpdate],
         [
           EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
-          undefined,
+          accountIsOkay,
           pswAndIdResetRequiredUpdate,
         ],
       ])('%p', (intervention, retrievedAccountState, command) => {
@@ -279,11 +279,7 @@ describe('account-state-service', () => {
   describe('Unsuccessful state transitions', () => {
     describe('received intervention is not allowed on current account state', () => {
       it.each([
-        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, undefined],
-        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, undefined],
-        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, undefined],
-        [EventsEnum.IPV_IDENTITY_ISSUED, undefined],
-
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsOkay],
         [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsOkay],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsOkay],
         [EventsEnum.IPV_IDENTITY_ISSUED, accountIsOkay],

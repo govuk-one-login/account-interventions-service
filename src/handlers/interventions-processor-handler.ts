@@ -14,9 +14,10 @@ import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { AppConfigService } from '../services/app-config-service';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-import { TxMAIngressEvent } from '../data-types/interfaces';
+import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
 import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
 import { sendAuditEvent } from '../services/send-audit-events';
+import { updateAccountStateCountMetric } from '../commons/update-account-state-metrics';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
@@ -86,7 +87,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
     logAndPublishMetric(
       MetricNames.EVENT_DELIVERY_LATENCY,
       noMetadata,
-      currentTimestamp.seconds - recordBody.timestamp,
+      currentTimestamp.milliseconds - eventTimestampInMs,
     );
     const itemFromDB = await service.getAccountStateInformation(userId);
 
@@ -103,7 +104,8 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
 
     if (isEventAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
       logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
-      const statusResult = accountStateEngine.applyEventTransition(intervention, itemFromDB);
+      const currentAccountState: StateDetails = formCurrentAccountStateObject(itemFromDB);
+      const statusResult = accountStateEngine.applyEventTransition(intervention, currentAccountState);
       const partialCommandInput = buildPartialUpdateAccountStateCommand(
         statusResult.newState,
         intervention,
@@ -114,6 +116,7 @@ async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQS
 
       logger.debug('processed requested event, sending update request to dynamo db');
       await service.updateUserStatus(userId, partialCommandInput);
+      updateAccountStateCountMetric(currentAccountState, statusResult.newState);
       logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: intervention.toString() });
       await sendAuditEvent('AIS_INTERVENTION_TRANSITION_APPLIED', userId, {
         intervention,
@@ -186,4 +189,13 @@ function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
 function isEventAfterLastEvent(eventTimeStamp: number, sentAt?: number, appliedAt?: number) {
   const latestIntervention = sentAt ?? appliedAt ?? 0;
   return eventTimeStamp > latestIntervention;
+}
+
+function formCurrentAccountStateObject(itemFromDB?: DynamoDBStateResult) {
+  return {
+    blocked: itemFromDB ? itemFromDB.blocked : false,
+    suspended: itemFromDB ? itemFromDB.suspended : false,
+    resetPassword: itemFromDB ? itemFromDB.resetPassword : false,
+    reproveIdentity: itemFromDB ? itemFromDB.reproveIdentity : false,
+  };
 }

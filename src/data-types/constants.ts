@@ -29,6 +29,8 @@ export enum MetricNames {
   CONFIDENCE_LEVEL_TOO_LOW = 'CONFIDENCE_LEVEL_TOO_LOW',
   INVALID_HISTORY_STRING = 'INVALID_HISTORY_STRING',
   EVENT_DELIVERY_LATENCY = 'EVENT_DELIVERY_LATENCY',
+  ACCOUNTS_BLOCKED = 'ACCOUNTS_BLOCKED',
+  ACCOUNTS_SUSPENDED = 'ACCOUNTS_SUSPENDED',
 }
 
 export const noMetadata: { key: string; value: string }[] = [];
@@ -67,19 +69,5 @@ export enum HistoryStringParts {
   ORIGINATOR_REFERENCE_ID,
   REQUESTER_ID,
 }
-
-export const undefinedResponseFromDynamoDatabase: Record<string, any> = {
-  updatedAt: undefined,
-  appliedAt: undefined,
-  sentAt: undefined,
-  description: undefined,
-  state: {
-    blocked: false,
-    suspended: false,
-    resetPassword: false,
-    reproveIdentity: false,
-  },
-  auditLevel: undefined,
-};
 
 export const expectedHistoryStringLength = Object.keys(HistoryStringParts).length / 2;

@@ -2,7 +2,7 @@ import type { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda
 import { AppConfigService } from '../services/app-config-service';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
-import { MetricNames, AISInterventionTypes, undefinedResponseFromDynamoDatabase } from '../data-types/constants';
+import { MetricNames, AISInterventionTypes } from '../data-types/constants';
 import { AccountStatus, FullAccountInformation, HistoryObject } from '../data-types/interfaces';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
@@ -32,7 +32,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
       logger.info('Query matched no records in DynamoDB.');
       logAndPublishMetric(MetricNames.ACCOUNT_NOT_FOUND);
 
-      const undefinedAccount = transformResponseFromDynamoDatabase(undefinedResponseFromDynamoDatabase);
+      const undefinedAccount = transformResponseFromDynamoDatabase({});
       if (historyQuery && historyQuery === 'true') {
         undefinedAccount.history = [];
       }
@@ -75,7 +75,7 @@ function validateEvent(userId: string) {
   return trimmedUserId;
 }
 
-function transformResponseFromDynamoDatabase(item: FullAccountInformation) {
+function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformation>) {
   const currentTimestampMs = getCurrentTimestamp().milliseconds;
   const accountStatus: AccountStatus = {
     updatedAt: item.updatedAt ?? currentTimestampMs,
@@ -105,7 +105,6 @@ function constructHistoryObjectField(input: string[]): HistoryObject[] {
     } catch (error) {
       logger.error('History string is malformed.', { error });
       logAndPublishMetric(MetricNames.INVALID_HISTORY_STRING);
-      continue;
     }
   }
   return arrayOfHistoryStrings;

@@ -559,7 +559,7 @@ Resources:
       MetricName: EVENT_DELIVERY_LATENCY
       ComparisonOperator: GreaterThanThreshold
       Statistic: Average
-      Threshold: 1
+      Threshold: 1000
       EvaluationPeriods: 1
       Period: 60
       TreatMissingData: notBreaching
@@ -578,7 +578,7 @@ Resources:
       MetricName: EVENT_DELIVERY_LATENCY
       ComparisonOperator: GreaterThanThreshold
       Statistic: Average
-      Threshold: 2
+      Threshold: 2000
       EvaluationPeriods: 1
       Period: 60
       TreatMissingData: notBreaching
@@ -597,7 +597,7 @@ Resources:
       MetricName: EVENT_DELIVERY_LATENCY
       ComparisonOperator: GreaterThanThreshold
       Statistic: Average
-      Threshold: 5
+      Threshold: 5000
       EvaluationPeriods: 1
       Period: 60
       TreatMissingData: notBreaching
@@ -616,7 +616,7 @@ Resources:
       MetricName: EVENT_DELIVERY_LATENCY
       ComparisonOperator: GreaterThanThreshold
       Statistic: Average
-      Threshold: 10
+      Threshold: 10000
       EvaluationPeriods: 1
       Period: 60
       TreatMissingData: notBreaching
