@@ -87,7 +87,7 @@ function validateEvent(userId: string) {
  * @returns - An object with all the required fields for the handler response. Creates a default object if any fields are undefined.
  * Updates timestamps to now if they are returned as null.
  */
-function transformResponseFromDynamoDatabase(item: FullAccountInformation) {
+function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformation>) {
   const currentTimestampMs = getCurrentTimestamp().milliseconds;
   const accountStatus: AccountStatus = {
     updatedAt: item.updatedAt ?? currentTimestampMs,
