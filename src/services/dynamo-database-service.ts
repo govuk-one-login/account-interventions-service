@@ -77,6 +77,12 @@ export class DynamoDatabaseService {
     return await this.dynamoClient.send(command);
   }
 
+  /**
+   * Method for marking a user account for deletion by matching the user id to an account.
+   * @param userId - Passed in as a string, taken from a SQS Event.
+   * @returns - Response from DynamoDB, marking the account as deleted.
+   * @throws - DynamoDB exceptions, will redrive if it is not a ConditionalCheckFailedException.
+   */
   public async updateDeleteStatus(userId: string) {
     const ttl = getCurrentTimestamp().seconds + appConfig.maxRetentionSeconds;
     const commandInput: UpdateItemCommandInput = {
@@ -117,7 +123,7 @@ export class DynamoDatabaseService {
   }
 
   /**
-   * Function to configure query parameters for DynamoDB
+   * Function to configure query parameters for DynamoDB.
    * @param userId - userId from the relevant event
    * @returns - the parameters needed to query DynamoDB
    */

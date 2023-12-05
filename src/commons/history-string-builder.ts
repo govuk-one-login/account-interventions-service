@@ -2,6 +2,10 @@ import { HistoryStringParts, expectedHistoryStringLength } from '../data-types/c
 import { HistoryObject, TxMAIngressEvent } from '../data-types/interfaces';
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
 
+/**
+ * Class to provide utility methods to build a history string from the provided components
+ * and converts a history string into an object containing the required fields.
+ */
 export class HistoryStringBuilder {
   separator: string = '|';
   /**

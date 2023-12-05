@@ -186,6 +186,13 @@ function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
   return recordBody.event_name as EventsEnum;
 }
 
+/**
+ * Function to ascertain that the event timestamp is after the latest intervention applied on the account.
+ * @param eventTimeStamp - Event timestamp received from the SQS Record.
+ * @param sentAt - Sent At field recieved from the DynamoDB table.
+ * @param appliedAt - Applied At field recieved from the DynamoDB table.
+ * @returns - Boolean logic, true if the time stamp is greater than the latest intervention. False, if it is not.
+ */
 function isEventAfterLastEvent(eventTimeStamp: number, sentAt?: number, appliedAt?: number) {
   const latestIntervention = sentAt ?? appliedAt ?? 0;
   return eventTimeStamp > latestIntervention;
