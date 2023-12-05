@@ -1,8 +1,13 @@
+const now = Date.now();
+const ageInSeconds = 1;
+const seconds = now / 1000 - ageInSeconds;
+const ms = seconds * 1000;
+
 export const aisEvents = {
   suspendNoAction: [
     {
-      timestamp: 1234,
-      event_timestamp_ms: 1_234_000,
+      timestamp: seconds,
+      event_timestamp_ms: ms,
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
@@ -17,8 +22,8 @@ export const aisEvents = {
 
   unSuspendAction: [
     {
-      timestamp: 1234,
-      event_timestamp_ms: 1_234_000,
+      timestamp: seconds,
+      event_timestamp_ms: ms,
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
@@ -32,8 +37,8 @@ export const aisEvents = {
   ],
   block: [
     {
-      timestamp: 1234,
-      event_timestamp_ms: 1_234_000,
+      timestamp: seconds,
+      event_timestamp_ms: ms,
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
@@ -47,8 +52,8 @@ export const aisEvents = {
   ],
   pswResetRequired: [
     {
-      timestamp: 1234,
-      event_timestamp_ms: 1_234_000,
+      timestamp: seconds,
+      event_timestamp_ms: ms,
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
@@ -62,8 +67,8 @@ export const aisEvents = {
   ],
   idResetRequired: [
     {
-      timestamp: 1234,
-      event_timestamp_ms: 1_234_000,
+      timestamp: seconds,
+      event_timestamp_ms: ms,
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
@@ -77,8 +82,8 @@ export const aisEvents = {
   ],
   pswAndIdResetRequired: [
     {
-      timestamp: 1234,
-      event_timestamp_ms: 1_234_000,
+      timestamp: seconds,
+      event_timestamp_ms: ms,
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
@@ -92,8 +97,8 @@ export const aisEvents = {
   ],
   unblock: [
     {
-      timestamp: 1234,
-      event_timestamp_ms: 1_234_000,
+      timestamp: seconds,
+      event_timestamp_ms: ms,
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
@@ -108,7 +113,7 @@ export const aisEvents = {
   userActionIdResetSuccess: [
     {
       event_name: 'IPV_IDENTITY_ISSUED',
-      timestamp: 1_234_567,
+      timestamp: seconds,
       client_id: 'UNKNOWN',
       component_id: 'UNKNOWN',
       user: {
@@ -130,7 +135,7 @@ export const aisEvents = {
   userActionPswResetSuccess: [
     {
       event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
-      timestamp: 1_697_629_119,
+      timestamp: seconds,
       client_id: 'UNKNOWN',
       component_id: 'UNKNOWN',
       user: {
