@@ -32,7 +32,7 @@ Parameters:
   CSLSSubscriptionEndpointArn:
     Type: String
     Description: CSLS Subscription endpoint
-    Default: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+    Default: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2"
   CodeSigningConfigArn:
     Description: Asserts that lambdas are signed when deployed.
     Type: String
@@ -151,6 +151,7 @@ Globals:
 Resources:
   ### Interventions Processor ###
   InterventionsProcessorFunction:
+    DependsOn: InterventionsProcessorFunctionPolicy
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-InterventionsProcessorFunction"
@@ -264,7 +265,7 @@ Resources:
   InterventionsProcessorFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${InterventionsProcessorFunction}"
+      LogGroupName: !Sub "/aws/lambda/${AWS::StackName}-InterventionsProcessorFunction"
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
@@ -279,7 +280,7 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
         - Key: Name
-          Value: !Sub "/aws/lambda/${InterventionsProcessorFunction}"
+          Value: !Sub "/aws/lambda/${AWS::StackName}-InterventionsProcessorFunction"
 
   InterventionsProcessorFunctionLogsSubscriptionFilterCSLS:
     Condition: IsProdOrInt
