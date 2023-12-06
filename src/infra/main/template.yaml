@@ -29,6 +29,10 @@ Parameters:
     Description: The ARN of the permissions boundary to apply when creating IAM roles
     Type: String
     Default: none
+  CSLSSubscriptionEndpointArn:
+    Type: String
+    Description: CSLS Subscription endpoint
+    Default: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
   CodeSigningConfigArn:
     Description: Asserts that lambdas are signed when deployed.
     Type: String
@@ -56,6 +60,7 @@ Parameters:
 
 Conditions:
   IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
+  IsProdOrInt: !Or [!Equals [!Ref Environment, production], !Equals [!Ref Environment, integration]]
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
 
@@ -146,7 +151,6 @@ Globals:
 Resources:
   ### Interventions Processor ###
   InterventionsProcessorFunction:
-    DependsOn: InterventionsProcessorFunctionPolicy
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-InterventionsProcessorFunction"
@@ -216,6 +220,12 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource:
+              - !GetAtt InterventionsProcessorFunctionLogGroup.Arn
+          - Effect: Allow
+            Action:
               - "sqs:ReceiveMessage"
               - "sqs:DeleteMessage"
               - "sqs:GetQueueAttributes"
@@ -250,6 +260,34 @@ Resources:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableEncryptionKeyArn"
       Roles:
         - !Ref InterventionsProcessorFunctionRole
+
+  InterventionsProcessorFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${InterventionsProcessorFunction}"
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "/aws/lambda/${InterventionsProcessorFunction}"
+
+  InterventionsProcessorFunctionLogsSubscriptionFilterCSLS:
+    Condition: IsProdOrInt
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn: !Ref CSLSSubscriptionEndpointArn
+      LogGroupName: !Ref InterventionsProcessorFunctionLogGroup
+      FilterPattern: "{$.message != \"Sensitive info*\"}"
 
 ### Account Deletion Processor ###
 
@@ -368,7 +406,7 @@ Resources:
               - "logs:CreateLogStream"
               - "logs:PutLogEvents"
             Resource:
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AccountDeletionProcessorFunction}:*'
+              - !GetAtt AccountDeletionProcessorFunctionLogGroup.Arn
           - Effect: Allow
             Action:
               - "kms:GenerateDataKey"
@@ -389,6 +427,34 @@ Resources:
 
       Roles:
         - !Ref AccountDeletionProcessorFunctionRole
+
+  AccountDeletionProcessorFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${AccountDeletionProcessorFunction}"
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "/aws/lambda/${AccountDeletionProcessorFunction}"
+
+  AccountDeletionProcessorFunctionLogsSubscriptionFilterCSLS:
+    Condition: IsProdOrInt
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn: !Ref CSLSSubscriptionEndpointArn
+      LogGroupName: !Ref AccountDeletionProcessorFunctionLogGroup
+      FilterPattern: "{$.message != \"Sensitive info*\"}"
 
   AccountDeletionProcessorQueue:
     Type: AWS::SQS::Queue
@@ -712,6 +778,34 @@ Resources:
       Handler: status-retriever-handler.handle
       Role: !GetAtt StatusRetrieverFunctionRole.Arn
 
+  StatusRetrieverFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${StatusRetrieverFunction}"
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "/aws/lambda/${StatusRetrieverFunction}"
+
+  StatusRetrieverFunctionLogsSubscriptionFilterCSLS:
+    Condition: IsProdOrInt
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn: !Ref CSLSSubscriptionEndpointArn
+      LogGroupName: !Ref StatusRetrieverFunctionLogGroup
+      FilterPattern: "{$.message != \"Sensitive info*\"}"
+
   InvokePrivateAPIGatewayFunction:
     Condition: IsInternal
     Type: AWS::Serverless::Function
@@ -813,6 +907,12 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
+          - Effect: Allow
+            Action:
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource:
+              - !GetAtt StatusRetrieverFunctionLogGroup.Arn
           - Effect: Allow
             Action:
               - "dynamodb:Query"
@@ -925,6 +1025,53 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PrivateRestApi}/*/*" # allow any stage and any method to use status retriever
+
+  CloudWatchEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: AWS KMS key for encrypting CloudWatch logs
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: "kms:*"
+            Resource: "*"
+          - Effect: Allow
+            Principal:
+              Service: !Sub "logs.${AWS::Region}.amazonaws.com"
+            Action:
+              - "kms:Encrypt*"
+              - "kms:Decrypt*"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:Describe*"
+            Resource: "*"
+            Condition:
+              ArnLike:
+                "kms:EncryptionContext:aws:logs:arn": !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-CloudWatchEncryptionKey"
+
+  CloudWatchEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-CloudWatchEncryptionKey"
+      TargetKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+
 
 Outputs:
   PrivateApiEndpoint:
