@@ -146,7 +146,7 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried.');
+      expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried.', {"errorMessage": "State transition Error"});
       expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_TRANSITION_IGNORED', 'abc', {
         intervention: EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
         reason: 'State transition Error',
@@ -237,7 +237,8 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-      expect(logger.warn).toHaveBeenLastCalledWith('Sensitive info - user abc account has been deleted.');
+      expect(logger.warn).toHaveBeenCalledTimes(2);
+      expect((logger.warn as jest.Mock).mock.calls).toEqual([['Sensitive info - user abc account has been deleted.'], ['ValidationError caught, message will not be retried.', {"errorMessage": "Account is marked as deleted."}]]);
       expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED', 'abc', {
         intervention: EventsEnum.FRAUD_BLOCK_ACCOUNT,
         reason: 'Target user account is marked as deleted.',
@@ -355,7 +356,7 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(logger.warn).toHaveBeenCalledWith('TooManyRecordsError caught, message will not be retried.');
+      expect(logger.warn).toHaveBeenCalledWith('Too many records were returned from the database. Message will not be retried', {"errorMessage": "Too many records"});
     });
 
     it('should ignore if level of confidence is not P2', async () => {
