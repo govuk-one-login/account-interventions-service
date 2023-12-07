@@ -10,7 +10,13 @@ import {
 } from '../data-types/constants';
 import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
-import { validateEvent, validateInterventionEvent } from '../services/validate-event';
+import {
+  validateEventAgainstSchema,
+  validateEventIsNotInFuture,
+  validateEventIsNotStale,
+  validateInterventionEvent,
+  validateLevelOfConfidence,
+} from '../services/validate-event';
 import { AppConfigService } from '../services/app-config-service';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
@@ -71,7 +77,7 @@ async function handleError(error: unknown, record: SQSRecord) {
 async function processSQSRecord(record: SQSRecord) {
   const currentTimestamp = getCurrentTimestamp();
   const recordBody: TxMAIngressEvent = JSON.parse(record.body);
-  validateEvent(recordBody);
+  validateEventAgainstSchema(recordBody);
   const intervention = getInterventionName(recordBody);
   logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention received.`, { intervention });
   validateLevelOfConfidence(intervention, recordBody);
@@ -112,29 +118,6 @@ async function processSQSRecord(record: SQSRecord) {
   });
 }
 
-function validateLevelOfConfidence(intervention: EventsEnum, event: TxMAIngressEvent) {
-  if (intervention === EventsEnum.IPV_IDENTITY_ISSUED && event.extensions?.levelOfConfidence !== 'P2') {
-    logger.warn(`Received interventions has low level of confidence: ${event.extensions?.levelOfConfidence}`);
-    logAndPublishMetric(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
-    throw new ValidationError('Received intervention has low level of confidence.');
-  }
-}
-
-async function validateEventIsNotInFuture(intervention: EventsEnum, event: TxMAIngressEvent) {
-  const eventTimestampInMs = event.event_timestamp_ms ?? event.timestamp * 1000;
-  const now = getCurrentTimestamp().milliseconds;
-  if (now < eventTimestampInMs) {
-    logger.debug(`Timestamp is in the future (sec): ${eventTimestampInMs}.`);
-    logAndPublishMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
-    await sendAuditEvent('AIS_INTERVENTION_IGNORED_IN_FUTURE', event.user.user_id, {
-      intervention,
-      reason: 'received event is in the future',
-      appliedAt: undefined,
-    });
-    throw new Error('Event is in the future. It will be retried');
-  }
-}
-
 function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
   if (recordBody.event_name === TICF_ACCOUNT_INTERVENTION) {
@@ -156,28 +139,6 @@ async function validateAccountIsNotDeleted(intervention: EventsEnum, userId: str
     });
     throw new ValidationError('Account is marked as deleted.');
   }
-}
-
-async function validateEventIsNotStale(
-  intervention: EventsEnum,
-  event: TxMAIngressEvent,
-  itemFromDB?: DynamoDBStateResult,
-) {
-  if (!isEventAfterLastEvent(event.event_timestamp_ms, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
-    logger.warn('Event received predates last applied event for this user.');
-    logAndPublishMetric(MetricNames.INTERVENTION_EVENT_STALE);
-    await sendAuditEvent('AIS_INTERVENTION_IGNORED_STALE', event.user.user_id, {
-      intervention,
-      appliedAt: undefined,
-      reason: 'Received intervention predates latest applied intervention',
-    });
-    throw new ValidationError('Event received predates last applied event for this user.');
-  }
-}
-
-function isEventAfterLastEvent(eventTimeStamp: number, sentAt?: number, appliedAt?: number) {
-  const latestIntervention = sentAt ?? appliedAt ?? 0;
-  return eventTimeStamp > latestIntervention;
 }
 
 function formCurrentAccountStateObject(itemFromDB?: DynamoDBStateResult) {

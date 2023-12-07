@@ -1,5 +1,5 @@
 import { TxMAIngressEvent as TxMAEvent } from '../../data-types/interfaces';
-import { validateEvent, validateInterventionEvent } from '../validate-event';
+import { validateEventAgainstSchema, validateInterventionEvent } from '../validate-event';
 import logger from '../../commons/logger';
 import { logAndPublishMetric } from '../../commons/metrics';
 import { ValidationError } from '../../data-types/errors';
@@ -27,7 +27,7 @@ describe('event-validation', () => {
         },
       },
     };
-    expect(validateEvent(TxMAEvent)).toBeUndefined();
+    expect(validateEventAgainstSchema(TxMAEvent)).toBeUndefined();
     expect(validateInterventionEvent(TxMAEvent)).toBeUndefined();
   });
 
@@ -48,7 +48,7 @@ describe('event-validation', () => {
         },
       },
     };
-    expect(() => validateEvent(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
+    expect(() => validateEventAgainstSchema(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
     expect(logger.debug).toHaveBeenCalledWith('Sensitive info - Event has failed schema validation.', { validationErrors: expect.anything() });
     expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
@@ -67,7 +67,7 @@ describe('event-validation', () => {
         },
       },
     };
-    expect(() => validateEvent(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
+    expect(() => validateEventAgainstSchema(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
     expect(validateInterventionEvent(TxMAEvent)).toBeUndefined();
     expect(logger.debug).toHaveBeenCalledWith('Sensitive info - Event has failed schema validation.', { validationErrors: expect.anything() });
     expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
@@ -82,7 +82,7 @@ describe('event-validation', () => {
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       extensions: { },
     };
-    expect(() => validateEvent(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
+    expect(() => validateEventAgainstSchema(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
     expect(logger.debug).toHaveBeenCalledWith('Sensitive info - Event has failed schema validation.', { validationErrors: expect.anything() });
     expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
@@ -103,7 +103,7 @@ describe('event-validation', () => {
         },
       },
     };
-    expect(validateEvent(TxMAEvent)).toBeUndefined();
+    expect(validateEventAgainstSchema(TxMAEvent)).toBeUndefined();
     expect(() => validateInterventionEvent(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
     expect(logger.debug).toHaveBeenCalledWith('Invalid intervention request. Intervention code is NAN');
     expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');

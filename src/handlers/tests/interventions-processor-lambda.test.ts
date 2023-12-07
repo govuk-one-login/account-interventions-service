@@ -4,7 +4,7 @@ import logger from '../../commons/logger';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logAndPublishMetric } from '../../commons/metrics';
 import { DynamoDatabaseService } from '../../services/dynamo-database-service';
-import { validateEvent, validateInterventionEvent } from '../../services/validate-event';
+import { validateEventAgainstSchema, validateInterventionEvent } from '../../services/validate-event';
 import { AccountStateEngine } from '../../services/account-states/account-state-engine';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
@@ -81,7 +81,7 @@ const resetPasswordEventBody = {
 
 const mockRetrieveRecords = DynamoDatabaseService.prototype.getAccountStateInformation as jest.Mock;
 const mockUpdateRecords = DynamoDatabaseService.prototype.updateUserStatus as jest.Mock;
-const eventValidationMock = validateEvent as jest.Mock;
+const eventValidationMock = validateEventAgainstSchema as jest.Mock;
 const interventionEventValidationMock = validateInterventionEvent as jest.Mock;
 const accountStateEngine = AccountStateEngine.getInstance();
 accountStateEngine.getInterventionEnumFromCode = jest.fn().mockImplementation(() => {
