@@ -181,7 +181,8 @@ components:
       title: "Intervention history"
       description: "History of intervention applied to this account"
       type: array
-      example: [{}]
+      items:
+        $ref: "#/components/schemas/HistoryObject"
     InterventionStatusResponse:
       title: "Account Intervention Status Schema"
       description: "The Intervention Status of the User's OneLogin Account"
@@ -199,6 +200,51 @@ components:
           $ref: "#/components/schemas/AuditLevel"
         history:
           $ref: "#/components/schemas/History"
+    HistoryObject:
+      title: "Past intervention object"
+      description: "JSON object representing an intervention previously applied on the account"
+      type: "object"
+      readOnly: true
+      properties:
+        sentAt:
+          type: string
+          example: "2023-10-10T20:22:02.925Z"
+          description: timestamp in ISO String format of when the intervention event was sent by the originating component
+        component:
+          type: string
+          example: "TICF_CRI"
+          description: the name of the component that generated the intervention
+        code:
+          type: string
+          example: "01"
+          description: the numeric code associated with the intervention
+        intervention:
+          type: string
+          example: "FRAUD_SUSPEND_ACCOUNT"
+          description: the name of the intervention corresponding to the code
+        reason:
+          type: string
+          example: "not sure...?"
+          description: the reason field from the original intervention event
+        originatingComponent:
+          type: string
+          example: "CMS"
+          description: the name of the component that originated the intervention event
+        originatorReferenceId:
+          type: string
+          example: "12345"
+          description: the numeric code identifying the originating component
+        requesterId:
+          type: string
+          example: "12345"
+          description: the numeric id code of what?
+      required:
+        - sentAt
+        - component
+        - code
+        - intervention
+        - reason
+
     Error:
       title: "Error Schema"
       type: "object"
@@ -227,7 +273,7 @@ components:
       in: query
       description: "A flag to enable the recall of the account's previous intervention history."
       required: false
-      example: false
+      example: true
       schema:
         type: boolean
   responses:
