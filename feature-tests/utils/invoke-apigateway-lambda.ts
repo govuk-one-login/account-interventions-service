@@ -6,7 +6,7 @@ export async function invokeGetAccountState(testUserId: string, historyValue: bo
   if (process.platform === 'darwin') {
     const client = new LambdaClient({});
     const command = new InvokeCommand({
-      FunctionName: 'ais-main-InvokePrivateAPIGatewayFunction',
+      FunctionName: EndPoints.INVOKE_PRIVATE_API_GATEWAY,
       Payload: JSON.stringify({ userId: testUserId, queryParameters: `history=${historyValue}` }),
     });
     const { Payload } = await client.send(command);

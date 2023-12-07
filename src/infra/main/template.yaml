@@ -930,3 +930,7 @@ Outputs:
   PrivateApiEndpoint:
     Description: "Private API Gateway endpoint URL for AIS methods"
     Value: !Sub "https://${PrivateRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}"
+
+  SqsQueueUrl:
+    Description: "Endpoint URL for TxMA Egress Queue"
+    Value: !Ref TxMAEgressQueue
