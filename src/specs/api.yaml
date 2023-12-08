@@ -98,7 +98,7 @@ components:
         description:
           description: The specific intervention currently applied to the account.
           type: string
-          example: AIS_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFIED
+          example: AIS_ACCOUNT_UNSUSPENDED
           enum:
             - AIS_NO_INTERVENTION
             - AIS_ACCOUNT_SUSPENDED
@@ -106,8 +106,6 @@ components:
             - AIS_ACCOUNT_BLOCKED
             - AIS_ACCOUNT_UNBLOCKED
             - AIS_USER_PASSWORD_RESET
-            - AIS_USER_IDENTITY_REVERIFIED
-            - AIS_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFIED
         reprovedIdentityAt:
           description: |
             A timestamp (ms) of when the User performed the reprove identity action to unsuspend their account.
@@ -224,7 +222,7 @@ components:
           description: the name of the intervention corresponding to the code
         reason:
           type: string
-          example: "not sure...?"
+          example: "a reason for the intervention"
           description: the reason field from the original intervention event
         originatingComponent:
           type: string
@@ -233,11 +231,11 @@ components:
         originatorReferenceId:
           type: string
           example: "12345"
-          description: the numeric code identifying the originating component
+          description: the numeric code identifying the case that triggered the intervention
         requesterId:
           type: string
           example: "12345"
-          description: the numeric id code of what?
+          description: opaque id of the user that requested the intervention (no PII)
       required:
         - sentAt
         - component
