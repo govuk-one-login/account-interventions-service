@@ -152,7 +152,7 @@ describe('intervention processor handler', () => {
       });
     });
 
-    it('should succeed when an intervention event is received', async () => {
+    it('should succeed when a valid intervention event is received', async () => {
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
         newState: {
           blocked: false,
@@ -195,8 +195,7 @@ describe('intervention processor handler', () => {
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: "FRAUD_BLOCK_ACCOUNT"});
     });
 
-
-    it('should succeed when an user action event is received', async () => {
+    it('should succeed when a valid user action event is received', async () => {
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
         newState: {
           blocked: false,
@@ -240,7 +239,7 @@ describe('intervention processor handler', () => {
       });
     });
 
-    it('should fail as timestamp is in the future', async () => {
+    it('should return message id to be retried if event is in the future', async () => {
       mockRecord.body = JSON.stringify(interventionEventBodyInTheFuture);
       expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
         batchItemFailures: [
@@ -266,7 +265,7 @@ describe('intervention processor handler', () => {
       });
     });
 
-    it('should fail if dynamo operation errors', async () => {
+    it('should return message id to be retried if dynamo db operation fails', async () => {
       mockRetrieveRecords.mockRejectedValueOnce('Error');
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [
@@ -298,7 +297,7 @@ describe('intervention processor handler', () => {
       });
     });
 
-    it('should do additional checks if event is from fraud', async () => {
+    it('should successfully process valid event from fraud', async () => {
       mockRetrieveRecords.mockReturnValue({
         blocked: false,
         reproveIdentity: false,
@@ -347,7 +346,7 @@ describe('intervention processor handler', () => {
       expect(logger.warn).toHaveBeenCalledWith('Too many records were returned from the database. Message will not be retried', {"errorMessage": "Too many records"});
     });
 
-    it('should ignore if level of confidence is not P2', async () => {
+    it('should ignore if level of confidence is not P2 for an ID Reset user action event', async () => {
       mockRecord = {
         messageId: '123',
         receiptHandle: '',
