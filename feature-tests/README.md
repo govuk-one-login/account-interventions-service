@@ -18,6 +18,7 @@ Set up the following env vars.
 cd feature-tests
 yarn install && yarn build
 export TEST_ENVIRONMENT=dev
+export SAM_STACK_NAME=ais-main
 export AWS_REGION=eu-west-2
 export AWS_PROFILE=dev
 ```
@@ -50,6 +51,8 @@ once the docker image is built, run the following the execute the dockerfile
 docker run account-intervention-service-feature-tests-image:latest
 ```
 
+## Environment configuration
+If new values are added to **endpoints.ts**, associated values will then need to be added to the main template
 
 ## ESLint for Typescript
 ES Lint has been configured for the typescript code within the framework

@@ -1,36 +1,49 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
-import { invokeApiGateWayLambda } from '../../../utils/invoke-apigateway-lambda';
+import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
+import { timeDelayForTestEnvironment } from '../../../utils/utility';
 
-const feature = loadFeature('tests/resources/features/aisGET/invokeApiGateway-HappyPath.feature');
+const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
 defineFeature(feature, (test) => {
   let testUserId: string;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   let response: any;
 
   beforeEach(() => {
     testUserId = generateRandomTestUserId();
   });
 
-  test('Happy Path - Get Request to /ais/userId - Returns Data for a userId', ({ given, when, then }) => {
-    given(/^I send a request to sqs queue with (.*) data$/, async (aisEventType) => {
+  test('Happy Path - Get Request to /ais/userId - Returns Expected Data', ({ given, when, then }) => {
+    given(/^I send an (.*) intervention message to the TxMA ingress SQS queue$/, async (aisEventType) => {
       await sendSQSEvent(testUserId, aisEventType);
     });
 
-    when(/^I invoke apiGateway to retreive the status of the userId with (.*)$/, async (historyValue) => {
-      response = await invokeApiGateWayLambda(testUserId, historyValue);
-    });
+    when(
+      /^I invoke the API to retrieve the intervention status of the user's account. With history (.*)$/,
+      async (historyValue) => {
+        await timeDelayForTestEnvironment(500);
+        response = await invokeGetAccountState(testUserId, historyValue);
+      },
+    );
 
     then(
-      /^I should receive the appropriate (.*), (.*), (.*), (.*) and (.*) for the ais endpoint$/,
-      async (interventionType, blockedState, suspendedState, resetPassword, reproveIdentity) => {
-        const responseInJson = await JSON.parse(await JSON.parse(await response).body);
-        expect(await responseInJson.intervention.description).toContain(interventionType);
-        expect(await responseInJson.intervention.state.blocked).toBe(JSON.parse(blockedState));
-        expect(await responseInJson.intervention.state.suspended).toBe(JSON.parse(suspendedState));
-        expect(await responseInJson.intervention.state.resetPassword).toBe(JSON.parse(resetPassword));
-        expect(await responseInJson.intervention.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
+      /^I expect the intervention to be (.*), with the following state settings (.*), (.*), (.*) and (.*)$/,
+      async (
+        interventionType: string,
+        blockedState: string,
+        suspendedState: string,
+        resetPassword: string,
+        reproveIdentity: string,
+      ) => {
+        console.log(`Received`, { response });
+        expect(response.intervention.description).toBe(interventionType);
+        expect(response.intervention.state.blocked).toBe(JSON.parse(blockedState));
+        expect(response.intervention.state.suspended).toBe(JSON.parse(suspendedState));
+        expect(response.intervention.state.resetPassword).toBe(JSON.parse(resetPassword));
+        expect(response.intervention.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
       },
     );
   });
