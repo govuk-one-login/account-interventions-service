@@ -7,7 +7,6 @@ export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeo
   const queueURL = EndPoints.SQS_QUEUE_URL;
   aisEvents[aisEventType][0]!.user.user_id = testUserId;
   const messageBody = JSON.stringify(aisEvents[aisEventType][0]);
-
   const parameters = {
     MessageBody: messageBody,
     QueueUrl: queueURL,
