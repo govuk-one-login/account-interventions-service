@@ -16,7 +16,11 @@ defineFeature(feature, (test) => {
     testUserId = generateRandomTestUserId();
   });
 
-  test('Happy Path - Get Request to /ais/userId - Returns Expected Data', ({ given, when, then }) => {
+  test('Happy Path - Get Request to /ais/userId - Returns Expected Data for <aisEventType>', ({
+    given,
+    when,
+    then,
+  }) => {
     given(/^I send an (.*) intervention message to the TxMA ingress SQS queue$/, async (aisEventType) => {
       await sendSQSEvent(testUserId, aisEventType);
     });
@@ -46,5 +50,28 @@ defineFeature(feature, (test) => {
         expect(response.intervention.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
       },
     );
+  });
+
+  test('Happy Path - Field Validation - Get Request to /ais/userId - Returns Expected Data for <aisEventType> with specific field validation', ({
+    given,
+    when,
+    then,
+  }) => {
+    given(
+      /^I send a invalid request to sqs queue with no userId and (.*), (.*) data$/,
+      async function (aisEventType, testUserId) {
+        const userId = testUserId === 'undefined' ? undefined : testUserId;
+        await sendSQSEvent(userId, aisEventType);
+      },
+    );
+
+    when(/^I invoke apiGateway to retreive the status of the invalid userId with (.*)$/, async (historyValue) => {
+      response = await invokeGetAccountState(testUserId, historyValue);
+    });
+
+    then(/^I should receive the appropriate (.*) for the ais endpoint$/, async (interventionType) => {
+      console.log(`Received`, { response });
+      expect(response.intervention.description).toBe(interventionType);
+    });
   });
 });
