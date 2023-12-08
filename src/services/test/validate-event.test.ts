@@ -276,5 +276,27 @@ describe('event-validation', () => {
     expect(logAndPublishMetric).not.toHaveBeenCalled();
   });
 
-  it('should throw if level of confidence field is not present in an ID Reset event', () => {});
+  it('should throw if level of confidence field is not present in an ID Reset event', () => {
+    const idResetEventLowConfidence = {
+      event_name: "IPV_IDENTITY_ISSUED",
+      timestamp: 1234567,
+      client_id: "UNKNOWN",
+      component_id: "UNKNOWN",
+      user: {
+        user_id: "urn:fdc:gov.uk:2022:USER_ONE",
+        email: "",
+        phone: "UNKNOWN",
+        ip_address: "",
+        session_id: "",
+        persistent_session_id: "",
+        govuk_signin_journey_id: ""
+      },
+      extensions: {
+        ciFail: false,
+        hasMitigations: false
+      }
+    };
+    expect(() => validateLevelOfConfidence(EventsEnum.IPV_IDENTITY_ISSUED, idResetEventLowConfidence)).toThrow(new ValidationError('Received intervention has low level of confidence.'));
+    expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
+  });
 });

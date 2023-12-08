@@ -28,6 +28,13 @@ import { updateAccountStateCountMetric } from '../commons/update-account-state-m
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
 const accountStateEngine = AccountStateEngine.getInstance();
+
+/**
+ * Main handler method for Intervention Processor Lambda
+ * It iterates over the messages polled from the queue, it processes each record, and returns the list of items that failed processing to be retried
+ * @param event - SQSEvent containing the intervention event
+ * @param context - context object
+ */
 export const handler = async (event: SQSEvent, context: Context): Promise<SQSBatchResponse> => {
   logger.addContext(context);
 
@@ -53,6 +60,12 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
   };
 };
 
+/**
+ * Function to handle an error returned by the recording processing function
+ * It logs appropriate messages and returns a message id if the Error type is not of a non-retryable type
+ * @param error - error throw by the processing function
+ * @param record - the record inside the message polled
+ */
 async function handleError(error: unknown, record: SQSRecord) {
   if (error instanceof ValidationError)
     logger.warn('ValidationError caught, message will not be retried.', { errorMessage: error.message });
@@ -74,6 +87,12 @@ async function handleError(error: unknown, record: SQSRecord) {
   }
 }
 
+/**
+ * Main worker function. It receives an SQS record and processes it according to business logic
+ * It validates the event, it retrieves user data from the database, it applies the intervention,
+ * it updates the user record in the database, it sends a notification upon completion
+ * @param record - SQS Record polled from the queue
+ */
 async function processSQSRecord(record: SQSRecord) {
   const currentTimestamp = getCurrentTimestamp();
   const recordBody: TxMAIngressEvent = JSON.parse(record.body);
@@ -118,6 +137,10 @@ async function processSQSRecord(record: SQSRecord) {
   });
 }
 
+/**
+ * Helper function to obtain the intervention name based on the information inside the intervention event
+ * @param recordBody - the record body from the SQS message
+ */
 function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
   if (recordBody.event_name === TICF_ACCOUNT_INTERVENTION) {
@@ -128,6 +151,12 @@ function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
   return recordBody.event_name as EventsEnum;
 }
 
+/**
+ * Helper function to check that the account retrieved for the user has not been marked as deleted
+ * @param intervention - the intervention name
+ * @param userId - the id of the user whose account is been intervened
+ * @param itemFromDB - the data retrieved from the database
+ */
 async function validateAccountIsNotDeleted(intervention: EventsEnum, userId: string, itemFromDB?: DynamoDBStateResult) {
   if (itemFromDB?.isAccountDeleted === true) {
     logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
@@ -141,6 +170,10 @@ async function validateAccountIsNotDeleted(intervention: EventsEnum, userId: str
   }
 }
 
+/**
+ * Helper function to construct an account state object based on the data retrieved from the database
+ * @param itemFromDB - query result from database
+ */
 function formCurrentAccountStateObject(itemFromDB?: DynamoDBStateResult) {
   return {
     blocked: itemFromDB ? itemFromDB.blocked : false,

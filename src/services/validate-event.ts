@@ -38,6 +38,12 @@ export function validateInterventionEvent(interventionRequest: TxMAIngressEvent)
   }
 }
 
+/**
+ * A function to validate that the level of confidence is as expected for a IPV_IDENTITY_ISSUED event
+ * @param intervention - the intervention name
+ * @param event - the event received
+ * @throws ValidationError - if the level of confidence is undefined or not as expected
+ */
 export function validateLevelOfConfidence(intervention: EventsEnum, event: TxMAIngressEvent) {
   if (intervention === EventsEnum.IPV_IDENTITY_ISSUED && event.extensions?.levelOfConfidence !== 'P2') {
     logger.warn(`Received interventions has low level of confidence: ${event.extensions?.levelOfConfidence}`);
@@ -46,6 +52,12 @@ export function validateLevelOfConfidence(intervention: EventsEnum, event: TxMAI
   }
 }
 
+/**
+ * A function to validate that the event received is not in the future
+ * @param intervention - the intervention name
+ * @param event - the event received
+ * @throws ValidationError - if the timestamp of the event is in the future
+ */
 export async function validateEventIsNotInFuture(intervention: EventsEnum, event: TxMAIngressEvent) {
   const eventTimestampInMs = event.event_timestamp_ms ?? event.timestamp * 1000;
   const now = getCurrentTimestamp().milliseconds;
@@ -61,6 +73,13 @@ export async function validateEventIsNotInFuture(intervention: EventsEnum, event
   }
 }
 
+/**
+ * A function to validate that the event is not stale
+ * @param intervention - the intervention name
+ * @param event - the event received
+ * @param itemFromDB - the user data retrieved from the database
+ * @throws ValidationError - if the time of the event pre-dates the timestamp of the latest intervention applied on the account
+ */
 export async function validateEventIsNotStale(
   intervention: EventsEnum,
   event: TxMAIngressEvent,
@@ -79,6 +98,12 @@ export async function validateEventIsNotStale(
   }
 }
 
+/**
+ * Helper function to check if the event timestamp predates the timestamp of the latest intervention
+ * @param eventTimeStamp - timestamp of the event in milliseconds
+ * @param sentAt - timestamp in milliseconds of the latest intervention event applied on the account
+ * @param appliedAt - timestamp in milliseconds of when the latest intervention event was applied to the account
+ */
 function isEventAfterLastEvent(eventTimeStamp: number, sentAt?: number, appliedAt?: number) {
   const latestIntervention = sentAt ?? appliedAt ?? 0;
   return eventTimeStamp > latestIntervention;
