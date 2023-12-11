@@ -132,7 +132,6 @@ describe('intervention processor handler', () => {
     });
 
     it('should not retry the record if a StateTransitionError is received', async () => {
-
       mockRetrieveRecords.mockReturnValue({
         blocked: false,
         reproveIdentity: false,
@@ -145,7 +144,9 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried.', {"errorMessage": "State transition Error"});
+      expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried.', {
+        errorMessage: 'State transition Error',
+      });
       expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_TRANSITION_IGNORED', 'abc', {
         intervention: EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
         reason: 'State transition Error',
@@ -170,7 +171,9 @@ describe('intervention processor handler', () => {
         appliedAt: 1_234_567_890,
       });
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: "FRAUD_BLOCK_ACCOUNT"});
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
+        eventName: 'FRAUD_BLOCK_ACCOUNT',
+      });
     });
 
     it('should succeed when an intervention event is received for a non existing user', async () => {
@@ -192,7 +195,9 @@ describe('intervention processor handler', () => {
         appliedAt: 1_234_567_890,
       });
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: "FRAUD_BLOCK_ACCOUNT"});
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
+        eventName: 'FRAUD_BLOCK_ACCOUNT',
+      });
     });
 
     it('should succeed when a valid user action event is received', async () => {
@@ -215,8 +220,9 @@ describe('intervention processor handler', () => {
       });
 
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: "AUTH_PASSWORD_RESET_SUCCESSFUL"});
-
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
+        eventName: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+      });
     });
 
     it('should not process the event if the user account is marked as deleted', async () => {
@@ -232,7 +238,10 @@ describe('intervention processor handler', () => {
       });
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
       expect(logger.warn).toHaveBeenCalledTimes(2);
-      expect((logger.warn as jest.Mock).mock.calls).toEqual([['Sensitive info - user abc account has been deleted.'], ['ValidationError caught, message will not be retried.', {"errorMessage": "Account is marked as deleted."}]]);
+      expect((logger.warn as jest.Mock).mock.calls).toEqual([
+        ['Sensitive info - user abc account has been deleted.'],
+        ['ValidationError caught, message will not be retried.', { errorMessage: 'Account is marked as deleted.' }],
+      ]);
       expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED', 'abc', {
         intervention: EventsEnum.FRAUD_BLOCK_ACCOUNT,
         reason: 'Target user account is marked as deleted.',
@@ -343,7 +352,10 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(logger.warn).toHaveBeenCalledWith('Too many records were returned from the database. Message will not be retried', {"errorMessage": "Too many records"});
+      expect(logger.warn).toHaveBeenCalledWith(
+        'Too many records were returned from the database. Message will not be retried',
+        { errorMessage: 'Too many records' },
+      );
     });
 
     it('should ignore if level of confidence is not P2 for an ID Reset user action event', async () => {

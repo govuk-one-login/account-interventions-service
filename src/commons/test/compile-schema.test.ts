@@ -1,6 +1,6 @@
 import logger from '../logger';
-import { compileSchema } from "../compile-schema";
-import { metric } from "../metrics";
+import { compileSchema } from '../compile-schema';
+import { metric } from '../metrics';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('@aws-lambda-powertools/metrics');
@@ -29,7 +29,7 @@ describe('compile schema', () => {
     expect(metric.addMetric).toHaveBeenCalledWith('INVALID_SCHEMA', 'Count', 1);
     expect(logger.error).toHaveBeenCalledWith('Schema is invalid, failed to compile', {
       reasons: expect.any(Array),
-      error: expect.anything()
+      error: expect.anything(),
     });
   });
 });
