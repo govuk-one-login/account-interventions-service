@@ -16,11 +16,10 @@ export class StateEngineConfigurationError extends Error {
 export class StateTransitionError extends Error {
   public transition: EventsEnum;
   public transitionCode: string | undefined;
-  constructor(message: string, transition: EventsEnum, transitionCode?: string) {
+  constructor(message: string, transition: EventsEnum) {
     super(message);
     this.name = 'StateTransitionError';
     this.transition = transition;
-    this.transitionCode = transitionCode;
   }
 }
 
