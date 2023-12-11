@@ -204,7 +204,7 @@ describe('event-validation', () => {
     expect(sendAuditEvent).toHaveBeenCalledWith("AIS_INTERVENTION_IGNORED_IN_FUTURE", "urn:fdc:gov.uk:2022:USER_ONE", {"appliedAt": undefined, "intervention": "FRAUD_SUSPEND_ACCOUNT", "reason": "received event is in the future"});
   });
 
-  it('should throw not throw an error if event is not in the future', async () => {
+  it('should not throw an error if the event is not in the future', async () => {
     const eventNotInTheFuture = {
       timestamp: timestamp.seconds - 10,
       event_timestamp_ms: timestamp.milliseconds - 10000,
