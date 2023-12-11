@@ -52,6 +52,16 @@ export class AccountStateEngine {
     return newStateName;
   }
 
+  getInterventionCodeFromEnum(intervention: EventsEnum) {
+    for (const edge of Object.keys(AccountStateEngine.configuration.edges)) {
+      if (intervention.toString() === edge) return edge;
+    }
+    throw buildConfigurationError(
+      MetricNames.INTERVENTION_CODE_NOT_FOUND_IN_CONFIG,
+      `intervention: ${intervention} was not found in current configuration`,
+    );
+  }
+
   /**
    * Main method to compute if transition is allowed given the received event and the current state of the account
    * It finds the node corresponding to the received account state

@@ -15,10 +15,12 @@ export class StateEngineConfigurationError extends Error {
 }
 export class StateTransitionError extends Error {
   public transition: EventsEnum;
-  constructor(message: string, transition: EventsEnum) {
+  public transitionCode: string | undefined;
+  constructor(message: string, transition: EventsEnum, transitionCode?: string) {
     super(message);
     this.name = 'StateTransitionError';
     this.transition = transition;
+    this.transitionCode = transitionCode;
   }
 }
 

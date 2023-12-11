@@ -54,21 +54,17 @@ export function validateLevelOfConfidence(intervention: EventsEnum, event: TxMAI
 
 /**
  * A function to validate that the event received is not in the future
- * @param intervention - the intervention name
+ * @param eventEnum - the event name as an EventsEnum
  * @param event - the event received
  * @throws ValidationError - if the timestamp of the event is in the future
  */
-export async function validateEventIsNotInFuture(intervention: EventsEnum, event: TxMAIngressEvent) {
+export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: TxMAIngressEvent) {
   const eventTimestampInMs = event.event_timestamp_ms ?? event.timestamp * 1000;
   const now = getCurrentTimestamp().milliseconds;
   if (now < eventTimestampInMs) {
     logger.debug(`Timestamp is in the future (sec): ${eventTimestampInMs}.`);
     logAndPublishMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
-    await sendAuditEvent('AIS_INTERVENTION_IGNORED_IN_FUTURE', event.user.user_id, {
-      intervention,
-      reason: 'received event is in the future',
-      appliedAt: undefined,
-    });
+    await sendAuditEvent('AIS_INTERVENTION_IGNORED_IN_FUTURE', eventEnum, event);
     throw new Error('Event is in the future. It will be retried');
   }
 }
@@ -89,11 +85,7 @@ export async function validateEventIsNotStale(
   if (!isEventAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
     logger.warn('Event received predates last applied event for this user.');
     logAndPublishMetric(MetricNames.INTERVENTION_EVENT_STALE);
-    await sendAuditEvent('AIS_INTERVENTION_IGNORED_STALE', event.user.user_id, {
-      intervention,
-      appliedAt: undefined,
-      reason: 'Received intervention predates latest applied intervention',
-    });
+    await sendAuditEvent('AIS_INTERVENTION_IGNORED_STALE', intervention, event);
     throw new ValidationError('Event received predates last applied event for this user.');
   }
 }

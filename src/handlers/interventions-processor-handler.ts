@@ -87,7 +87,7 @@ async function processSQSRecord(record: SQSRecord) {
 
   const itemFromDB = await service.getAccountStateInformation(userId);
 
-  await validateAccountIsNotDeleted(intervention, userId, itemFromDB);
+  await validateAccountIsNotDeleted(intervention, userId, recordBody, itemFromDB);
 
   await validateEventIsNotStale(intervention, recordBody, itemFromDB);
 
@@ -104,11 +104,7 @@ async function processSQSRecord(record: SQSRecord) {
   await service.updateUserStatus(userId, partialCommandInput);
   updateAccountStateCountMetric(currentAccountState, statusResult.newState);
   logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: intervention.toString() });
-  await sendAuditEvent('AIS_INTERVENTION_TRANSITION_APPLIED', userId, {
-    intervention,
-    appliedAt: currentTimestamp.milliseconds,
-    reason: undefined,
-  });
+  await sendAuditEvent('AIS_INTERVENTION_TRANSITION_APPLIED', intervention, recordBody, currentTimestamp.milliseconds);
 }
 
 /**
@@ -127,12 +123,11 @@ async function handleError(error: unknown, record: SQSRecord) {
     });
   else if (error instanceof StateTransitionError) {
     logger.warn('StateTransitionError caught, message will not be retried.', { errorMessage: error.message });
-    const userId = (JSON.parse(record.body) as TxMAIngressEvent).user.user_id;
-    await sendAuditEvent('AIS_INTERVENTION_TRANSITION_IGNORED', userId, {
-      intervention: error.transition,
-      appliedAt: undefined,
-      reason: error.message,
-    });
+    await sendAuditEvent(
+      'AIS_INTERVENTION_TRANSITION_IGNORED',
+      error.transition,
+      JSON.parse(record.body) as TxMAIngressEvent,
+    );
   } else {
     logger.error('Error caught, message will be retried.', { errorMessage: (error as Error).message });
     return record.messageId;
@@ -158,17 +153,19 @@ function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
  * Helper function to check that the account retrieved for the user has not been marked as deleted
  * @param intervention - the intervention name
  * @param userId - the id of the user whose account is been intervened
+ * @param record
  * @param itemFromDB - the data retrieved from the database
  */
-async function validateAccountIsNotDeleted(intervention: EventsEnum, userId: string, itemFromDB?: DynamoDBStateResult) {
+async function validateAccountIsNotDeleted(
+  intervention: EventsEnum,
+  userId: string,
+  record: TxMAIngressEvent,
+  itemFromDB?: DynamoDBStateResult,
+) {
   if (itemFromDB?.isAccountDeleted === true) {
     logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
     logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-    await sendAuditEvent('AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED', userId, {
-      intervention,
-      appliedAt: undefined,
-      reason: 'Target user account is marked as deleted.',
-    });
+    await sendAuditEvent('AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED', intervention, record);
     throw new ValidationError('Account is marked as deleted.');
   }
 }
