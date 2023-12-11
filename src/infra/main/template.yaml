@@ -215,6 +215,8 @@ Resources:
   InterventionsProcessorFunctionPolicy:
     Type: AWS::IAM::Policy
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref InterventionsProcessorFunctionLogGroup
       PolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionPolicy"
       PolicyDocument:
         Version: "2012-10-17"
@@ -265,7 +267,7 @@ Resources:
   InterventionsProcessorFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${AWS::StackName}-InterventionsProcessorFunction"
+      LogGroupName: !Sub "/ais/lambda/${AWS::StackName}-InterventionsProcessorFunction"
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
@@ -315,6 +317,8 @@ Resources:
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref AccountDeletionProcessorFunctionLogGroup
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
       Description: "A lambda function that updates an account status indicating that the account has been deleted"
       CodeUri: ../../../dist/account-deletion-processor-handler
@@ -432,7 +436,7 @@ Resources:
   AccountDeletionProcessorFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${AccountDeletionProcessorFunction}"
+      LogGroupName: !Sub "/ais/lambda/${AccountDeletionProcessorFunction}"
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
@@ -767,6 +771,8 @@ Resources:
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
     Properties:
+      LoggingConfig:
+        LogGroup: !Ref StatusRetrieverFunctionLogGroup
       FunctionName: !Sub '${AWS::StackName}-StatusRetrieverFunction'
       CodeUri: ../../../dist/handlers/status-retriever-handler
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
@@ -782,7 +788,7 @@ Resources:
   StatusRetrieverFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${StatusRetrieverFunction}"
+      LogGroupName: !Sub "/ais/lambda/${StatusRetrieverFunction}"
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
