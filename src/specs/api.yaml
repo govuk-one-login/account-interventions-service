@@ -98,7 +98,7 @@ components:
         description:
           description: The specific intervention currently applied to the account.
           type: string
-          example: AIS_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFIED
+          example: AIS_ACCOUNT_UNSUSPENDED
           enum:
             - AIS_NO_INTERVENTION
             - AIS_ACCOUNT_SUSPENDED
@@ -106,8 +106,6 @@ components:
             - AIS_ACCOUNT_BLOCKED
             - AIS_ACCOUNT_UNBLOCKED
             - AIS_USER_PASSWORD_RESET
-            - AIS_USER_IDENTITY_REVERIFIED
-            - AIS_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFIED
         reprovedIdentityAt:
           description: |
             A timestamp (ms) of when the User performed the reprove identity action to unsuspend their account.
@@ -181,7 +179,8 @@ components:
       title: "Intervention history"
       description: "History of intervention applied to this account"
       type: array
-      example: [{}]
+      items:
+        $ref: "#/components/schemas/HistoryObject"
     InterventionStatusResponse:
       title: "Account Intervention Status Schema"
       description: "The Intervention Status of the User's OneLogin Account"
@@ -199,6 +198,51 @@ components:
           $ref: "#/components/schemas/AuditLevel"
         history:
           $ref: "#/components/schemas/History"
+    HistoryObject:
+      title: "Past intervention object"
+      description: "JSON object representing an intervention previously applied on the account"
+      type: "object"
+      readOnly: true
+      properties:
+        sentAt:
+          type: string
+          example: "2023-10-10T20:22:02.925Z"
+          description: timestamp in ISO String format of when the intervention event was sent by the originating component
+        component:
+          type: string
+          example: "TICF_CRI"
+          description: the name of the component that generated the intervention
+        code:
+          type: string
+          example: "01"
+          description: the numeric code associated with the intervention
+        intervention:
+          type: string
+          example: "FRAUD_SUSPEND_ACCOUNT"
+          description: the name of the intervention corresponding to the code
+        reason:
+          type: string
+          example: "a reason for the intervention"
+          description: the reason field from the original intervention event
+        originatingComponent:
+          type: string
+          example: "CMS"
+          description: the name of the component that originated the intervention event
+        originatorReferenceId:
+          type: string
+          example: "12345"
+          description: the numeric code identifying the case that triggered the intervention
+        requesterId:
+          type: string
+          example: "12345"
+          description: opaque id of the user that requested the intervention (no PII)
+      required:
+        - sentAt
+        - component
+        - code
+        - intervention
+        - reason
+
     Error:
       title: "Error Schema"
       type: "object"
@@ -227,7 +271,7 @@ components:
       in: query
       description: "A flag to enable the recall of the account's previous intervention history."
       required: false
-      example: false
+      example: true
       schema:
         type: boolean
   responses:
