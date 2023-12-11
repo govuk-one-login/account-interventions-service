@@ -22,6 +22,7 @@ export const TxMAIngress = {
             required: ['extensions'],
             properties: {
               extensions: {
+                type: 'object',
                 required: ['levelOfConfidence', 'ciFail', 'hasMitigations'],
                 not: {
                   anyOf: [{ required: ['intervention'] }],
@@ -37,6 +38,7 @@ export const TxMAIngress = {
             required: ['event_timestamp_ms', 'extensions'],
             properties: {
               extensions: {
+                type: 'object',
                 required: ['intervention'],
                 not: {
                   anyOf: [
@@ -47,6 +49,7 @@ export const TxMAIngress = {
                 },
                 properties: {
                   intervention: {
+                    type: 'object',
                     required: ['intervention_code', 'intervention_reason'],
                   },
                 },

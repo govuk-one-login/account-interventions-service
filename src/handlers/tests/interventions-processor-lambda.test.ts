@@ -4,7 +4,7 @@ import logger from '../../commons/logger';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { logAndPublishMetric } from '../../commons/metrics';
 import { DynamoDatabaseService } from '../../services/dynamo-database-service';
-import { validateEvent, validateInterventionEvent } from '../../services/validate-event';
+import * as validationModule from '../../services/validate-event';
 import { AccountStateEngine } from '../../services/account-states/account-state-engine';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
@@ -15,7 +15,6 @@ jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
 jest.mock('@aws-sdk/util-dynamodb');
 jest.mock('../../services/dynamo-database-service');
-jest.mock('../../services/validate-event');
 jest.mock('../../services/send-audit-events');
 
 jest.mock('../../commons/get-current-timestamp', () => ({
@@ -81,8 +80,8 @@ const resetPasswordEventBody = {
 
 const mockRetrieveRecords = DynamoDatabaseService.prototype.getAccountStateInformation as jest.Mock;
 const mockUpdateRecords = DynamoDatabaseService.prototype.updateUserStatus as jest.Mock;
-const eventValidationMock = validateEvent as jest.Mock;
-const interventionEventValidationMock = validateInterventionEvent as jest.Mock;
+const mockValidateEventAgainstSchema = jest.spyOn(validationModule, 'validateEventAgainstSchema').mockReturnValue();
+
 const accountStateEngine = AccountStateEngine.getInstance();
 accountStateEngine.getInterventionEnumFromCode = jest.fn().mockImplementation(() => {
   return EventsEnum.FRAUD_BLOCK_ACCOUNT;
@@ -133,7 +132,6 @@ describe('intervention processor handler', () => {
     });
 
     it('should not retry the record if a StateTransitionError is received', async () => {
-      eventValidationMock.mockReturnValueOnce(undefined);
       mockRetrieveRecords.mockReturnValue({
         blocked: false,
         reproveIdentity: false,
@@ -146,15 +144,16 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried.');
+      expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried.', {
+        errorMessage: 'State transition Error',
+      });
       expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_TRANSITION_IGNORED', 'abc', {
         intervention: EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
         reason: 'State transition Error',
       });
     });
 
-    it('should succeed when an intervention event is received', async () => {
-      eventValidationMock.mockReturnValueOnce(undefined);
+    it('should succeed when a valid intervention event is received', async () => {
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
         newState: {
           blocked: false,
@@ -172,11 +171,12 @@ describe('intervention processor handler', () => {
         appliedAt: 1_234_567_890,
       });
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: "FRAUD_BLOCK_ACCOUNT"});
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
+        eventName: 'FRAUD_BLOCK_ACCOUNT',
+      });
     });
 
     it('should succeed when an intervention event is received for a non existing user', async () => {
-      eventValidationMock.mockReturnValueOnce(undefined);
       mockRetrieveRecords.mockReturnValue(undefined);
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
         newState: {
@@ -195,12 +195,12 @@ describe('intervention processor handler', () => {
         appliedAt: 1_234_567_890,
       });
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: "FRAUD_BLOCK_ACCOUNT"});
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
+        eventName: 'FRAUD_BLOCK_ACCOUNT',
+      });
     });
 
-
-    it('should succeed when an user action event is received', async () => {
-      eventValidationMock.mockReturnValueOnce(undefined);
+    it('should succeed when a valid user action event is received', async () => {
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
         newState: {
           blocked: false,
@@ -220,12 +220,12 @@ describe('intervention processor handler', () => {
       });
 
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: "AUTH_PASSWORD_RESET_SUCCESSFUL"});
-
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
+        eventName: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+      });
     });
 
     it('should not process the event if the user account is marked as deleted', async () => {
-      eventValidationMock.mockReturnValueOnce(undefined);
       mockRetrieveRecords.mockReturnValue({
         blocked: false,
         reproveIdentity: false,
@@ -237,15 +237,18 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-      expect(logger.warn).toHaveBeenLastCalledWith('Sensitive info - user abc account has been deleted.');
+      expect(logger.warn).toHaveBeenCalledTimes(2);
+      expect((logger.warn as jest.Mock).mock.calls).toEqual([
+        ['Sensitive info - user abc account has been deleted.'],
+        ['ValidationError caught, message will not be retried.', { errorMessage: 'Account is marked as deleted.' }],
+      ]);
       expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED', 'abc', {
         intervention: EventsEnum.FRAUD_BLOCK_ACCOUNT,
         reason: 'Target user account is marked as deleted.',
       });
     });
 
-    it('should fail as timestamp is in the future', async () => {
-      eventValidationMock.mockReturnValueOnce(undefined);
+    it('should return message id to be retried if event is in the future', async () => {
       mockRecord.body = JSON.stringify(interventionEventBodyInTheFuture);
       expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
         batchItemFailures: [
@@ -262,16 +265,16 @@ describe('intervention processor handler', () => {
     });
 
     it('should ignore the event if body is invalid', async () => {
-      eventValidationMock.mockImplementationOnce(() => {
+      mockValidateEventAgainstSchema.mockImplementationOnce(() => {
         throw new ValidationError('invalid event');
       });
+
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
     });
 
-    it('should fail if dynamo operation errors', async () => {
-      eventValidationMock.mockReturnValueOnce(void 0);
+    it('should return message id to be retried if dynamo db operation fails', async () => {
       mockRetrieveRecords.mockRejectedValueOnce('Error');
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [
@@ -283,8 +286,6 @@ describe('intervention processor handler', () => {
     });
 
     it('should not process the event and return if the event timestamp predates the latest applied intervention for the user ', async () => {
-      eventValidationMock.mockReturnValueOnce(undefined);
-      interventionEventValidationMock.mockReturnValue(void 0);
       mockRetrieveRecords.mockReturnValue({
         blocked: false,
         reproveIdentity: false,
@@ -305,9 +306,7 @@ describe('intervention processor handler', () => {
       });
     });
 
-    it('should do additional checks if event is from fraud', async () => {
-      eventValidationMock.mockReturnValueOnce(undefined);
-      interventionEventValidationMock.mockReturnValue(void 0);
+    it('should successfully process valid event from fraud', async () => {
       mockRetrieveRecords.mockReturnValue({
         blocked: false,
         reproveIdentity: false,
@@ -320,7 +319,6 @@ describe('intervention processor handler', () => {
         receiptHandle: '',
         body: JSON.stringify({
           timestamp: t0s,
-          event_timestamp_ms: t0ms,
           user: {
             user_id: 'abc',
           },
@@ -350,16 +348,17 @@ describe('intervention processor handler', () => {
     });
 
     it('should not retry if too many items are returned', async () => {
-      eventValidationMock.mockReturnValueOnce(undefined);
       mockRetrieveRecords.mockRejectedValueOnce(new TooManyRecordsError('Too many records'));
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(logger.warn).toHaveBeenCalledWith('TooManyRecordsError caught, message will not be retried.');
+      expect(logger.warn).toHaveBeenCalledWith(
+        'Too many records were returned from the database. Message will not be retried',
+        { errorMessage: 'Too many records' },
+      );
     });
 
-    it('should ignore if level of confidence is not P2', async () => {
-      eventValidationMock.mockReturnValueOnce(void 0);
+    it('should ignore if level of confidence is not P2 for an ID Reset user action event', async () => {
       mockRecord = {
         messageId: '123',
         receiptHandle: '',

@@ -1,5 +1,6 @@
 import { Context, SQSBatchItemFailure, SQSBatchResponse, SQSEvent, SQSRecord } from 'aws-lambda';
 import logger from '../commons/logger';
+import { logAndPublishMetric } from '../commons/metrics';
 import {
   EventsEnum,
   LOGS_PREFIX_SENSITIVE_INFO,
@@ -7,26 +8,33 @@ import {
   noMetadata,
   TICF_ACCOUNT_INTERVENTION,
 } from '../data-types/constants';
-import { logAndPublishMetric } from '../commons/metrics';
-import { validateEvent, validateInterventionEvent } from '../services/validate-event';
-import { AccountStateEngine } from '../services/account-states/account-state-engine';
-import { DynamoDatabaseService } from '../services/dynamo-database-service';
-import { AppConfigService } from '../services/app-config-service';
-import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
-import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
-import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
+import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
+import {
+  validateEventAgainstSchema,
+  validateEventIsNotInFuture,
+  validateEventIsNotStale,
+  validateInterventionEvent,
+  validateLevelOfConfidence,
+} from '../services/validate-event';
+import { AppConfigService } from '../services/app-config-service';
+import { DynamoDatabaseService } from '../services/dynamo-database-service';
+import { AccountStateEngine } from '../services/account-states/account-state-engine';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { sendAuditEvent } from '../services/send-audit-events';
+import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
 import { updateAccountStateCountMetric } from '../commons/update-account-state-metrics';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
 const accountStateEngine = AccountStateEngine.getInstance();
+
 /**
- * A function for receiving and processing an intervention event.
- *
- * @param event - SQS event
- * @param context - the {@link Context} object containing information about the runtime environment of this Lambda function
+ * Main handler method for Intervention Processor Lambda
+ * It iterates over the messages polled from the queue, it processes each record, and returns the list of items that failed processing to be retried
+ * @param event - SQSEvent containing the intervention event
+ * @param context - context object
+ * @returns - Promise of SQS Partial Batch Response
  */
 export const handler = async (event: SQSEvent, context: Context): Promise<SQSBatchResponse> => {
   logger.addContext(context);
@@ -40,9 +48,13 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
   }
 
   const itemFailures: SQSBatchItemFailure[] = [];
-  for (const record of event.Records) {
-    await processSQSRecord(itemFailures, record);
-  }
+  const promiseArray = event.Records.map((record: SQSRecord) => {
+    return processSQSRecord(record).catch(async (error) => {
+      const itemIdentifier = await handleError(error, record);
+      if (itemIdentifier) itemFailures.push({ itemIdentifier });
+    });
+  });
+  await Promise.allSettled(promiseArray);
   logger.debug('returning items that failed processing: ' + JSON.stringify(itemFailures));
   return {
     batchItemFailures: itemFailures,
@@ -50,131 +62,87 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
 };
 
 /**
- * A function to process the SQS record, retrieve the corresponding record from DynamoDB and update the record accordingly.
- *
- * @param itemFailures - the array of items that should be retried
- * @param record - sqs record
+ * Main worker function. It receives an SQS record and processes it according to business logic
+ * It validates the event, it retrieves user data from the database, it applies the intervention,
+ * it updates the user record in the database, it sends a notification upon completion
+ * @param record - SQS Record polled from the queue
  */
-async function processSQSRecord(itemFailures: SQSBatchItemFailure[], record: SQSRecord) {
+async function processSQSRecord(record: SQSRecord) {
   const currentTimestamp = getCurrentTimestamp();
-  try {
-    const recordBody: TxMAIngressEvent = JSON.parse(record.body);
-    validateEvent(recordBody);
-    const intervention = getInterventionName(recordBody);
-    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention received.`, { intervention });
+  const recordBody: TxMAIngressEvent = JSON.parse(record.body);
+  validateEventAgainstSchema(recordBody);
+  const intervention = getInterventionName(recordBody);
+  logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention received.`, { intervention });
+  validateLevelOfConfidence(intervention, recordBody);
+  await validateEventIsNotInFuture(intervention, recordBody);
 
-    if (intervention === EventsEnum.IPV_IDENTITY_ISSUED && recordBody.extensions?.levelOfConfidence !== 'P2') {
-      logger.warn(`Received interventions has low level of confidence: ${recordBody.extensions?.levelOfConfidence}`);
-      logAndPublishMetric(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
-      return;
-    }
+  const userId = recordBody.user.user_id;
+  const eventTimestampInMs = recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000;
 
-    const userId = recordBody.user.user_id;
-    const eventTimestampInMs = recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000;
+  logAndPublishMetric(
+    MetricNames.EVENT_DELIVERY_LATENCY,
+    noMetadata,
+    currentTimestamp.milliseconds - eventTimestampInMs,
+  );
 
-    if (isTimestampInFuture(eventTimestampInMs)) {
-      await sendAuditEvent('AIS_INTERVENTION_IGNORED_IN_FUTURE', userId, {
-        intervention,
-        reason: 'received event is in the future',
-        appliedAt: undefined,
-      });
-      itemFailures.push({
-        itemIdentifier: record.messageId,
-      });
-      return;
-    }
+  const itemFromDB = await service.getAccountStateInformation(userId);
 
-    logAndPublishMetric(
-      MetricNames.EVENT_DELIVERY_LATENCY,
-      noMetadata,
-      currentTimestamp.milliseconds - eventTimestampInMs,
-    );
-    const itemFromDB = await service.getAccountStateInformation(userId);
+  await validateAccountIsNotDeleted(intervention, userId, itemFromDB);
 
-    if (itemFromDB?.isAccountDeleted === true) {
-      logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
-      logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-      await sendAuditEvent('AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED', userId, {
-        intervention,
-        appliedAt: undefined,
-        reason: 'Target user account is marked as deleted.',
-      });
-      return;
-    }
+  await validateEventIsNotStale(intervention, recordBody, itemFromDB);
 
-    if (isEventAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
-      logger.debug('retrieved item from DB ' + JSON.stringify(itemFromDB));
-      const currentAccountState: StateDetails = formCurrentAccountStateObject(itemFromDB);
-      const statusResult = accountStateEngine.applyEventTransition(intervention, currentAccountState);
-      const partialCommandInput = buildPartialUpdateAccountStateCommand(
-        statusResult.newState,
-        intervention,
-        currentTimestamp.milliseconds,
-        recordBody,
-        statusResult.interventionName,
-      );
-
-      logger.debug('processed requested event, sending update request to dynamo db');
-      await service.updateUserStatus(userId, partialCommandInput);
-      updateAccountStateCountMetric(currentAccountState, statusResult.newState);
-      logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: intervention.toString() });
-      await sendAuditEvent('AIS_INTERVENTION_TRANSITION_APPLIED', userId, {
-        intervention,
-        appliedAt: currentTimestamp.milliseconds,
-        reason: undefined,
-      });
-      return;
-    }
-
-    logger.warn('Event received predates last applied event for this user.');
-    logAndPublishMetric(MetricNames.INTERVENTION_EVENT_STALE);
-    await sendAuditEvent('AIS_INTERVENTION_IGNORED_STALE', userId, {
-      intervention,
-      appliedAt: undefined,
-      reason: 'Received intervention predates latest applied intervention',
-    });
-    return;
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      logger.warn('ValidationError caught, message will not be retried.');
-    } else if (error instanceof StateTransitionError) {
-      logger.warn('StateTransitionError caught, message will not be retried.');
-      const userId = (JSON.parse(record.body) as TxMAIngressEvent).user.user_id;
-      await sendAuditEvent('AIS_INTERVENTION_TRANSITION_IGNORED', userId, {
-        intervention: error.transition,
-        appliedAt: undefined,
-        reason: error.message,
-      });
-    } else if (error instanceof TooManyRecordsError) {
-      logger.warn('TooManyRecordsError caught, message will not be retried.');
-    } else {
-      logger.debug(JSON.stringify(error));
-      itemFailures.push({
-        itemIdentifier: record.messageId,
-      });
-    }
-  }
+  const currentAccountState: StateDetails = formCurrentAccountStateObject(itemFromDB);
+  const statusResult = accountStateEngine.applyEventTransition(intervention, currentAccountState);
+  const partialCommandInput = buildPartialUpdateAccountStateCommand(
+    statusResult.newState,
+    intervention,
+    currentTimestamp.milliseconds,
+    recordBody,
+    statusResult.interventionName,
+  );
+  logger.debug('processed requested event, sending update request to dynamo db');
+  await service.updateUserStatus(userId, partialCommandInput);
+  updateAccountStateCountMetric(currentAccountState, statusResult.newState);
+  logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: intervention.toString() });
+  await sendAuditEvent('AIS_INTERVENTION_TRANSITION_APPLIED', userId, {
+    intervention,
+    appliedAt: currentTimestamp.milliseconds,
+    reason: undefined,
+  });
 }
 
 /**
- * A function to check if timestamp of the event is in the future.
- *
- * @param recordTimeStampInMs - timestamp in ms from record
+ * Function to handle an error returned by the recording processing function
+ * It logs appropriate messages and returns a message id if the Error type is not of a non-retryable type
+ * @param error - error throw by the processing function
+ * @param record - the record inside the message polled
+ * @returns messageId - if the message should be retried
  */
-function isTimestampInFuture(recordTimeStampInMs: number): boolean {
-  const now = getCurrentTimestamp().milliseconds;
-  if (now < recordTimeStampInMs) {
-    logger.debug(`Timestamp is in the future (sec): ${recordTimeStampInMs}.`);
-    logAndPublishMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
-    return true;
+async function handleError(error: unknown, record: SQSRecord) {
+  if (error instanceof ValidationError)
+    logger.warn('ValidationError caught, message will not be retried.', { errorMessage: error.message });
+  else if (error instanceof TooManyRecordsError)
+    logger.warn('Too many records were returned from the database. Message will not be retried', {
+      errorMessage: error.message,
+    });
+  else if (error instanceof StateTransitionError) {
+    logger.warn('StateTransitionError caught, message will not be retried.', { errorMessage: error.message });
+    const userId = (JSON.parse(record.body) as TxMAIngressEvent).user.user_id;
+    await sendAuditEvent('AIS_INTERVENTION_TRANSITION_IGNORED', userId, {
+      intervention: error.transition,
+      appliedAt: undefined,
+      reason: error.message,
+    });
+  } else {
+    logger.error('Error caught, message will be retried.', { errorMessage: (error as Error).message });
+    return record.messageId;
   }
-  return false;
 }
 
 /**
- * A function to compute the event name,
- *
- * @param recordBody - the parsed body of the sqs record
+ * Helper function to obtain the intervention name based on the information inside the intervention event
+ * @param recordBody - the record body from the SQS message
+ * @returns - the Enum representation of the intervention
  */
 function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
@@ -187,17 +155,29 @@ function getInterventionName(recordBody: TxMAIngressEvent): EventsEnum {
 }
 
 /**
- * Function to ascertain that the event timestamp is after the latest intervention applied on the account.
- * @param eventTimeStamp - Event timestamp received from the SQS Record.
- * @param sentAt - Sent At field recieved from the DynamoDB table.
- * @param appliedAt - Applied At field recieved from the DynamoDB table.
- * @returns - Boolean logic, true if the time stamp is greater than the latest intervention. False, if it is not.
+ * Helper function to check that the account retrieved for the user has not been marked as deleted
+ * @param intervention - the intervention name
+ * @param userId - the id of the user whose account is been intervened
+ * @param itemFromDB - the data retrieved from the database
  */
-function isEventAfterLastEvent(eventTimeStamp: number, sentAt?: number, appliedAt?: number) {
-  const latestIntervention = sentAt ?? appliedAt ?? 0;
-  return eventTimeStamp > latestIntervention;
+async function validateAccountIsNotDeleted(intervention: EventsEnum, userId: string, itemFromDB?: DynamoDBStateResult) {
+  if (itemFromDB?.isAccountDeleted === true) {
+    logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
+    logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
+    await sendAuditEvent('AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED', userId, {
+      intervention,
+      appliedAt: undefined,
+      reason: 'Target user account is marked as deleted.',
+    });
+    throw new ValidationError('Account is marked as deleted.');
+  }
 }
 
+/**
+ * Helper function to construct an account state object based on the data retrieved from the database
+ * @param itemFromDB - query result from database
+ * @returns - Object representing the account state
+ */
 function formCurrentAccountStateObject(itemFromDB?: DynamoDBStateResult) {
   return {
     blocked: itemFromDB ? itemFromDB.blocked : false,

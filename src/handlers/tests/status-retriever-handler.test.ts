@@ -251,7 +251,7 @@ describe('status-retriever-handler', () => {
     const invalidTestEvent = { ...testEvent, pathParameters: invalidPathParameters };
     const response = await handle(invalidTestEvent, mockConfig);
     expect(logger.warn).toBeCalledTimes(1);
-    expect(logger.warn).toBeCalledWith('Attribute invalid: user_id is empty.')
+    expect(logger.warn).toBeCalledWith('Attribute invalid: user_id is empty.');
     expect(response.statusCode).toBe(200);
     expect(JSON.parse(response.body)).toEqual({ intervention: accountNotFoundDefaultObject });
   });
@@ -405,15 +405,15 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
       history: [
         {
-          code: "01",
-          component: "TICF_CRI",
-          intervention: "FRAUD_SUSPEND_ACCOUNT",
-          originatingComponent: "originating_component_id",
-          originatorReferenceId: "intervention_predecessor_id",
-          reason: "reason",
-          requesterId: "requester_id",
-          sentAt: "1970-01-01T00:02:03.456Z",
-        }
+          code: '01',
+          component: 'TICF_CRI',
+          intervention: 'FRAUD_SUSPEND_ACCOUNT',
+          originatingComponent: 'originating_component_id',
+          originatorReferenceId: 'intervention_predecessor_id',
+          reason: 'reason',
+          requesterId: 'requester_id',
+          sentAt: '1970-01-01T00:02:03.456Z',
+        },
       ],
     };
 
@@ -445,7 +445,7 @@ describe('status-retriever-handler', () => {
         '123456|TICF_CRI|01|reason|originating_component_id|intervention_predecessor_id|requester_id',
         'something|somethingElse',
         '7895646|TICF_CRI|02|reason|originating_component_id|intervention_predecessor_id|requester_id',
-        'anotherInvalidString'
+        'anotherInvalidString',
       ],
     };
 
@@ -465,29 +465,29 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
       history: [
         {
-          code: "01",
-          component: "TICF_CRI",
-          intervention: "FRAUD_SUSPEND_ACCOUNT",
-          originatingComponent: "originating_component_id",
-          originatorReferenceId: "intervention_predecessor_id",
-          reason: "reason",
-          requesterId: "requester_id",
-          sentAt: "1970-01-01T00:02:03.456Z",
+          code: '01',
+          component: 'TICF_CRI',
+          intervention: 'FRAUD_SUSPEND_ACCOUNT',
+          originatingComponent: 'originating_component_id',
+          originatorReferenceId: 'intervention_predecessor_id',
+          reason: 'reason',
+          requesterId: 'requester_id',
+          sentAt: '1970-01-01T00:02:03.456Z',
         },
         {
-          code: "02",
-          component: "TICF_CRI",
-          intervention: "FRAUD_UNSUSPEND_ACCOUNT",
-          originatingComponent: "originating_component_id",
-          originatorReferenceId: "intervention_predecessor_id",
-          reason: "reason",
-          requesterId: "requester_id",
-          sentAt: "1970-01-01T02:11:35.646Z"
-        }
+          code: '02',
+          component: 'TICF_CRI',
+          intervention: 'FRAUD_UNSUSPEND_ACCOUNT',
+          originatingComponent: 'originating_component_id',
+          originatorReferenceId: 'intervention_predecessor_id',
+          reason: 'reason',
+          requesterId: 'requester_id',
+          sentAt: '1970-01-01T02:11:35.646Z',
+        },
       ],
     };
 
-    const error = new Error('History string does not contain the right amount of components.')
+    const error = new Error('History string does not contain the right amount of components.');
 
     const queryParameters: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
     const addedQueryParameterTestEvent = { ...testEvent, queryStringParameters: queryParameters };

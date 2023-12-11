@@ -13,11 +13,11 @@ import logger from '../../commons/logger';
 import { TooManyRecordsError } from '../../data-types/errors';
 import { logAndPublishMetric } from '../../commons/metrics';
 import { MetricNames } from '../../data-types/constants';
-import {updateAccountStateCountMetricAfterDeletion} from "../../commons/update-account-state-metrics";
+import { updateAccountStateCountMetricAfterDeletion } from '../../commons/update-account-state-metrics';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
-jest.mock('../../commons/update-account-state-metrics')
+jest.mock('../../commons/update-account-state-metrics');
 jest.mock('@smithy/node-http-handler');
 
 const ddbMock = mockClient(DynamoDBClient);
@@ -113,7 +113,7 @@ describe('Dynamo DB Service', () => {
     queryCommandMock.resolvesOnce({ Items: items });
     await new DynamoDatabaseService('abc').getFullAccountInformation('abc');
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, QueryCommandInput);
-  })
+  });
 
   it('should return expected response if update was successful.', async () => {
     queryCommandMock.resolvesOnce({ Items: items });
@@ -150,21 +150,22 @@ describe('Dynamo DB Service', () => {
 
   it('should update the isAccountDeleted status of the userId in DynamoDB and log info.', async () => {
     updateCommandMock.resolves({
-      $metadata : { httpStatusCode: 200 },
-      Attributes : {
-        "resetPassword": {
-          "BOOL": true
+      $metadata: { httpStatusCode: 200 },
+      Attributes: {
+        resetPassword: {
+          BOOL: true,
         },
-        "suspended": {
-          "BOOL": true
+        suspended: {
+          BOOL: true,
         },
-        "blocked": {
-          "BOOL": false
+        blocked: {
+          BOOL: false,
         },
-        "reproveIdentity": {
-          "BOOL": false
+        reproveIdentity: {
+          BOOL: false,
         },
-      }});
+      },
+    });
     const commandInput: UpdateItemCommandInput = {
       TableName: 'table_name',
       Key: { pk: { S: 'hello' } },
@@ -179,35 +180,42 @@ describe('Dynamo DB Service', () => {
         ':false': { BOOL: false },
       },
       ReturnValues: 'ALL_NEW',
-      ConditionExpression: 'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
+      ConditionExpression:
+        'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
     };
     const dynamoDBService = new DynamoDatabaseService('table_name');
     await dynamoDBService.updateDeleteStatus('hello');
     expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, commandInput);
-    expect(updateAccountStateCountMetricAfterDeletion).toHaveBeenCalledWith(false, true)
+    expect(updateAccountStateCountMetricAfterDeletion).toHaveBeenCalledWith(false, true);
   });
 
   it('throws an error when it fails to update the userId status.', async () => {
     const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
-    const err = new Error("InternalServerError");
-    mockedUpdateCommand.rejectsOnce(err);
+    const error = new Error('InternalServerError');
+    mockedUpdateCommand.rejectsOnce(error);
     const loggerErrorSpy = jest.spyOn(logger, 'error');
-    const dynamoDBService = new DynamoDatabaseService('table_name')
+    const dynamoDBService = new DynamoDatabaseService('table_name');
     await expect(async () => await dynamoDBService.updateDeleteStatus('hello')).rejects.toThrow(
       new Error('Error was not a Conditional Check Failed Exception.'),
     );
-    expect(loggerErrorSpy).toHaveBeenCalledWith("Sensitive info - Error updating Dynamo DB.", { error: err, userId: 'hello'});
+    expect(loggerErrorSpy).toHaveBeenCalledWith('Sensitive info - Error updating Dynamo DB.', {
+      error: error,
+      userId: 'hello',
+    });
     expect(logAndPublishMetric).toHaveBeenCalledWith('DB_UPDATE_ERROR');
   });
 
   it('does not throw an error and logs an info when there is a Conditional Check Exception.', async () => {
     const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
-    const err = new Error();
-    err.name = 'ConditionalCheckFailedException';
-    mockedUpdateCommand.rejectsOnce(err);
+    const error = new Error();
+    error.name = 'ConditionalCheckFailedException';
+    mockedUpdateCommand.rejectsOnce(error);
     const loggerInfoSpy = jest.spyOn(logger, 'info');
-    const dynamoDBService = new DynamoDatabaseService('table_name')
+    const dynamoDBService = new DynamoDatabaseService('table_name');
     await dynamoDBService.updateDeleteStatus('hello');
-    expect(loggerInfoSpy).toHaveBeenCalledWith("Sensitive info - No intervention exists for this account.",  {"error": err, "userId": "hello"});
+    expect(loggerInfoSpy).toHaveBeenCalledWith('Sensitive info - No intervention exists for this account.', {
+      error: error,
+      userId: 'hello',
+    });
   });
 });

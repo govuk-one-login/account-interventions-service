@@ -1,10 +1,5 @@
-import {StateDetails, TxMAIngressEvent} from '../../data-types/interfaces';
-import {
-  AISInterventionTypes,
-  EventsEnum,
-  MetricNames,
-  TICF_ACCOUNT_INTERVENTION
-} from '../../data-types/constants';
+import { StateDetails, TxMAIngressEvent } from '../../data-types/interfaces';
+import { AISInterventionTypes, EventsEnum, MetricNames, TICF_ACCOUNT_INTERVENTION } from '../../data-types/constants';
 import { buildPartialUpdateAccountStateCommand } from '../build-partial-update-state-command';
 import { logAndPublishMetric } from '../metrics';
 
@@ -21,7 +16,7 @@ jest.mock('../../commons/get-current-timestamp', () => ({
 }));
 const interventionEventBody: TxMAIngressEvent = {
   timestamp: 1000,
-  event_timestamp_ms: 123456,
+  event_timestamp_ms: 123_456,
   user: {
     user_id: 'abc',
   },
@@ -31,16 +26,16 @@ const interventionEventBody: TxMAIngressEvent = {
     intervention: {
       intervention_code: '01',
       intervention_reason: 'reason',
-      requester_id: "requester_id",
-      originating_component_id: "originating_component_id",
-      originator_reference_id: "originator_reference_id",
+      requester_id: 'requester_id',
+      originating_component_id: 'originating_component_id',
+      originator_reference_id: 'originator_reference_id',
     },
   },
 };
 const resetPasswordEventBody = {
   event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
-  timestamp: 10000,
-  event_timestamp_ms: 10000000,
+  timestamp: 10_000,
+  event_timestamp_ms: 10_000_000,
   client_id: 'UNKNOWN',
   component_id: 'UNKNOWN',
   user: {
@@ -145,7 +140,7 @@ describe('build-partial-update-state-command', () => {
         ':sa': { N: '123456' },
         ':aa': { N: '2222' },
         ':empty_list': { L: [] },
-        ':h': { L: [{S : "123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id"}] },
+        ':h': { L: [{ S: '123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' }] },
         ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET' },
       },
       UpdateExpression:

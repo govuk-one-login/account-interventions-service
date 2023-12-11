@@ -15,7 +15,7 @@ describe('metrics logging', () => {
   });
 
   it('should log and publish metric with dimensions', () => {
-    logAndPublishMetric('testMetricName', undefined, 1, { eventName: "interventionEventName"});
+    logAndPublishMetric('testMetricName', undefined, 1, { eventName: 'interventionEventName' });
     expect(logger.info).toHaveBeenCalledWith('logging metric', {
       metric: {
         _aws: {
@@ -30,7 +30,7 @@ describe('metrics logging', () => {
         },
         service: 'test',
         testMetricName: 1,
-        eventName: 'interventionEventName'
+        eventName: 'interventionEventName',
       },
     });
   });
