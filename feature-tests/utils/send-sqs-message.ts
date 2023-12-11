@@ -1,5 +1,5 @@
 import { SQS } from '@aws-sdk/client-sqs';
-import { aisEvents } from './ais-events-array';
+import { aisEvents } from './ais-events';
 import EndPoints from '../apiEndpoints/endpoints';
 
 export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeof aisEvents) {
