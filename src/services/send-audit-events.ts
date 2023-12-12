@@ -64,7 +64,7 @@ function buildExtensions(event: TxMAIngressEvent, eventEnum: EventsEnum, applied
     eventType: userLedActionList.includes(eventEnum) ? 'USER_LED_ACTION' : 'TICF_ACCOUNT_INTERVENTION',
     event: eventEnum,
     intervention_code: event.extensions?.intervention?.intervention_code,
-    appliedAt,
     reason: event.extensions?.intervention?.intervention_reason,
+    appliedAt,
   };
 }

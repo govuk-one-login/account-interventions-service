@@ -168,11 +168,7 @@ describe('event-validation', () => {
       async () => await validateEventIsNotStale(EventsEnum.FRAUD_SUSPEND_ACCOUNT, staleEvent, dynamoDBResult),
     ).rejects.toThrow(new ValidationError('Event received predates last applied event for this user.'));
     expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
-    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_INTERVENTION_IGNORED_STALE', 'urn:fdc:gov.uk:2022:USER_ONE', {
-      appliedAt: undefined,
-      intervention: 'FRAUD_SUSPEND_ACCOUNT',
-      reason: 'Received intervention predates latest applied intervention',
-    });
+    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent);
   });
 
   it('should not throw if event is not stale', async () => {
@@ -219,11 +215,11 @@ describe('event-validation', () => {
       await validateEventIsNotInFuture(EventsEnum.FRAUD_SUSPEND_ACCOUNT, eventInTheFuture);
     }).rejects.toThrow(new Error('Event is in the future. It will be retried'));
     expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
-    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_INTERVENTION_IGNORED_IN_FUTURE', 'urn:fdc:gov.uk:2022:USER_ONE', {
-      appliedAt: undefined,
-      intervention: 'FRAUD_SUSPEND_ACCOUNT',
-      reason: 'received event is in the future',
-    });
+    expect(sendAuditEvent).toHaveBeenCalledWith(
+      'AIS_EVENT_IGNORED_IN_FUTURE',
+      'FRAUD_SUSPEND_ACCOUNT',
+      eventInTheFuture,
+    );
   });
 
   it('should not throw an error if the event is not in the future', async () => {

@@ -64,7 +64,7 @@ export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: T
   if (now < eventTimestampInMs) {
     logger.debug(`Timestamp is in the future (sec): ${eventTimestampInMs}.`);
     logAndPublishMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
-    await sendAuditEvent('AIS_INTERVENTION_IGNORED_IN_FUTURE', eventEnum, event);
+    await sendAuditEvent('AIS_EVENT_IGNORED_IN_FUTURE', eventEnum, event);
     throw new Error('Event is in the future. It will be retried');
   }
 }
@@ -85,7 +85,7 @@ export async function validateEventIsNotStale(
   if (!isEventAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
     logger.warn('Event received predates last applied event for this user.');
     logAndPublishMetric(MetricNames.INTERVENTION_EVENT_STALE);
-    await sendAuditEvent('AIS_INTERVENTION_IGNORED_STALE', intervention, event);
+    await sendAuditEvent('AIS_EVENT_IGNORED_STALE', intervention, event);
     throw new ValidationError('Event received predates last applied event for this user.');
   }
 }

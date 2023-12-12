@@ -10,7 +10,7 @@ import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
 import { EventsEnum, MetricNames, TICF_ACCOUNT_INTERVENTION } from '../../data-types/constants';
 import { sendAuditEvent } from '../../services/send-audit-events';
-import {TxMAIngressEvent} from "../../data-types/interfaces";
+import { TxMAIngressEvent } from '../../data-types/interfaces';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -33,7 +33,7 @@ const t0ms = now.milliseconds;
 const t0s = now.seconds;
 
 const interventionEventBody: TxMAIngressEvent = {
-  component_id: "",
+  component_id: '',
   timestamp: t0s - 5,
   event_timestamp_ms: t0ms - 5000,
   user: {
@@ -45,11 +45,11 @@ const interventionEventBody: TxMAIngressEvent = {
       intervention_code: '01',
       intervention_reason: 'reason',
     },
-  }
+  },
 };
 
 const interventionEventBodyInTheFuture = {
-  component_id: "",
+  component_id: '',
   timestamp: getCurrentTimestamp().seconds + 5,
   event_timestamp_ms: getCurrentTimestamp().milliseconds + 5000,
   user: {
@@ -150,7 +150,11 @@ describe('intervention processor handler', () => {
       expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried.', {
         errorMessage: 'State transition Error',
       });
-      expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_TRANSITION_IGNORED', EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, interventionEventBody );
+      expect(sendAuditEvent).toHaveBeenLastCalledWith(
+        'AIS_EVENT_TRANSITION_IGNORED',
+        EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
+        interventionEventBody,
+      );
     });
 
     it('should succeed when a valid intervention event is received', async () => {
@@ -166,7 +170,12 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_TRANSITION_APPLIED', EventsEnum.FRAUD_BLOCK_ACCOUNT, interventionEventBody, 1234567890);
+      expect(sendAuditEvent).toHaveBeenLastCalledWith(
+        'AIS_EVENT_TRANSITION_APPLIED',
+        EventsEnum.FRAUD_BLOCK_ACCOUNT,
+        interventionEventBody,
+        1_234_567_890,
+      );
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
         eventName: 'FRAUD_BLOCK_ACCOUNT',
@@ -174,7 +183,7 @@ describe('intervention processor handler', () => {
     });
 
     it('should succeed when an intervention event is received for a non existing user', async () => {
-      mockRetrieveRecords.mockReturnValue(undefined);
+      mockRetrieveRecords.mockReturnValue();
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
         newState: {
           blocked: false,
@@ -187,7 +196,12 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_TRANSITION_APPLIED', EventsEnum.FRAUD_BLOCK_ACCOUNT, interventionEventBody, 1234567890);
+      expect(sendAuditEvent).toHaveBeenLastCalledWith(
+        'AIS_EVENT_TRANSITION_APPLIED',
+        EventsEnum.FRAUD_BLOCK_ACCOUNT,
+        interventionEventBody,
+        1_234_567_890,
+      );
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
         eventName: 'FRAUD_BLOCK_ACCOUNT',
@@ -208,7 +222,12 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_TRANSITION_APPLIED', EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, resetPasswordEventBody, 1234567890);
+      expect(sendAuditEvent).toHaveBeenLastCalledWith(
+        'AIS_EVENT_TRANSITION_APPLIED',
+        EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+        resetPasswordEventBody,
+        1_234_567_890,
+      );
 
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
@@ -233,8 +252,11 @@ describe('intervention processor handler', () => {
         ['Sensitive info - user abc account has been deleted.'],
         ['ValidationError caught, message will not be retried.', { errorMessage: 'Account is marked as deleted.' }],
       ]);
-      expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED', EventsEnum.FRAUD_BLOCK_ACCOUNT, interventionEventBody);
-
+      expect(sendAuditEvent).toHaveBeenLastCalledWith(
+        'AIS_EVENT_IGNORED_ACCOUNT_DELETED',
+        EventsEnum.FRAUD_BLOCK_ACCOUNT,
+        interventionEventBody,
+      );
     });
 
     it('should return message id to be retried if event is in the future', async () => {
@@ -247,7 +269,11 @@ describe('intervention processor handler', () => {
         ],
       });
       expect(logAndPublishMetric).toHaveBeenCalledWith('INTERVENTION_IGNORED_IN_FUTURE');
-      expect(sendAuditEvent).toHaveBeenLastCalledWith('AIS_INTERVENTION_IGNORED_IN_FUTURE', EventsEnum.FRAUD_BLOCK_ACCOUNT, interventionEventBodyInTheFuture);
+      expect(sendAuditEvent).toHaveBeenLastCalledWith(
+        'AIS_EVENT_IGNORED_IN_FUTURE',
+        EventsEnum.FRAUD_BLOCK_ACCOUNT,
+        interventionEventBodyInTheFuture,
+      );
     });
 
     it('should ignore the event if body is invalid', async () => {
@@ -286,7 +312,11 @@ describe('intervention processor handler', () => {
       });
       expect(logger.warn).toHaveBeenCalledWith('Event received predates last applied event for this user.');
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
-      expect(sendAuditEvent).toHaveBeenCalledWith('AIS_INTERVENTION_IGNORED_STALE', EventsEnum.FRAUD_BLOCK_ACCOUNT, interventionEventBody);
+      expect(sendAuditEvent).toHaveBeenCalledWith(
+        'AIS_EVENT_IGNORED_STALE',
+        EventsEnum.FRAUD_BLOCK_ACCOUNT,
+        interventionEventBody,
+      );
     });
 
     it('should successfully process valid event from fraud', async () => {
