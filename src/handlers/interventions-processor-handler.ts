@@ -149,7 +149,7 @@ function getEventName(recordBody: TxMAIngressEvent): EventsEnum {
  * Helper function to check that the account retrieved for the user has not been marked as deleted
  * @param intervention - the intervention name
  * @param userId - the id of the user whose account is been intervened
- * @param record
+ * @param record - the ingress event from TxMA
  * @param itemFromDB - the data retrieved from the database
  */
 async function validateAccountIsNotDeleted(

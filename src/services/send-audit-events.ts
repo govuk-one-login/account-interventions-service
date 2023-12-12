@@ -59,6 +59,13 @@ export async function sendAuditEvent(
   }
 }
 
+/**
+ * Helper function to build extension object based on the type of event
+ * @param event - Original event received from TxMA
+ * @param eventEnum - Event name as an EventEnum
+ * @param appliedAt - optional timestamp of when then event transition was applied
+ * @returns - TxMAEgressExtensions object
+ */
 function buildExtensions(event: TxMAIngressEvent, eventEnum: EventsEnum, appliedAt?: number): TxMAEgressExtensions {
   return {
     eventType: userLedActionList.includes(eventEnum) ? 'USER_LED_ACTION' : 'TICF_ACCOUNT_INTERVENTION',
