@@ -1149,29 +1149,29 @@ Resources:
             - !FindInMap [ EnvConfig, !Ref Environment, AuthenticationVPCID ]
             - !FindInMap [ EnvConfig, !Ref Environment, OneLoginHomeVPCID ]
             - !FindInMap [ EnvConfig, !Ref Environment, OrchestrationVPCID ]
-      # AccessLogSetting:
-      #   Format: >-
-      #     {
-      #     "requestId": "$context.requestId",
-      #     "requestTime": "$context.requestTime",
-      #     "requestTimeEpoch": "$context.requestTimeEpoch",
-      #     "httpMethod": "$context.httpMethod",
-      #     "domainName": "$context.domainName",
-      #     "path": "$context.path",
-      #     "routeKey": "$context.routeKey",
-      #     "protocol": "$context.protocol",
-      #     "status": "$context.status",
-      #     "responseLength": "$context.responseLength",
-      #     "responseLatency": "$context.responseLatency",
-      #     "authorizerLatency": "$context.authorizer.latency",
-      #     "integrationStatus": "$context.integrationStatus",
-      #     "integrationLatency": "$context.integrationLatency",
-      #     "integrationErrorMessage": "$context.integrationErrorMessage",
-      #     "errorMessage": "$context.error.message",
-      #     "errorResponseType": "$context.error.responseType",
-      #     "validationErrorString": "$context.error.validationErrorString",
-      #     }
-      #   DestinationArn: !GetAtt PrivateAPIGatewayAccessLogGroup.Arn
+      AccessLogSetting:
+        Format: >-
+          {
+          "requestId": "$context.requestId",
+          "requestTime": "$context.requestTime",
+          "requestTimeEpoch": "$context.requestTimeEpoch",
+          "httpMethod": "$context.httpMethod",
+          "domainName": "$context.domainName",
+          "path": "$context.path",
+          "routeKey": "$context.routeKey",
+          "protocol": "$context.protocol",
+          "status": "$context.status",
+          "responseLength": "$context.responseLength",
+          "responseLatency": "$context.responseLatency",
+          "authorizerLatency": "$context.authorizer.latency",
+          "integrationStatus": "$context.integrationStatus",
+          "integrationLatency": "$context.integrationLatency",
+          "integrationErrorMessage": "$context.integrationErrorMessage",
+          "errorMessage": "$context.error.message",
+          "errorResponseType": "$context.error.responseType",
+          "validationErrorString": "$context.error.validationErrorString",
+          }
+        DestinationArn: !GetAtt PrivateAPIGatewayAccessLogGroup.Arn
       CacheClusterEnabled: false
       TracingEnabled: true
       EndpointConfiguration:
@@ -1198,27 +1198,49 @@ Resources:
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
 
-  # PrivateAPIGatewayAccessLogGroup:
-  #   Type: AWS::Logs::LogGroup
-  #   Properties:
-  #     LogGroupName: !Sub "/aws/apigateway/${PrivateRestApi}/${ApiStageName}"
-  #     RetentionInDays: 30
-  #     KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
-  #     Tags:
-  #       - Key: Product
-  #         Value: !Ref ProductTagValue
-  #       - Key: System
-  #         Value: !Ref SystemTagValue
-  #       - Key: Environment
-  #         Value: !Ref Environment
-  #       - Key: Name
-  #         Value: PrivateApiGatewayAccessLogGroup
-  #       - Key: Owner
-  #         Value: !Ref OwnerTagValue
-  #       - Key: Source
-  #         Value: !Ref SourceTagValue
-  #       - Key: Name
-  #         Value: !Sub "/aws/apigateway/${PrivateRestApi}/${ApiStageName}"
+  PrivateAPIGatewayAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/apigateway/${PrivateRestApi}/${ApiStageName}"
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Name
+          Value: PrivateApiGatewayAccessLogGroup
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "/aws/apigateway/${PrivateRestApi}/${ApiStageName}"
+
+  PrivateAPIAccessLogGroupNameSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: The ARN of the PrivateAPIAccessLogGroup
+      Name: !Sub /${AWS::StackName}/PrivateRestAPI/Access/LogGroup/Name
+      Type: String
+      Value: !Sub /aws/apigateway/${PrivateRestApi}/${ApiStageName}
+      Tags:
+        Environment: !Ref Environment
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
+  PrivateAPIGatewayLogsSubscriptionFilterCSLS:
+    Condition: IsProdOrInt
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn: !Ref CSLSSubscriptionEndpointArn
+      LogGroupName: !Ref PrivateAPIGatewayAccessLogGroup
+      FilterPattern: "{$.message != \"Sensitive info*\"}"
 
   PrivateGatewayStatusRetrieverFunctionPermission:
     Type: AWS::Lambda::Permission
