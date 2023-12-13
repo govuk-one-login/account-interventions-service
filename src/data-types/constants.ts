@@ -57,6 +57,11 @@ export enum AISInterventionTypes {
   AIS_FORCED_USER_IDENTITY_VERIFY = 'AIS_FORCED_USER_IDENTITY_VERIFY',
   AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY = 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY', //pragma: allowlist secret
 }
+
+export const userLedActionList: EventsEnum[] = [
+  EventsEnum.IPV_IDENTITY_ISSUED,
+  EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+];
 export const TICF_ACCOUNT_INTERVENTION = 'TICF_ACCOUNT_INTERVENTION';
 export const COMPONENT_ID = 'Account Interventions Services';
 

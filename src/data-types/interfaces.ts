@@ -40,12 +40,13 @@ export interface CurrentTimeDescriptor {
 }
 
 export type TxMAEgressEventName =
-  | 'AIS_INTERVENTION_TRANSITION_APPLIED'
-  | 'AIS_INTERVENTION_TRANSITION_IGNORED'
-  | 'AIS_INTERVENTION_IGNORED_STALE'
-  | 'AIS_INTERVENTION_IGNORED_IN_FUTURE'
-  | 'AIS_INTERVENTION_IGNORED_ACCOUNT_DELETED';
+  | 'AIS_EVENT_TRANSITION_APPLIED'
+  | 'AIS_EVENT_TRANSITION_IGNORED'
+  | 'AIS_EVENT_IGNORED_STALE'
+  | 'AIS_EVENT_IGNORED_IN_FUTURE'
+  | 'AIS_EVENT_IGNORED_ACCOUNT_DELETED';
 
+export type TxMAEgressEventType = 'TICF_ACCOUNT_INTERVENTION' | 'USER_LED_ACTION';
 export interface TxMAEgressEvent {
   event_name: TxMAEgressEventName;
   timestamp: number;
@@ -57,7 +58,9 @@ export interface TxMAEgressEvent {
 }
 
 export interface TxMAEgressExtensions {
-  intervention: EventsEnum;
+  eventType: TxMAEgressEventType;
+  event: EventsEnum;
+  intervention_code: string | undefined;
   appliedAt: number | undefined;
   reason: string | undefined;
 }
