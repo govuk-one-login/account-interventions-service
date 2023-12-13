@@ -982,6 +982,60 @@ Resources:
       Handler: status-retriever-handler.handle
       Role: !GetAtt StatusRetrieverFunctionRole.Arn
 
+  StatusRetrieverFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:  !Sub '${AWS::StackName}-StatusRetrieverFunctionRole'
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  StatusRetrieverFunctionPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-StatusRetrieverFunctionPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource:
+              - !GetAtt StatusRetrieverFunctionLogGroup.Arn
+          - Effect: Allow
+            Action:
+              - "dynamodb:Query"
+            Resource:
+              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
+          - Effect: Allow
+            Action:
+              - "kms:decrypt"
+            Resource:
+              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableEncryptionKeyArn"
+      Roles:
+        - !Ref StatusRetrieverFunctionRole
+
   StatusRetrieverFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -1009,6 +1063,7 @@ Resources:
       LogGroupName: !Ref StatusRetrieverFunctionLogGroup
       FilterPattern: "{$.message != \"Sensitive info*\"}"
 
+  ### Invoke API Gateway ###
   InvokePrivateAPIGatewayFunction:
     Condition: IsInternal
     Type: AWS::Serverless::Function
@@ -1075,22 +1130,28 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-  StatusRetrieverFunctionRole:
-    Type: AWS::IAM::Role
+  InvokePrivateAPIGatewayFunctionPolicy:
+    Type: AWS::IAM::Policy
     Properties:
-      RoleName:  !Sub '${AWS::StackName}-StatusRetrieverFunctionRole'
-      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
-      AssumeRolePolicyDocument:
+      PolicyName: !Sub "${AWS::StackName}-InvokePrivateAPIGatewayFunctionPolicy"
+      PolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
             Action:
-              - "sts:AssumeRole"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource:
+              - !GetAtt InvokePrivateAPIGatewayFunctionLogGroup.Arn
+      Roles:
+        - !Ref InvokePrivateAPIGatewayFunctionRole
+
+  InvokePrivateAPIGatewayFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${InvokePrivateAPIGatewayFunction}"
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -1102,32 +1163,16 @@ Resources:
           Value: !Ref OwnerTagValue
         - Key: Source
           Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "/aws/lambda/${InvokePrivateAPIGatewayFunction}"
 
-  StatusRetrieverFunctionPolicy:
-    Type: AWS::IAM::Policy
+  InvokePrivateAPIGatewayFunctionLogsSubscriptionFilterCSLS:
+    Condition: IsProdOrInt
+    Type: AWS::Logs::SubscriptionFilter
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-StatusRetrieverFunctionPolicy"
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "logs:CreateLogStream"
-              - "logs:PutLogEvents"
-            Resource:
-              - !GetAtt StatusRetrieverFunctionLogGroup.Arn
-          - Effect: Allow
-            Action:
-              - "dynamodb:Query"
-            Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
-          - Effect: Allow
-            Action:
-              - "kms:decrypt"
-            Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableEncryptionKeyArn"
-      Roles:
-        - !Ref StatusRetrieverFunctionRole
+      DestinationArn: !Ref CSLSSubscriptionEndpointArn
+      LogGroupName: !Ref InvokePrivateAPIGatewayFunctionLogGroup
+      FilterPattern: "{$.message != \"Sensitive info*\"}"
 
   # Private API Gateway resources
   PrivateRestApi:
@@ -1240,7 +1285,7 @@ Resources:
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
       LogGroupName: !Ref PrivateAPIGatewayAccessLogGroup
-      FilterPattern: "{$.message != \"Sensitive info*\"}"
+      FilterPattern: ""
 
   PrivateGatewayStatusRetrieverFunctionPermission:
     Type: AWS::Lambda::Permission
