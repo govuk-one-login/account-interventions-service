@@ -1267,20 +1267,6 @@ Resources:
         - Key: Name
           Value: !Sub "/aws/apigateway/${PrivateRestApi}/${ApiStageName}"
 
-  PrivateAPIAccessLogGroupNameSSM:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Description: The ARN of the PrivateAPIAccessLogGroup
-      Name: !Sub /${AWS::StackName}/PrivateRestAPI/Access/LogGroup/Name
-      Type: String
-      Value: !Sub /aws/apigateway/${PrivateRestApi}/${ApiStageName}
-      Tags:
-        Environment: !Ref Environment
-        Product: !Ref ProductTagValue
-        System: !Ref SystemTagValue
-        Owner: !Ref OwnerTagValue
-        Source: !Ref SourceTagValue
-
   PrivateAPIGatewayLogsSubscriptionFilterCSLS:
     Condition: IsProdOrInt
     Type: AWS::Logs::SubscriptionFilter
