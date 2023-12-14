@@ -929,7 +929,7 @@ Resources:
         redrivePermission: denyAll
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt TxMAEmulatedSourceDLQ.Arn
-        maxReceiveCount: 60
+        maxReceiveCount: 10
       VisibilityTimeout: 5
       Tags:
         - Key: Product
