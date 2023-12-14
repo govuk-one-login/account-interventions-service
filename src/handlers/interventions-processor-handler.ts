@@ -39,6 +39,8 @@ const accountStateEngine = AccountStateEngine.getInstance();
 export const handler = async (event: SQSEvent, context: Context): Promise<SQSBatchResponse> => {
   logger.addContext(context);
 
+  console.log(event);
+
   if (event.Records.length === 0) {
     logger.warn('Received no records.');
     logAndPublishMetric(MetricNames.INTERVENTION_EVENT_INVALID);
@@ -49,9 +51,11 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
 
   const itemFailures: SQSBatchItemFailure[] = [];
   const promiseArray = event.Records.map((record: SQSRecord) => {
-    return processSQSRecord(record).catch(async (error) => {
-      const itemIdentifier = await handleError(error, record);
-      if (itemIdentifier) itemFailures.push({ itemIdentifier });
+    const outerSQSMessageId = record.messageId;
+    const parsedRecord = JSON.parse(record.body) as SQSRecord;
+    return processSQSRecord(parsedRecord).catch(async (error) => {
+      const errorIsRetryable = await handleError(error, record);
+      if (errorIsRetryable) itemFailures.push({ itemIdentifier: outerSQSMessageId });
     });
   });
   await Promise.allSettled(promiseArray);
@@ -126,8 +130,9 @@ async function handleError(error: unknown, record: SQSRecord) {
     await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, JSON.parse(record.body) as TxMAIngressEvent);
   } else {
     logger.error('Error caught, message will be retried.', { errorMessage: (error as Error).message });
-    return record.messageId;
+    return true;
   }
+  return false;
 }
 
 /**
