@@ -72,6 +72,7 @@ Mappings:
       TxMAAccountARN: arn:aws:iam::013758878511:root # DI ID Reuse Core Dev
       TxMASourceQueueARN: "PLACEHOLDER VALUE"
       TxMASourceQueueKMSKeyARN: "PLACEHOLDER VALUE"
+      PipeLogLevel: INFO
       OrchestrationVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
       AuthenticationVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
       OneLoginHomeVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
@@ -82,6 +83,7 @@ Mappings:
       TxMAAccountARN: arn:aws:iam::688341086169:root # DI ID Reuse Core Build
       TxMASourceQueueARN: "PLACEHOLDER VALUE"
       TxMASourceQueueKMSKeyARN: "PLACEHOLDER VALUE"
+      PipeLogLevel: INFO
       OrchestrationVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
       AuthenticationVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
       OneLoginHomeVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
@@ -92,6 +94,7 @@ Mappings:
       TxMAAccountARN: arn:aws:iam::178023842775:root
       TxMASourceQueueARN: arn:aws:sqs:eu-west-2:178023842775:self-staging-EC-SQS-Output-Queue-accountsIntervention
       TxMASourceQueueKMSKeyARN: arn:aws:kms:eu-west-2:178023842775:key/e388cb30-2d78-431f-b1a6-847549a815aa
+      PipeLogLevel: INFO
       OrchestrationVPCID: vpc-0ca40c7d13490419d # Orchestation Staging VPC ID
       AuthenticationVPCID: vpc-0ca40c7d13490419d # Authentication Staging VPC ID
       OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
@@ -102,6 +105,7 @@ Mappings:
       TxMAAccountARN: arn:aws:iam::729485541398:root
       TxMASourceQueueARN: arn:aws:sqs:eu-west-2:729485541398:self-integration-EC-SQS-Output-Queue-accountsIntervention
       TxMASourceQueueKMSKeyARN: arn:aws:kms:eu-west-2:729485541398:key/c360ee61-da3b-48de-998e-68cb91743414
+      PipeLogLevel: INFO
       OrchestrationVPCID: vpc-04444d1dc96d8822c # Orchestation Integration VPC ID
       AuthenticationVPCID: vpc-04444d1dc96d8822c # Authentication Integration VPC ID
       OneLoginHomeVPCID: vpc-048c9133a5998efe7 # One Login Home Integration VPC ID
@@ -112,6 +116,7 @@ Mappings:
       TxMAAccountARN: arn:aws:iam::451773080033:root
       TxMASourceQueueARN: arn:aws:sqs:eu-west-2:451773080033:self-production-EC-SQS-Output-Queue-accountsIntervention
       TxMASourceQueueKMSKeyARN: arn:aws:kms:eu-west-2:451773080033:key/5bbb4188-6774-4fe8-a78a-968f5e435295
+      PipeLogLevel: ERROR
       OrchestrationVPCID: vpc-00012e96e1cd0bf95 # Orchestration Production VPC ID
       AuthenticationVPCID: vpc-00012e96e1cd0bf95 # Authentication Production VPC ID
       OneLoginHomeVPCID: vpc-0c94e753d20410154 # One Login Home Production VPC ID
@@ -791,9 +796,7 @@ Resources:
       LogConfiguration:
         CloudwatchLogsLogDestination:
           LogGroupArn: !GetAtt TxMAIngressPipeLogGroup.Arn
-        Level: TRACE
-        IncludeExecutionData:
-          - ALL
+        Level: !FindInMap [ EnvConfig, !Ref Environment, PipeLogLevel ]
       RoleArn: !GetAtt TxMAIngressPipeRole.Arn
       Source: !If
         - IsInternal
@@ -899,6 +902,21 @@ Resources:
           Value: !Ref SourceTagValue
         - Key: Name
           Value: !Sub "/aws/pipe/${AWS::StackName}-TxMaIngressPipe"
+
+  TxMAIngressPipeNameSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: 'The name of the TxMAIngressPipe'
+      Name: !Sub '/${AWS::StackName}/TxMAIngressPipe/Name'
+      Type: String
+      Value: !Sub '${AWS::StackName}-TxMaIngressPipe'
+      Tags:
+        Environment: !Ref Environment
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
 
   TxMAEmulatedSourceQueue:
     Type: AWS::SQS::Queue
@@ -1271,7 +1289,7 @@ Outputs:
     Description: "Endpoint URL for TxMA Egress Queue"
     Value: !Ref TxMAEgressQueue
 
-  TxAAEmulatedSourceQueueUrl:
+  TxMAEmulatedSourceQueueUrl:
     Condition: IsInternal
     Description: "Endpoint URL for for the emulated TxMASourceQueue"
     Value: !Ref TxMAEmulatedSourceQueue
