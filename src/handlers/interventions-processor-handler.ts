@@ -39,8 +39,6 @@ const accountStateEngine = AccountStateEngine.getInstance();
 export const handler = async (event: SQSEvent, context: Context): Promise<SQSBatchResponse> => {
   logger.addContext(context);
 
-  console.log(event);
-
   if (event.Records.length === 0) {
     logger.warn('Received no records.');
     logAndPublishMetric(MetricNames.INTERVENTION_EVENT_INVALID);
