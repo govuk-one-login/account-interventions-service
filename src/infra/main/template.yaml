@@ -764,6 +764,13 @@ Resources:
             Condition:
               ArnEquals:
                 aws:SourceArn: !Ref AccountDeletionProcessorSNSTopic
+          - Effect: Allow
+            Principal:
+              AWS: !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountARN ]
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: "*"
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
