@@ -1169,7 +1169,7 @@ Resources:
           Value: !Sub "/aws/lambda/${InvokePrivateAPIGatewayFunction}"
 
   InvokePrivateAPIGatewayFunctionLogsSubscriptionFilterCSLS:
-    Condition: IsProdOrInt
+    Condition: IsInternal
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
@@ -1268,7 +1268,6 @@ Resources:
           Value: !Sub "/aws/apigateway/${PrivateRestApi}/${ApiStageName}"
 
   PrivateAPIGatewayLogsSubscriptionFilterCSLS:
-    Condition: IsProdOrInt
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
