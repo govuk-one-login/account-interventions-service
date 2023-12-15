@@ -465,7 +465,7 @@ describe('intervention processor handler', () => {
       expect(logger.warn).toHaveBeenCalledWith('Received interventions has low level of confidence: P1');
     });
 
-    it('It should log an error and continue if the inner message body is not valid JSON', async () => {
+    it('should log an error and continue, if the inner message body is not valid JSON', async () => {
       mockRecord = {
         messageId: '123',
         receiptHandle: '',

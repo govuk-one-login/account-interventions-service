@@ -785,11 +785,11 @@ Resources:
       TargetKeyId: !GetAtt SQSEncryptionKey.Arn
 
 ### TxMA queue integration ####
-  TxMaIngressPipe:
+  TxMAIngressPipe:
     Type: AWS::Pipes::Pipe
     Properties:
       Description: "An EventBridge pipe to send events from the origin queue in TxMA Account to AIS TxMA Ingress Queue"
-      Name: !Sub '${AWS::StackName}-TxMaIngressPipe'
+      Name: !Sub '${AWS::StackName}-TxMAIngressPipe'
       LogConfiguration:
         CloudwatchLogsLogDestination:
           LogGroupArn: !GetAtt TxMAIngressPipeLogGroup.Arn
@@ -814,7 +814,7 @@ Resources:
   TxMAIngressPipeRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub '${AWS::StackName}-TxMaIngressPipe'
+      RoleName: !Sub '${AWS::StackName}-TxMAIngressPipe'
       PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -850,12 +850,12 @@ Resources:
               - "logs:CreateLogStream"
               - "logs:PutLogEvents"
             Resource:
-              - !GetAtt TxMAIngressPipeLogGroup.Arn #to create own log stream
+              - !GetAtt TxMAIngressPipeLogGroup.Arn
           - Effect: Allow
             Action:
               - "kms:Decrypt"
               - "kms:GenerateDataKey"
-            Resource: !GetAtt SQSEncryptionKey.Arn #to publish message to AIS queue (target queue)
+            Resource: !GetAtt SQSEncryptionKey.Arn
           - Effect: Allow
             Action:
               - "sqs:ReceiveMessage"
@@ -864,7 +864,7 @@ Resources:
             Resource: !If
               - IsInternal
               - !GetAtt TxMAEmulatedSourceQueue.Arn
-              - !FindInMap [ EnvConfig, !Ref Environment, TxMASourceQueueARN ] #to read messages from source queue
+              - !FindInMap [ EnvConfig, !Ref Environment, TxMASourceQueueARN ]
           - Effect: Allow
             Action:
               - "kms:Decrypt"
@@ -883,7 +883,7 @@ Resources:
   TxMAIngressPipeLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/pipe/${AWS::StackName}-TxMaIngressPipe"
+      LogGroupName: !Sub "/aws/pipe/${AWS::StackName}-TxMAIngressPipe"
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
@@ -898,7 +898,7 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
         - Key: Name
-          Value: !Sub "/aws/pipe/${AWS::StackName}-TxMaIngressPipe"
+          Value: !Sub "/aws/pipe/${AWS::StackName}-TxMAIngressPipe"
 
   TxMAIngressPipeNameSSM:
     Type: AWS::SSM::Parameter
@@ -906,7 +906,7 @@ Resources:
       Description: 'The name of the TxMAIngressPipe'
       Name: !Sub '/${AWS::StackName}/TxMAIngressPipe/Name'
       Type: String
-      Value: !Sub '${AWS::StackName}-TxMaIngressPipe'
+      Value: !Sub '${AWS::StackName}-TxMAIngressPipe'
       Tags:
         Environment: !Ref Environment
         Product: !Ref ProductTagValue
@@ -1281,7 +1281,7 @@ Outputs:
     Description: "Private API Gateway endpoint URL for AIS methods"
     Value: !Sub "https://${PrivateRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}"
 
-  SqsQueueUrl:
+  TxMAEgressQueueUrl:
     Description: "Endpoint URL for TxMA Egress Queue"
     Value: !Ref TxMAEgressQueue
 
