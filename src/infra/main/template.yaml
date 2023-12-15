@@ -60,7 +60,6 @@ Parameters:
 
 Conditions:
   IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
-  IsProdOrInt: !Or [!Equals [!Ref Environment, production], !Equals [!Ref Environment, integration]]
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
 
@@ -70,6 +69,9 @@ Mappings:
       LambdaLogLevel: DEBUG
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #This will point to the internal SNS topic
       TxMAAccountARN: arn:aws:iam::013758878511:root # DI ID Reuse Core Dev
+      TxMASourceQueueARN: "PLACEHOLDER VALUE"
+      TxMASourceQueueKMSKeyARN: "PLACEHOLDER VALUE"
+      PipeLogLevel: INFO
       OrchestrationVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
       AuthenticationVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
       OneLoginHomeVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
@@ -78,6 +80,9 @@ Mappings:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #This will point to the internal SNS topic
       TxMAAccountARN: arn:aws:iam::688341086169:root # DI ID Reuse Core Build
+      TxMASourceQueueARN: "PLACEHOLDER VALUE"
+      TxMASourceQueueKMSKeyARN: "PLACEHOLDER VALUE"
+      PipeLogLevel: INFO
       OrchestrationVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
       AuthenticationVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
       OneLoginHomeVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
@@ -86,6 +91,9 @@ Mappings:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
       TxMAAccountARN: arn:aws:iam::178023842775:root
+      TxMASourceQueueARN: arn:aws:sqs:eu-west-2:178023842775:self-staging-EC-SQS-Output-Queue-accountsIntervention
+      TxMASourceQueueKMSKeyARN: arn:aws:kms:eu-west-2:178023842775:key/e388cb30-2d78-431f-b1a6-847549a815aa
+      PipeLogLevel: INFO
       OrchestrationVPCID: vpc-0ca40c7d13490419d # Orchestation Staging VPC ID
       AuthenticationVPCID: vpc-0ca40c7d13490419d # Authentication Staging VPC ID
       OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
@@ -94,6 +102,9 @@ Mappings:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
       TxMAAccountARN: arn:aws:iam::729485541398:root
+      TxMASourceQueueARN: arn:aws:sqs:eu-west-2:729485541398:self-integration-EC-SQS-Output-Queue-accountsIntervention
+      TxMASourceQueueKMSKeyARN: arn:aws:kms:eu-west-2:729485541398:key/c360ee61-da3b-48de-998e-68cb91743414
+      PipeLogLevel: INFO
       OrchestrationVPCID: vpc-04444d1dc96d8822c # Orchestation Integration VPC ID
       AuthenticationVPCID: vpc-04444d1dc96d8822c # Authentication Integration VPC ID
       OneLoginHomeVPCID: vpc-048c9133a5998efe7 # One Login Home Integration VPC ID
@@ -102,6 +113,9 @@ Mappings:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
       TxMAAccountARN: arn:aws:iam::451773080033:root
+      TxMASourceQueueARN: arn:aws:sqs:eu-west-2:451773080033:self-production-EC-SQS-Output-Queue-accountsIntervention
+      TxMASourceQueueKMSKeyARN: arn:aws:kms:eu-west-2:451773080033:key/5bbb4188-6774-4fe8-a78a-968f5e435295
+      PipeLogLevel: ERROR
       OrchestrationVPCID: vpc-00012e96e1cd0bf95 # Orchestration Production VPC ID
       AuthenticationVPCID: vpc-00012e96e1cd0bf95 # Authentication Production VPC ID
       OneLoginHomeVPCID: vpc-0c94e753d20410154 # One Login Home Production VPC ID
@@ -283,7 +297,6 @@ Resources:
           Value: !Sub "/aws/lambda/${AWS::StackName}-InterventionsProcessorFunction"
 
   InterventionsProcessorFunctionLogsSubscriptionFilterCSLS:
-    Condition: IsProdOrInt
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
@@ -450,7 +463,6 @@ Resources:
           Value: !Sub "/aws/lambda/${AccountDeletionProcessorFunction}"
 
   AccountDeletionProcessorFunctionLogsSubscriptionFilterCSLS:
-    Condition: IsProdOrInt
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
@@ -734,6 +746,16 @@ Resources:
                 aws:SourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:*"
           - Effect: Allow
             Principal:
+              Service: pipes.amazonaws.com
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: "*"
+            Condition:
+              ArnLike:
+                aws:SourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:*"
+          - Effect: Allow
+            Principal:
               Service: sns.amazonaws.com
             Action:
               - "kms:Decrypt"
@@ -762,6 +784,187 @@ Resources:
       AliasName: !Sub "alias/${AWS::StackName}-SQSEncryptionKey"
       TargetKeyId: !GetAtt SQSEncryptionKey.Arn
 
+### TxMA queue integration ####
+  TxMAIngressPipe:
+    Type: AWS::Pipes::Pipe
+    Properties:
+      Description: "An EventBridge pipe to send events from the origin queue in TxMA Account to AIS TxMA Ingress Queue"
+      Name: !Sub '${AWS::StackName}-TxMAIngressPipe'
+      LogConfiguration:
+        CloudwatchLogsLogDestination:
+          LogGroupArn: !GetAtt TxMAIngressPipeLogGroup.Arn
+        Level: !FindInMap [ EnvConfig, !Ref Environment, PipeLogLevel ]
+      RoleArn: !GetAtt TxMAIngressPipeRole.Arn
+      Source: !If
+        - IsInternal
+        - !GetAtt TxMAEmulatedSourceQueue.Arn
+        - !FindInMap [ EnvConfig, !Ref Environment, TxMASourceQueueARN ]
+      SourceParameters:
+        SqsQueueParameters:
+          BatchSize: 1
+          MaximumBatchingWindowInSeconds: 0
+      Target: !GetAtt TxMAIngressQueue.Arn
+      Tags:
+        Environment: !Ref Environment
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
+  TxMAIngressPipeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-TxMAIngressPipe'
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: pipes.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  TxMAIngressPipePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-TxMAIngressPipePolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource:
+              - !GetAtt TxMAIngressPipeLogGroup.Arn
+          - Effect: Allow
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: !GetAtt SQSEncryptionKey.Arn
+          - Effect: Allow
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+            Resource: !If
+              - IsInternal
+              - !GetAtt TxMAEmulatedSourceQueue.Arn
+              - !FindInMap [ EnvConfig, !Ref Environment, TxMASourceQueueARN ]
+          - Effect: Allow
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: !If
+              - IsInternal
+              - !GetAtt SQSEncryptionKey.Arn
+              - !FindInMap [ EnvConfig, !Ref Environment, TxMASourceQueueKMSKeyARN ]
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt TxMAIngressQueue.Arn #to publish messages to target queue)
+      Roles:
+        - !Ref TxMAIngressPipeRole
+
+  TxMAIngressPipeLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/pipe/${AWS::StackName}-TxMAIngressPipe"
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "/aws/pipe/${AWS::StackName}-TxMAIngressPipe"
+
+  TxMAIngressPipeNameSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: 'The name of the TxMAIngressPipe'
+      Name: !Sub '/${AWS::StackName}/TxMAIngressPipe/Name'
+      Type: String
+      Value: !Sub '${AWS::StackName}-TxMAIngressPipe'
+      Tags:
+        Environment: !Ref Environment
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
+
+  TxMAEmulatedSourceQueue:
+    Type: AWS::SQS::Queue
+    Condition: IsInternal
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-TxMAEmulatedSourceQueue"
+      MessageRetentionPeriod: 1209600
+      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
+      RedriveAllowPolicy:
+        redrivePermission: denyAll
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt TxMAEmulatedSourceDLQ.Arn
+        maxReceiveCount: 10
+      VisibilityTimeout: 5
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  TxMAEmulatedSourceDLQ:
+    Type: AWS::SQS::Queue
+    Condition: IsInternal
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-TxMAEmulatedSourceDLQ"
+      KmsMasterKeyId: !Ref SQSEncryptionKeyAlias
+      VisibilityTimeout: 0
+      MessageRetentionPeriod: 1209600
+      RedriveAllowPolicy:
+        redrivePermission: byQueue
+        sourceQueueArns:
+          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-TxMAEmulatedSourceQueue"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  ### Status Retriever Function ###
   StatusRetrieverFunction:
     Type: AWS::Serverless::Function
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
@@ -800,7 +1003,6 @@ Resources:
           Value: !Sub "/aws/lambda/${StatusRetrieverFunction}"
 
   StatusRetrieverFunctionLogsSubscriptionFilterCSLS:
-    Condition: IsProdOrInt
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
@@ -1079,6 +1281,11 @@ Outputs:
     Description: "Private API Gateway endpoint URL for AIS methods"
     Value: !Sub "https://${PrivateRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}"
 
-  SqsQueueUrl:
+  TxMAEgressQueueUrl:
     Description: "Endpoint URL for TxMA Egress Queue"
     Value: !Ref TxMAEgressQueue
+
+  TxMAEmulatedSourceQueueUrl:
+    Condition: IsInternal
+    Description: "Endpoint URL for for the emulated TxMASourceQueue"
+    Value: !Ref TxMAEmulatedSourceQueue

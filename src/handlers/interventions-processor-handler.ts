@@ -48,11 +48,16 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
   }
 
   const itemFailures: SQSBatchItemFailure[] = [];
+
   const promiseArray = event.Records.map((record: SQSRecord) => {
-    return processSQSRecord(record).catch(async (error) => {
-      const itemIdentifier = await handleError(error, record);
-      if (itemIdentifier) itemFailures.push({ itemIdentifier });
-    });
+    const outerSQSMessageId = record.messageId;
+    const parsedRecord = validateMessageStructure(record);
+    if (parsedRecord) {
+      return processEvent(parsedRecord).catch(async (error) => {
+        const errorIsRetryable = await handleError(error, parsedRecord);
+        if (errorIsRetryable) itemFailures.push({ itemIdentifier: outerSQSMessageId });
+      });
+    }
   });
   await Promise.allSettled(promiseArray);
   logger.debug('returning items that failed processing: ' + JSON.stringify(itemFailures));
@@ -62,22 +67,21 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
 };
 
 /**
- * Main worker function. It receives an SQS record and processes it according to business logic
+ * Main worker function. It receives an SQS event and processes it according to business logic
  * It validates the event, it retrieves user data from the database, it applies the intervention,
- * it updates the user record in the database, it sends a notification upon completion
- * @param record - SQS Record polled from the queue
+ * it updates the user event in the database, it sends a notification upon completion
+ * @param event - SQS Record polled from the queue
  */
-async function processSQSRecord(record: SQSRecord) {
+async function processEvent(event: TxMAIngressEvent) {
   const currentTimestamp = getCurrentTimestamp();
-  const recordBody: TxMAIngressEvent = JSON.parse(record.body);
-  validateEventAgainstSchema(recordBody);
-  const eventName = getEventName(recordBody);
+  validateEventAgainstSchema(event);
+  const eventName = getEventName(event);
   logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention received.`, { intervention: eventName });
-  validateLevelOfConfidence(eventName, recordBody);
-  await validateEventIsNotInFuture(eventName, recordBody);
+  validateLevelOfConfidence(eventName, event);
+  await validateEventIsNotInFuture(eventName, event);
 
-  const userId = recordBody.user.user_id;
-  const eventTimestampInMs = recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000;
+  const userId = event.user.user_id;
+  const eventTimestampInMs = event.event_timestamp_ms ?? event.timestamp * 1000;
 
   logAndPublishMetric(
     MetricNames.EVENT_DELIVERY_LATENCY,
@@ -87,9 +91,9 @@ async function processSQSRecord(record: SQSRecord) {
 
   const itemFromDB = await service.getAccountStateInformation(userId);
 
-  await validateAccountIsNotDeleted(eventName, userId, recordBody, itemFromDB);
+  await validateAccountIsNotDeleted(eventName, userId, event, itemFromDB);
 
-  await validateEventIsNotStale(eventName, recordBody, itemFromDB);
+  await validateEventIsNotStale(eventName, event, itemFromDB);
 
   const currentAccountState: StateDetails = formCurrentAccountStateObject(itemFromDB);
   const statusResult = accountStateEngine.applyEventTransition(eventName, currentAccountState);
@@ -97,24 +101,24 @@ async function processSQSRecord(record: SQSRecord) {
     statusResult.newState,
     eventName,
     currentTimestamp.milliseconds,
-    recordBody,
+    event,
     statusResult.interventionName,
   );
   logger.debug('processed requested event, sending update request to dynamo db');
   await service.updateUserStatus(userId, partialCommandInput);
   updateAccountStateCountMetric(currentAccountState, statusResult.newState);
   logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
-  await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, recordBody, currentTimestamp.milliseconds);
+  await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, event, currentTimestamp.milliseconds);
 }
 
 /**
  * Function to handle an error returned by the recording processing function
  * It logs appropriate messages and returns a message id if the Error type is not of a non-retryable type
  * @param error - error throw by the processing function
- * @param record - the record inside the message polled
+ * @param event - the event inside the message polled
  * @returns messageId - if the message should be retried
  */
-async function handleError(error: unknown, record: SQSRecord) {
+async function handleError(error: unknown, event: TxMAIngressEvent) {
   if (error instanceof ValidationError)
     logger.warn('ValidationError caught, message will not be retried.', { errorMessage: error.message });
   else if (error instanceof TooManyRecordsError)
@@ -123,11 +127,12 @@ async function handleError(error: unknown, record: SQSRecord) {
     });
   else if (error instanceof StateTransitionError) {
     logger.warn('StateTransitionError caught, message will not be retried.', { errorMessage: error.message });
-    await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, JSON.parse(record.body) as TxMAIngressEvent);
+    await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, event);
   } else {
     logger.error('Error caught, message will be retried.', { errorMessage: (error as Error).message });
-    return record.messageId;
+    return true;
   }
+  return false;
 }
 
 /**
@@ -178,4 +183,21 @@ function formCurrentAccountStateObject(itemFromDB?: DynamoDBStateResult) {
     resetPassword: itemFromDB ? itemFromDB.resetPassword : false,
     reproveIdentity: itemFromDB ? itemFromDB.reproveIdentity : false,
   };
+}
+
+/**
+ * Helper function to validate that both event bodies can be JSON parsed
+ * @param record - SQS Record polled from the queue, containing another SQS Record in the body field
+ * @returns - TxMAIngressEvent object if parsing was successful, undefined otherwise
+ */
+function validateMessageStructure(record: SQSRecord) {
+  try {
+    const parsedRecord = JSON.parse(record.body);
+    const parsedEvent = JSON.parse(parsedRecord.body);
+    return parsedEvent as TxMAIngressEvent;
+  } catch {
+    logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
+    logger.error('Message body is not valid JSON.');
+    return;
+  }
 }
