@@ -127,7 +127,7 @@ async function handleError(error: unknown, event: TxMAIngressEvent) {
     });
   else if (error instanceof StateTransitionError) {
     logger.warn('StateTransitionError caught, message will not be retried.', { errorMessage: error.message });
-    await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, event as TxMAIngressEvent);
+    await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, event);
   } else {
     logger.error('Error caught, message will be retried.', { errorMessage: (error as Error).message });
     return true;
