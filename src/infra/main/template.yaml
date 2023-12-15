@@ -1103,6 +1103,7 @@ Resources:
         Source: !Ref SourceTagValue
 
   InvokePrivateAPIGatewayFunctionRole:
+    Condition: IsInternal
     Type: AWS::IAM::Role
     Properties:
       RoleName:  !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunctionRole'
