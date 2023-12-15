@@ -16,7 +16,6 @@ const validateInterventionDataInput = compileSchema(TxMAIngress);
  * @param interventionRequest - the TxMA request
  */
 export function validateEventAgainstSchema(interventionRequest: TxMAIngressEvent): void {
-  console.log(interventionRequest);
   if (!validateInterventionDataInput({ event: interventionRequest })) {
     logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Event has failed schema validation.`, {
       validationErrors: validateInterventionDataInput.errors,

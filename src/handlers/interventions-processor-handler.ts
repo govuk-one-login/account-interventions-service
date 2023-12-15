@@ -66,17 +66,6 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
   };
 };
 
-function validateMessageStructure(record: SQSRecord) {
-  try {
-    const parsedRecord = JSON.parse(record.body);
-    const parsedEvent = JSON.parse(parsedRecord.body);
-    return parsedEvent as TxMAIngressEvent;
-  } catch {
-    logger.error('Message body extracted from wrapping message is invalid.');
-    return;
-  }
-}
-
 /**
  * Main worker function. It receives an SQS event and processes it according to business logic
  * It validates the event, it retrieves user data from the database, it applies the intervention,
@@ -130,7 +119,6 @@ async function processEvent(event: TxMAIngressEvent) {
  * @returns messageId - if the message should be retried
  */
 async function handleError(error: unknown, event: TxMAIngressEvent) {
-  console.log(error);
   if (error instanceof ValidationError)
     logger.warn('ValidationError caught, message will not be retried.', { errorMessage: error.message });
   else if (error instanceof TooManyRecordsError)
@@ -195,4 +183,21 @@ function formCurrentAccountStateObject(itemFromDB?: DynamoDBStateResult) {
     resetPassword: itemFromDB ? itemFromDB.resetPassword : false,
     reproveIdentity: itemFromDB ? itemFromDB.reproveIdentity : false,
   };
+}
+
+/**
+ * Helper function to validate that both event bodies can be JSON parsed
+ * @param record - SQS Record polled from the queue, containing another SQS Record in the body field
+ * @returns - TxMAIngressEvent object if parsing was successful, undefined otherwise
+ */
+function validateMessageStructure(record: SQSRecord) {
+  try {
+    const parsedRecord = JSON.parse(record.body);
+    const parsedEvent = JSON.parse(parsedRecord.body);
+    return parsedEvent as TxMAIngressEvent;
+  } catch {
+    logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
+    logger.error('Message body is not valid JSON.');
+    return;
+  }
 }

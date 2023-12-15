@@ -465,11 +465,11 @@ describe('intervention processor handler', () => {
       expect(logger.warn).toHaveBeenCalledWith('Received interventions has low level of confidence: P1');
     });
 
-    it('note sure', async () => {
+    it('It should log an error and continue if the inner message body is not valid JSON', async () => {
       mockRecord = {
         messageId: '123',
         receiptHandle: '',
-        body: JSON.stringify({ notTheRightStructure: 'something', body: 'somemthing'}),
+        body: JSON.stringify({ notTheRightStructure: 'something', body: 'not a JSON string'}),
         attributes: {
           ApproximateReceiveCount: '',
           SentTimestamp: '',
@@ -485,10 +485,12 @@ describe('intervention processor handler', () => {
       expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
         batchItemFailures: [],
       });
+      expect(logger.error).toHaveBeenCalledWith('Message body is not valid JSON.');
+      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INVALID_EVENT_RECEIVED);
 
     });
 
-    it('note sure2', async () => {
+    it('If a valid and invalid events are received none should be retried', async () => {
       mockRetrieveRecords.mockReturnValue({
         blocked: false,
         reproveIdentity: false,
@@ -541,6 +543,9 @@ describe('intervention processor handler', () => {
       expect(await handler({ Records: [mockRecord,otherMockRecord] }, mockContext)).toEqual({
         batchItemFailures: [],
       });
+      expect(logger.error).toHaveBeenCalledTimes(1);
+      expect(logger.error).toHaveBeenCalledWith('Message body is not valid JSON.');
+
 
     });
   });
