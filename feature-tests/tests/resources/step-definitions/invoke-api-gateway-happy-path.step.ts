@@ -61,6 +61,7 @@ defineFeature(feature, (test) => {
       /^I send an (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
       async (originalAaisEventType, aisEventType) => {
         await sendSQSEvent(testUserId, originalAaisEventType);
+        await timeDelayForTestEnvironment(500);
         await sendSQSEvent(testUserId, aisEventType);
       },
     );
@@ -101,6 +102,7 @@ defineFeature(feature, (test) => {
       /^I send an (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
       async (originalAaisEventType, aisEventType) => {
         await sendSQSEvent(testUserId, originalAaisEventType);
+        await timeDelayForTestEnvironment(500);
         await sendSQSEvent(testUserId, aisEventType);
       },
     );
