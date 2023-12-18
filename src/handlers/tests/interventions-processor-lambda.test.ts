@@ -48,23 +48,6 @@ const interventionEventBody: TxMAIngressEvent = {
   },
 };
 
-const wrappedInterventionEventBody: SQSRecord = {
-  messageId: '123',
-  receiptHandle: '',
-  body: JSON.stringify(interventionEventBody),
-  attributes: {
-    ApproximateReceiveCount: '',
-    SentTimestamp: '',
-    SenderId: '',
-    ApproximateFirstReceiveTimestamp: '',
-  },
-  messageAttributes: {},
-  md5OfBody: '',
-  eventSource: '',
-  eventSourceARN: '',
-  awsRegion: '',
-}
-
 const interventionEventBodyInTheFuture = {
   component_id: '',
   timestamp: getCurrentTimestamp().seconds + 5,
@@ -80,53 +63,6 @@ const interventionEventBodyInTheFuture = {
     },
   },
 };
-
-const wrappedInterventionEventInTheFuture: SQSRecord = {
-  messageId: '123',
-  receiptHandle: '',
-  body: JSON.stringify(interventionEventBodyInTheFuture),
-  attributes: {
-    ApproximateReceiveCount: '',
-    SentTimestamp: '',
-    SenderId: '',
-    ApproximateFirstReceiveTimestamp: '',
-  },
-  messageAttributes: {},
-  md5OfBody: '',
-  eventSource: '',
-  eventSourceARN: '',
-  awsRegion: '',
-}
-
-const nonP2IPVIdentityEventBody = {
-  timestamp: getCurrentTimestamp().milliseconds + 500_000,
-  user: {
-    user_id: 'abc',
-  },
-  event_name: 'IPV_IDENTITY_ISSUED',
-  extensions: {
-    levelOfConfidence: 'P1',
-    ciFail: false,
-    hasMitigations: false,
-  },
-}
-
-const wrappedNonP2PVIdentityEventBody = {
-  messageId: '123',
-  receiptHandle: '',
-  body: JSON.stringify(nonP2IPVIdentityEventBody),
-  attributes: {
-    ApproximateReceiveCount: '',
-    SentTimestamp: '',
-    SenderId: '',
-    ApproximateFirstReceiveTimestamp: '',
-  },
-  messageAttributes: {},
-  md5OfBody: '',
-  eventSource: '',
-  eventSourceARN: '',
-  awsRegion: '',
-}
 
 const resetPasswordEventBody = {
   event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
@@ -144,23 +80,6 @@ const resetPasswordEventBody = {
     govuk_signin_journey_id: '',
   },
 };
-
-const wrappedResetPasswordEvent: SQSRecord = {
-  messageId: '123',
-  receiptHandle: '',
-  body: JSON.stringify(resetPasswordEventBody),
-  attributes: {
-    ApproximateReceiveCount: '',
-    SentTimestamp: '',
-    SenderId: '',
-    ApproximateFirstReceiveTimestamp: '',
-  },
-  messageAttributes: {},
-  md5OfBody: '',
-  eventSource: '',
-  eventSourceARN: '',
-  awsRegion: '',
-}
 
 const mockRetrieveRecords = DynamoDatabaseService.prototype.getAccountStateInformation as jest.Mock;
 const mockUpdateRecords = DynamoDatabaseService.prototype.updateUserStatus as jest.Mock;
@@ -180,7 +99,7 @@ describe('intervention processor handler', () => {
     mockRecord = {
       messageId: '123',
       receiptHandle: '',
-      body: JSON.stringify(wrappedInterventionEventBody),
+      body: JSON.stringify(interventionEventBody),
       attributes: {
         ApproximateReceiveCount: '',
         SentTimestamp: '',
@@ -298,7 +217,7 @@ describe('intervention processor handler', () => {
           reproveIdentity: false,
         },
       });
-      mockRecord.body = JSON.stringify(wrappedResetPasswordEvent);
+      mockRecord.body = JSON.stringify(resetPasswordEventBody);
       mockEvent.Records = [mockRecord];
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
@@ -341,7 +260,7 @@ describe('intervention processor handler', () => {
     });
 
     it('should return message id to be retried if event is in the future', async () => {
-      mockRecord.body = JSON.stringify(wrappedInterventionEventInTheFuture);
+      mockRecord.body = JSON.stringify(interventionEventBodyInTheFuture);
       expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
         batchItemFailures: [
           {
@@ -411,7 +330,19 @@ describe('intervention processor handler', () => {
       mockRecord = {
         messageId: '123',
         receiptHandle: '',
-        body: JSON.stringify(wrappedInterventionEventBody),
+        body: JSON.stringify({
+          timestamp: t0s,
+          user: {
+            user_id: 'abc',
+          },
+          event_name: 'TICF_ACCOUNT_INTERVENTION',
+          extensions: {
+            intervention: {
+              intervention_code: '01',
+              intervention_reason: 'reason',
+            },
+          },
+        }),
         attributes: {
           ApproximateReceiveCount: '',
           SentTimestamp: '',
@@ -424,7 +355,6 @@ describe('intervention processor handler', () => {
         eventSourceARN: '',
         awsRegion: '',
       };
-
       expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
         batchItemFailures: [],
       });
@@ -445,7 +375,18 @@ describe('intervention processor handler', () => {
       mockRecord = {
         messageId: '123',
         receiptHandle: '',
-        body: JSON.stringify(wrappedNonP2PVIdentityEventBody),
+        body: JSON.stringify({
+          timestamp: getCurrentTimestamp().milliseconds + 500_000,
+          user: {
+            user_id: 'abc',
+          },
+          event_name: 'IPV_IDENTITY_ISSUED',
+          extensions: {
+            levelOfConfidence: 'P1',
+            ciFail: false,
+            hasMitigations: false,
+          },
+        }),
         attributes: {
           ApproximateReceiveCount: '',
           SentTimestamp: '',
@@ -463,90 +404,6 @@ describe('intervention processor handler', () => {
       });
       expect(logAndPublishMetric).toHaveBeenCalledWith('CONFIDENCE_LEVEL_TOO_LOW');
       expect(logger.warn).toHaveBeenCalledWith('Received interventions has low level of confidence: P1');
-    });
-
-    it('should log an error and continue, if the inner message body is not valid JSON', async () => {
-      mockRecord = {
-        messageId: '123',
-        receiptHandle: '',
-        body: JSON.stringify({ notTheRightStructure: 'something', body: 'not a JSON string'}),
-        attributes: {
-          ApproximateReceiveCount: '',
-          SentTimestamp: '',
-          SenderId: '',
-          ApproximateFirstReceiveTimestamp: '',
-        },
-        messageAttributes: {},
-        md5OfBody: '',
-        eventSource: '',
-        eventSourceARN: '',
-        awsRegion: '',
-      };
-      expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
-        batchItemFailures: [],
-      });
-      expect(logger.error).toHaveBeenCalledWith('Message body is not valid JSON.');
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INVALID_EVENT_RECEIVED);
-
-    });
-
-    it('If a valid and invalid events are received none should be retried', async () => {
-      mockRetrieveRecords.mockReturnValue({
-        blocked: false,
-        reproveIdentity: false,
-        resetPassword: false,
-        suspended: false,
-      });
-      accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
-        newState: {
-          blocked: false,
-          suspended: true,
-          resetPassword: false,
-          reproveIdentity: false,
-        },
-        interventionName: EventsEnum.FRAUD_BLOCK_ACCOUNT,
-      });
-      mockRecord = {
-        messageId: '123',
-        receiptHandle: '',
-        body: JSON.stringify({ notTheRightStructure: 'something', body: 'somemthing'}),
-        attributes: {
-          ApproximateReceiveCount: '',
-          SentTimestamp: '',
-          SenderId: '',
-          ApproximateFirstReceiveTimestamp: '',
-        },
-        messageAttributes: {},
-        md5OfBody: '',
-        eventSource: '',
-        eventSourceARN: '',
-        awsRegion: '',
-      };
-
-      const otherMockRecord = {
-        messageId: '456',
-        receiptHandle: '',
-        body: JSON.stringify(wrappedInterventionEventBody),
-        attributes: {
-          ApproximateReceiveCount: '',
-          SentTimestamp: '',
-          SenderId: '',
-          ApproximateFirstReceiveTimestamp: '',
-        },
-        messageAttributes: {},
-        md5OfBody: '',
-        eventSource: '',
-        eventSourceARN: '',
-        awsRegion: '',
-      };
-
-      expect(await handler({ Records: [mockRecord,otherMockRecord] }, mockContext)).toEqual({
-        batchItemFailures: [],
-      });
-      expect(logger.error).toHaveBeenCalledTimes(1);
-      expect(logger.error).toHaveBeenCalledWith('Message body is not valid JSON.');
-
-
     });
   });
 });
