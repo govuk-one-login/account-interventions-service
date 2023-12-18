@@ -979,7 +979,7 @@ Resources:
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
-      LogGroupName: "/aws/lambda/InvokePrivateAPIGatewayFunction"
+      LogGroupName: !Sub "/aws/lambda/${InvokePrivateAPIGatewayFunction}"
       FilterPattern: "{$.message != \"Sensitive info*\"}"
 
   # Private API Gateway resources
