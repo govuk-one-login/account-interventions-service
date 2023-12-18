@@ -989,99 +989,6 @@ Resources:
       Handler: status-retriever-handler.handle
       Role: !GetAtt StatusRetrieverFunctionRole.Arn
 
-  StatusRetrieverFunctionLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/lambda/${StatusRetrieverFunction}"
-      RetentionInDays: 30
-      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-        - Key: Name
-          Value: !Sub "/aws/lambda/${StatusRetrieverFunction}"
-
-  StatusRetrieverFunctionLogsSubscriptionFilterCSLS:
-    Type: AWS::Logs::SubscriptionFilter
-    Properties:
-      DestinationArn: !Ref CSLSSubscriptionEndpointArn
-      LogGroupName: !Ref StatusRetrieverFunctionLogGroup
-      FilterPattern: "{$.message != \"Sensitive info*\"}"
-
-  InvokePrivateAPIGatewayFunction:
-    Condition: IsInternal
-    Type: AWS::Serverless::Function
-    # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
-    # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
-    Properties:
-      FunctionName: !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunction'
-      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
-      CodeUri: ../../../dist/handlers/invoke-private-api
-      Timeout: 10
-      Role: !GetAtt InvokePrivateAPIGatewayFunctionRole.Arn
-      Environment:
-        Variables:
-          USER_ID: ""
-          BASE_URL: !Join
-            - ""
-            - - https://
-              - !GetAtt PrivateRestApi.RestApiId
-              - !Sub .execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}
-          END_POINT: /ais
-          QUERY_PARAMETERS: ""
-          HTTP_REQUEST_METHOD: GET
-      Handler: invoke-private-api.handle
-      VpcConfig:
-        SubnetIds:
-          - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdA
-          - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdB
-          - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdC
-        SecurityGroupIds:
-          - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
-      Tags:
-        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
-        Product: !Ref ProductTagValue
-        System: !Ref SystemTagValue
-        Environment: !Ref Environment
-        Owner: !Ref OwnerTagValue
-        Source: !Ref SourceTagValue
-
-  InvokePrivateAPIGatewayFunctionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName:  !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunctionRole'
-      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-
   StatusRetrieverFunctionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -1136,6 +1043,147 @@ Resources:
       Roles:
         - !Ref StatusRetrieverFunctionRole
 
+  StatusRetrieverFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${StatusRetrieverFunction}"
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "/aws/lambda/${StatusRetrieverFunction}"
+
+  StatusRetrieverFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn: !Ref CSLSSubscriptionEndpointArn
+      LogGroupName: !Ref StatusRetrieverFunctionLogGroup
+      FilterPattern: "{$.message != \"Sensitive info*\"}"
+
+  ### Invoke API Gateway ###
+  InvokePrivateAPIGatewayFunction:
+    Condition: IsInternal
+    Type: AWS::Serverless::Function
+    # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
+    # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunction'
+      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      CodeUri: ../../../dist/handlers/invoke-private-api
+      Timeout: 10
+      Role: !GetAtt InvokePrivateAPIGatewayFunctionRole.Arn
+      Environment:
+        Variables:
+          USER_ID: ""
+          BASE_URL: !Join
+            - ""
+            - - https://
+              - !GetAtt PrivateRestApi.RestApiId
+              - !Sub .execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}
+          END_POINT: /ais
+          QUERY_PARAMETERS: ""
+          HTTP_REQUEST_METHOD: GET
+      Handler: invoke-private-api.handle
+      VpcConfig:
+        SubnetIds:
+          - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdA
+          - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdB
+          - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdC
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
+      Tags:
+        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
+  InvokePrivateAPIGatewayFunctionRole:
+    Condition: IsInternal
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:  !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunctionRole'
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  InvokePrivateAPIGatewayFunctionPolicy:
+    Condition: IsInternal
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-InvokePrivateAPIGatewayFunctionPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource:
+              - !GetAtt InvokePrivateAPIGatewayFunctionLogGroup.Arn
+      Roles:
+        - !Ref InvokePrivateAPIGatewayFunctionRole
+
+  InvokePrivateAPIGatewayFunctionLogGroup:
+    Condition: IsInternal
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${InvokePrivateAPIGatewayFunction}"
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "/aws/lambda/${InvokePrivateAPIGatewayFunction}"
+
+  InvokePrivateAPIGatewayFunctionLogsSubscriptionFilterCSLS:
+    Condition: IsInternal
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn: !Ref CSLSSubscriptionEndpointArn
+      LogGroupName: "/aws/lambda/InvokePrivateAPIGatewayFunction"
+      FilterPattern: "{$.message != \"Sensitive info*\"}"
+
   # Private API Gateway resources
   PrivateRestApi:
     Type: AWS::Serverless::Api
@@ -1156,29 +1204,29 @@ Resources:
             - !FindInMap [ EnvConfig, !Ref Environment, AuthenticationVPCID ]
             - !FindInMap [ EnvConfig, !Ref Environment, OneLoginHomeVPCID ]
             - !FindInMap [ EnvConfig, !Ref Environment, OrchestrationVPCID ]
-      # AccessLogSetting:
-      #   Format: >-
-      #     {
-      #     "requestId": "$context.requestId",
-      #     "requestTime": "$context.requestTime",
-      #     "requestTimeEpoch": "$context.requestTimeEpoch",
-      #     "httpMethod": "$context.httpMethod",
-      #     "domainName": "$context.domainName",
-      #     "path": "$context.path",
-      #     "routeKey": "$context.routeKey",
-      #     "protocol": "$context.protocol",
-      #     "status": "$context.status",
-      #     "responseLength": "$context.responseLength",
-      #     "responseLatency": "$context.responseLatency",
-      #     "authorizerLatency": "$context.authorizer.latency",
-      #     "integrationStatus": "$context.integrationStatus",
-      #     "integrationLatency": "$context.integrationLatency",
-      #     "integrationErrorMessage": "$context.integrationErrorMessage",
-      #     "errorMessage": "$context.error.message",
-      #     "errorResponseType": "$context.error.responseType",
-      #     "validationErrorString": "$context.error.validationErrorString",
-      #     }
-      #   DestinationArn: !GetAtt PrivateAPIGatewayAccessLogGroup.Arn
+      AccessLogSetting:
+        Format: >-
+          {
+          "requestId": "$context.requestId",
+          "requestTime": "$context.requestTime",
+          "requestTimeEpoch": "$context.requestTimeEpoch",
+          "httpMethod": "$context.httpMethod",
+          "domainName": "$context.domainName",
+          "path": "$context.path",
+          "routeKey": "$context.routeKey",
+          "protocol": "$context.protocol",
+          "status": "$context.status",
+          "responseLength": "$context.responseLength",
+          "responseLatency": "$context.responseLatency",
+          "authorizerLatency": "$context.authorizer.latency",
+          "integrationStatus": "$context.integrationStatus",
+          "integrationLatency": "$context.integrationLatency",
+          "integrationErrorMessage": "$context.integrationErrorMessage",
+          "errorMessage": "$context.error.message",
+          "errorResponseType": "$context.error.responseType",
+          "validationErrorString": "$context.error.validationErrorString",
+          }
+        DestinationArn: !GetAtt PrivateAPIGatewayAccessLogGroup.Arn
       CacheClusterEnabled: false
       TracingEnabled: true
       EndpointConfiguration:
@@ -1205,27 +1253,34 @@ Resources:
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
 
-  # PrivateAPIGatewayAccessLogGroup:
-  #   Type: AWS::Logs::LogGroup
-  #   Properties:
-  #     LogGroupName: !Sub "/aws/apigateway/${PrivateRestApi}/${ApiStageName}"
-  #     RetentionInDays: 30
-  #     KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
-  #     Tags:
-  #       - Key: Product
-  #         Value: !Ref ProductTagValue
-  #       - Key: System
-  #         Value: !Ref SystemTagValue
-  #       - Key: Environment
-  #         Value: !Ref Environment
-  #       - Key: Name
-  #         Value: PrivateApiGatewayAccessLogGroup
-  #       - Key: Owner
-  #         Value: !Ref OwnerTagValue
-  #       - Key: Source
-  #         Value: !Ref SourceTagValue
-  #       - Key: Name
-  #         Value: !Sub "/aws/apigateway/${PrivateRestApi}/${ApiStageName}"
+  PrivateAPIGatewayAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/apigateway/${PrivateRestApi}/${ApiStageName}"
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Name
+          Value: PrivateApiGatewayAccessLogGroup
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "/aws/apigateway/${PrivateRestApi}/${ApiStageName}"
+
+  PrivateAPIGatewayLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn: !Ref CSLSSubscriptionEndpointArn
+      LogGroupName: !Ref PrivateAPIGatewayAccessLogGroup
+      FilterPattern: ""
 
   PrivateGatewayStatusRetrieverFunctionPermission:
     Type: AWS::Lambda::Permission
