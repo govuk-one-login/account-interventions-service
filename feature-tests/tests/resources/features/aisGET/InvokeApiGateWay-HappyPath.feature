@@ -16,7 +16,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
             | userActionPswResetSuccess | false        | AIS_NO_INTERVENTION                                | false        | false          | false         | false           |
             | unSuspendAction           | false        | AIS_NO_INTERVENTION                                | false        | false          | false         | false           |
 
-    Scenario Outline: Happy Path - Suspended Account - Get Request to /ais/userId - Returns Expected Data for <aisEventType>
+    Scenario Outline: Happy Path - <originalAisEventType> account - Get Request to /ais/userId - Returns Expected Data for <aisEventType>
         Given I send an <aisEventType> intervention message to the TxMA ingress SQS queue for a Account in <originalAisEventType> state
         When I invoke the API to retrieve the intervention status of the user's account. With history <historyValue>
         Then I expect the intervention to be <interventionType>, with the following state settings <blockedState>, <suspendedState>, <resetPassword> and <reproveIdentity>
@@ -31,13 +31,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
             | suspendNoAction      | userActionIdResetSuccess  | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
             | suspendNoAction      | userActionPswResetSuccess | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
             | suspendNoAction      | unSuspendAction           | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
-
-    Scenario Outline: Happy Path - Blocked Account - Get Request to /ais/userId - Returns Expected Data for <aisEventType>
-        Given I send an <aisEventType> intervention message to the TxMA ingress SQS queue for a Account in <originalAisEventType> state
-        When I invoke the API to retrieve the intervention status of the user's account. With history <historyValue>
-        Then I expect the intervention to be <interventionType>, with the following state settings <blockedState>, <suspendedState>, <resetPassword> and <reproveIdentity>
-        Examples:
-            | originalAisEventType | aisEventType              | historyValue | interventionType                                   | blockedState | suspendedState | resetPassword | reproveIdentity |
+            ## blocked account status to new intervention type
             | block                | pswResetRequired          | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | true           | true          | false           |
             | block                | suspendNoAction           | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
             | block                | block                     | false        | AIS_ACCOUNT_BLOCKED                                | true         | false          | false         | false           |
