@@ -10,18 +10,31 @@ import {
 } from '../../../utils/utility';
 import { aisEventResponse } from '../../../utils/ais-events-responses';
 import { updateItemInTable } from '../../../utils/dynamo-database-methods';
+import { filterCloudWatchLogs } from '../../../utils/cloudwatch-logs';
+import { FilteredLogEvent } from '@aws-sdk/client-cloudwatch-logs';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
+
+interface EventMessage {
+  message?: string;
+  userId?: string;
+}
 
 defineFeature(feature, (test) => {
   beforeAll(async () => {
     await purgeEgressQueue();
   });
   let testUserId: string;
-
+  let startTime: number;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   let response: any;
+  let events: FilteredLogEvent[];
+  let messages: (string | EventMessage | undefined)[];
+
+  beforeAll(() => {
+    startTime = Date.now();
+  });
 
   beforeEach(() => {
     testUserId = generateRandomTestUserId();
@@ -465,5 +478,32 @@ defineFeature(feature, (test) => {
         expect(response.history.length === 0);
       },
     );
+  test('Happy Path - Logs Validation', ({ given, when, then }) => {
+    given('Cloudwatch logs have been created', async () => {
+      events = await filterCloudWatchLogs(startTime);
+    });
+
+    when('log events messages contain a userId', () => {
+      messages = events.map((event) => {
+        let message;
+        if (event.message) {
+          try {
+            message = JSON.parse(event.message) as EventMessage;
+          } catch {
+            message = event.message;
+          }
+        }
+        return message;
+      });
+
+      messages = messages.filter((message) => message && message.hasOwnProperty('userId'));
+    });
+
+    then('the log events should also contain the message prefix sensitive info', () => {
+      messages = messages.filter(
+        (message) => message && typeof message !== 'string' && !message.message?.startsWith('Sensitive info'),
+      );
+      expect(messages).toHaveLength(0);
+    });
   });
 });

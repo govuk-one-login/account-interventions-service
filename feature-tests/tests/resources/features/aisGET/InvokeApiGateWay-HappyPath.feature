@@ -183,3 +183,9 @@ Feature: Invoke-APIGateway-HappyPath.feature
             | suspendNoAction  | AIS_ACCOUNT_SUSPENDED          | unSuspendAction    | true         | AIS_ACCOUNT_UNSUSPENDED        |
             | block            | AIS_ACCOUNT_BLOCKED            | unblock            | true         | AIS_ACCOUNT_UNBLOCKED          |
             | pswResetRequired | AIS_FORCED_USER_PASSWORD_RESET | suspendNoAction    | true         | AIS_ACCOUNT_SUSPENDED          |
+    
+    @regression
+    Scenario Outline: Happy Path - Logs Validation
+        Given Cloudwatch logs have been created
+        When log events messages contain a userId
+        Then the log events should also contain the message prefix sensitive info
