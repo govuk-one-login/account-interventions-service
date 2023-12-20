@@ -60,7 +60,6 @@ Parameters:
 
 Conditions:
   IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
-  IsProdOrInt: !Or [!Equals [!Ref Environment, production], !Equals [!Ref Environment, integration]]
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
 
@@ -283,7 +282,6 @@ Resources:
           Value: !Sub "/aws/lambda/${AWS::StackName}-InterventionsProcessorFunction"
 
   InterventionsProcessorFunctionLogsSubscriptionFilterCSLS:
-    Condition: IsProdOrInt
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
@@ -450,7 +448,6 @@ Resources:
           Value: !Sub "/aws/lambda/${AccountDeletionProcessorFunction}"
 
   AccountDeletionProcessorFunctionLogsSubscriptionFilterCSLS:
-    Condition: IsProdOrInt
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
@@ -861,7 +858,6 @@ Resources:
           Value: !Sub "/aws/lambda/${StatusRetrieverFunction}"
 
   StatusRetrieverFunctionLogsSubscriptionFilterCSLS:
-    Condition: IsProdOrInt
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
@@ -979,7 +975,7 @@ Resources:
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
-      LogGroupName: !Sub "/aws/lambda/${InvokePrivateAPIGatewayFunction}"
+      LogGroupName: !Ref InvokePrivateAPIGatewayFunctionLogGroup
       FilterPattern: "{$.message != \"Sensitive info*\"}"
 
   # Private API Gateway resources
