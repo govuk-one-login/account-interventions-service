@@ -1,16 +1,30 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
+import { filterCloudWatchLogs } from '../../../utils/cloudwatch-logs';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import { timeDelayForTestEnvironment } from '../../../utils/utility';
+import { FilteredLogEvent } from '@aws-sdk/client-cloudwatch-logs';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
+interface EventMessage {
+  message?: string;
+  userId?: string;
+}
+
 defineFeature(feature, (test) => {
   let testUserId: string;
+  let startTime: number;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   let response: any;
+  let events: FilteredLogEvent[];
+  let messages: (string | EventMessage | undefined)[];
+
+  beforeAll(() => {
+    startTime = Date.now();
+  });
 
   beforeEach(() => {
     testUserId = generateRandomTestUserId();
@@ -154,6 +168,35 @@ defineFeature(feature, (test) => {
     then(/^I should receive the appropriate (.*) for the ais endpoint$/, async (interventionType) => {
       console.log(`Received`, { response });
       expect(response.intervention.description).toBe(interventionType);
+    });
+  });
+
+  test('Happy Path - Logs Validation', ({ given, when, then }) => {
+    given('Cloudwatch logs have been created', async () => {
+      events = await filterCloudWatchLogs(startTime);
+    });
+
+    when('log events messages contain a userId', () => {
+      messages = events.map((event) => {
+        let message;
+        if (event.message) {
+          try {
+            message = JSON.parse(event.message) as EventMessage;
+          } catch {
+            message = event.message;
+          }
+        }
+        return message;
+      });
+
+      messages = messages.filter((message) => message && message.hasOwnProperty('userId'));
+    });
+
+    then('the log events should also contain the message prefix sensitive info', () => {
+      messages = messages.filter(
+        (message) => message && typeof message !== 'string' && !message.message?.startsWith('Sensitive info'),
+      );
+      expect(messages).toHaveLength(0);
     });
   });
 });
