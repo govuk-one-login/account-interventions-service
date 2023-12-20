@@ -283,7 +283,6 @@ Resources:
           Value: !Sub "/aws/lambda/${AWS::StackName}-InterventionsProcessorFunction"
 
   InterventionsProcessorFunctionLogsSubscriptionFilterCSLS:
-    Condition: IsProdOrInt
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
@@ -450,7 +449,6 @@ Resources:
           Value: !Sub "/aws/lambda/${AccountDeletionProcessorFunction}"
 
   AccountDeletionProcessorFunctionLogsSubscriptionFilterCSLS:
-    Condition: IsProdOrInt
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
@@ -861,7 +859,6 @@ Resources:
           Value: !Sub "/aws/lambda/${StatusRetrieverFunction}"
 
   StatusRetrieverFunctionLogsSubscriptionFilterCSLS:
-    Condition: IsProdOrInt
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
@@ -979,7 +976,7 @@ Resources:
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
-      LogGroupName: ! Ref InvokePrivateAPIGatewayFunctionLogGroup
+      LogGroupName: !Ref InvokePrivateAPIGatewayFunctionLogGroup
       FilterPattern: "{$.message != \"Sensitive info*\"}"
 
   # Private API Gateway resources
