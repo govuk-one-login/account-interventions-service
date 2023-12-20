@@ -56,7 +56,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
             | aisEventType    | historyValue | interventionType    | testUserId |
             | suspendNoAction | false        | AIS_NO_INTERVENTION |            |
 
-    Scenario Outline: Happy Path - Logs Validation
+    Scenario: Happy Path - Logs Validation
         Given Cloudwatch logs have been created
         When log events messages contain a userId
         Then the log events should also contain the message prefix sensitive info
