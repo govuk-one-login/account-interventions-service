@@ -2,10 +2,22 @@ import { AppConfigService } from './app-config-service';
 import tracer from '../commons/tracer';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { SendMessageCommand, SendMessageCommandOutput, SQSClient } from '@aws-sdk/client-sqs';
-import { TxMAEgressEvent, TxMAEgressEventName, TxMAEgressExtensions, TxMAIngressEvent } from '../data-types/interfaces';
+import {
+  AccountStateEngineOutput,
+  TxMAEgressEvent,
+  TxMAEgressEventName,
+  TxMAEgressExtensions,
+  TxMAIngressEvent,
+} from '../data-types/interfaces';
 import logger from '../commons/logger';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-import { COMPONENT_ID, EventsEnum, MetricNames, userLedActionList } from '../data-types/constants';
+import {
+  COMPONENT_ID,
+  EventsEnum,
+  MetricNames,
+  nonInterventionsCodes,
+  userLedActionList,
+} from '../data-types/constants';
 import { logAndPublishMetric } from '../commons/metrics';
 
 const appConfig = AppConfigService.getInstance();
@@ -23,14 +35,14 @@ const sqsClient = tracer.captureAWSv3Client(
  * @param eventName - The event name used for sending off the event to identify the action taken.
  * @param eventEnum - The name of the event as an EventsEnum
  * @param ingressTxmaEvent - The original event from TxMA
- * @param appliedAt - optional timestamp of when the event transition was applied, if relevant
+ * @param currentStatusAfterUpdate - Current state after applying intervention
  * @returns - Response from sending the message to the Queue.
  */
 export async function sendAuditEvent(
   eventName: TxMAEgressEventName,
   eventEnum: EventsEnum,
   ingressTxmaEvent: TxMAIngressEvent,
-  appliedAt?: number,
+  currentStatusAfterUpdate: AccountStateEngineOutput,
 ): Promise<SendMessageCommandOutput | undefined> {
   logger.debug('sendAuditEvent function.');
 
@@ -43,7 +55,7 @@ export async function sendAuditEvent(
     component_id: COMPONENT_ID,
     event_name: eventName,
     user: { user_id: ingressTxmaEvent.user.user_id },
-    extensions: buildExtensions(ingressTxmaEvent, eventEnum, appliedAt),
+    extensions: buildExtensions(ingressTxmaEvent, eventEnum, currentStatusAfterUpdate),
   };
 
   const input = { MessageBody: JSON.stringify(txmaEvent), QueueUrl: appConfig.txmaEgressQueueUrl };
@@ -63,15 +75,26 @@ export async function sendAuditEvent(
  * Helper function to build extension object based on the type of event
  * @param event - Original event received from TxMA
  * @param eventEnum - Event name as an EventEnum
- * @param appliedAt - optional timestamp of when then event transition was applied
+ * @param currentStatusAfterUpdate - Current state after applying intervention
  * @returns - TxMAEgressExtensions object
  */
-function buildExtensions(event: TxMAIngressEvent, eventEnum: EventsEnum, appliedAt?: number): TxMAEgressExtensions {
+function buildExtensions(
+  event: TxMAIngressEvent,
+  eventEnum: EventsEnum,
+  currentStatusAfterUpdate: AccountStateEngineOutput,
+): TxMAEgressExtensions {
   return {
-    eventType: userLedActionList.includes(eventEnum) ? 'USER_LED_ACTION' : 'TICF_ACCOUNT_INTERVENTION',
-    event: eventEnum,
+    trigger_event: event.event_name,
+    description: userLedActionList.includes(eventEnum) ? 'USER_LED_ACTION' : currentStatusAfterUpdate.interventionName!,
     intervention_code: event.extensions?.intervention?.intervention_code,
     reason: event.extensions?.intervention?.intervention_reason,
-    appliedAt,
+    allowable_interventions: currentStatusAfterUpdate.nextAllowableInterventions.filter(
+      (intervention) => !nonInterventionsCodes.has(intervention),
+    ),
+    state: buildStateAttribute(),
   };
+}
+
+function buildStateAttribute(): string {
+  return '';
 }

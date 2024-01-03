@@ -101,7 +101,6 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
       ingressUserActionEvent,
-      1_234_567,
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
@@ -116,7 +115,6 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
-      1_234_567,
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
@@ -131,7 +129,6 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
-      1_234_567,
     );
     expect(response).toBeUndefined();
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);

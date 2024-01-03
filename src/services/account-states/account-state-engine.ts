@@ -42,7 +42,7 @@ export class AccountStateEngine {
    * Helper method to return an Enum representation of the intervention event given the corresponding code
    * @param code - number mapping to an intervention event
    */
-  getInterventionEnumFromCode(code: number) {
+  getInterventionEnumFromCode(code: number): EventsEnum {
     const newStateName = AccountStateEngine.configuration.edges[code]?.name;
     if (!newStateName)
       throw buildConfigurationError(
@@ -77,6 +77,7 @@ export class AccountStateEngine {
     return {
       newState: newStateObject,
       interventionName: AccountStateEngine.configuration.edges[transition]?.interventionName as AISInterventionTypes,
+      nextAllowableInterventions: this.findPossibleTransitions(this.findAccountStateName(newStateObject)),
     };
   }
 
@@ -99,7 +100,7 @@ export class AccountStateEngine {
    * If none can be found it throws an error
    * @param nodeKey - the state name used as the key to identify the nodes in the config object
    */
-  private findPossibleTransitions(nodeKey: string) {
+  findPossibleTransitions(nodeKey: string): string[] {
     const allowedTransition = AccountStateEngine.configuration.adjacency[nodeKey];
     if (!allowedTransition)
       throw buildConfigurationError(
@@ -117,7 +118,7 @@ export class AccountStateEngine {
    * @param allowedTransition - list of allowed transition codes
    * @param transition - EventsEnum representation of the proposed transition
    */
-  private getTransition(allowedTransition: number[], transition: EventsEnum) {
+  private getTransition(allowedTransition: string[], transition: EventsEnum) {
     for (const edge of allowedTransition) {
       if (AccountStateEngine.configuration.edges[edge]?.name === transition.toString()) return edge;
     }
@@ -132,7 +133,7 @@ export class AccountStateEngine {
    * Helper method to return the new account state given a transition
    * @param edge - code mapping to a specific transition
    */
-  private getNewStateObject(edge: number) {
+  private getNewStateObject(edge: string) {
     const newStateName = AccountStateEngine.configuration.edges[edge]!.to;
     const newStateObject = AccountStateEngine.configuration.nodes[newStateName];
     if (!newStateObject)

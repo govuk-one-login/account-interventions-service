@@ -1,4 +1,4 @@
-import { EventsEnum, TICF_ACCOUNT_INTERVENTION } from './constants';
+import { TriggerEventsEnum } from './constants';
 
 export const TxMAIngress = {
   definitions: {},
@@ -16,7 +16,7 @@ export const TxMAIngress = {
       required: ['timestamp', 'event_name', 'user'],
       allOf: [
         {
-          if: { properties: { event_name: { enum: [EventsEnum.IPV_IDENTITY_ISSUED] } } },
+          if: { properties: { event_name: { enum: [TriggerEventsEnum.IPV_IDENTITY_ISSUED] } } },
           // eslint-disable-next-line unicorn/no-thenable
           then: {
             required: ['extensions'],
@@ -32,7 +32,7 @@ export const TxMAIngress = {
           },
         },
         {
-          if: { properties: { event_name: { enum: [TICF_ACCOUNT_INTERVENTION] } } },
+          if: { properties: { event_name: { enum: [TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION] } } },
           // eslint-disable-next-line unicorn/no-thenable
           then: {
             required: ['event_timestamp_ms', 'extensions'],
@@ -72,12 +72,7 @@ export const TxMAIngress = {
         event_name: {
           $id: '#root/event/event_name',
           title: 'Event_Name',
-          enum: [
-            TICF_ACCOUNT_INTERVENTION,
-            EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
-            EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
-            EventsEnum.IPV_IDENTITY_ISSUED,
-          ],
+          enum: Object.values(TriggerEventsEnum),
         },
         component_id: {
           $id: '#root/event/component_id',

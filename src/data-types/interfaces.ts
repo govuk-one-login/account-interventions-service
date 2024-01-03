@@ -1,4 +1,4 @@
-import { EventsEnum, AISInterventionTypes } from './constants';
+import { EventsEnum, AISInterventionTypes, TriggerEventsEnum } from './constants';
 
 export interface StateDetails {
   blocked: boolean;
@@ -31,6 +31,7 @@ export interface FullAccountInformation {
 export interface AccountStateEngineOutput {
   newState: StateDetails;
   interventionName?: AISInterventionTypes;
+  nextAllowableInterventions: string[];
 }
 
 export interface CurrentTimeDescriptor {
@@ -58,14 +59,15 @@ export interface TxMAEgressEvent {
 }
 
 export interface TxMAEgressExtensions {
-  eventType: TxMAEgressEventType;
-  event: EventsEnum;
+  trigger_event: string;
+  description: string | AISInterventionTypes;
   intervention_code: string | undefined;
-  appliedAt: number | undefined;
   reason: string | undefined;
+  allowable_interventions: string[];
+  state: string;
 }
 export interface TxMAIngressEvent {
-  event_name: string;
+  event_name: TriggerEventsEnum;
   timestamp: number;
   event_timestamp_ms?: number;
   component_id: string;
@@ -102,14 +104,14 @@ export interface TransitionConfigurationInterface {
     [key: string]: StateDetails;
   };
   edges: {
-    [key: number]: {
+    [key: string]: {
       to: string;
       name: EventsEnum;
       interventionName?: AISInterventionTypes;
     };
   };
   adjacency: {
-    [key: string]: number[];
+    [key: string]: string[];
   };
 }
 

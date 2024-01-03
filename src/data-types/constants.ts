@@ -47,6 +47,12 @@ export enum EventsEnum {
   AUTH_PASSWORD_RESET_SUCCESSFUL = 'AUTH_PASSWORD_RESET_SUCCESSFUL', //pragma: allowlist secret
   AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT = 'AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT', //pragma: allowlist secret
 }
+export enum TriggerEventsEnum {
+  TICF_ACCOUNT_INTERVENTION = 'TICF_ACCOUNT_INTERVENTION',
+  IPV_IDENTITY_ISSUED = 'IPV_IDENTITY_ISSUED',
+  AUTH_PASSWORD_RESET_SUCCESSFUL = 'AUTH_PASSWORD_RESET_SUCCESSFUL', //pragma: allowlist secret
+  AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT = 'AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT', //pragma: allowlist secret
+}
 export enum AISInterventionTypes {
   AIS_NO_INTERVENTION = 'AIS_NO_INTERVENTION',
   AIS_ACCOUNT_SUSPENDED = 'AIS_ACCOUNT_SUSPENDED',
@@ -62,8 +68,10 @@ export const userLedActionList: EventsEnum[] = [
   EventsEnum.IPV_IDENTITY_ISSUED,
   EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
 ];
-export const TICF_ACCOUNT_INTERVENTION = 'TICF_ACCOUNT_INTERVENTION';
-export const COMPONENT_ID = 'Account Interventions Services';
+
+export const nonInterventionsCodes = new Set(['90', '91', '92', '93']);
+
+export const COMPONENT_ID = 'ACCOUNT_INTERVENTION_SERVICE';
 
 export enum HistoryStringParts {
   EVENT_TIMESTAMP_MS,

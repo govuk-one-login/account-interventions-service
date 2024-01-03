@@ -6,7 +6,7 @@ import {
   LOGS_PREFIX_SENSITIVE_INFO,
   MetricNames,
   noMetadata,
-  TICF_ACCOUNT_INTERVENTION,
+  TriggerEventsEnum,
 } from '../data-types/constants';
 import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
@@ -48,6 +48,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
   }
 
   const itemFailures: SQSBatchItemFailure[] = [];
+
   const promiseArray = event.Records.map((record: SQSRecord) => {
     return processSQSRecord(record).catch(async (error) => {
       const itemIdentifier = await handleError(error, record);
@@ -104,7 +105,7 @@ async function processSQSRecord(record: SQSRecord) {
   await service.updateUserStatus(userId, partialCommandInput);
   updateAccountStateCountMetric(currentAccountState, statusResult.newState);
   logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
-  await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, recordBody, currentTimestamp.milliseconds);
+  await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, recordBody, statusResult);
 }
 
 /**
@@ -137,12 +138,12 @@ async function handleError(error: unknown, record: SQSRecord) {
  */
 function getEventName(recordBody: TxMAIngressEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
-  if (recordBody.event_name === TICF_ACCOUNT_INTERVENTION) {
+  if (recordBody.event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION) {
     validateInterventionEvent(recordBody);
     const interventionCode = Number.parseInt(recordBody.extensions!.intervention!.intervention_code);
     return accountStateEngine.getInterventionEnumFromCode(interventionCode);
   }
-  return recordBody.event_name as EventsEnum;
+  return recordBody.event_name as unknown as EventsEnum;
 }
 
 /**
