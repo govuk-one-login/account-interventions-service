@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 
 Description: >-
-  Main template for the account interventions service solution
+  The main Account Interventions Service (AIS) solution stack
 
 Parameters:
   Environment:
@@ -24,7 +24,6 @@ Parameters:
     Type: String
     Default: vpc
     AllowedPattern: ^[a-z0-9-]+$
-    ConstraintDescription: must be a valid organization ID, made of lowercase letters and numbers
   PermissionsBoundary:
     Description: The ARN of the permissions boundary to apply when creating IAM roles
     Type: String
@@ -60,6 +59,7 @@ Parameters:
 
 Conditions:
   IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
+  IsNotInternal: !Not [ Condition: IsInternal ]
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
 
@@ -67,40 +67,50 @@ Mappings:
   EnvConfig:
     dev:
       LambdaLogLevel: DEBUG
-      AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #This will point to the internal SNS topic
-      TxMAAccountARN: arn:aws:iam::013758878511:root # DI ID Reuse Core Dev
+      AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:985326104449:UserAccountDeletion
+      TxMAAccountID: 013758878511 # DI ID Reuse Core Dev
+      TxMAIngressQueueARN: "Uses Internal TxMAIngressQueue"
+      TxMAIngressQueueKmsKeyARN: "Uses the SQSEncryptionKey with Internal TxMAIngressQueue"
       OrchestrationVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
       AuthenticationVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
       OneLoginHomeVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     build:
       LambdaLogLevel: INFO
-      AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #This will point to the internal SNS topic
-      TxMAAccountARN: arn:aws:iam::688341086169:root # DI ID Reuse Core Build
+      AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:301577035144:UserAccountDeletion
+      TxMAAccountID: 688341086169 # DI ID Reuse Core Build
+      TxMAIngressQueueARN: "Uses Internal TxMAIngressQueue"
+      TxMAIngressQueueKmsKeyARN: "Uses the SQSEncryptionKey with Internal TxMAIngressQueue"
       OrchestrationVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
       AuthenticationVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
       OneLoginHomeVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     staging:
       LambdaLogLevel: INFO
-      AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
-      TxMAAccountARN: arn:aws:iam::178023842775:root
+      AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:539729775994:UserAccountDeletion
+      TxMAAccountID: 178023842775
+      TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:178023842775:self-staging-EC-SQS-Output-Queue-accountsIntervention
+      TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:178023842775:key/e388cb30-2d78-431f-b1a6-847549a815aa
       OrchestrationVPCID: vpc-0ca40c7d13490419d # Orchestation Staging VPC ID
       AuthenticationVPCID: vpc-0ca40c7d13490419d # Authentication Staging VPC ID
       OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     integration:
       LambdaLogLevel: INFO
-      AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
-      TxMAAccountARN: arn:aws:iam::729485541398:root
+      AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:666500506359:UserAccountDeletion
+      TxMAAccountID: 729485541398
+      TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:729485541398:self-integration-EC-SQS-Output-Queue-accountsIntervention
+      TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:729485541398:key/c360ee61-da3b-48de-998e-68cb91743414
       OrchestrationVPCID: vpc-04444d1dc96d8822c # Orchestation Integration VPC ID
       AuthenticationVPCID: vpc-04444d1dc96d8822c # Authentication Integration VPC ID
       OneLoginHomeVPCID: vpc-048c9133a5998efe7 # One Login Home Integration VPC ID
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     production:
       LambdaLogLevel: INFO
-      AccountDeletionProcessorSNSTopicARN: "PLACEHOLDER VALUE" #TBC
-      TxMAAccountARN: arn:aws:iam::451773080033:root
+      AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:026991849909:UserAccountDeletion
+      TxMAAccountID: 451773080033
+      TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:451773080033:self-production-EC-SQS-Output-Queue-accountsIntervention
+      TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:451773080033:key/5bbb4188-6774-4fe8-a78a-968f5e435295
       OrchestrationVPCID: vpc-00012e96e1cd0bf95 # Orchestration Production VPC ID
       AuthenticationVPCID: vpc-00012e96e1cd0bf95 # Authentication Production VPC ID
       OneLoginHomeVPCID: vpc-0c94e753d20410154 # One Login Home Production VPC ID
@@ -150,22 +160,27 @@ Globals:
 Resources:
   ### Interventions Processor ###
   InterventionsProcessorFunction:
-    DependsOn: InterventionsProcessorFunctionPolicy
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${AWS::StackName}-InterventionsProcessorFunction"
-      Description: "A Lambda function for processing the interventions."
+      Description: "Processes intervention events and updates account's intervention status."
       CodeUri: ../../../dist/interventions-processor-handler
       Timeout: 5
       Handler: interventions-processor-handler.handler
+      MemorySize: 128
       Role: !GetAtt InterventionsProcessorFunctionRole.Arn
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
       Events:
         SQSEvent:
           Type: SQS
           Properties:
-            Queue: !GetAtt TxMAIngressQueue.Arn
+            Queue: !If
+              - IsInternal
+              - !GetAtt TxMAIngressQueue.Arn
+              - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
             BatchSize: 1
+            Enabled: true
             FunctionResponseTypes:
               - ReportBatchItemFailures
       Environment:
@@ -181,6 +196,21 @@ Resources:
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
+
+  InterventionsProcessorFunctionInvokePermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      FunctionName: !GetAtt InterventionsProcessorFunction.Arn
+      Action: 'lambda:InvokeFunction'
+      Principal: 'sqs.amazonaws.com'
+      SourceAccount: !If
+        - IsInternal
+        - !Ref AWS::AccountId
+        - !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountID ]
+      SourceArn: !If
+        - IsInternal
+        - !GetAtt TxMAIngressQueue.Arn
+        - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
 
   InterventionsProcessorFunctionRole:
     Type: AWS::IAM::Role
@@ -229,7 +259,10 @@ Resources:
               - "sqs:ReceiveMessage"
               - "sqs:DeleteMessage"
               - "sqs:GetQueueAttributes"
-            Resource: !GetAtt TxMAIngressQueue.Arn
+            Resource: !If
+              - IsInternal
+              - !GetAtt TxMAIngressQueue.Arn
+              - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
           - Effect: Allow
             Action:
               - "sqs:SendMessage"
@@ -258,6 +291,22 @@ Resources:
               - "kms:decrypt"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableEncryptionKeyArn"
+      Roles:
+        - !Ref InterventionsProcessorFunctionRole
+
+  InterventionsProcessorFunctionTxMAKeyPolicy:
+    Type: AWS::IAM::Policy
+    Condition: IsNotInternal
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionTxMAKeyPolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueKmsKeyARN ]
       Roles:
         - !Ref InterventionsProcessorFunctionRole
 
@@ -314,12 +363,14 @@ Resources:
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
     Properties:
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
-      Description: "A lambda function that updates an account status indicating that the account has been deleted"
+      Description: "Updates an account intervention status indicating that the account has been deleted."
       CodeUri: ../../../dist/account-deletion-processor-handler
       Timeout: 10
       Handler: account-deletion-processor-handler.handler
+      MemorySize: 128
       Role: !GetAtt AccountDeletionProcessorFunctionRole.Arn
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
       Environment:
         Variables:
           TABLE_NAME:
@@ -358,6 +409,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName:  !Sub '${AWS::StackName}-AccountDeletionProcessorFunctionRole'
+      Description: !Sub "The role assumed by ${AWS::StackName}-AccountDeletionProcessorFunction"
       PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -423,7 +475,6 @@ Resources:
               - "kms:decrypt"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableEncryptionKeyArn"
-
       Roles:
         - !Ref AccountDeletionProcessorFunctionRole
 
@@ -522,6 +573,7 @@ Resources:
  #### TxMA Queues ####
   TxMAIngressQueue:
     Type: AWS::SQS::Queue
+    Condition: IsInternal
     Properties:
       QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue"
       MessageRetentionPeriod: 1209600
@@ -546,6 +598,7 @@ Resources:
 
   TxMAIngressQueuePolicy:
     Type: AWS::SQS::QueuePolicy
+    Condition: IsInternal
     Properties:
       Queues:
         - !Ref TxMAIngressQueue
@@ -560,6 +613,7 @@ Resources:
 
   TxMAIngressDLQ:
     Type: AWS::SQS::Queue
+    Condition: IsInternal
     Properties:
       QueueName: !Sub "${AWS::StackName}-TxMAIngressDLQ"
       KmsMasterKeyId: !Ref SQSEncryptionKeyAlias
@@ -623,7 +677,7 @@ Resources:
               - !GetAtt TxMAEgressQueue.Arn
             Principal:
               AWS:
-                - !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountARN ]
+                - !Join [ "", [ "arn:aws:iam::", !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountID ], ":root"] ]
           - Effect: Allow
             Action:
               - "sqs:SendMessage"
@@ -705,6 +759,49 @@ Resources:
       AliasName: !Sub "alias/${AWS::StackName}-AccountDeletionProcessorSNSKmsKey"
       TargetKeyId: !GetAtt AccountDeletionProcessorSNSKmsKey.Arn
 
+  LambdaEnvironmentVariableEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: "KMS key used to encrypt lambda environment variables"
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - kms:*
+            Resource: "*"
+          - Effect: "Allow"
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - "kms:Decrypt"
+            Resource: "*"
+            Condition:
+              ArnLike:
+                "aws:SourceArn": !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-LambdaEnvironmentVariableEncryptionKey"
+
+  LambdaEnvironmentVariableEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${AWS::StackName}-LambdaEnvironmentVariableEncryptionKey"
+      TargetKeyId: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
+
   SQSEncryptionKey:
     Type: AWS::KMS::Key
     Properties:
@@ -741,7 +838,7 @@ Resources:
                 aws:SourceArn: !Ref AccountDeletionProcessorSNSTopic
           - Effect: Allow
             Principal:
-              AWS: !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountARN ]
+              AWS: !Join [ "", [ "arn:aws:iam::", !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountID ], ":root"] ]
             Action:
               - "kms:Decrypt"
               - "kms:GenerateDataKey"
@@ -772,8 +869,11 @@ Resources:
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
     Properties:
       FunctionName: !Sub '${AWS::StackName}-StatusRetrieverFunction'
+      Description: "Retrieves the account's intervention status."
       CodeUri: ../../../dist/handlers/status-retriever-handler
+      MemorySize: 128
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
       Timeout: 10
       Environment:
         Variables:
@@ -787,6 +887,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName:  !Sub '${AWS::StackName}-StatusRetrieverFunctionRole'
+      Description: !Sub "The role assumed by the ${AWS::StackName}-StatusRetrieverFunction"
       PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -872,9 +973,12 @@ Resources:
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
     Properties:
       FunctionName: !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunction'
+      Description: 'Utility function to invoke the Private REST API (Non-Prod Only)'
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       CodeUri: ../../../dist/handlers/invoke-private-api
       Timeout: 10
+      MemorySize: 128
+      KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
       Role: !GetAtt InvokePrivateAPIGatewayFunctionRole.Arn
       Environment:
         Variables:
@@ -908,6 +1012,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName:  !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunctionRole'
+      Description: !Sub "The role assumed by ${AWS::StackName}-InvokePrivateAPIGatewayFunction"
       PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -970,14 +1075,6 @@ Resources:
         - Key: Name
           Value: !Sub "/aws/lambda/${InvokePrivateAPIGatewayFunction}"
 
-  InvokePrivateAPIGatewayFunctionLogsSubscriptionFilterCSLS:
-    Condition: IsInternal
-    Type: AWS::Logs::SubscriptionFilter
-    Properties:
-      DestinationArn: !Ref CSLSSubscriptionEndpointArn
-      LogGroupName: !Ref InvokePrivateAPIGatewayFunctionLogGroup
-      FilterPattern: "{$.message != \"Sensitive info*\"}"
-
   # Private API Gateway resources
   PrivateRestApi:
     Type: AWS::Serverless::Api
@@ -990,7 +1087,7 @@ Resources:
           Name: AWS::Include
           Parameters:
             Location: "../../specs/api.yaml"
-      Description: "Private REST API that provides method to interact with the account interventions services"
+      Description: "Private REST API that provides method to interact with the Account Interventions Services"
       StageName: !Ref ApiStageName
       Auth:
         ResourcePolicy:
@@ -1137,6 +1234,11 @@ Outputs:
     Description: "Private API Gateway endpoint URL for AIS methods"
     Value: !Sub "https://${PrivateRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}"
 
-  SqsQueueUrl:
+  TxMAEgressSqsQueueUrl:
     Description: "Endpoint URL for TxMA Egress Queue"
     Value: !Ref TxMAEgressQueue
+
+  TxMAIngressSqsQueueUrl:
+    Condition: IsInternal
+    Description: "Endpoint URL for TxMA Ingress Queue"
+    Value: !Ref TxMAIngressQueue
