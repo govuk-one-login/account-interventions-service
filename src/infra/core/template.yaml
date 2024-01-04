@@ -53,7 +53,7 @@ Resources:
         SSEType: KMS
       DeletionProtectionEnabled: !If [ IsDevEnvironment, false, true ]
       ContributorInsightsSpecification:
-        Enabled: true
+        Enabled: false
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       TimeToLiveSpecification:
