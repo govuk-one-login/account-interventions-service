@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 
 Description: >-
-  Data layer template for the account interventions service solution
+  The Data layer for the Account Interventions Service (AIS) solution
 
 Parameters:
   Environment:
@@ -30,7 +30,10 @@ Parameters:
   SourceTagValue:
     Description: Value for the Source Tag
     Type: String
-    Default: govuk-one-login/account-interventions-service/src/infra/main/template.yaml
+    Default: govuk-one-login/account-interventions-service/src/infra/core/template.yaml
+
+Conditions:
+  IsDevEnvironment: !Equals [!Ref Environment, 'dev']
 
 Resources:
   AccountStatusTable:
@@ -48,6 +51,9 @@ Resources:
         KMSMasterKeyId: !Ref AccountStatusTableEncryptionKey
         SSEEnabled: true
         SSEType: KMS
+      DeletionProtectionEnabled: !If [ IsDevEnvironment, false, true ]
+      ContributorInsightsSpecification:
+        Enabled: true
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: true
       TimeToLiveSpecification:
@@ -64,6 +70,8 @@ Resources:
           Value: !Ref OwnerTagValue
         - Key: Source
           Value: !Ref SourceTagValue
+        - Key: BackupFrequency
+          Value: Bihourly
 
   AccountStatusTableEncryptionKey:
     Type: AWS::KMS::Key
