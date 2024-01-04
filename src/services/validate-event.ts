@@ -1,12 +1,13 @@
-import { DynamoDBStateResult, TxMAIngressEvent } from '../data-types/interfaces';
+import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
-import { EventsEnum, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
+import { AISInterventionTypes, EventsEnum, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
 import { ValidationError } from '../data-types/errors';
 import { compileSchema } from '../commons/compile-schema';
 import { TxMAIngress } from '../data-types/schemas';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { sendAuditEvent } from './send-audit-events';
+import { AccountStateEngine } from './account-states/account-state-engine';
 
 const validateInterventionDataInput = compileSchema(TxMAIngress);
 
@@ -54,17 +55,15 @@ export function validateLevelOfConfidence(intervention: EventsEnum, event: TxMAI
 
 /**
  * A function to validate that the event received is not in the future
- * @param eventEnum - the event name as an EventsEnum
  * @param event - the event received
  * @throws ValidationError - if the timestamp of the event is in the future
  */
-export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: TxMAIngressEvent) {
+export async function validateEventIsNotInFuture(event: TxMAIngressEvent) {
   const eventTimestampInMs = event.event_timestamp_ms ?? event.timestamp * 1000;
   const now = getCurrentTimestamp().milliseconds;
   if (now < eventTimestampInMs) {
     logger.debug(`Timestamp is in the future (sec): ${eventTimestampInMs}.`);
     logAndPublishMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
-    await sendAuditEvent('AIS_EVENT_IGNORED_IN_FUTURE', eventEnum, event);
     throw new Error('Event is in the future. It will be retried');
   }
 }
@@ -74,18 +73,24 @@ export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: T
  * @param intervention - the intervention name
  * @param event - the event received
  * @param itemFromDB - the user data retrieved from the database
+ * @param initialState - initial state of the account
  * @throws ValidationError - if the time of the event pre-dates the timestamp of the latest intervention applied on the account
  */
 export async function validateEventIsNotStale(
   intervention: EventsEnum,
   event: TxMAIngressEvent,
-  itemFromDB?: DynamoDBStateResult,
+  initialState: StateDetails,
+  itemFromDB: DynamoDBStateResult,
 ) {
   const eventTimestampInMs = event.event_timestamp_ms ?? event.timestamp * 1000;
   if (!isEventAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
     logger.warn('Event received predates last applied event for this user.');
     logAndPublishMetric(MetricNames.INTERVENTION_EVENT_STALE);
-    await sendAuditEvent('AIS_EVENT_IGNORED_STALE', intervention, event);
+    await sendAuditEvent('AIS_EVENT_IGNORED_STALE', intervention, event, {
+      finalState: initialState,
+      interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+      nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+    });
     throw new ValidationError('Event received predates last applied event for this user.');
   }
 }

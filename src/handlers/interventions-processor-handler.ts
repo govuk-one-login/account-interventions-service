@@ -2,6 +2,7 @@ import { Context, SQSBatchItemFailure, SQSBatchResponse, SQSEvent, SQSRecord } f
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
 import {
+  AISInterventionTypes,
   EventsEnum,
   LOGS_PREFIX_SENSITIVE_INFO,
   MetricNames,
@@ -75,7 +76,7 @@ async function processSQSRecord(record: SQSRecord) {
   const eventName = getEventName(recordBody);
   logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention received.`, { intervention: eventName });
   validateLevelOfConfidence(eventName, recordBody);
-  await validateEventIsNotInFuture(eventName, recordBody);
+  await validateEventIsNotInFuture(eventName);
 
   const userId = recordBody.user.user_id;
   const eventTimestampInMs = recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000;
@@ -88,14 +89,16 @@ async function processSQSRecord(record: SQSRecord) {
 
   const itemFromDB = await service.getAccountStateInformation(userId);
 
-  await validateAccountIsNotDeleted(eventName, userId, recordBody, itemFromDB);
-
-  await validateEventIsNotStale(eventName, recordBody, itemFromDB);
-
   const currentAccountState: StateDetails = formCurrentAccountStateObject(itemFromDB);
+
+  if (itemFromDB) {
+    await validateAccountIsNotDeleted(eventName, userId, recordBody, itemFromDB, currentAccountState);
+    await validateEventIsNotStale(eventName, recordBody, itemFromDB, currentAccountState);
+  }
+
   const statusResult = accountStateEngine.applyEventTransition(eventName, currentAccountState);
   const partialCommandInput = buildPartialUpdateAccountStateCommand(
-    statusResult.newState,
+    statusResult.finalState,
     eventName,
     currentTimestamp.milliseconds,
     recordBody,
@@ -103,7 +106,7 @@ async function processSQSRecord(record: SQSRecord) {
   );
   logger.debug('processed requested event, sending update request to dynamo db');
   await service.updateUserStatus(userId, partialCommandInput);
-  updateAccountStateCountMetric(currentAccountState, statusResult.newState);
+  updateAccountStateCountMetric(currentAccountState, statusResult.finalState);
   logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
   await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, recordBody, statusResult);
 }
@@ -124,7 +127,7 @@ async function handleError(error: unknown, record: SQSRecord) {
     });
   else if (error instanceof StateTransitionError) {
     logger.warn('StateTransitionError caught, message will not be retried.', { errorMessage: error.message });
-    await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, JSON.parse(record.body) as TxMAIngressEvent);
+    await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, JSON.parse(record.body) as TxMAIngressEvent, error.output);
   } else {
     logger.error('Error caught, message will be retried.', { errorMessage: (error as Error).message });
     return record.messageId;
@@ -152,17 +155,23 @@ function getEventName(recordBody: TxMAIngressEvent): EventsEnum {
  * @param userId - the id of the user whose account is been intervened
  * @param record - the ingress event from TxMA
  * @param itemFromDB - the data retrieved from the database
+ * @param initialState - initial state of the account
  */
 async function validateAccountIsNotDeleted(
   intervention: EventsEnum,
   userId: string,
   record: TxMAIngressEvent,
-  itemFromDB?: DynamoDBStateResult,
+  itemFromDB: DynamoDBStateResult,
+  initialState: StateDetails,
 ) {
   if (itemFromDB?.isAccountDeleted === true) {
     logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
     logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-    await sendAuditEvent('AIS_EVENT_IGNORED_ACCOUNT_DELETED', intervention, record);
+    await sendAuditEvent('AIS_EVENT_IGNORED_ACCOUNT_DELETED', intervention, record, {
+      finalState: initialState,
+      interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+      nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+    });
     throw new ValidationError('Account is marked as deleted.');
   }
 }

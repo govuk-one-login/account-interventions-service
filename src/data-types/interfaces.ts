@@ -1,4 +1,4 @@
-import { EventsEnum, AISInterventionTypes, TriggerEventsEnum } from './constants';
+import { EventsEnum, AISInterventionTypes, TriggerEventsEnum, ActiveStateActions, State } from './constants';
 
 export interface StateDetails {
   blocked: boolean;
@@ -29,7 +29,7 @@ export interface FullAccountInformation {
   auditLevel?: string;
 }
 export interface AccountStateEngineOutput {
-  newState: StateDetails;
+  finalState: StateDetails;
   interventionName?: AISInterventionTypes;
   nextAllowableInterventions: string[];
 }
@@ -44,10 +44,8 @@ export type TxMAEgressEventName =
   | 'AIS_EVENT_TRANSITION_APPLIED'
   | 'AIS_EVENT_TRANSITION_IGNORED'
   | 'AIS_EVENT_IGNORED_STALE'
-  | 'AIS_EVENT_IGNORED_IN_FUTURE'
   | 'AIS_EVENT_IGNORED_ACCOUNT_DELETED';
 
-export type TxMAEgressEventType = 'TICF_ACCOUNT_INTERVENTION' | 'USER_LED_ACTION';
 export interface TxMAEgressEvent {
   event_name: TxMAEgressEventName;
   timestamp: number;
@@ -59,15 +57,18 @@ export interface TxMAEgressEvent {
 }
 
 export interface TxMAEgressExtensions {
+  trigger_event_id: string;
   trigger_event: string;
   description: string | AISInterventionTypes;
   intervention_code: string | undefined;
   reason: string | undefined;
   allowable_interventions: string[];
-  state: string;
+  state: State | undefined;
+  action: ActiveStateActions | undefined;
 }
 export interface TxMAIngressEvent {
   event_name: TriggerEventsEnum;
+  event_id: string | undefined;
   timestamp: number;
   event_timestamp_ms?: number;
   component_id: string;

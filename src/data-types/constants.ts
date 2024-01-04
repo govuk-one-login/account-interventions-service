@@ -64,6 +64,19 @@ export enum AISInterventionTypes {
   AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY = 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY', //pragma: allowlist secret
 }
 
+export enum ActiveStateActions {
+  RESET_PASSWORD = 'reset_password', //pragma: allowlist secret
+  REPROVE_IDENTITY = 'reprove_identity',
+  RESET_PASSWORD_AND_REPROVE_IDENTITY = 'reset_password_and_reprove_identity', //pragma: allowlist secret
+}
+
+export enum State {
+  ACTIVE = 'active',
+  SUSPENDED = 'suspended',
+  PERMANENTLY_SUSPENDED = 'permanently_suspended',
+  DELETED = 'deleted',
+}
+
 export const userLedActionList: EventsEnum[] = [
   EventsEnum.IPV_IDENTITY_ISSUED,
   EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,

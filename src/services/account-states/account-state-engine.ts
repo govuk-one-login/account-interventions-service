@@ -61,24 +61,33 @@ export class AccountStateEngine {
    *  if Yes, it returns a Partial for UpdateItemCommandInput to use in the database command
    *  if Not, it throws an error
    * @param event - EventEnum representation of event received
-   * @param currentState - optional state object representation the current state of the account, it defaults to account unsuspended if nothing is passed
+   * @param initialState - optional state object representation the current state of the account, it defaults to account unsuspended if nothing is passed
    */
-  applyEventTransition(event: EventsEnum, currentState: StateDetails): AccountStateEngineOutput {
-    const currentStateName = this.findAccountStateName(currentState);
-    const allowedTransition = this.findPossibleTransitions(currentStateName);
-    const transition = this.getTransition(allowedTransition, event);
+  applyEventTransition(event: EventsEnum, initialState: StateDetails): AccountStateEngineOutput {
+    const allowedTransitions = this.determineNextAllowableInterventions(initialState);
+    const transition = this.getTransition(allowedTransitions, event, initialState);
     const newStateObject = this.getNewStateObject(transition);
-    if (areAccountStatesTheSame(newStateObject, currentState))
+    if (areAccountStatesTheSame(newStateObject, initialState))
       throw buildStateTransitionError(
         MetricNames.TRANSITION_SAME_AS_CURRENT_STATE,
         'Computed new state is the same as the current state.',
         event,
+        initialState,
       );
     return {
-      newState: newStateObject,
+      finalState: newStateObject,
       interventionName: AccountStateEngine.configuration.edges[transition]?.interventionName as AISInterventionTypes,
       nextAllowableInterventions: this.findPossibleTransitions(this.findAccountStateName(newStateObject)),
     };
+  }
+
+  /** Method to determine next allowable interventions given the account state name of the current state.
+   *
+   * @param state - state based on which the next interventions are allowed
+   */
+  determineNextAllowableInterventions(state: StateDetails) {
+    const stateName = this.findAccountStateName(state);
+    return this.findPossibleTransitions(stateName);
   }
 
   /**
@@ -100,7 +109,7 @@ export class AccountStateEngine {
    * If none can be found it throws an error
    * @param nodeKey - the state name used as the key to identify the nodes in the config object
    */
-  findPossibleTransitions(nodeKey: string): string[] {
+  private findPossibleTransitions(nodeKey: string): string[] {
     const allowedTransition = AccountStateEngine.configuration.adjacency[nodeKey];
     if (!allowedTransition)
       throw buildConfigurationError(
@@ -117,8 +126,9 @@ export class AccountStateEngine {
    *
    * @param allowedTransition - list of allowed transition codes
    * @param transition - EventsEnum representation of the proposed transition
+   * @param initialState - initial state of the account
    */
-  private getTransition(allowedTransition: string[], transition: EventsEnum) {
+  private getTransition(allowedTransition: string[], transition: EventsEnum, initialState: StateDetails) {
     for (const edge of allowedTransition) {
       if (AccountStateEngine.configuration.edges[edge]?.name === transition.toString()) return edge;
     }
@@ -126,6 +136,7 @@ export class AccountStateEngine {
       MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED,
       `${transition} is not allowed from current state`,
       transition,
+      initialState,
     );
   }
 
@@ -150,11 +161,21 @@ export class AccountStateEngine {
  * @param metricName - name of the metric to log
  * @param errorMessage - error message to be logged
  * @param transition - EventEnum representation of transition
+ * @param initialState - StateDetails of the initial state, before applying interventions
  */
-function buildStateTransitionError(metricName: MetricNames, errorMessage: string, transition: EventsEnum) {
+function buildStateTransitionError(
+  metricName: MetricNames,
+  errorMessage: string,
+  transition: EventsEnum,
+  initialState: StateDetails,
+) {
   logAndPublishMetric(metricName);
   logger.error({ message: errorMessage });
-  return new StateTransitionError(errorMessage, transition);
+  return new StateTransitionError(errorMessage, transition, {
+    finalState: initialState,
+    nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+    interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+  });
 }
 
 /**

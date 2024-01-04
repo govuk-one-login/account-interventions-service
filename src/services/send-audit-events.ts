@@ -12,10 +12,12 @@ import {
 import logger from '../commons/logger';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import {
+  ActiveStateActions,
   COMPONENT_ID,
   EventsEnum,
   MetricNames,
   nonInterventionsCodes,
+  State,
   userLedActionList,
 } from '../data-types/constants';
 import { logAndPublishMetric } from '../commons/metrics';
@@ -35,14 +37,14 @@ const sqsClient = tracer.captureAWSv3Client(
  * @param eventName - The event name used for sending off the event to identify the action taken.
  * @param eventEnum - The name of the event as an EventsEnum
  * @param ingressTxmaEvent - The original event from TxMA
- * @param currentStatusAfterUpdate - Current state after applying intervention
+ * @param currentState - Current state after applying intervention
  * @returns - Response from sending the message to the Queue.
  */
 export async function sendAuditEvent(
   eventName: TxMAEgressEventName,
   eventEnum: EventsEnum,
   ingressTxmaEvent: TxMAIngressEvent,
-  currentStatusAfterUpdate: AccountStateEngineOutput,
+  currentState: AccountStateEngineOutput,
 ): Promise<SendMessageCommandOutput | undefined> {
   logger.debug('sendAuditEvent function.');
 
@@ -55,7 +57,7 @@ export async function sendAuditEvent(
     component_id: COMPONENT_ID,
     event_name: eventName,
     user: { user_id: ingressTxmaEvent.user.user_id },
-    extensions: buildExtensions(ingressTxmaEvent, eventEnum, currentStatusAfterUpdate),
+    extensions: buildExtensions(ingressTxmaEvent, eventEnum, currentState, eventName),
   };
 
   const input = { MessageBody: JSON.stringify(txmaEvent), QueueUrl: appConfig.txmaEgressQueueUrl };
@@ -75,26 +77,53 @@ export async function sendAuditEvent(
  * Helper function to build extension object based on the type of event
  * @param event - Original event received from TxMA
  * @param eventEnum - Event name as an EventEnum
- * @param currentStatusAfterUpdate - Current state after applying intervention
+ * @param finalState - Final state after intervention was/ was not applied
+ * @param txmaEventName - The name of the TxMA event name
  * @returns - TxMAEgressExtensions object
  */
 function buildExtensions(
   event: TxMAIngressEvent,
   eventEnum: EventsEnum,
-  currentStatusAfterUpdate: AccountStateEngineOutput,
+  finalState: AccountStateEngineOutput,
+  txmaEventName: TxMAEgressEventName,
 ): TxMAEgressExtensions {
   return {
     trigger_event: event.event_name,
-    description: userLedActionList.includes(eventEnum) ? 'USER_LED_ACTION' : currentStatusAfterUpdate.interventionName!,
+    trigger_event_id: event.event_id ?? 'UNKNOWN',
+    description: userLedActionList.includes(eventEnum) ? 'USER_LED_ACTION' : finalState.interventionName!,
     intervention_code: event.extensions?.intervention?.intervention_code,
     reason: event.extensions?.intervention?.intervention_reason,
-    allowable_interventions: currentStatusAfterUpdate.nextAllowableInterventions.filter(
+    allowable_interventions: finalState.nextAllowableInterventions.filter(
       (intervention) => !nonInterventionsCodes.has(intervention),
     ),
-    state: buildStateAttribute(),
+    state: buildStateAttribute(finalState, eventEnum, txmaEventName),
+    action: buildActionAttribute(finalState, eventEnum),
   };
 }
 
-function buildStateAttribute(): string {
-  return '';
+function buildStateAttribute(
+  finalState: AccountStateEngineOutput,
+  eventEnum: EventsEnum,
+  txmaEventName: TxMAEgressEventName,
+): State | undefined {
+  if (!finalState.finalState.suspended || (finalState.finalState.suspended && userLedActionList.includes(eventEnum)))
+    return State.ACTIVE;
+  if (finalState.finalState.suspended && !userLedActionList.includes(eventEnum)) return State.SUSPENDED;
+  if (finalState.finalState.blocked) return State.PERMANENTLY_SUSPENDED;
+  if (txmaEventName === 'AIS_EVENT_IGNORED_ACCOUNT_DELETED') return State.DELETED;
+}
+
+function buildActionAttribute(
+  finalState: AccountStateEngineOutput,
+  eventEnum: EventsEnum,
+): ActiveStateActions | undefined {
+  if (finalState.finalState.suspended && userLedActionList.includes(eventEnum)) {
+    if (finalState.finalState.resetPassword && !finalState.finalState.reproveIdentity)
+      return ActiveStateActions.RESET_PASSWORD;
+    if (!finalState.finalState.resetPassword && finalState.finalState.reproveIdentity)
+      return ActiveStateActions.REPROVE_IDENTITY;
+    if (finalState.finalState.resetPassword && finalState.finalState.reproveIdentity)
+      return ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY;
+  }
+  return undefined;
 }
