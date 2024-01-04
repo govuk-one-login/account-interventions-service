@@ -76,7 +76,7 @@ async function processSQSRecord(record: SQSRecord) {
   const eventName = getEventName(recordBody);
   logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention received.`, { intervention: eventName });
   validateLevelOfConfidence(eventName, recordBody);
-  await validateEventIsNotInFuture(eventName);
+  await validateEventIsNotInFuture(recordBody);
 
   const userId = recordBody.user.user_id;
   const eventTimestampInMs = recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000;
@@ -127,7 +127,12 @@ async function handleError(error: unknown, record: SQSRecord) {
     });
   else if (error instanceof StateTransitionError) {
     logger.warn('StateTransitionError caught, message will not be retried.', { errorMessage: error.message });
-    await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, JSON.parse(record.body) as TxMAIngressEvent, error.output);
+    await sendAuditEvent(
+      'AIS_EVENT_TRANSITION_IGNORED',
+      error.transition,
+      JSON.parse(record.body) as TxMAIngressEvent,
+      error.output,
+    );
   } else {
     logger.error('Error caught, message will be retried.', { errorMessage: (error as Error).message });
     return record.messageId;
