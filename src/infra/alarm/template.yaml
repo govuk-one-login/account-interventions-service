@@ -50,7 +50,7 @@ Resources:
       Period: 60
       Statistic: Maximum
 
-  TxMAQueueProcessingTooSlow:
+  TxMAEgressQueueProcessingTooSlow:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -69,7 +69,7 @@ Resources:
       Period: 60
       Statistic: Maximum
 
-  TxMAQueueHasBacklog:
+  TxMAEgressQueueHasBacklog:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -88,7 +88,7 @@ Resources:
       Period: 60
       Statistic: Maximum
 
-  TxMAQueueTooManyMessages:
+  TxMAEgressQueueTooManyMessages:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -107,7 +107,7 @@ Resources:
       Period: 60
       Statistic: Maximum
 
-  TxMADLQHasMessages:
+  TxMAEgressDLQHasMessages:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -126,7 +126,7 @@ Resources:
       Period: 60
       Statistic: Maximum
 
-  TxMADLQTooManyMessages:
+  TxMAEgressDLQTooManyMessages:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
