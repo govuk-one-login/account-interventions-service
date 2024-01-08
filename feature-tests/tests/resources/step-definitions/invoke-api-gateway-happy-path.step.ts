@@ -63,7 +63,7 @@ defineFeature(feature, (test) => {
       async (aisEventType, originalAisEventType) => {
         console.log('sending a message 1 to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
-        await timeDelayForTestEnvironment(2000);
+        await timeDelayForTestEnvironment(1000);
         console.log('sending a message 2 to put the user in : ' + aisEventType);
         await sendSQSEvent(testUserId, aisEventType);
       },
@@ -72,7 +72,7 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke the API to retrieve the intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment(2000);
+        await timeDelayForTestEnvironment(1500);
         response = await invokeGetAccountState(testUserId, historyValue);
       },
     );

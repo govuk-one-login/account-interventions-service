@@ -23,25 +23,25 @@ Feature: Invoke-APIGateway-HappyPath.feature
         Examples:
             | originalAisEventType  | aisEventType              | historyValue | interventionType                                   | blockedState | suspendedState | resetPassword | reproveIdentity |
             #passsword reset account status to new intervention type
-            | pswResetRequired      | pswResetRequired          | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | true           | true          | false           |
-            | pswResetRequired      | suspendNoAction           | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
-            | pswResetRequired      | block                     | false        | AIS_ACCOUNT_BLOCKED                                | true         | false          | false         | false           |
-            | pswResetRequired      | idResetRequired           | false        | AIS_FORCED_USER_IDENTITY_VERIFY                    | false        | true           | false         | true            |
-            | pswResetRequired      | pswAndIdResetRequired     | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false        | true           | true          | true            |
-            | pswResetRequired      | unblock                   | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | true           | true          | false           |
-            | pswResetRequired      | userActionIdResetSuccess  | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | true           | true          | false           |
-            | pswResetRequired      | userActionPswResetSuccess | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | false           | false          | false           |
-            | pswResetRequired      | unSuspendAction           | false        | AIS_ACCOUNT_UNSUSPENDED                     | false        | false           | false          | false           |
+#            | pswResetRequired      | pswResetRequired          | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | true           | true          | false           |
+#            | pswResetRequired      | suspendNoAction           | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
+#            | pswResetRequired      | block                     | false        | AIS_ACCOUNT_BLOCKED                                | true         | false          | false         | false           |
+#            | pswResetRequired      | idResetRequired           | false        | AIS_FORCED_USER_IDENTITY_VERIFY                    | false        | true           | false         | true            |
+#            | pswResetRequired      | pswAndIdResetRequired     | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false        | true           | true          | true            |
+#            | pswResetRequired      | unblock                   | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | true           | true          | false           |
+#            | pswResetRequired      | userActionIdResetSuccess  | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | true           | true          | false           |
+#            | pswResetRequired      | userActionPswResetSuccess | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | false           | false          | false           |
+#            | pswResetRequired      | unSuspendAction           | false        | AIS_ACCOUNT_UNSUSPENDED                     | false        | false           | false          | false           |
           #  suspend no action account status to new intervention type
-#            | suspendNoAction       | pswResetRequired          | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | true           | true          | false           |
-#            | suspendNoAction       | suspendNoAction           | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
-#            | suspendNoAction       | block                     | false        | AIS_ACCOUNT_BLOCKED                                | true         | false          | false         | false           |
-#            | suspendNoAction       | idResetRequired           | false        | AIS_FORCED_USER_IDENTITY_VERIFY                    | false        | true           | false         | true            |
-#            | suspendNoAction       | pswAndIdResetRequired     | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false        | true           | true          | true            |
-#            | suspendNoAction       | unblock                   | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
-#            | suspendNoAction       | userActionIdResetSuccess  | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
-#            | suspendNoAction       | userActionPswResetSuccess | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
-#            | suspendNoAction       | unSuspendAction           | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
+            | suspendNoAction       | pswResetRequired          | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | true           | true          | false           |
+            | suspendNoAction       | suspendNoAction           | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
+            | suspendNoAction       | block                     | false        | AIS_ACCOUNT_BLOCKED                                | true         | false          | false         | false           |
+            | suspendNoAction       | idResetRequired           | false        | AIS_FORCED_USER_IDENTITY_VERIFY                    | false        | true           | false         | true            |
+            | suspendNoAction       | pswAndIdResetRequired     | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false        | true           | true          | true            |
+            | suspendNoAction       | unblock                   | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
+            | suspendNoAction       | userActionIdResetSuccess  | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
+            | suspendNoAction       | userActionPswResetSuccess | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
+            | suspendNoAction       | unSuspendAction           | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
 #            # blocked account status to new intervention type
 #            | block                 | pswResetRequired          | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | true           | true          | false           |
 #            | block                 | suspendNoAction           | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
