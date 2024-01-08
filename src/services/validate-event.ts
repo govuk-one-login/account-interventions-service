@@ -55,15 +55,17 @@ export function validateLevelOfConfidence(intervention: EventsEnum, event: TxMAI
 
 /**
  * A function to validate that the event received is not in the future
+ * @param eventEnum - the event name as an EventsEnum
  * @param event - the event received
  * @throws ValidationError - if the timestamp of the event is in the future
  */
-export async function validateEventIsNotInFuture(event: TxMAIngressEvent) {
+export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: TxMAIngressEvent) {
   const eventTimestampInMs = event.event_timestamp_ms ?? event.timestamp * 1000;
   const now = getCurrentTimestamp().milliseconds;
   if (now < eventTimestampInMs) {
     logger.debug(`Timestamp is in the future (sec): ${eventTimestampInMs}.`);
     logAndPublishMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
+    await sendAuditEvent('AIS_EVENT_IGNORED_IN_FUTURE', eventEnum, event);
     throw new Error('Event is in the future. It will be retried');
   }
 }
@@ -83,7 +85,7 @@ export async function validateEventIsNotStale(
   itemFromDB: DynamoDBStateResult,
 ) {
   const eventTimestampInMs = event.event_timestamp_ms ?? event.timestamp * 1000;
-  if (!isEventAfterLastEvent(eventTimestampInMs, itemFromDB?.sentAt, itemFromDB?.appliedAt)) {
+  if (!isEventAfterLastEvent(eventTimestampInMs, itemFromDB.sentAt, itemFromDB.appliedAt)) {
     logger.warn('Event received predates last applied event for this user.');
     logAndPublishMetric(MetricNames.INTERVENTION_EVENT_STALE);
     await sendAuditEvent('AIS_EVENT_IGNORED_STALE', intervention, event, {

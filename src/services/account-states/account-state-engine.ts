@@ -40,9 +40,9 @@ export class AccountStateEngine {
 
   /**
    * Helper method to return an Enum representation of the intervention event given the corresponding code
-   * @param code - number mapping to an intervention event
+   * @param code - string mapping to an intervention event
    */
-  getInterventionEnumFromCode(code: number): EventsEnum {
+  getInterventionEnumFromCode(code: string): EventsEnum {
     const newStateName = AccountStateEngine.configuration.edges[code]?.name;
     if (!newStateName)
       throw buildConfigurationError(

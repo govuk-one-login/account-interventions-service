@@ -76,7 +76,7 @@ async function processSQSRecord(record: SQSRecord) {
   const eventName = getEventName(recordBody);
   logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention received.`, { intervention: eventName });
   validateLevelOfConfidence(eventName, recordBody);
-  await validateEventIsNotInFuture(recordBody);
+  await validateEventIsNotInFuture(eventName, recordBody);
 
   const userId = recordBody.user.user_id;
   const eventTimestampInMs = recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000;
@@ -92,8 +92,8 @@ async function processSQSRecord(record: SQSRecord) {
   const currentAccountState: StateDetails = formCurrentAccountStateObject(itemFromDB);
 
   if (itemFromDB) {
-    await validateAccountIsNotDeleted(eventName, userId, recordBody, itemFromDB, currentAccountState);
-    await validateEventIsNotStale(eventName, recordBody, itemFromDB, currentAccountState);
+    await validateAccountIsNotDeleted(eventName, userId, recordBody, currentAccountState, itemFromDB);
+    await validateEventIsNotStale(eventName, recordBody, currentAccountState, itemFromDB);
   }
 
   const statusResult = accountStateEngine.applyEventTransition(eventName, currentAccountState);
@@ -148,7 +148,7 @@ function getEventName(recordBody: TxMAIngressEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
   if (recordBody.event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION) {
     validateInterventionEvent(recordBody);
-    const interventionCode = Number.parseInt(recordBody.extensions!.intervention!.intervention_code);
+    const interventionCode = recordBody.extensions!.intervention!.intervention_code;
     return accountStateEngine.getInterventionEnumFromCode(interventionCode);
   }
   return recordBody.event_name as unknown as EventsEnum;
@@ -166,8 +166,8 @@ async function validateAccountIsNotDeleted(
   intervention: EventsEnum,
   userId: string,
   record: TxMAIngressEvent,
-  itemFromDB: DynamoDBStateResult,
   initialState: StateDetails,
+  itemFromDB: DynamoDBStateResult,
 ) {
   if (itemFromDB?.isAccountDeleted === true) {
     logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);

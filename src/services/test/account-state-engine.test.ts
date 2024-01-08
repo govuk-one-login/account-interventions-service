@@ -42,99 +42,110 @@ const accountIsBlocked = {
   reproveIdentity: false,
 };
 const blockAccountUpdate = {
-  newState: {
+  finalState: {
     blocked: true,
     suspended: false,
     resetPassword: false,
     reproveIdentity: false,
   },
   interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
+  nextAllowableInterventions: ['07'],
 };
 const suspendAccountUpdate = {
-  newState: {
+  finalState: {
     blocked: false,
     suspended: true,
     resetPassword: false,
     reproveIdentity: false,
   },
   interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+  nextAllowableInterventions: ['02', '03', '04', '05', '06'],
 };
 const passwordResetRequiredUpdate = {
-  newState: {
+  finalState: {
     blocked: false,
     suspended: true,
     resetPassword: true,
     reproveIdentity: false,
   },
   interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
+  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90'],
 };
 const idResetRequiredUpdate = {
-  newState: {
+  finalState: {
     blocked: false,
     suspended: true,
     resetPassword: false,
     reproveIdentity: true,
   },
   interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
+  nextAllowableInterventions: ['01', '02', '03', '04', '06', '91'],
 };
 const pswAndIdResetRequiredUpdate = {
-  newState: {
+  finalState: {
     blocked: false,
     suspended: true,
     resetPassword: true,
     reproveIdentity: true,
   },
   interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
+  nextAllowableInterventions: ['01', '02', '03', '04', '05', '92', '93'],
 };
 const unsuspendAccountUpdate = {
-  newState: {
+  finalState: {
     blocked: false,
     suspended: false,
     resetPassword: false,
     reproveIdentity: false,
   },
   interventionName: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
+  nextAllowableInterventions: ['01', '03', '04', '05', '06'],
 };
 const unblockAccountUpdate = {
-  newState: {
+  finalState: {
     blocked: false,
     suspended: false,
     resetPassword: false,
     reproveIdentity: false,
   },
   interventionName: AISInterventionTypes.AIS_ACCOUNT_UNBLOCKED,
+  nextAllowableInterventions: ['01', '03', '04', '05', '06'],
 };
 const pswResetSuccessfulUpdateUnsuspended = {
-  newState: {
+  finalState: {
     blocked: false,
     suspended: false,
     resetPassword: false,
     reproveIdentity: false,
   },
+  nextAllowableInterventions: ['01', '03', '04', '05', '06']
 };
 const pswResetSuccessfulUpdateSuspended = {
-  newState: {
+  finalState: {
     blocked: false,
     suspended: true,
     resetPassword: false,
     reproveIdentity: true,
   },
+  nextAllowableInterventions: ['01', '02', '03', '04', '06', '91']
 };
 const idResetSuccessfulUpdateUnsuspended = {
-  newState: {
+  finalState: {
     blocked: false,
     suspended: false,
     resetPassword: false,
     reproveIdentity: false,
   },
+  nextAllowableInterventions: ['01', '03', '04', '05', '06']
 };
 const idResetSuccessfulUpdateSuspended = {
-  newState: {
+  finalState: {
     blocked: false,
     suspended: true,
     resetPassword: true,
     reproveIdentity: false,
   },
+  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90']
 };
 
 jest.mock('@aws-lambda-powertools/logger');
@@ -267,10 +278,10 @@ describe('account-state-service', () => {
   describe('get intervention enum from code', () => {
     it('should return the expected account state given a valid code', () => {
       const expectedState = EventsEnum.FRAUD_BLOCK_ACCOUNT;
-      expect(accountStateEngine.getInterventionEnumFromCode(3)).toEqual(expectedState);
+      expect(accountStateEngine.getInterventionEnumFromCode('03')).toEqual(expectedState);
     });
     it('should throw a configuration error if code cannot be found in current configurations', () => {
-      expect(() => accountStateEngine.getInterventionEnumFromCode(111)).toThrow(
+      expect(() => accountStateEngine.getInterventionEnumFromCode('111')).toThrow(
         new StateEngineConfigurationError('code: 111 is not found in current configuration'),
       );
     });
@@ -305,7 +316,12 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountIsBlocked],
       ])('%p applied on account state: %p', (intervention, retrievedAccountState) => {
         expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(
-          new StateTransitionError(`${intervention} is not allowed from current state`, intervention),
+          new StateTransitionError(`${intervention} is not allowed from current state`, intervention,
+            {
+              nextAllowableInterventions: [],
+              finalState: retrievedAccountState,
+              interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+            }),
         );
       });
     });
@@ -327,7 +343,7 @@ describe('account-state-service', () => {
 
   describe('Configuration errors', () => {
     it('should throw when given code cannot be found in configuration', () => {
-      expect(() => accountStateEngine.getInterventionEnumFromCode(111)).toThrow(
+      expect(() => accountStateEngine.getInterventionEnumFromCode('111')).toThrow(
         new StateEngineConfigurationError('code: 111 is not found in current configuration'),
       );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_CODE_NOT_FOUND_IN_CONFIG);
@@ -349,10 +365,10 @@ describe('account-state-service', () => {
           },
         },
         adjacency: {
-          AccountIsOkay: [1],
+          AccountIsOkay: ['01'],
         },
         edges: {
-          1: {
+          '01': {
             to: 'AccountIsBlocked',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
@@ -368,6 +384,11 @@ describe('account-state-service', () => {
         new StateTransitionError(
           'Computed new state is the same as the current state.',
           EventsEnum.FRAUD_BLOCK_ACCOUNT,
+          {
+            nextAllowableInterventions: [],
+            interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+            finalState: accountIsOkay,
+          }
         ),
       );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.TRANSITION_SAME_AS_CURRENT_STATE);
@@ -389,10 +410,10 @@ describe('account-state-service', () => {
           },
         },
         adjacency: {
-          AccountIsOkay: [1],
+          AccountIsOkay: ['01'],
         },
         edges: {
-          1: {
+          '01': {
             to: 'AccountIsBlocked',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
@@ -428,10 +449,10 @@ describe('account-state-service', () => {
           },
         },
         adjacency: {
-          AccountIsOkay: [1],
+          AccountIsOkay: ['01'],
         },
         edges: {
-          1: {
+          '01': {
             to: 'AccountIsNotOkay',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
@@ -465,10 +486,10 @@ describe('account-state-service', () => {
           },
         },
         adjacency: {
-          AccountIsOkay: [1],
+          AccountIsOkay: ['01'],
         },
         edges: {
-          1: {
+          '01': {
             to: 'AccountIsOkay',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
@@ -506,11 +527,11 @@ describe('account-state-service', () => {
           },
         },
         adjacency: {
-          AccountIsOkay: [1],
-          AccountIsBlocked: [1],
+          AccountIsOkay: ['01'],
+          AccountIsBlocked: ['01'],
         },
         edges: {
-          1: {
+          '01': {
             to: 'AccountIsNotOkay',
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,

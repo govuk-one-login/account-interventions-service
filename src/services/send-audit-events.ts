@@ -37,14 +37,14 @@ const sqsClient = tracer.captureAWSv3Client(
  * @param eventName - The event name used for sending off the event to identify the action taken.
  * @param eventEnum - The name of the event as an EventsEnum
  * @param ingressTxmaEvent - The original event from TxMA
- * @param currentState - Current state after applying intervention
+ * @param finalState - Current state after applying intervention
  * @returns - Response from sending the message to the Queue.
  */
 export async function sendAuditEvent(
   eventName: TxMAEgressEventName,
   eventEnum: EventsEnum,
   ingressTxmaEvent: TxMAIngressEvent,
-  currentState: AccountStateEngineOutput,
+  finalState?: AccountStateEngineOutput,
 ): Promise<SendMessageCommandOutput | undefined> {
   logger.debug('sendAuditEvent function.');
 
@@ -57,7 +57,7 @@ export async function sendAuditEvent(
     component_id: COMPONENT_ID,
     event_name: eventName,
     user: { user_id: ingressTxmaEvent.user.user_id },
-    extensions: buildExtensions(ingressTxmaEvent, eventEnum, currentState, eventName),
+    extensions: finalState ? buildExtensions(ingressTxmaEvent, eventEnum, eventName, finalState) : undefined,
   };
 
   const input = { MessageBody: JSON.stringify(txmaEvent), QueueUrl: appConfig.txmaEgressQueueUrl };
@@ -84,8 +84,8 @@ export async function sendAuditEvent(
 function buildExtensions(
   event: TxMAIngressEvent,
   eventEnum: EventsEnum,
-  finalState: AccountStateEngineOutput,
   txmaEventName: TxMAEgressEventName,
+  finalState: AccountStateEngineOutput,
 ): TxMAEgressExtensions {
   return {
     trigger_event: event.event_name,
@@ -96,34 +96,49 @@ function buildExtensions(
     allowable_interventions: finalState.nextAllowableInterventions.filter(
       (intervention) => !nonInterventionsCodes.has(intervention),
     ),
-    state: buildStateAttribute(finalState, eventEnum, txmaEventName),
-    action: buildActionAttribute(finalState, eventEnum),
+    ...buildAdditionalAttributes(finalState, eventEnum, txmaEventName),
   };
 }
 
-function buildStateAttribute(
+function buildAdditionalAttributes(
   finalState: AccountStateEngineOutput,
   eventEnum: EventsEnum,
   txmaEventName: TxMAEgressEventName,
-): State | undefined {
-  if (!finalState.finalState.suspended || (finalState.finalState.suspended && userLedActionList.includes(eventEnum)))
-    return State.ACTIVE;
-  if (finalState.finalState.suspended && !userLedActionList.includes(eventEnum)) return State.SUSPENDED;
-  if (finalState.finalState.blocked) return State.PERMANENTLY_SUSPENDED;
-  if (txmaEventName === 'AIS_EVENT_IGNORED_ACCOUNT_DELETED') return State.DELETED;
-}
-
-function buildActionAttribute(
-  finalState: AccountStateEngineOutput,
-  eventEnum: EventsEnum,
-): ActiveStateActions | undefined {
-  if (finalState.finalState.suspended && userLedActionList.includes(eventEnum)) {
+): { state: State | undefined; action: ActiveStateActions | undefined } {
+  if (txmaEventName === 'AIS_EVENT_IGNORED_ACCOUNT_DELETED')
+    return {
+      state: State.DELETED,
+      action: undefined,
+    };
+  if (finalState.finalState.blocked)
+    return {
+      state: State.PERMANENTLY_SUSPENDED,
+      action: undefined,
+    };
+  if (finalState.finalState.suspended && !userLedActionList.includes(eventEnum))
+    return {
+      state: State.SUSPENDED,
+      action: undefined,
+    };
+  if (!finalState.finalState.suspended || (finalState.finalState.suspended && userLedActionList.includes(eventEnum))) {
     if (finalState.finalState.resetPassword && !finalState.finalState.reproveIdentity)
-      return ActiveStateActions.RESET_PASSWORD;
+      return {
+        state: State.ACTIVE,
+        action: ActiveStateActions.RESET_PASSWORD,
+      };
     if (!finalState.finalState.resetPassword && finalState.finalState.reproveIdentity)
-      return ActiveStateActions.REPROVE_IDENTITY;
+      return {
+        state: State.ACTIVE,
+        action: ActiveStateActions.REPROVE_IDENTITY,
+      };
     if (finalState.finalState.resetPassword && finalState.finalState.reproveIdentity)
-      return ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY;
+      return {
+        state: State.ACTIVE,
+        action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY,
+      };
   }
-  return undefined;
+  return {
+    state: undefined,
+    action: undefined,
+  };
 }

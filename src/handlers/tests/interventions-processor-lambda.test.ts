@@ -8,7 +8,7 @@ import * as validationModule from '../../services/validate-event';
 import { AccountStateEngine } from '../../services/account-states/account-state-engine';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
-import { EventsEnum, MetricNames, TICF_ACCOUNT_INTERVENTION } from '../../data-types/constants';
+import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { sendAuditEvent } from '../../services/send-audit-events';
 import { TxMAIngressEvent } from '../../data-types/interfaces';
 
@@ -39,7 +39,8 @@ const interventionEventBody: TxMAIngressEvent = {
   user: {
     user_id: 'abc',
   },
-  event_name: TICF_ACCOUNT_INTERVENTION,
+  event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+  event_id: '123',
   extensions: {
     intervention: {
       intervention_code: '01',
@@ -55,7 +56,8 @@ const interventionEventBodyInTheFuture = {
   user: {
     user_id: 'abc',
   },
-  event_name: TICF_ACCOUNT_INTERVENTION,
+  event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+  event_id: '123',
   extensions: {
     intervention: {
       intervention_code: '01',
@@ -65,7 +67,8 @@ const interventionEventBodyInTheFuture = {
 };
 
 const resetPasswordEventBody = {
-  event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+  event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+  event_id: '123',
   timestamp: t0s - 5,
   event_timestamp_ms: t0ms - 5000,
   client_id: 'UNKNOWN',
@@ -142,7 +145,16 @@ describe('intervention processor handler', () => {
         suspended: false,
       });
       accountStateEngine.applyEventTransition = jest.fn().mockImplementationOnce(() => {
-        throw new StateTransitionError('State transition Error', EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET);
+        throw new StateTransitionError('State transition Error', EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, {
+          nextAllowableInterventions: [],
+          finalState: {
+            blocked: false,
+            suspended: false,
+            resetPassword: false,
+            reproveIdentity: false,
+          },
+          interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+        });
       });
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
@@ -154,18 +166,29 @@ describe('intervention processor handler', () => {
         'AIS_EVENT_TRANSITION_IGNORED',
         EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
         interventionEventBody,
+        {
+          finalState: {
+            blocked: false,
+            reproveIdentity: false,
+            resetPassword: false,
+            suspended: false,
+          },
+          interventionName: 'AIS_NO_INTERVENTION',
+          nextAllowableInterventions: [],
+        },
       );
     });
 
     it('should succeed when a valid intervention event is received', async () => {
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
-        newState: {
+        finalState: {
           blocked: false,
           suspended: true,
           resetPassword: false,
           reproveIdentity: false,
         },
         interventionName: EventsEnum.FRAUD_BLOCK_ACCOUNT,
+        nextAllowableInterventions: [],
       });
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
@@ -174,7 +197,16 @@ describe('intervention processor handler', () => {
         'AIS_EVENT_TRANSITION_APPLIED',
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
-        1_234_567_890,
+        {
+          finalState: {
+            blocked: false,
+            reproveIdentity: false,
+            resetPassword: false,
+            suspended: true,
+          },
+          interventionName: 'FRAUD_BLOCK_ACCOUNT',
+          nextAllowableInterventions: [],
+        },
       );
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
@@ -185,13 +217,14 @@ describe('intervention processor handler', () => {
     it('should succeed when an intervention event is received for a non existing user', async () => {
       mockRetrieveRecords.mockReturnValue(undefined);
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
-        newState: {
+        finalState: {
           blocked: false,
           suspended: true,
           resetPassword: false,
           reproveIdentity: false,
         },
         interventionName: EventsEnum.FRAUD_BLOCK_ACCOUNT,
+        nextAllowableInterventions: []
       });
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
@@ -200,7 +233,16 @@ describe('intervention processor handler', () => {
         'AIS_EVENT_TRANSITION_APPLIED',
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
-        1_234_567_890,
+        {
+          finalState: {
+            blocked: false,
+            reproveIdentity: false,
+            resetPassword: false,
+            suspended: true,
+          },
+          interventionName: 'FRAUD_BLOCK_ACCOUNT',
+          nextAllowableInterventions: []
+        },
       );
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
@@ -210,12 +252,14 @@ describe('intervention processor handler', () => {
 
     it('should succeed when a valid user action event is received', async () => {
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
-        newState: {
+        finalState: {
           blocked: false,
           suspended: false,
           resetPassword: false,
           reproveIdentity: false,
         },
+        interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
+        nextAllowableInterventions: []
       });
       mockRecord.body = JSON.stringify(resetPasswordEventBody);
       mockEvent.Records = [mockRecord];
@@ -226,7 +270,16 @@ describe('intervention processor handler', () => {
         'AIS_EVENT_TRANSITION_APPLIED',
         EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
         resetPasswordEventBody,
-        1_234_567_890,
+        {
+          finalState: {
+            blocked: false,
+            reproveIdentity: false,
+            resetPassword: false,
+            suspended: false,
+          },
+          interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
+          nextAllowableInterventions: []
+        },
       );
 
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
@@ -256,6 +309,16 @@ describe('intervention processor handler', () => {
         'AIS_EVENT_IGNORED_ACCOUNT_DELETED',
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
+        {
+          finalState: {
+            blocked: false,
+            reproveIdentity: false,
+            resetPassword: false,
+            suspended: false,
+          },
+          interventionName: 'AIS_NO_INTERVENTION',
+          nextAllowableInterventions: ['01', '03', '04', '05', '06'],
+        },
       );
     });
 
@@ -298,7 +361,7 @@ describe('intervention processor handler', () => {
     });
 
     it('should not process the event and return if the event timestamp predates the latest applied intervention for the user ', async () => {
-      mockRetrieveRecords.mockReturnValue({
+      mockRetrieveRecords.mockReturnValueOnce({
         blocked: false,
         reproveIdentity: false,
         resetPassword: false,
@@ -316,6 +379,16 @@ describe('intervention processor handler', () => {
         'AIS_EVENT_IGNORED_STALE',
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
+        {
+          finalState: {
+            blocked: false,
+            reproveIdentity: false,
+            resetPassword: false,
+            suspended: false,
+          },
+          interventionName: 'AIS_NO_INTERVENTION',
+          nextAllowableInterventions: ['01', '03', '04', '05', '06'],
+        },
       );
     });
 

@@ -44,7 +44,8 @@ export type TxMAEgressEventName =
   | 'AIS_EVENT_TRANSITION_APPLIED'
   | 'AIS_EVENT_TRANSITION_IGNORED'
   | 'AIS_EVENT_IGNORED_STALE'
-  | 'AIS_EVENT_IGNORED_ACCOUNT_DELETED';
+  | 'AIS_EVENT_IGNORED_ACCOUNT_DELETED'
+  | 'AIS_EVENT_IGNORED_IN_FUTURE';
 
 export interface TxMAEgressEvent {
   event_name: TxMAEgressEventName;
@@ -53,7 +54,7 @@ export interface TxMAEgressEvent {
   event_timestamp_ms_formatted?: string;
   component_id?: string;
   user: TxmaUser;
-  extensions: TxMAEgressExtensions;
+  extensions: TxMAEgressExtensions | undefined;
 }
 
 export interface TxMAEgressExtensions {

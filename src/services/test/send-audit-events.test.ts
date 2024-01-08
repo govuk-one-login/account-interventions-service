@@ -1,7 +1,14 @@
 import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
 import { mockClient } from 'aws-sdk-client-mock';
 import { sendAuditEvent } from '../send-audit-events';
-import { COMPONENT_ID, EventsEnum, TICF_ACCOUNT_INTERVENTION } from '../../data-types/constants';
+import {
+  ActiveStateActions,
+  AISInterventionTypes,
+  COMPONENT_ID,
+  EventsEnum,
+  State,
+  TriggerEventsEnum
+} from '../../data-types/constants';
 import { logAndPublishMetric } from '../../commons/metrics';
 import logger from '../../commons/logger';
 import { AppConfigService } from '../app-config-service';
@@ -28,7 +35,8 @@ const ingressInterventionEvent: TxMAIngressEvent = {
   user: {
     user_id: 'testUserId',
   },
-  event_name: TICF_ACCOUNT_INTERVENTION,
+  event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+  event_id: '123',
   extensions: {
     intervention: {
       intervention_code: '01',
@@ -38,7 +46,8 @@ const ingressInterventionEvent: TxMAIngressEvent = {
 };
 
 const ingressUserActionEvent = {
-  event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+  event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+  event_id: '123',
   timestamp: 5,
   event_timestamp_ms: 5000,
   client_id: 'UNKNOWN',
@@ -61,13 +70,18 @@ const sqsCommandInputForUserAction = {
     timestamp: 1_234_567,
     event_timestamp_ms: 1_234_567_890,
     event_timestamp_ms_formatted: 'today',
-    component_id: COMPONENT_ID,
+    component_id: 'ACCOUNT_INTERVENTION_SERVICE',
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
-    user: { user_id: 'testUserId' },
+    user: {
+      user_id: 'testUserId',
+    },
     extensions: {
-      eventType: 'USER_LED_ACTION',
-      event: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
-      appliedAt: 1_234_567,
+      trigger_event: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+      trigger_event_id: '123',
+      description: 'USER_LED_ACTION',
+      allowable_interventions: [],
+      state: State.ACTIVE,
+      action: ActiveStateActions.RESET_PASSWORD
     },
   }),
 };
@@ -82,14 +96,103 @@ const sqsCommandInputForIntervention = {
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: { user_id: 'testUserId' },
     extensions: {
-      eventType: 'TICF_ACCOUNT_INTERVENTION',
-      event: EventsEnum.FRAUD_SUSPEND_ACCOUNT,
+      trigger_event: 'TICF_ACCOUNT_INTERVENTION',
+      trigger_event_id: '123',
+      description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
       intervention_code: '01',
       reason: 'reason',
-      appliedAt: 1_234_567,
+      allowable_interventions: [],
+      state: State.PERMANENTLY_SUSPENDED,
     },
   }),
 };
+
+const sqsCommandInputForDeletedAccount = {
+  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  MessageBody: JSON.stringify({
+    timestamp: 1_234_567,
+    event_timestamp_ms: 1_234_567_890,
+    event_timestamp_ms_formatted: 'today',
+    component_id: COMPONENT_ID,
+    event_name: 'AIS_EVENT_IGNORED_ACCOUNT_DELETED',
+    user: { user_id: 'testUserId' },
+    extensions: {
+      trigger_event: 'TICF_ACCOUNT_INTERVENTION',
+      trigger_event_id: '123',
+      description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+      intervention_code: '01',
+      reason: 'reason',
+      allowable_interventions: [],
+      state: State.DELETED
+    },
+  }),
+};
+
+const sqsCommandInputForSuspendIntervention = {
+  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  MessageBody: JSON.stringify({
+    timestamp: 1_234_567,
+    event_timestamp_ms: 1_234_567_890,
+    event_timestamp_ms_formatted: 'today',
+    component_id: COMPONENT_ID,
+    event_name: 'AIS_EVENT_TRANSITION_APPLIED',
+    user: { user_id: 'testUserId' },
+    extensions: {
+      trigger_event: 'TICF_ACCOUNT_INTERVENTION',
+      trigger_event_id: '123',
+      description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+      intervention_code: '01',
+      reason: 'reason',
+      allowable_interventions: ['01'],
+      state: State.SUSPENDED
+    },
+  }),
+};
+
+const sqsCommandInputForSuspendUserAction = {
+  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  MessageBody: JSON.stringify({
+    timestamp: 1_234_567,
+    event_timestamp_ms: 1_234_567_890,
+    event_timestamp_ms_formatted: 'today',
+    component_id: COMPONENT_ID,
+    event_name: 'AIS_EVENT_TRANSITION_APPLIED',
+    user: { user_id: 'testUserId' },
+    extensions: {
+      trigger_event: 'TICF_ACCOUNT_INTERVENTION',
+      trigger_event_id: '123',
+      description: 'USER_LED_ACTION',
+      intervention_code: '01',
+      reason: 'reason',
+      allowable_interventions: [],
+      state: State.ACTIVE,
+      action: ActiveStateActions.REPROVE_IDENTITY
+    },
+  }),
+};
+
+const sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass = {
+  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  MessageBody: JSON.stringify({
+    timestamp: 1_234_567,
+    event_timestamp_ms: 1_234_567_890,
+    event_timestamp_ms_formatted: 'today',
+    component_id: COMPONENT_ID,
+    event_name: 'AIS_EVENT_TRANSITION_APPLIED',
+    user: { user_id: 'testUserId' },
+    extensions: {
+      trigger_event: 'TICF_ACCOUNT_INTERVENTION',
+      trigger_event_id: '123',
+      description: 'USER_LED_ACTION',
+      intervention_code: '01',
+      reason: 'reason',
+      allowable_interventions: [],
+      state: State.ACTIVE,
+      action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY
+    },
+  }),
+};
+
 describe('send-audit-events', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -101,6 +204,11 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
       ingressUserActionEvent,
+      {
+        nextAllowableInterventions: [],
+        interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+        finalState: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: true },
+      },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
@@ -115,6 +223,11 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
+      {
+        nextAllowableInterventions: [],
+        interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+        finalState: { blocked: true, suspended: true, reproveIdentity: false, resetPassword: true },
+      },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
@@ -129,6 +242,11 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
+      {
+        nextAllowableInterventions: [],
+        interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+        finalState: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: false },
+      },
     );
     expect(response).toBeUndefined();
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
@@ -137,5 +255,81 @@ describe('send-audit-events', () => {
       'An error happened while trying to send the audit event to the TxMA queue.',
     );
     expect(logAndPublishMetric).toHaveBeenCalledWith('ERROR_PUBLISHING_EVENT_TO_TXMA');
+  });
+
+  it('should successfully send the audit event and return a response when an the account is marked as deleted', async () => {
+    sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
+    const response = await sendAuditEvent(
+      'AIS_EVENT_IGNORED_ACCOUNT_DELETED',
+      EventsEnum.FRAUD_SUSPEND_ACCOUNT,
+      ingressInterventionEvent,
+      {
+        nextAllowableInterventions: [],
+        interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+        finalState: { blocked: true, suspended: true, reproveIdentity: false, resetPassword: false },
+      },
+    );
+    expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
+    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(logger.debug).toHaveBeenCalledTimes(2);
+    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
+    expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForDeletedAccount);
+  });
+
+  it('should successfully send the audit event and return a response when an the account is suspended without a user action', async () => {
+    sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
+    const response = await sendAuditEvent(
+      'AIS_EVENT_TRANSITION_APPLIED',
+      EventsEnum.FRAUD_SUSPEND_ACCOUNT,
+      ingressInterventionEvent,
+      {
+        nextAllowableInterventions: ['01', '91'],
+        interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+        finalState: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: false },
+      },
+    );
+    expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
+    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(logger.debug).toHaveBeenCalledTimes(2);
+    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
+    expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendIntervention);
+  });
+
+  it('should successfully send the audit event and return a response when an the account is suspended with a user action', async () => {
+    sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
+    const response = await sendAuditEvent(
+      'AIS_EVENT_TRANSITION_APPLIED',
+      EventsEnum.IPV_IDENTITY_ISSUED,
+      ingressInterventionEvent,
+      {
+        nextAllowableInterventions: [],
+        interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+        finalState: { blocked: false, suspended: true, reproveIdentity: true, resetPassword: false },
+      },
+    );
+    expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
+    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(logger.debug).toHaveBeenCalledTimes(2);
+    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
+    expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendUserAction);
+  });
+
+  it('should successfully send the audit event and return a response when an the account is suspended with a user action (reprove identity and reset pass)', async () => {
+    sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
+    const response = await sendAuditEvent(
+      'AIS_EVENT_TRANSITION_APPLIED',
+      EventsEnum.IPV_IDENTITY_ISSUED,
+      ingressInterventionEvent,
+      {
+        nextAllowableInterventions: [],
+        interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+        finalState: { blocked: false, suspended: true, reproveIdentity: true, resetPassword: true },
+      },
+    );
+    expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
+    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(logger.debug).toHaveBeenCalledTimes(2);
+    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
+    expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass);
   });
 });
