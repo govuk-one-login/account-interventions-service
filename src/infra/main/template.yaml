@@ -691,6 +691,20 @@ Resources:
                 aws:SourceArn:
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-InterventionsProcessorFunction"
 
+  TxMAEgressQueueNameSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: The Name of the TxMA Egress Queue
+      Name: !Sub "/${AWS::StackName}/SQS/TxMAEgressQueue/Name"
+      Type: String
+      Value: !GetAtt TxMAEgressQueue.QueueName
+      Tags:
+        Environment: !Ref Environment
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
   TxMAEgressDLQ:
     Type: AWS::SQS::Queue
     Properties:
@@ -713,6 +727,20 @@ Resources:
           Value: !Ref OwnerTagValue
         - Key: Source
           Value: !Ref SourceTagValue
+
+  TxMAEgressDLQNameSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: The Name of the TxMA Egress DLQ
+      Name: !Sub "/${AWS::StackName}/SQS/TxMAEgressDLQ/Name"
+      Type: String
+      Value: !GetAtt TxMAEgressDLQ.QueueName
+      Tags:
+        Environment: !Ref Environment
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
 
 ### Encryption Key SQS & SNS ###
 
