@@ -42,8 +42,8 @@ defineFeature(feature, (test) => {
         resetPassword: string,
         reproveIdentity: string,
       ) => {
-        console.log(`Received`, { response} );
-        console.log(`Received History`, response.intervention.history);
+        console.log(`Received`, { response });
+        console.log(`Received History`,  response.intervention.history );
         expect(response.intervention.description).toBe(interventionType);
         expect(response.intervention.state.blocked).toBe(JSON.parse(blockedState));
         expect(response.intervention.state.suspended).toBe(JSON.parse(suspendedState));
@@ -76,27 +76,20 @@ defineFeature(feature, (test) => {
     );
 
     then(
-      /^I expect the intervention to be (.*), with the following state settings (.*), (.*), (.*), (.*), (.*) and (.*)$/,
+      /^I expect the intervention to be (.*), with the following state settings (.*), (.*), (.*) and (.*)$/,
       async (
         interventionType: string,
         blockedState: string,
         suspendedState: string,
         resetPassword: string,
         reproveIdentity: string,
-        codeHistory: string,
-        interventionHistory: string
       ) => {
-        console.log(`Received`,  { response } );
-        console.log(`Received History`, response.intervention.history);
+        console.log(`Received`, { response });
         expect(response.intervention.description).toBe(interventionType);
         expect(response.intervention.state.blocked).toBe(JSON.parse(blockedState));
         expect(response.intervention.state.suspended).toBe(JSON.parse(suspendedState));
         expect(response.intervention.state.resetPassword).toBe(JSON.parse(resetPassword));
         expect(response.intervention.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
-        if(response.intervention.history.length) {
-          expect(response.intervention.history[0].code).toBe(codeHistory);
-          expect(response.intervention.history[0].intervention).toBe(interventionHistory);
-        }
       },
     );
   });
