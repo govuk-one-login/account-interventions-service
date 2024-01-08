@@ -11,6 +11,7 @@ export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeo
   event.user.user_id = testUserId;
   event.event_timestamp_ms = currentTime.milliseconds;
   event.timestamp = currentTime.seconds;
+  console.log('crafted event ' + JSON.stringify(event));
   const messageBody = JSON.stringify(event);
   const parameters = {
     MessageBody: messageBody,
