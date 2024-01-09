@@ -1,9 +1,27 @@
-const now = Date.now();
-const ageInSeconds = 1;
-const seconds = now / 1000 - ageInSeconds;
-const ms = seconds * 1000;
+const seconds = 12_345;
+const ms = 12_345_000;
 
-export const aisEvents = {
+interface Event {
+  timestamp: number;
+  event_timestamp_ms: number;
+  event_name: string;
+  component_id: string;
+  client_id?: string;
+  user: {
+    user_id: string;
+    email?: string;
+    phone?: string;
+    ip_address?: string;
+    session_id?: string;
+    persistent_session_id?: string;
+    govuk_signin_journey_id?: string;
+  };
+  extensions?: object;
+}
+
+export const aisEvents: {
+  [key: string]: Event;
+} = {
   suspendNoAction: {
     timestamp: seconds,
     event_timestamp_ms: ms,
@@ -105,6 +123,7 @@ export const aisEvents = {
   userActionIdResetSuccess: {
     event_name: 'IPV_IDENTITY_ISSUED',
     timestamp: seconds,
+    event_timestamp_ms: ms,
     client_id: 'UNKNOWN',
     component_id: 'UNKNOWN',
     user: {
@@ -126,6 +145,7 @@ export const aisEvents = {
   userActionPswResetSuccess: {
     event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
     timestamp: seconds,
+    event_timestamp_ms: ms,
     client_id: 'UNKNOWN',
     component_id: 'UNKNOWN',
     user: {
