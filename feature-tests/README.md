@@ -21,6 +21,8 @@ export TEST_ENVIRONMENT=dev
 export SAM_STACK_NAME=ais-main
 export AWS_REGION=eu-west-2
 export AWS_PROFILE=dev
+export CLOUDWATCH_METRICS_NAMESPACE=test
+export METRIC_SERVICE_NAME=test
 ```
 
 Then sign-in into AWS account.

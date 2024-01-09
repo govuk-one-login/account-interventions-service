@@ -1,18 +1,17 @@
 import { DynamoDatabaseService } from '../../src/services/dynamo-database-service';
-import { AppConfigService } from '../../src/services/app-config-service';
 import { UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
+import EndPoints from '../apiEndpoints/endpoints';
 
-const appConfig = AppConfigService.getInstance();
-const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableName);
+const dynamoDatabaseServiceInstance = new DynamoDatabaseService(EndPoints.TABLE_NAME);
 
 const buildFullUserRecord = (
-  updatedAt: number,
-  appliedAt: number,
-  sentAt: number,
+  updatedAt: string,
+  appliedAt: string,
+  sentAt: string,
   description: string,
-  reprovedIdentityAt: number,
-  resetPasswordAt: number,
+  reprovedIdentityAt: string,
+  resetPasswordAt: string,
   state: {
     blocked: boolean;
     suspended: boolean;
@@ -46,7 +45,7 @@ const buildFullUserRecord = (
       ':s': { BOOL: state.suspended },
       ':rp': { BOOL: state.resetPassword },
       ':ri': { BOOL: state.reproveIdentity },
-      ':ua': { N: `${updatedAt}` },
+      ':ua': { N: updatedAt },
       ':al': { S: auditLevel },
     },
     UpdateExpression:
@@ -56,17 +55,17 @@ const buildFullUserRecord = (
 };
 
 export async function getCurrentInformation(userId: string) {
-  await dynamoDatabaseServiceInstance.getFullAccountInformation(userId);
+  return await dynamoDatabaseServiceInstance.getFullAccountInformation(userId);
 }
 
 export async function updateAndRevert(
   userId: string,
-  updatedAt: number,
-  appliedAt: number,
-  sentAt: number,
+  updatedAt: string,
+  appliedAt: string,
+  sentAt: string,
   description: string,
-  reprovedIdentityAt: number,
-  resetPasswordAt: number,
+  reprovedIdentityAt: string,
+  resetPasswordAt: string,
   state: {
     blocked: boolean;
     suspended: boolean;
@@ -85,13 +84,20 @@ export async function updateAndRevert(
     state,
     auditLevel,
   );
-  return await dynamoDatabaseServiceInstance.updateUserStatus(userId, input);
+  console.log('updating user record with specified params');
+  const userRecords = await dynamoDatabaseServiceInstance.updateUserStatus(userId, input);
+  console.log(userRecords);
 }
 
 export async function deleteTestRecord(userId: string) {
-  const dynamoDatabase = new DynamoDB(appConfig.tableName);
-  await dynamoDatabase.deleteItem({
-    TableName: appConfig.tableName,
-    Key: { pk: { S: userId } },
-  });
+  const dynamoDatabase = new DynamoDB(EndPoints.TABLE_NAME);
+  try {
+    console.log('deleting test user record');
+    await dynamoDatabase.deleteItem({
+      TableName: EndPoints.TABLE_NAME,
+      Key: { pk: { S: userId } },
+    });
+  } catch {
+    console.log('record did not delete');
+  }
 }
