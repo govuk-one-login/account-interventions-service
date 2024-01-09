@@ -79,7 +79,7 @@ export class HistoryStringBuilder {
     if (!timestamp || !code || !component || !reason)
       throw new Error('One of the required property was not found in the history string.');
     const sentAt = new Date(Number.parseInt(timestamp)).toISOString();
-    const intervention = AccountStateEngine.getInstance().getInterventionEnumFromCode(Number.parseInt(code));
+    const intervention = AccountStateEngine.getInstance().getInterventionEnumFromCode(code);
     const originatingComponent = array[HistoryStringParts.ORIGINATING_COMPONENT_ID];
     const originatorReference = array[HistoryStringParts.ORIGINATOR_REFERENCE_ID];
     const requesterId = array[HistoryStringParts.REQUESTER_ID];

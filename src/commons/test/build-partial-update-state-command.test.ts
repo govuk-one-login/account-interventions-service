@@ -1,5 +1,5 @@
 import { StateDetails, TxMAIngressEvent } from '../../data-types/interfaces';
-import { AISInterventionTypes, EventsEnum, MetricNames, TICF_ACCOUNT_INTERVENTION } from '../../data-types/constants';
+import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { buildPartialUpdateAccountStateCommand } from '../build-partial-update-state-command';
 import { logAndPublishMetric } from '../metrics';
 
@@ -21,7 +21,8 @@ const interventionEventBody: TxMAIngressEvent = {
     user_id: 'abc',
   },
   component_id: 'TICF_CRI',
-  event_name: TICF_ACCOUNT_INTERVENTION,
+  event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+  event_id: '123',
   extensions: {
     intervention: {
       intervention_code: '01',
@@ -33,7 +34,8 @@ const interventionEventBody: TxMAIngressEvent = {
   },
 };
 const resetPasswordEventBody = {
-  event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+  event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+  event_id: '123',
   timestamp: 10_000,
   event_timestamp_ms: 10_000_000,
   client_id: 'UNKNOWN',

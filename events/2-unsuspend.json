@@ -2,6 +2,7 @@
   "timestamp": 1234,
   "event_timestamp_ms": 1234000,
   "event_name": "TICF_ACCOUNT_INTERVENTION",
+  "event_id": "123",
   "component_id": "TICF_CRI",
   "user": { "user_id": "urn:fdc:gov.uk:2022:USER_ONE" },
   "extensions": {

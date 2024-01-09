@@ -6,14 +6,14 @@ import { HistoryStringBuilder } from './history-string-builder';
 
 /**
  * Method to build a Partial of UpdateItemCommandInput
- * @param newState - new account state object
+ * @param finalState - new account state object
  * @param eventName - the name of the event received
  * @param currentTimestamp - timestamp of now in ms
  * @param interventionName - optional intervention name if the event was a fraud intervention
  * @param interventionEvent - intervention type
  */
 export const buildPartialUpdateAccountStateCommand = (
-  newState: StateDetails,
+  finalState: StateDetails,
   eventName: EventsEnum,
   currentTimestamp: number,
   interventionEvent: TxMAIngressEvent,
@@ -30,10 +30,10 @@ export const buildPartialUpdateAccountStateCommand = (
       '#UA': 'updatedAt',
     },
     ExpressionAttributeValues: {
-      ':b': { BOOL: newState.blocked },
-      ':s': { BOOL: newState.suspended },
-      ':rp': { BOOL: newState.resetPassword },
-      ':ri': { BOOL: newState.reproveIdentity },
+      ':b': { BOOL: finalState.blocked },
+      ':s': { BOOL: finalState.suspended },
+      ':rp': { BOOL: finalState.resetPassword },
+      ':ri': { BOOL: finalState.reproveIdentity },
       ':ua': { N: `${currentTimestamp}` },
     },
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',

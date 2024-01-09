@@ -1,4 +1,5 @@
 import { EventsEnum } from './constants';
+import { AccountStateEngineOutput } from './interfaces';
 
 export class InvalidEnvironmentVariableError extends Error {
   constructor(message: string | undefined) {
@@ -15,10 +16,12 @@ export class StateEngineConfigurationError extends Error {
 }
 export class StateTransitionError extends Error {
   public transition: EventsEnum;
-  constructor(message: string, transition: EventsEnum) {
+  public output: AccountStateEngineOutput;
+  constructor(message: string, transition: EventsEnum, output: AccountStateEngineOutput) {
     super(message);
     this.name = 'StateTransitionError';
     this.transition = transition;
+    this.output = output;
   }
 }
 

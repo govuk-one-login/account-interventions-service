@@ -2,10 +2,24 @@ import { AppConfigService } from './app-config-service';
 import tracer from '../commons/tracer';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { SendMessageCommand, SendMessageCommandOutput, SQSClient } from '@aws-sdk/client-sqs';
-import { TxMAEgressEvent, TxMAEgressEventName, TxMAEgressExtensions, TxMAIngressEvent } from '../data-types/interfaces';
+import {
+  AccountStateEngineOutput,
+  TxMAEgressEvent,
+  TxMAEgressEventName,
+  TxMAEgressExtensions,
+  TxMAIngressEvent,
+} from '../data-types/interfaces';
 import logger from '../commons/logger';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-import { COMPONENT_ID, EventsEnum, MetricNames, userLedActionList } from '../data-types/constants';
+import {
+  ActiveStateActions,
+  COMPONENT_ID,
+  EventsEnum,
+  MetricNames,
+  nonInterventionsCodes,
+  State,
+  userLedActionList,
+} from '../data-types/constants';
 import { logAndPublishMetric } from '../commons/metrics';
 
 const appConfig = AppConfigService.getInstance();
@@ -23,14 +37,14 @@ const sqsClient = tracer.captureAWSv3Client(
  * @param eventName - The event name used for sending off the event to identify the action taken.
  * @param eventEnum - The name of the event as an EventsEnum
  * @param ingressTxmaEvent - The original event from TxMA
- * @param appliedAt - optional timestamp of when the event transition was applied, if relevant
+ * @param finalState - Current state after applying intervention
  * @returns - Response from sending the message to the Queue.
  */
 export async function sendAuditEvent(
   eventName: TxMAEgressEventName,
   eventEnum: EventsEnum,
   ingressTxmaEvent: TxMAIngressEvent,
-  appliedAt?: number,
+  finalState?: AccountStateEngineOutput,
 ): Promise<SendMessageCommandOutput | undefined> {
   logger.debug('sendAuditEvent function.');
 
@@ -43,7 +57,7 @@ export async function sendAuditEvent(
     component_id: COMPONENT_ID,
     event_name: eventName,
     user: { user_id: ingressTxmaEvent.user.user_id },
-    extensions: buildExtensions(ingressTxmaEvent, eventEnum, appliedAt),
+    extensions: finalState ? buildExtensions(ingressTxmaEvent, eventEnum, eventName, finalState) : undefined,
   };
 
   const input = { MessageBody: JSON.stringify(txmaEvent), QueueUrl: appConfig.txmaEgressQueueUrl };
@@ -63,15 +77,83 @@ export async function sendAuditEvent(
  * Helper function to build extension object based on the type of event
  * @param event - Original event received from TxMA
  * @param eventEnum - Event name as an EventEnum
- * @param appliedAt - optional timestamp of when then event transition was applied
+ * @param finalState - Final state after intervention was/ was not applied
+ * @param txmaEventName - The name of the TxMA event name
  * @returns - TxMAEgressExtensions object
  */
-function buildExtensions(event: TxMAIngressEvent, eventEnum: EventsEnum, appliedAt?: number): TxMAEgressExtensions {
+function buildExtensions(
+  event: TxMAIngressEvent,
+  eventEnum: EventsEnum,
+  txmaEventName: TxMAEgressEventName,
+  finalState: AccountStateEngineOutput,
+): TxMAEgressExtensions {
   return {
-    eventType: userLedActionList.includes(eventEnum) ? 'USER_LED_ACTION' : 'TICF_ACCOUNT_INTERVENTION',
-    event: eventEnum,
+    trigger_event: event.event_name,
+    trigger_event_id: event.event_id ?? 'UNKNOWN',
+    description: userLedActionList.includes(eventEnum) ? 'USER_LED_ACTION' : finalState.interventionName!,
     intervention_code: event.extensions?.intervention?.intervention_code,
     reason: event.extensions?.intervention?.intervention_reason,
-    appliedAt,
+    allowable_interventions: finalState.nextAllowableInterventions.filter(
+      (intervention) => !nonInterventionsCodes.has(intervention),
+    ),
+    ...buildAdditionalAttributes(finalState, eventEnum, txmaEventName),
+  };
+}
+
+function buildAdditionalAttributes(
+  finalState: AccountStateEngineOutput,
+  eventEnum: EventsEnum,
+  txmaEventName: TxMAEgressEventName,
+): { state: State | undefined; action: ActiveStateActions | undefined } {
+  if (txmaEventName === 'AIS_EVENT_IGNORED_ACCOUNT_DELETED')
+    return {
+      state: State.DELETED,
+      action: undefined,
+    };
+
+  if (finalState.finalState.blocked)
+    return {
+      state: State.PERMANENTLY_SUSPENDED,
+      action: undefined,
+    };
+
+  if (!finalState.finalState.suspended) {
+    return {
+      state: State.ACTIVE,
+      action: undefined,
+    };
+  }
+
+  if (!userLedActionList.includes(eventEnum)) {
+    return {
+      state: State.SUSPENDED,
+      action: undefined,
+    };
+  }
+
+  if (finalState.finalState.resetPassword && !finalState.finalState.reproveIdentity) {
+    return {
+      state: State.ACTIVE,
+      action: ActiveStateActions.RESET_PASSWORD,
+    };
+  }
+
+  if (!finalState.finalState.resetPassword && finalState.finalState.reproveIdentity) {
+    return {
+      state: State.ACTIVE,
+      action: ActiveStateActions.REPROVE_IDENTITY,
+    };
+  }
+
+  if (finalState.finalState.resetPassword && finalState.finalState.reproveIdentity) {
+    return {
+      state: State.ACTIVE,
+      action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY,
+    };
+  }
+
+  return {
+    state: undefined,
+    action: undefined,
   };
 }

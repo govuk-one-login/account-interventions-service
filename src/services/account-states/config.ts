@@ -47,64 +47,64 @@ export const transitionConfiguration: TransitionConfigurationInterface = {
     },
   },
   edges: {
-    1: {
+    '01': {
       to: 'AccountIsSuspended',
       name: EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
     },
-    2: {
+    '02': {
       to: 'AccountIsOkay',
       name: EventsEnum.FRAUD_UNSUSPEND_ACCOUNT,
       interventionName: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
     },
-    3: {
+    '03': {
       to: 'AccountIsBlocked',
       name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
       interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
     },
-    4: {
+    '04': {
       to: 'AccountNeedsPasswordReset',
       name: EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
       interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
     },
-    5: {
+    '05': {
       to: 'AccountNeedsIdReset',
       name: EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
       interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
     },
-    6: {
+    '06': {
       to: 'AccountNeedsPswAndIdReset',
       name: EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
       interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
     },
-    7: {
+    '07': {
       to: 'AccountIsOkay',
       name: EventsEnum.FRAUD_UNBLOCK_ACCOUNT,
       interventionName: AISInterventionTypes.AIS_ACCOUNT_UNBLOCKED,
     },
-    90: {
+    '90': {
       to: 'AccountIsOkay',
       name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
     },
-    91: {
+    '91': {
       to: 'AccountIsOkay',
       name: EventsEnum.IPV_IDENTITY_ISSUED,
     },
-    92: {
+    '92': {
       to: 'AccountNeedsPasswordReset',
       name: EventsEnum.IPV_IDENTITY_ISSUED,
     },
-    93: {
+    '93': {
       to: 'AccountNeedsIdReset',
       name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
     },
   },
   adjacency: {
-    AccountIsOkay: [1, 3, 4, 5, 6],
-    AccountIsBlocked: [7],
-    AccountIsSuspended: [2, 3, 4, 5, 6],
-    AccountNeedsPasswordReset: [1, 2, 3, 5, 6, 90],
-    AccountNeedsIdReset: [1, 2, 3, 4, 6, 91],
-    AccountNeedsPswAndIdReset: [1, 2, 3, 4, 5, 92, 93],
+    AccountIsOkay: ['01', '03', '04', '05', '06'],
+    AccountIsBlocked: ['07'],
+    AccountIsSuspended: ['02', '03', '04', '05', '06'],
+    AccountNeedsPasswordReset: ['01', '02', '03', '05', '06', '90'],
+    AccountNeedsIdReset: ['01', '02', '03', '04', '06', '91'],
+    AccountNeedsPswAndIdReset: ['01', '02', '03', '04', '05', '92', '93'],
   },
 };

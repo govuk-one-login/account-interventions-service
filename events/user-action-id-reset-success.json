@@ -1,5 +1,6 @@
 {
   "event_name": "IPV_IDENTITY_ISSUED",
+  "event_id": "123",
   "timestamp": 1234567,
   "client_id": "UNKNOWN",
   "component_id": "UNKNOWN",

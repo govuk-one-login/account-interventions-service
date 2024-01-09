@@ -28,3 +28,4 @@
 - [ ] Implemented unit testing for any new logic implemented, if appropriate
 - [ ] Ensured that all commits in this PR are signed
 - [ ] Ensured appropriate code coverage is maintained by unit tests
+- [ ] Checked SonarCube and ensured no code smells were added
