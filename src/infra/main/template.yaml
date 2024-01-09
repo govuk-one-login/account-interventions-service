@@ -341,6 +341,7 @@ Resources:
 
   AccountDeletionProcessorSNSTopic:
     Type: AWS::SNS::Topic
+    Condition: IsInternal
     Properties:
       KmsMasterKeyId: !Ref AccountDeletionProcessorSNSKmsKey
       TopicName: !Sub "${AWS::StackName}-AccountDeletionProcessorSNSTopic"
@@ -387,7 +388,10 @@ Resources:
               Enabled: true
               QueueArn: !GetAtt AccountDeletionProcessorQueue.Arn
               QueueUrl: !Ref AccountDeletionProcessorQueue
-            Topic: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
+            Topic: !If
+              - IsInternal
+              - !Ref AccountDeletionProcessorSNSTopic
+              - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
         Product: !Ref ProductTagValue
@@ -403,7 +407,10 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: sns.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
-      SourceArn: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
+      SourceArn: !If
+        - IsInternal
+        - !Ref AccountDeletionProcessorSNSTopic
+        - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
 
   AccountDeletionProcessorFunctionRole:
     Type: AWS::IAM::Role
@@ -422,17 +429,6 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-      Policies:
-        - PolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionRolePolicy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "sqs:ReceiveMessage"
-                  - "sqs:DeleteMessage"
-                  - "sqs:GetQueueAttributes"
-                Resource: !GetAtt AccountDeletionProcessorQueue.Arn
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -452,6 +448,12 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+            Resource: !GetAtt AccountDeletionProcessorQueue.Arn
           - Effect: Allow
             Action:
               - "logs:CreateLogStream"
@@ -544,7 +546,11 @@ Resources:
               Service: sns.amazonaws.com
             Condition:
               ArnEquals:
-                aws:SourceArn: !GetAtt AccountDeletionProcessorSNSTopic.TopicArn
+                aws:SourceArn:
+                  - !If
+                    - IsInternal
+                    - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
+                    - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
 
   AccountDeletionProcessorDLQ:
     Type: AWS::SQS::Queue
@@ -863,7 +869,10 @@ Resources:
             Resource: "*"
             Condition:
               ArnEquals:
-                aws:SourceArn: !Ref AccountDeletionProcessorSNSTopic
+                aws:SourceArn: !If
+                  - IsInternal
+                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
+                  - !Ref AWS::NoValue
           - Effect: Allow
             Principal:
               AWS: !Join [ "", [ "arn:aws:iam::", !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountID ], ":root"] ]
