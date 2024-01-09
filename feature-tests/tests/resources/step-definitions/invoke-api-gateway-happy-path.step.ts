@@ -59,9 +59,11 @@ defineFeature(feature, (test) => {
   }) => {
     given(
       /^I send an (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
-      async (originalAisEventType, aisEventType) => {
+      async (aisEventType, originalAisEventType) => {
+        console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
         await timeDelayForTestEnvironment(500);
+        console.log('sending second message to put the user in : ' + aisEventType);
         await sendSQSEvent(testUserId, aisEventType);
       },
     );
@@ -69,7 +71,7 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke the API to retrieve the intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment(1500);
+        await timeDelayForTestEnvironment(500);
         response = await invokeGetAccountState(testUserId, historyValue);
       },
     );
