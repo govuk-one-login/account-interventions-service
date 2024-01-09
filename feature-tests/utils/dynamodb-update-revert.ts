@@ -5,6 +5,18 @@ import EndPoints from '../apiEndpoints/endpoints';
 
 const dynamoDatabaseServiceInstance = new DynamoDatabaseService(EndPoints.TABLE_NAME);
 
+/**
+ * Method to build up the full information of the user in DynamoDB.
+ * @param updatedAt - the time the user was updated at.
+ * @param appliedAt - the time the intervention was applied at.
+ * @param sentAt - the time the intervention was sent at.
+ * @param description - the intervention that is applied to the user.
+ * @param reprovedIdentityAt - the time the user had reproved their identity.
+ * @param resetPasswordAt - the time the user had reset their password.
+ * @param state - state of the account, an object containing 4 boolean fields: blocked, suspended, reproveIdentity and resetPassword.
+ * @param auditLevel - the audit level of the account.
+ * @returns - the input needed for DynamoDB.
+ */
 const buildFullUserRecord = (
   updatedAt: string,
   appliedAt: string,
@@ -54,10 +66,19 @@ const buildFullUserRecord = (
   return baseUpdateItemCommandInput;
 };
 
+/**
+ * Method for pulling down the users information by using their user id.
+ * @param userId - the users user id.
+ * @returns - an unmarshalled record from DynamoDB or undefined.
+ */
 export async function getCurrentInformation(userId: string) {
   return await dynamoDatabaseServiceInstance.getFullAccountInformation(userId);
 }
 
+/**
+ * Method for updating all of the fields for a user. Uses {@link buildFullUserRecord} as the command input.
+ * @returns - the updated information from DynamoDB.
+ */
 export async function updateAndRevert(
   userId: string,
   updatedAt: string,
@@ -89,6 +110,10 @@ export async function updateAndRevert(
   console.log(userRecords);
 }
 
+/**
+ * Method to delete a users record from DynamoDB.
+ * @param userId - used to search for the user to delete, the user id of the user.
+ */
 export async function deleteTestRecord(userId: string) {
   const dynamoDatabase = new DynamoDB(EndPoints.TABLE_NAME);
   try {
