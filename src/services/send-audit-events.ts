@@ -110,33 +110,48 @@ function buildAdditionalAttributes(
       state: State.DELETED,
       action: undefined,
     };
+
   if (finalState.finalState.blocked)
     return {
       state: State.PERMANENTLY_SUSPENDED,
       action: undefined,
     };
-  if (finalState.finalState.suspended && !userLedActionList.includes(eventEnum))
+
+  if (!finalState.finalState.suspended) {
+    return {
+      state: State.ACTIVE,
+      action: undefined,
+    };
+  }
+
+  if (!userLedActionList.includes(eventEnum)) {
     return {
       state: State.SUSPENDED,
       action: undefined,
     };
-  if (!finalState.finalState.suspended || (finalState.finalState.suspended && userLedActionList.includes(eventEnum))) {
-    if (finalState.finalState.resetPassword && !finalState.finalState.reproveIdentity)
-      return {
-        state: State.ACTIVE,
-        action: ActiveStateActions.RESET_PASSWORD,
-      };
-    if (!finalState.finalState.resetPassword && finalState.finalState.reproveIdentity)
-      return {
-        state: State.ACTIVE,
-        action: ActiveStateActions.REPROVE_IDENTITY,
-      };
-    if (finalState.finalState.resetPassword && finalState.finalState.reproveIdentity)
-      return {
-        state: State.ACTIVE,
-        action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY,
-      };
   }
+
+  if (finalState.finalState.resetPassword && !finalState.finalState.reproveIdentity) {
+    return {
+      state: State.ACTIVE,
+      action: ActiveStateActions.RESET_PASSWORD,
+    };
+  }
+
+  if (!finalState.finalState.resetPassword && finalState.finalState.reproveIdentity) {
+    return {
+      state: State.ACTIVE,
+      action: ActiveStateActions.REPROVE_IDENTITY,
+    };
+  }
+
+  if (finalState.finalState.resetPassword && finalState.finalState.reproveIdentity) {
+    return {
+      state: State.ACTIVE,
+      action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY,
+    };
+  }
+
   return {
     state: undefined,
     action: undefined,
