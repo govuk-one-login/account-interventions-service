@@ -43,7 +43,6 @@ defineFeature(feature, (test) => {
         reproveIdentity: string,
       ) => {
         console.log(`Received`, { response });
-        console.log(`Received History`, response.intervention.history);
         expect(response.intervention.description).toBe(interventionType);
         expect(response.intervention.state.blocked).toBe(JSON.parse(blockedState));
         expect(response.intervention.state.suspended).toBe(JSON.parse(suspendedState));
