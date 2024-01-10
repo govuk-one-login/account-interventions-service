@@ -56,8 +56,108 @@ $ yarn audit
 $ yarn audit:fix
 ```
 
-## Additional Info
+## Architecture Diagram
+![img.png](img.png)
 
+## How To Deploy Account Interventions Service into Production
+### 1. Base CloudFormation Stacks
+To deploy the base common cloudformation stacks required created by Dev Platform prior to deploying the solution use the Stack Orchestation tool provided in our `Stack-orchestration` directory under the folder `di-account-interventions-production-admin` and deploy the `production_bootstrap.sh` script which will have the following base stacks to be deployed into our `production` environment:
+
+***The stacks to be deployed are:***
+1. alerting-integration
+2. api-gateway-logs
+3. certificate-expiry
+4. vpc
+5. lambda-audit-hook
+6. checkov-hook
+7. infra-audit-hook
+
+#### ⚡ Prior to deploying check the correct version is being deployed to the latest version via the CHANGELOG https://github.com/govuk-one-login/devplatform-deploy/tree/main
+
+#### Steps:
+
+```shell
+$ cd stack-orchestation
+$ aws configure sso
+$ aws sso login --profile di-account-intervention-admin-324281879537
+$ sh production_bootstrap.sh
+```
+The bootstrap script should then deploy all base Cloudformation stacks required for account set up.
+
+### 2. Deploy ais-infra stacks
+
+##### ⚠️ Make sure pre-commit has been enabled on the `ais-infra` repo
+```shell
+$ pre-commit install -f
+```
+
+### Stacks to deploy
+1. `ais-infra-alerting`
+- This stack sets up the Chatbot configuration for all Slack alerts relating to AIS.
+  - When deploying set the parameter `InitialNotificationStack: no`
+2. `ais-infra-common`
+- This stack includes all the AWS Secrets used for Dynatrace.
+  - Once deployed, head into the AWS console and manually update the secret for `DynatraceApiToken` and `DynatraceApiKey` to be replaced with the correct values provided by the ***Observability Team***.
+3. `ais-dynatrace-metrics`
+- This stack will enable custom metrics to be captured under the Account Interventions Service Namespace.
+  - Do ensure that we have manually updated the Secret `DynatraceApiKey` to the provided value before deploying this stack.
+
+
+> ℹ️ Detailed deployment instructions for these 3 stacks to be followed are available in their respective README's
+
+### 3. Deploy the secure pipeline stacks
+
+Use the Stack Orchestation tool provided in our `Stack-orchestration` directory under the folder `di-account-interventions-production-admin` and deploy the `production_bootstrap.sh` script which will have the following base stacks to be deployed into our `production` environment:
+
+#### Deploy these 3 secure pipeline using the Stack Orchestration tool
+1. `ais-core-pipeline` deploy our `ais-core` stack
+2. `ais-main-pipeline` deploys our `ais-main` stack
+3. `ais-alarm-pipeline` deploys our `ais-alarm` stack
+
+---
+
+#### ⚡ Prior to deploying update and make these checks:
+- [ ] check the correct version of secure pipelines is being referencing in the `production_pipelines.sh` by checking the CHANGELOG and updating value -   https://github.com/govuk-one-login/devplatform-deploy/blob/main/sam-deploy-pipeline/CHANGELOG.md#added-32
+
+
+- [ ] For all 3 pipelines under `di-id-reuse-core-staging-admin` update the ParameterKey  `AllowedAccounts` to also include our production account number.
+
+
+- [ ] For all 3 pipelines under `di-account-interventions-production` check the ParameterKey `ArtifactSourceBucketArn` is set to the staging `ArtifactPromotionBucketArn` value found in the Outputs tab of the 3 pipeline stacks.
+
+
+- [ ] For all 3 pipelines under `di-account-interventions-production` check that the ParameterKey `ArtifactSourceBucketEventTriggerRoleArn` is set to the staging `ArtifactPromotionBucketEventTriggerRoleArn` value found in the Outputs tab of the 3 pipeline stacks.
+
+
+- [ ] For all 3 pipelines under  `di-account-interventions-production` check that the ParameterKey `BuildNotificationStackName` is `ais-infra-alerting`.
+
+
+- [ ] For all 3 pipelines under  `di-account-interventions-production` check that the ParameterKey `SlackNotificationType` is set to `Failures`.
+
+---
+
+#### Deployment Steps:
+
+After checks have been taken, deploy the 3 pipelines `ais-core-pipeline` , `ais-main-pipeline` and `ais-alarm-pipeline` to `production`.
+
+```shell
+$ cd stack-orchestation
+$ aws configure sso
+$ aws sso login --profile di-account-intervention-admin-324281879537
+$ sh production_pipelines.sh
+```
+
+Once all 3 pipelines have been deployed to `production` procced to deploy the `staging_pipelines.sh` script to allow promotion up to the `production` account.
+
+```shell
+$ cd stack-orchestation
+$ aws configure sso
+$ aws sso login --profile di-id-reuse-core-staging-admin-922902741880
+$ sh staging_pipelines.sh
+```
+This will allow the all 3 pipelines to deploy all the way to production??
+
+## Additional Info
 
 ### Old SAM version
 If you already have an earlier version of SAM installed you may need to either upgrade SAM or uninstall it
