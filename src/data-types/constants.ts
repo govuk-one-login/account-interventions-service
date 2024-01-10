@@ -80,11 +80,7 @@ export enum State {
 export const userLedActionList: EventsEnum[] = [
   EventsEnum.IPV_IDENTITY_ISSUED,
   EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
-];
-export const userActionList: EventsEnum[] = [
-  EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
-  EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
-  EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+  EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
 ];
 
 export const nonInterventionsCodes = new Set(['90', '91', '92', '93']);

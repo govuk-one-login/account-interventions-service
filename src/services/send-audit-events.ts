@@ -18,7 +18,6 @@ import {
   MetricNames,
   nonInterventionsCodes,
   State,
-  userActionList,
   userLedActionList,
 } from '../data-types/constants';
 import { logAndPublishMetric } from '../commons/metrics';
@@ -96,13 +95,12 @@ function buildExtensions(
     allowable_interventions: finalState.nextAllowableInterventions.filter(
       (intervention) => !nonInterventionsCodes.has(intervention),
     ),
-    ...buildAdditionalAttributes(finalState, eventEnum, txmaEventName),
+    ...buildAdditionalAttributes(finalState, txmaEventName),
   };
 }
 
 function buildAdditionalAttributes(
-  finalState: AccountStateEngineOutput,
-  eventEnum: EventsEnum,
+  stateEngineOutput: AccountStateEngineOutput,
   txmaEventName: TxMAEgressEventName,
 ): { state: State | undefined; action: ActiveStateActions | undefined } {
   if (txmaEventName === 'AIS_EVENT_IGNORED_ACCOUNT_DELETED')
@@ -111,44 +109,44 @@ function buildAdditionalAttributes(
       action: undefined,
     };
 
-  if (finalState.finalState.blocked)
+  if (stateEngineOutput.finalState.blocked)
     return {
       state: State.PERMANENTLY_SUSPENDED,
       action: undefined,
     };
 
-  if (!finalState.finalState.suspended) {
+  if (!stateEngineOutput.finalState.suspended) {
     return {
       state: State.ACTIVE,
       action: undefined,
     };
   }
 
-  if (!userActionList.includes(eventEnum)) {
-    return {
-      state: State.SUSPENDED,
-      action: undefined,
-    };
-  }
-
-  if (finalState.finalState.resetPassword && !finalState.finalState.reproveIdentity) {
+  if (stateEngineOutput.finalState.resetPassword && !stateEngineOutput.finalState.reproveIdentity) {
     return {
       state: State.ACTIVE,
       action: ActiveStateActions.RESET_PASSWORD,
     };
   }
 
-  if (!finalState.finalState.resetPassword && finalState.finalState.reproveIdentity) {
+  if (!stateEngineOutput.finalState.resetPassword && stateEngineOutput.finalState.reproveIdentity) {
     return {
       state: State.ACTIVE,
       action: ActiveStateActions.REPROVE_IDENTITY,
     };
   }
 
-  if (finalState.finalState.resetPassword && finalState.finalState.reproveIdentity) {
+  if (stateEngineOutput.finalState.resetPassword && stateEngineOutput.finalState.reproveIdentity) {
     return {
       state: State.ACTIVE,
       action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY,
+    };
+  }
+
+  if (stateEngineOutput.finalState.suspended) {
+    return {
+      state: State.SUSPENDED,
+      action: undefined,
     };
   }
 

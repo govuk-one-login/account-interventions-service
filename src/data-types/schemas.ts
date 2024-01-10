@@ -35,7 +35,7 @@ export const TxMAIngress = {
           if: { properties: { event_name: { enum: [TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION] } } },
           // eslint-disable-next-line unicorn/no-thenable
           then: {
-            required: ['event_timestamp_ms', 'extensions'],
+            required: ['extensions'],
             properties: {
               extensions: {
                 type: 'object',
