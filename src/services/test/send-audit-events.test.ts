@@ -100,7 +100,6 @@ const sqsCommandInputForIntervention = {
       trigger_event_id: '123',
       description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
       intervention_code: '01',
-      reason: 'reason',
       allowable_interventions: [],
       state: State.PERMANENTLY_SUSPENDED,
     },
@@ -121,7 +120,6 @@ const sqsCommandInputForDeletedAccount = {
       trigger_event_id: '123',
       description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
       intervention_code: '01',
-      reason: 'reason',
       allowable_interventions: [],
       state: State.DELETED
     },
@@ -142,7 +140,6 @@ const sqsCommandInputForSuspendIntervention = {
       trigger_event_id: '123',
       description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
       intervention_code: '01',
-      reason: 'reason',
       allowable_interventions: ['01'],
       state: State.SUSPENDED
     },
@@ -163,7 +160,6 @@ const sqsCommandInputForSuspendUserAction = {
       trigger_event_id: '123',
       description: 'USER_LED_ACTION',
       intervention_code: '01',
-      reason: 'reason',
       allowable_interventions: [],
       state: State.ACTIVE,
       action: ActiveStateActions.REPROVE_IDENTITY
@@ -185,7 +181,6 @@ const sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass = {
       trigger_event_id: '123',
       description: 'USER_LED_ACTION',
       intervention_code: '01',
-      reason: 'reason',
       allowable_interventions: [],
       state: State.ACTIVE,
       action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY

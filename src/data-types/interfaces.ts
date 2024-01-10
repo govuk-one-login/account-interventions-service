@@ -62,7 +62,6 @@ export interface TxMAEgressExtensions {
   trigger_event: string;
   description: string | AISInterventionTypes;
   intervention_code: string | undefined;
-  reason: string | undefined;
   allowable_interventions: string[];
   state: State | undefined;
   action: ActiveStateActions | undefined;
