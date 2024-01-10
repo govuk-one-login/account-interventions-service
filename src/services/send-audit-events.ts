@@ -18,6 +18,7 @@ import {
   MetricNames,
   nonInterventionsCodes,
   State,
+  userActionList,
   userLedActionList,
 } from '../data-types/constants';
 import { logAndPublishMetric } from '../commons/metrics';
@@ -92,7 +93,6 @@ function buildExtensions(
     trigger_event_id: event.event_id ?? 'UNKNOWN',
     description: userLedActionList.includes(eventEnum) ? 'USER_LED_ACTION' : finalState.interventionName!,
     intervention_code: event.extensions?.intervention?.intervention_code,
-    // reason: event.extensions?.intervention?.intervention_reason,
     allowable_interventions: finalState.nextAllowableInterventions.filter(
       (intervention) => !nonInterventionsCodes.has(intervention),
     ),
@@ -124,7 +124,7 @@ function buildAdditionalAttributes(
     };
   }
 
-  if (!userLedActionList.includes(eventEnum)) {
+  if (!userActionList.includes(eventEnum)) {
     return {
       state: State.SUSPENDED,
       action: undefined,
