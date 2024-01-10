@@ -77,7 +77,7 @@
   },
   {
     "ParameterKey": "SlackNotificationType",
-    "ParameterValue": "None"
+    "ParameterValue": "Failures"
   },
   {
     "ParameterKey": "TestImageRepositoryUri",

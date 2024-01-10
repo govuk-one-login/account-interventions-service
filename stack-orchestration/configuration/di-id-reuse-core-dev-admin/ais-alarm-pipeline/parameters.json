@@ -8,6 +8,10 @@
     "ParameterValue": "none"
   },
   {
+    "ParameterKey": "ArtifactSourceBucketEventTriggerRoleArn",
+    "ParameterValue": "none"
+  },
+  {
     "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
     "ParameterValue": "None"
   },
@@ -86,5 +90,9 @@
   {
     "ParameterKey": "VpcStackName",
     "ParameterValue": "vpc"
+  },
+  {
+    "ParameterKey": "RunTestContainerInVPC",
+    "ParameterValue": "False"
   }
 ]

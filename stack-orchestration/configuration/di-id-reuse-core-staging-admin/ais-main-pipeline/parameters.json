@@ -1,7 +1,7 @@
 [
   {
     "ParameterKey": "AllowedAccounts",
-    "ParameterValue": "217747075921"
+    "ParameterValue": "217747075921, 324281879537"
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
@@ -29,7 +29,7 @@
   },
   {
     "ParameterKey": "CustomKmsKeyArns",
-    "ParameterValue": ""
+    "ParameterValue": "arn:aws:kms:eu-west-2:216552277552:key/4bc58ab5-c9bb-4702-a2c3-5d339604a8fe"
   },
   {
     "ParameterKey": "Environment",
@@ -74,6 +74,10 @@
   {
     "ParameterKey": "SigningProfileVersionArn",
     "ParameterValue": "arn:aws:signer:eu-west-2:688341086169:/signing-profiles/SigningProfile_kbj97jMWIt2N/1zo4Hwf3ub"
+  },
+  {
+    "ParameterKey": "AdditionalCodeSigningVersionArns",
+    "ParameterValue": "arn:aws:signer:eu-west-2:216552277552:/signing-profiles/DynatraceSigner/5uwzCCGTPq"
   },
   {
     "ParameterKey": "SlackNotificationType",

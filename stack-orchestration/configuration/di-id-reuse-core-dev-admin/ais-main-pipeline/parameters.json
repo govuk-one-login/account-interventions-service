@@ -8,6 +8,10 @@
     "ParameterValue": "none"
   },
   {
+    "ParameterKey": "ArtifactSourceBucketEventTriggerRoleArn",
+    "ParameterValue": "none"
+  },
+  {
     "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
     "ParameterValue": "None"
   },
@@ -25,7 +29,7 @@
   },
   {
     "ParameterKey": "CustomKmsKeyArns",
-    "ParameterValue": ""
+    "ParameterValue": "arn:aws:kms:eu-west-2:216552277552:key/4bc58ab5-c9bb-4702-a2c3-5d339604a8fe, arn:aws:kms:eu-west-2:013758878511:key/ab396761-f7f0-420f-afa9-7a407896913f"
   },
   {
     "ParameterKey": "Environment",
@@ -72,12 +76,16 @@
     "ParameterValue": "arn:aws:signer:eu-west-2:013758878511:/signing-profiles/SigningProfile_h2ElE6mRDyik/CG85oc4Ahg"
   },
   {
+    "ParameterKey": "AdditionalCodeSigningVersionArns",
+    "ParameterValue": "arn:aws:signer:eu-west-2:216552277552:/signing-profiles/DynatraceSigner/5uwzCCGTPq"
+  },
+  {
     "ParameterKey": "SlackNotificationType",
     "ParameterValue": "None"
   },
   {
     "ParameterKey": "TestImageRepositoryUri",
-    "ParameterValue": "none"
+    "ParameterValue": "013758878511.dkr.ecr.eu-west-2.amazonaws.com/ais-test-ecr-testrunnerimagerepository-voncsgmwvx9c"
   },
   {
     "ParameterKey": "TestReportFormat",
