@@ -26,12 +26,12 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
-    component_id: 'TICF_CRI',
+    component_id: 'TICF_CRI_SUSPEND',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
         intervention_code: '01',
-        intervention_reason: 'something',
+        intervention_reason: 'suspend - 01',
       },
     },
   },
@@ -40,12 +40,12 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
-    component_id: 'TICF_CRI',
+    component_id: 'TICF_CRI_UNSUSPEND',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
         intervention_code: '02',
-        intervention_reason: 'something',
+        intervention_reason: 'unsuspend - 02',
       },
     },
   },
@@ -54,12 +54,12 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
-    component_id: 'TICF_CRI',
+    component_id: 'TICF_CRI_BLOCK',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
         intervention_code: '03',
-        intervention_reason: 'something',
+        intervention_reason: 'block - 03',
       },
     },
   },
@@ -68,12 +68,12 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
-    component_id: 'TICF_CRI',
+    component_id: 'TICF_CRI_PASSWORD_RESET',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
         intervention_code: '04',
-        intervention_reason: 'something',
+        intervention_reason: 'password reset - 04',
       },
     },
   },
@@ -82,12 +82,12 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
-    component_id: 'TICF_CRI',
+    component_id: 'TICF_CRI_ID_RESET',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
         intervention_code: '05',
-        intervention_reason: 'something',
+        intervention_reason: 'id reset - 05',
       },
     },
   },
@@ -96,12 +96,12 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
-    component_id: 'TICF_CRI',
+    component_id: 'TICF_CRI_PASSWORD_AND_ID_RESET',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
         intervention_code: '06',
-        intervention_reason: 'something',
+        intervention_reason: 'password and id reset - 06',
       },
     },
   },
@@ -110,12 +110,12 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
-    component_id: 'TICF_CRI',
+    component_id: 'TICF_CRI_UNBLOCK',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
         intervention_code: '07',
-        intervention_reason: 'something',
+        intervention_reason: 'unblock - 07',
       },
     },
   },

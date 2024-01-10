@@ -95,6 +95,55 @@ defineFeature(feature, (test) => {
     );
   });
 
+  test('Happy Path - <originalAisEventType> account - Get Request to /ais/userId - Returns Expected Data for <aisEventType> with History values', ({
+    given,
+    when,
+    then,
+  }) => {
+    given(
+      /^I send an updated request to the SQS queue with intervention data of the type (.*) from (.*)$/,
+      async (aisEventType, originalAisEventType) => {
+        console.log('sending first message to put the user in : ' + originalAisEventType);
+        await sendSQSEvent(testUserId, originalAisEventType);
+        await timeDelayForTestEnvironment(1500);
+        console.log('sending second message to put the user in : ' + aisEventType);
+        await sendSQSEvent(testUserId, aisEventType);
+      },
+    );
+
+    when(
+      /^I invoke the API to retrieve the intervention status of the user's account with (.*)$/,
+      async (historyValue) => {
+        await timeDelayForTestEnvironment(500);
+        response = await invokeGetAccountState(testUserId, historyValue);
+      },
+    );
+
+    then(
+      /^I expect the intervention to be (.*), with the following history values with (.*), (.*), (.*), (.*)$/,
+      async (
+        interventionType: string,
+        componentHistory: string,
+        interventionCodeHistory: string,
+        interventionHistory: string,
+        reason: string,
+      ) => {
+        console.log(`Received History`, response.intervention.history);
+        expect(response.intervention.description).toBe(interventionType);
+        expect(response.intervention.history[response.intervention.history.length - 1].component).toBe(
+          componentHistory,
+        );
+        expect(response.intervention.history[response.intervention.history.length - 1].code).toBe(
+          interventionCodeHistory,
+        );
+        expect(response.intervention.history[response.intervention.history.length - 1].intervention).toBe(
+          interventionHistory,
+        );
+        expect(response.intervention.history[response.intervention.history.length - 1].reason).toBe(reason);
+      },
+    );
+  });
+
   test('Happy Path - Field Validation - Get Request to /ais/userId - Returns Expected Data for <aisEventType> with specific field validation', ({
     given,
     when,

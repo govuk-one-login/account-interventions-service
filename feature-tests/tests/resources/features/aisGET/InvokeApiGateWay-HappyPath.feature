@@ -22,7 +22,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
         Then I expect the intervention to be <interventionType>, with the following state settings <blockedState>, <suspendedState>, <resetPassword> and <reproveIdentity>
         Examples:
             | originalAisEventType  | aisEventType              | historyValue | interventionType                                   | blockedState | suspendedState | resetPassword | reproveIdentity |
-            #passsword reset account status to new intervention type
+            # passsword reset account status to new intervention type
             | pswResetRequired      | pswResetRequired          | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | true           | true          | false           |
             | pswResetRequired      | suspendNoAction           | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
             | pswResetRequired      | block                     | false        | AIS_ACCOUNT_BLOCKED                                | true         | false          | false         | false           |
@@ -32,7 +32,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
             | pswResetRequired      | userActionIdResetSuccess  | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | true           | true          | false           |
             | pswResetRequired      | userActionPswResetSuccess | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | false          | false         | false           |
             | pswResetRequired      | unSuspendAction           | false        | AIS_ACCOUNT_UNSUSPENDED                            | false        | false          | false         | false           |
-            #  suspend no action account status to new intervention type
+            # suspend no action account status to new intervention type
             | suspendNoAction       | pswResetRequired          | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | true           | true          | false           |
             | suspendNoAction       | suspendNoAction           | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
             | suspendNoAction       | block                     | false        | AIS_ACCOUNT_BLOCKED                                | true         | false          | false         | false           |
@@ -72,6 +72,40 @@ Feature: Invoke-APIGateway-HappyPath.feature
             | pswAndIdResetRequired | userActionIdResetSuccess  | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false        | true           | true          | false           |
             | pswAndIdResetRequired | userActionPswResetSuccess | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false        | true           | false         | true            |
             | pswAndIdResetRequired | unSuspendAction           | false        | AIS_ACCOUNT_UNSUSPENDED                            | false        | false          | false         | false           |
+
+
+    Scenario Outline: Happy Path - <originalAisEventType> account - Get Request to /ais/userId - Returns Expected Data for <aisEventType> with History values
+        Given I send an updated request to the SQS queue with intervention data of the type <aisEventType> from <originalAisEventType>
+        When I invoke the API to retrieve the intervention status of the user's account with <historyValue>
+        Then I expect the intervention to be <interventionType>, with the following history values with <componentHistory>, <interventionCodeHistory>, <interventionHistory>, <reason>
+        Examples:
+            | originalAisEventType  | aisEventType          | historyValue | interventionType                                   | componentHistory               | interventionCodeHistory | interventionHistory                                          | reason                     |
+            # passsword reset account status to new intervention type
+            | pswResetRequired      | suspendNoAction       | true         | AIS_ACCOUNT_SUSPENDED                              | TICF_CRI_SUSPEND               | 01                      | FRAUD_SUSPEND_ACCOUNT                                        | suspend - 01               |
+            | pswResetRequired      | block                 | true         | AIS_ACCOUNT_BLOCKED                                | TICF_CRI_BLOCK                 | 03                      | FRAUD_BLOCK_ACCOUNT                                          | block - 03                 |
+            | pswResetRequired      | idResetRequired       | true         | AIS_FORCED_USER_IDENTITY_VERIFY                    | TICF_CRI_ID_RESET              | 05                      | FRAUD_FORCED_USER_IDENTITY_REVERIFICATION                    | id reset - 05              |
+            | pswResetRequired      | pswAndIdResetRequired | true         | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | TICF_CRI_PASSWORD_AND_ID_RESET | 06                      | FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION | password and id reset - 06 |
+            | pswResetRequired      | unSuspendAction       | true         | AIS_ACCOUNT_UNSUSPENDED                            | TICF_CRI_UNSUSPEND             | 02                      | FRAUD_UNSUSPEND_ACCOUNT                                      | unsuspend - 02             |
+            # suspend no action account status to new intervention type
+            | suspendNoAction       | pswResetRequired      | true         | AIS_FORCED_USER_PASSWORD_RESET                     | TICF_CRI_PASSWORD_RESET        | 04                      | FRAUD_FORCED_USER_PASSWORD_RESET                             | password reset - 04        |
+            | suspendNoAction       | block                 | true         | AIS_ACCOUNT_BLOCKED                                | TICF_CRI_BLOCK                 | 03                      | FRAUD_BLOCK_ACCOUNT                                          | block - 03                 |
+            | suspendNoAction       | idResetRequired       | true         | AIS_FORCED_USER_IDENTITY_VERIFY                    | TICF_CRI_ID_RESET              | 05                      | FRAUD_FORCED_USER_IDENTITY_REVERIFICATION                    | id reset - 05              |
+            | suspendNoAction       | pswAndIdResetRequired | true         | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | TICF_CRI_PASSWORD_AND_ID_RESET | 06                      | FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION | password and id reset - 06 |
+            | suspendNoAction       | unSuspendAction       | true         | AIS_ACCOUNT_UNSUSPENDED                            | TICF_CRI_UNSUSPEND             | 02                      | FRAUD_UNSUSPEND_ACCOUNT                                      | unsuspend - 02             |
+            # blocked account status to new intervention type
+            | block                 | unblock               | true         | AIS_ACCOUNT_UNBLOCKED                              | TICF_CRI_UNBLOCK               | 07                      | FRAUD_UNBLOCK_ACCOUNT                                        | unblock - 07               |
+            # Id reset account status to new intervention type
+            | idResetRequired       | pswResetRequired      | true         | AIS_FORCED_USER_PASSWORD_RESET                     | TICF_CRI_PASSWORD_RESET        | 04                      | FRAUD_FORCED_USER_PASSWORD_RESET                             | password reset - 04        |
+            | idResetRequired       | suspendNoAction       | true         | AIS_ACCOUNT_SUSPENDED                              | TICF_CRI_SUSPEND               | 01                      | FRAUD_SUSPEND_ACCOUNT                                        | suspend - 01               |
+            | idResetRequired       | block                 | true         | AIS_ACCOUNT_BLOCKED                                | TICF_CRI_BLOCK                 | 03                      | FRAUD_BLOCK_ACCOUNT                                          | block - 03                 |
+            | idResetRequired       | pswAndIdResetRequired | true         | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | TICF_CRI_PASSWORD_AND_ID_RESET | 06                      | FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION | password and id reset - 06 |
+            | idResetRequired       | unSuspendAction       | true         | AIS_ACCOUNT_UNSUSPENDED                            | TICF_CRI_UNSUSPEND             | 02                      | FRAUD_UNSUSPEND_ACCOUNT                                      | unsuspend - 02             |
+            # password reset required account status to new intervention type
+            | pswAndIdResetRequired | pswResetRequired      | true         | AIS_FORCED_USER_PASSWORD_RESET                     | TICF_CRI_PASSWORD_RESET        | 04                      | FRAUD_FORCED_USER_PASSWORD_RESET                             | password reset - 04        |
+            | pswAndIdResetRequired | suspendNoAction       | true         | AIS_ACCOUNT_SUSPENDED                              | TICF_CRI_SUSPEND               | 01                      | FRAUD_SUSPEND_ACCOUNT                                        | suspend - 01               |
+            | pswAndIdResetRequired | block                 | true         | AIS_ACCOUNT_BLOCKED                                | TICF_CRI_BLOCK                 | 03                      | FRAUD_BLOCK_ACCOUNT                                          | block - 03                 |
+            | pswAndIdResetRequired | idResetRequired       | true         | AIS_FORCED_USER_IDENTITY_VERIFY                    | TICF_CRI_ID_RESET              | 05                      | FRAUD_FORCED_USER_IDENTITY_REVERIFICATION                    | id reset - 05              |
+            | pswAndIdResetRequired | unSuspendAction       | true         | AIS_ACCOUNT_UNSUSPENDED                            | TICF_CRI_UNSUSPEND             | 02                      | FRAUD_UNSUSPEND_ACCOUNT                                      | unsuspend - 02             |
 
 
     Scenario Outline: Happy Path - Field Validation - Get Request to /ais/userId - Returns Expected Data for <aisEventType> with specific field validation
