@@ -90,9 +90,5 @@
   {
     "ParameterKey": "VpcStackName",
     "ParameterValue": "vpc"
-  },
-  {
-    "ParameterKey": "RunTestContainerInVPC",
-    "ParameterValue": "False"
   }
 ]
