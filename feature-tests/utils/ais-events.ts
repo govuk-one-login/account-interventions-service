@@ -26,7 +26,7 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
-    component_id: 'TICF_CRI',
+    component_id: 'TICF_CRI_SUSPEND',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
@@ -40,7 +40,7 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
-    component_id: 'TICF_CRI',
+    component_id: 'TICF_CRI_UNSUSPEND',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
@@ -54,7 +54,7 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
-    component_id: 'TICF_CRI',
+    component_id: 'TICF_CRI_BLOCK',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
@@ -68,7 +68,7 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
-    component_id: 'TICF_CRI',
+    component_id: 'TICF_CRI_PASSWORD_RESET',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
@@ -82,7 +82,7 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
-    component_id: 'TICF_CRI',
+    component_id: 'TICF_CRI_ID_RESET',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
@@ -96,7 +96,7 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
-    component_id: 'TICF_CRI',
+    component_id: 'TICF_CRI_PASSWORD_AND_ID_RESET',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
@@ -110,7 +110,7 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
-    component_id: 'TICF_CRI',
+    component_id: 'TICF_CRI_UNBLOCK',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
