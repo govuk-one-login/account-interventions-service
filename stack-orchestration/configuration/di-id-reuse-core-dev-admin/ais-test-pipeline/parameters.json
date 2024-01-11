@@ -8,6 +8,10 @@
     "ParameterValue": "none"
   },
   {
+    "ParameterKey": "ArtifactSourceBucketEventTriggerRoleArn",
+    "ParameterValue": "none"
+  },
+  {
     "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
     "ParameterValue": "None"
   },
