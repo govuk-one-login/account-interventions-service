@@ -55,13 +55,23 @@ $ yarn audit
 ```shell
 $ yarn audit:fix
 ```
+### Setup AWS SSO Login
+```shell
+$ aws configure sso
+```
+- Choose session name: _{enter your name}_
+- Accept authorisation in browser
+- Choose the AWS account in the dropdown
+- CLI default client Region: eu-west-2
+- CLI default output format: json
+- aws sso login --profile _{profile name provided for account}
 
 ## Architecture Diagram
-![img.png](img.png)
+<img src="img.png" alt="img.png" width="500"/>
 
-## How To Deploy Account Interventions Service into Production
-### 1. Base CloudFormation Stacks
-To deploy the base common cloudformation stacks required created by Dev Platform prior to deploying the solution use the Stack Orchestation tool provided in our `Stack-orchestration` directory under the folder `di-account-interventions-production-admin` and deploy the `production_bootstrap.sh` script which will have the following base stacks to be deployed into our `production` environment:
+## How To Deploy
+### 1. Setup Base CloudFormation Stacks
+To deploy the base common CloudFormation stacks required created by Dev Platform prior to deploying the solution use the Stack Orchestation tool provided in our [stack-orchestration](stack-orchestration) directory and deploy the [production_bootstrap.sh](stack-orchestration%2Fproduction_bootstrap.sh) script.
 
 ***The stacks to be deployed are:***
 1. alerting-integration
@@ -72,7 +82,12 @@ To deploy the base common cloudformation stacks required created by Dev Platform
 6. checkov-hook
 7. infra-audit-hook
 
-#### ⚡ Prior to deploying check the correct version is being deployed to the latest version via the CHANGELOG https://github.com/govuk-one-login/devplatform-deploy/tree/main
+#### Stack Orchestation Tool Prerequisites
+
+- [aws-vault](https://github.com/99designs/aws-vault)
+- [jq](https://formulae.brew.sh/formula/jq)
+
+#### ⚡ Prior to deploying check the latest version is being referenced which can be found in the [CHANGELOG](https://github.com/govuk-one-login/devplatform-deploy/tree/main)
 
 #### Steps:
 
@@ -82,63 +97,36 @@ $ aws configure sso
 $ aws sso login --profile di-account-intervention-admin-324281879537
 $ sh production_bootstrap.sh
 ```
-The bootstrap script should then deploy all base Cloudformation stacks required for account set up.
+The bootstrap script would deploy all base Cloudformation stacks required for account set up.
 
 ### 2. Deploy ais-infra stacks
-
-##### ⚠️ Make sure pre-commit has been enabled on the `ais-infra` repo
+#### Clone the [ais-infra](https://github.com/govuk-one-login/ais-infra/blob/3046cb392b657ded2b652a52f0652a6ccd4d8630/) repo
+```shell
+git clone git@github.com:govuk-one-login/ais-infra.git
+cd ais-infra
+```
+##### ⚠️ Setup pre-commit
 ```shell
 $ pre-commit install -f
 ```
 
-### Stacks to deploy
-1. `ais-infra-alerting`
-- This stack sets up the Chatbot configuration for all Slack alerts relating to AIS.
-  - When deploying set the parameter `InitialNotificationStack: no`
-2. `ais-infra-common`
-- This stack includes all the AWS Secrets used for Dynatrace.
-  - Once deployed, head into the AWS console and manually update the secret for `DynatraceApiToken` and `DynatraceApiKey` to be replaced with the correct values provided by the ***Observability Team***.
-3. `ais-dynatrace-metrics`
-- This stack will enable custom metrics to be captured under the Account Interventions Service Namespace.
-  - Do ensure that we have manually updated the Secret `DynatraceApiKey` to the provided value before deploying this stack.
+#### Deploy the following stacks as ordered:
+1. `ais-infra-alerting` - [README.md](https://github.com/govuk-one-login/ais-infra/blob/0087789dc22a0abede2458a67106f7e45dff2b99/ais-infra-alerting/README.md)
+2. `ais-infra-common` - [README.md](https://github.com/govuk-one-login/ais-infra/blob/c3ce026093e69cbfdf4272b119a1fe8cb31ee4cf/ais-infra-common/README.md)
+3. `ais-dynatrace-metrics` - [README.md](https://github.com/govuk-one-login/ais-infra/blob/c3ce026093e69cbfdf4272b119a1fe8cb31ee4cf/ais-dynatrace-metrics/README.md)
 
+### 3. Setup secure pipelines
 
-> ℹ️ Detailed deployment instructions for these 3 stacks to be followed are available in their respective README's
+#### Setup these 3 secure pipelines by using the Stack Orchestation tool provided in our [Stack-Orchestration](stack-orchestration) directory and deploy the [production_pipelines.sh](stack-orchestration%2Fproduction_pipelines.sh) script.
 
-### 3. Deploy the secure pipeline stacks
-
-Use the Stack Orchestation tool provided in our `Stack-orchestration` directory under the folder `di-account-interventions-production-admin` and deploy the `production_bootstrap.sh` script which will have the following base stacks to be deployed into our `production` environment:
-
-#### Deploy these 3 secure pipeline using the Stack Orchestration tool
 1. `ais-core-pipeline` deploy our `ais-core` stack
 2. `ais-main-pipeline` deploys our `ais-main` stack
 3. `ais-alarm-pipeline` deploys our `ais-alarm` stack
 
----
 
-#### ⚡ Prior to deploying update and make these checks:
-- [ ] check the correct version of secure pipelines is being referencing in the `production_pipelines.sh` by checking the CHANGELOG and updating value -   https://github.com/govuk-one-login/devplatform-deploy/blob/main/sam-deploy-pipeline/CHANGELOG.md#added-32
-
-
-- [ ] For all 3 pipelines under `di-id-reuse-core-staging-admin` update the ParameterKey  `AllowedAccounts` to also include our production account number.
-
-
-- [ ] For all 3 pipelines under `di-account-interventions-production` check the ParameterKey `ArtifactSourceBucketArn` is set to the staging `ArtifactPromotionBucketArn` value found in the Outputs tab of the 3 pipeline stacks.
-
-
-- [ ] For all 3 pipelines under `di-account-interventions-production` check that the ParameterKey `ArtifactSourceBucketEventTriggerRoleArn` is set to the staging `ArtifactPromotionBucketEventTriggerRoleArn` value found in the Outputs tab of the 3 pipeline stacks.
-
-
-- [ ] For all 3 pipelines under  `di-account-interventions-production` check that the ParameterKey `BuildNotificationStackName` is `ais-infra-alerting`.
-
-
-- [ ] For all 3 pipelines under  `di-account-interventions-production` check that the ParameterKey `SlackNotificationType` is set to `Failures`.
-
----
+#### ⚡ Prior to deploying check the latest version of secure pipelines is being referenced in the [production_pipelines.sh](stack-orchestration%2Fproduction_pipelines.sh) script >  [**CHANGELOG**](https://github.com/govuk-one-login/devplatform-deploy/blob/main/sam-deploy-pipeline/CHANGELOG.md#added-32)
 
 #### Deployment Steps:
-
-After checks have been taken, deploy the 3 pipelines `ais-core-pipeline` , `ais-main-pipeline` and `ais-alarm-pipeline` to `production`.
 
 ```shell
 $ cd stack-orchestation
@@ -147,7 +135,7 @@ $ aws sso login --profile di-account-intervention-admin-324281879537
 $ sh production_pipelines.sh
 ```
 
-Once all 3 pipelines have been deployed to `production` procced to deploy the `staging_pipelines.sh` script to allow promotion up to the `production` account.
+Once all production pipelines have been set up proceed to deploy the [staging_pipelines.sh](stack-orchestration%2Fstaging_pipelines.sh) script to allow promotion up to `production` account.
 
 ```shell
 $ cd stack-orchestation
@@ -155,7 +143,19 @@ $ aws configure sso
 $ aws sso login --profile di-id-reuse-core-staging-admin-922902741880
 $ sh staging_pipelines.sh
 ```
-This will allow the all 3 pipelines to deploy all the way to production??
+
+## Stack Deployment Versions
+
+❗ **Update this table if version has been updated**
+
+|              | ais-main-pipeline           | ais-core-pipeline     | ais-alarm-pipeline      | alerting-integration     |     api-gateway-logs     | certificate-expiry    | vpc              | lambda-audit-hook      | checkov-hook      | infra-audit-hook      |
+|-------------|-----------------------------|----------------------|------------------------|--------------------------|----------------------|-----------------------|---------------|---------------------|-----------------|----------------------|
+| Dev            |  v2.44.0                    | v2.44.0                       | v2.44.0                   |     v1.0.2                       |     v1.0.2                     |    v1.0.2                      | v2.1.0           |    n/a                |      n/a          |       n/a              |
+| Build       | v2.44.0                     | v2.44.0                      | v2.44.0                   |     v1.0.2                        |    v1.0.2                     |    v1.0.2                      | v2.1.0           |    n/a                |       n/a         |       n/a              |
+| Staging     | v2.44.0                     | v2.44.0                      | v2.44.0                |   v1.0.2                        |     v1.0.2                     |    v1.0.2                      | v2.1.0           |    n/a                |       n/a         |       n/a              |
+| Integration | v2.44.0                     | v2.44.0                      | v2.44.0                |   v1.0.5                         |    v1.0.4                     |    v1.0.4                      | v2.1.0           |    n/a                |       n/a         |       n/a              |
+| Production     | v2.44.0                      | v2.44.0                      | v2.44.0                |   v1.0.5                        |     v1.0.4                    |     v1.0.4                     | v2.1.0        |      n/a              |         n/a       |         n/a            |
+
 
 ## Additional Info
 
