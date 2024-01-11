@@ -16,3 +16,9 @@ export function randomString(length: number) {
   }
   return result;
 }
+
+export interface CurrentTimeDescriptor {
+  isoString: string;
+  milliseconds: number;
+  seconds: number;
+}
