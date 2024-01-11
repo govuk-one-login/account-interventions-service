@@ -1,7 +1,7 @@
 import { SQS } from '@aws-sdk/client-sqs';
 import { aisEvents } from './ais-events';
 import EndPoints from '../apiEndpoints/endpoints';
-import { getCurrentTimestamp } from '../../src/commons/get-current-timestamp';
+import { CurrentTimeDescriptor } from '../utils/interface';
 
 export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeof aisEvents) {
   const currentTime = getCurrentTimestamp();
@@ -23,4 +23,12 @@ export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeo
   } catch (error) {
     console.log('Error', error);
   }
+}
+
+function getCurrentTimestamp(date = new Date()): CurrentTimeDescriptor {
+  return {
+    milliseconds: date.valueOf(),
+    isoString: date.toISOString(),
+    seconds: Math.floor(date.valueOf() / 1000),
+  };
 }
