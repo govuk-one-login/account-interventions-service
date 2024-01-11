@@ -4,6 +4,7 @@ import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { SendMessageCommand, SendMessageCommandOutput, SQSClient } from '@aws-sdk/client-sqs';
 import {
   AccountStateEngineOutput,
+  TxMAEgressBasicExtensions,
   TxMAEgressEvent,
   TxMAEgressEventName,
   TxMAEgressExtensions,
@@ -57,7 +58,7 @@ export async function sendAuditEvent(
     component_id: COMPONENT_ID,
     event_name: eventName,
     user: { user_id: ingressTxmaEvent.user.user_id },
-    extensions: finalState ? buildExtensions(ingressTxmaEvent, eventEnum, eventName, finalState) : undefined,
+    extensions: buildExtensions(ingressTxmaEvent, eventEnum, eventName, finalState),
   };
 
   const input = { MessageBody: JSON.stringify(txmaEvent), QueueUrl: appConfig.txmaEgressQueueUrl };
@@ -77,7 +78,7 @@ export async function sendAuditEvent(
  * Helper function to build extension object based on the type of event
  * @param event - Original event received from TxMA
  * @param eventEnum - Event name as an EventEnum
- * @param finalState - Final state after intervention was/ was not applied
+ * @param stateEngineOutput - Final state after intervention was/ was not applied
  * @param txmaEventName - The name of the TxMA event name
  * @returns - TxMAEgressExtensions object
  */
@@ -85,17 +86,24 @@ function buildExtensions(
   event: TxMAIngressEvent,
   eventEnum: EventsEnum,
   txmaEventName: TxMAEgressEventName,
-  finalState: AccountStateEngineOutput,
-): TxMAEgressExtensions {
+  stateEngineOutput: AccountStateEngineOutput | undefined,
+): TxMAEgressExtensions | TxMAEgressBasicExtensions {
+  if (stateEngineOutput) {
+    return {
+      trigger_event: event.event_name,
+      trigger_event_id: event.event_id ?? 'UNKNOWN',
+      intervention_code: event.extensions?.intervention?.intervention_code,
+      description: userLedActionList.includes(eventEnum) ? 'USER_LED_ACTION' : stateEngineOutput.interventionName!,
+      allowable_interventions: stateEngineOutput.nextAllowableInterventions.filter(
+        (intervention) => !nonInterventionsCodes.has(intervention),
+      ),
+      ...buildAdditionalAttributes(stateEngineOutput, txmaEventName),
+    };
+  }
   return {
     trigger_event: event.event_name,
     trigger_event_id: event.event_id ?? 'UNKNOWN',
-    description: userLedActionList.includes(eventEnum) ? 'USER_LED_ACTION' : finalState.interventionName!,
     intervention_code: event.extensions?.intervention?.intervention_code,
-    allowable_interventions: finalState.nextAllowableInterventions.filter(
-      (intervention) => !nonInterventionsCodes.has(intervention),
-    ),
-    ...buildAdditionalAttributes(finalState, txmaEventName),
   };
 }
 

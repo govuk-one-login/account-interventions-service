@@ -98,8 +98,8 @@ const sqsCommandInputForIntervention = {
     extensions: {
       trigger_event: 'TICF_ACCOUNT_INTERVENTION',
       trigger_event_id: '123',
-      description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
       intervention_code: '01',
+      description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
       allowable_interventions: [],
       state: State.PERMANENTLY_SUSPENDED,
     },
@@ -118,8 +118,8 @@ const sqsCommandInputForDeletedAccount = {
     extensions: {
       trigger_event: 'TICF_ACCOUNT_INTERVENTION',
       trigger_event_id: '123',
-      description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
       intervention_code: '01',
+      description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
       allowable_interventions: [],
       state: State.DELETED
     },
@@ -138,8 +138,8 @@ const sqsCommandInputForSuspendIntervention = {
     extensions: {
       trigger_event: 'TICF_ACCOUNT_INTERVENTION',
       trigger_event_id: '123',
-      description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
       intervention_code: '01',
+      description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
       allowable_interventions: ['01'],
       state: State.SUSPENDED
     },
@@ -158,10 +158,27 @@ const sqsCommandInputForUnsuspendIntervention = {
     extensions: {
       trigger_event: 'TICF_ACCOUNT_INTERVENTION',
       trigger_event_id: '123',
-      description: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
       intervention_code: '01',
+      description: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
       allowable_interventions: ['01'],
       state: State.ACTIVE
+    },
+  }),
+};
+
+const sqsCommandInputForFutureInterventions = {
+  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  MessageBody: JSON.stringify({
+    timestamp: 1_234_567,
+    event_timestamp_ms: 1_234_567_890,
+    event_timestamp_ms_formatted: 'today',
+    component_id: COMPONENT_ID,
+    event_name: 'AIS_EVENT_IGNORED_IN_FUTURE',
+    user: { user_id: 'testUserId' },
+    extensions: {
+      trigger_event: 'TICF_ACCOUNT_INTERVENTION',
+      trigger_event_id: '123',
+      intervention_code: '01',
     },
   }),
 };
@@ -178,8 +195,8 @@ const sqsCommandInputForSuspendUserAction = {
     extensions: {
       trigger_event: 'TICF_ACCOUNT_INTERVENTION',
       trigger_event_id: '123',
-      description: 'AIS_FORCED_USER_IDENTITY_VERIFY',
       intervention_code: '01',
+      description: 'AIS_FORCED_USER_IDENTITY_VERIFY',
       allowable_interventions: [],
       state: State.ACTIVE,
       action: ActiveStateActions.REPROVE_IDENTITY
@@ -199,8 +216,8 @@ const sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass = {
     extensions: {
       trigger_event: 'TICF_ACCOUNT_INTERVENTION',
       trigger_event_id: '123',
-      description: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY',
       intervention_code: '01',
+      description: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY',
       allowable_interventions: [],
       state: State.ACTIVE,
       action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY
@@ -365,5 +382,20 @@ describe('send-audit-events', () => {
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForUnsuspendIntervention);
+  });
+
+  it('should successfully send the audit event and return a response when the event is in the future', async () => {
+    sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
+    const response = await sendAuditEvent(
+      'AIS_EVENT_IGNORED_IN_FUTURE',
+      EventsEnum.FRAUD_SUSPEND_ACCOUNT,
+      ingressInterventionEvent,
+      undefined
+    );
+    expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
+    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(logger.debug).toHaveBeenCalledTimes(2);
+    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
+    expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForFutureInterventions);
   });
 });

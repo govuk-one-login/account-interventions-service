@@ -54,17 +54,19 @@ export interface TxMAEgressEvent {
   event_timestamp_ms_formatted?: string;
   component_id?: string;
   user: TxmaUser;
-  extensions: TxMAEgressExtensions | undefined;
+  extensions: TxMAEgressExtensions | TxMAEgressBasicExtensions;
 }
 
-export interface TxMAEgressExtensions {
-  trigger_event_id: string;
-  trigger_event: string;
+export interface TxMAEgressExtensions extends TxMAEgressBasicExtensions {
   description: string | AISInterventionTypes;
-  intervention_code: string | undefined;
   allowable_interventions: string[];
   state: State | undefined;
   action: ActiveStateActions | undefined;
+}
+export interface TxMAEgressBasicExtensions {
+  trigger_event_id: string;
+  trigger_event: string;
+  intervention_code: string | undefined;
 }
 export interface TxMAIngressEvent {
   event_name: TriggerEventsEnum;
