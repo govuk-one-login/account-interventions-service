@@ -107,6 +107,12 @@ function buildExtensions(
   };
 }
 
+/**
+ * Helper function to build state and action attributes of the extension object based on the final state
+ * @param stateEngineOutput - Final state after intervention was/ was not applied
+ * @param txmaEventName - The name of the TxMA event name
+ * @returns - an object having state and action as attributes
+ */
 function buildAdditionalAttributes(
   stateEngineOutput: AccountStateEngineOutput,
   txmaEventName: TxMAEgressEventName,
