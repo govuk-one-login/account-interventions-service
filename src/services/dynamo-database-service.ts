@@ -84,19 +84,22 @@ export class DynamoDatabaseService {
    * @throws - DynamoDB exceptions, will redrive if it is not a ConditionalCheckFailedException.
    */
   public async updateDeleteStatus(userId: string) {
-    const ttl = getCurrentTimestamp().seconds + appConfig.maxRetentionSeconds;
+    const now = getCurrentTimestamp();
+    const ttl = now.seconds + appConfig.maxRetentionSeconds;
     const commandInput: UpdateItemCommandInput = {
       TableName: this.tableName,
       Key: { pk: { S: userId } },
-      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl',
+      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',
       ExpressionAttributeNames: {
         '#isAccountDeleted': 'isAccountDeleted',
         '#ttl': 'ttl',
+        '#deletedAt': 'deletedAt',
       },
       ExpressionAttributeValues: {
         ':isAccountDeleted': { BOOL: true },
         ':ttl': { N: ttl.toString() },
         ':false': { BOOL: false },
+        ':deletedAt': { N: now.milliseconds.toString() },
       },
       ReturnValues: 'ALL_NEW',
       ConditionExpression:

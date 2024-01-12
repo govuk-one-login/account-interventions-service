@@ -169,15 +169,17 @@ describe('Dynamo DB Service', () => {
     const commandInput: UpdateItemCommandInput = {
       TableName: 'table_name',
       Key: { pk: { S: 'hello' } },
-      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl',
+      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',
       ExpressionAttributeNames: {
         '#isAccountDeleted': 'isAccountDeleted',
         '#ttl': 'ttl',
+        '#deletedAt': 'deletedAt',
       },
       ExpressionAttributeValues: {
         ':isAccountDeleted': { BOOL: true },
         ':ttl': { N: '1685417145' },
         ':false': { BOOL: false },
+        ':deletedAt': { N: '1685404800000' }
       },
       ReturnValues: 'ALL_NEW',
       ConditionExpression:

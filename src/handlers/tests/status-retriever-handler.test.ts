@@ -5,6 +5,8 @@ import { handle } from '../status-retriever-handler';
 import logger from '../../commons/logger';
 import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import { logAndPublishMetric } from '../../commons/metrics';
+import jestOpenAPI from 'jest-openapi';
+jestOpenAPI(`${__dirname}/../../specs/api.yaml`);
 
 jest.mock('../../commons/logger.ts');
 jest.mock('../../commons/metrics');
@@ -76,7 +78,7 @@ describe('status-retriever-handler', () => {
   it('will return the correct response from the database if the user ID matches', async () => {
     const suspendedRecord = {
       pk: 'testUserID',
-      intervention: 'some intervention',
+      intervention: 'AIS_ACCOUNT_SUSPENDED',
       updatedAt: 123455,
       appliedAt: 12345685809,
       sentAt: 123456789,
@@ -92,12 +94,14 @@ describe('status-retriever-handler', () => {
     };
 
     const suspendedAccount = {
-      updatedAt: 123455,
-      appliedAt: 12345685809,
-      sentAt: 123456789,
-      description: suspendedRecord.intervention,
-      reprovedIdentityAt: 849473,
-      resetPasswordAt: 5847392,
+      intervention: {
+        updatedAt: 123455,
+        appliedAt: 12345685809,
+        sentAt: 123456789,
+        description: suspendedRecord.intervention,
+        reprovedIdentityAt: 849473,
+        resetPasswordAt: 5847392
+      },
       state: {
         blocked: false,
         suspended: true,
@@ -111,15 +115,19 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(suspendedRecord);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body)).toEqual({ intervention: suspendedAccount });
+    const payload = JSON.parse(response.body);
+    expect(payload).toEqual(suspendedAccount);
+    expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
 
   it('will return a message if user ID cannot be found in the database', async () => {
     const accountNotFoundDefaultObject = {
-      updatedAt: 1685404800000,
-      appliedAt: 1685404800000,
-      sentAt: 1685404800000,
-      description: 'AIS_NO_INTERVENTION',
+      intervention: {
+        updatedAt: 1685404800000,
+        appliedAt: 1685404800000,
+        sentAt: 1685404800000,
+        description: 'AIS_NO_INTERVENTION'
+      },
       state: {
         blocked: false,
         suspended: false,
@@ -133,18 +141,21 @@ describe('status-retriever-handler', () => {
     const response = await handle(testEvent, mockConfig);
     expect(logger.info).toBeCalledWith('Query matched no records in DynamoDB.');
     expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body)).toEqual({ intervention: accountNotFoundDefaultObject });
+    const payload = JSON.parse(response.body);
+    expect(payload).toEqual(accountNotFoundDefaultObject);
+    expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
 
   it('will return the correct response from the database if the user ID matches an account where the state items are all false', async () => {
     const accountFoundNotSuspendedRecord = {
       pk: 'testUserID',
-      intervention: 'no intervention',
+      intervention: 'AIS_NO_INTERVENTION',
       updatedAt: 123455,
       appliedAt: 12345685809,
       sentAt: 123456789,
       reprovedIdentityAt: 849473,
       resetPasswordAt: 5847392,
+      deletedAt: 12345685809,
       blocked: false,
       suspended: false,
       resetPassword: false,
@@ -155,12 +166,15 @@ describe('status-retriever-handler', () => {
     };
 
     const accountIsNotSuspended = {
-      updatedAt: 123455,
-      appliedAt: 12345685809,
-      sentAt: 123456789,
-      description: accountFoundNotSuspendedRecord.intervention,
-      reprovedIdentityAt: 849473,
-      resetPasswordAt: 5847392,
+      intervention: {
+        updatedAt: 123455,
+        appliedAt: 12345685809,
+        sentAt: 123456789,
+        description: accountFoundNotSuspendedRecord.intervention,
+        reprovedIdentityAt: 849473,
+        resetPasswordAt: 5847392,
+        accountDeletedAt: 12345685809
+      },
       state: {
         blocked: false,
         suspended: false,
@@ -174,7 +188,9 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body)).toEqual({ intervention: accountIsNotSuspended });
+    const payload = JSON.parse(response.body);
+    expect(payload).toEqual(accountIsNotSuspended);
+    expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
 
   it('will return a 400 error if the request has a missing user id in path parameters', async () => {
@@ -185,13 +201,15 @@ describe('status-retriever-handler', () => {
     const invalidTestEvent = { ...testEvent, pathParameters: invalidPathParameters };
     const response = await handle(invalidTestEvent, mockConfig);
     expect(response.statusCode).toBe(400);
-    expect(JSON.parse(response.body)).toEqual({ message: 'Invalid Request.' });
+    const payload = JSON.parse(response.body);
+    expect(payload).toEqual({ message: 'Invalid Request.' });
+    expect(payload).toSatisfySchemaInApiSpec('Error');
   });
 
   it('will return a standard 200 response when there is a request with an encoded user id', async () => {
     const suspendedRecord = {
       pk: 'test&User?ID',
-      intervention: 'some intervention',
+      intervention: 'AIS_ACCOUNT_SUSPENDED',
       updatedAt: 123455,
       appliedAt: 12345685809,
       sentAt: 123456789,
@@ -207,12 +225,14 @@ describe('status-retriever-handler', () => {
     };
 
     const suspendedAccount = {
-      updatedAt: 123455,
-      appliedAt: 12345685809,
-      sentAt: 123456789,
-      description: suspendedRecord.intervention,
-      reprovedIdentityAt: 849473,
-      resetPasswordAt: 5847392,
+      intervention: {
+        updatedAt: 123455,
+        appliedAt: 12345685809,
+        sentAt: 123456789,
+        description: suspendedRecord.intervention,
+        reprovedIdentityAt: 849473,
+        resetPasswordAt: 5847392
+      },
       state: {
         blocked: false,
         suspended: true,
@@ -226,15 +246,19 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(suspendedRecord);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body)).toEqual({ intervention: suspendedAccount });
+    const payload = JSON.parse(response.body);
+    expect(payload).toEqual(suspendedAccount);
+    expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
 
   it('will return a default response if the userId contains whitespace and cannot find a userId that matches', async () => {
     const accountNotFoundDefaultObject = {
-      updatedAt: 1685404800000,
-      appliedAt: 1685404800000,
-      sentAt: 1685404800000,
-      description: 'AIS_NO_INTERVENTION',
+      intervention: {
+        updatedAt: 1685404800000,
+        appliedAt: 1685404800000,
+        sentAt: 1685404800000,
+        description: 'AIS_NO_INTERVENTION'
+      },
       state: {
         blocked: false,
         suspended: false,
@@ -253,20 +277,24 @@ describe('status-retriever-handler', () => {
     expect(logger.warn).toBeCalledTimes(1);
     expect(logger.warn).toBeCalledWith('Attribute invalid: user_id is empty.');
     expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body)).toEqual({ intervention: accountNotFoundDefaultObject });
+    const payload = JSON.parse(response.body);
+    expect(payload).toEqual(accountNotFoundDefaultObject);
+    expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
 
   it('will return the correct response if there is a problem with the query to dynamoDB', async () => {
     mockDynamoDBServiceRetrieveRecords.mockRejectedValueOnce('There was a problem with the query operation');
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(500);
-    expect(response.body).toEqual(JSON.stringify({ message: 'Internal Server Error.' }));
+    const payload = JSON.parse(response.body);
+    expect(payload).toEqual({ message: 'Internal Server Error.' });
+    expect(payload).toSatisfySchemaInApiSpec('Error');
   });
 
   it('will return the correct updatedAt field if the field is returned as null', async () => {
     const nullUpdatedAt = {
       pk: 'testUserID',
-      intervention: 'some intervention',
+      intervention: 'AIS_FORCED_USER_PASSWORD_RESET',
       updatedAt: null,
       appliedAt: 12345685809,
       sentAt: 123456789,
@@ -282,12 +310,14 @@ describe('status-retriever-handler', () => {
     };
 
     const updatedTime = {
-      updatedAt: 1685404800000,
-      appliedAt: 12345685809,
-      sentAt: 123456789,
-      description: nullUpdatedAt.intervention,
-      reprovedIdentityAt: 849473,
-      resetPasswordAt: 5847392,
+      intervention: {
+        updatedAt: 1685404800000,
+        appliedAt: 12345685809,
+        sentAt: 123456789,
+        description: nullUpdatedAt.intervention,
+        reprovedIdentityAt: 849473,
+        resetPasswordAt: 5847392
+      },
       state: {
         blocked: false,
         suspended: true,
@@ -300,16 +330,20 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(nullUpdatedAt);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body)).toEqual({ intervention: updatedTime });
+    const payload = JSON.parse(response.body);
+    expect(payload).toEqual(updatedTime);
+    expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
 
   it('will add the history field to the default object if no user id is passed in but the query parameters are', async () => {
     const queryParameters: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
     const accountNotFoundDefaultObject = {
-      updatedAt: 1685404800000,
-      appliedAt: 1685404800000,
-      sentAt: 1685404800000,
-      description: 'AIS_NO_INTERVENTION',
+      intervention: {
+        updatedAt: 1685404800000,
+        appliedAt: 1685404800000,
+        sentAt: 1685404800000,
+        description: 'AIS_NO_INTERVENTION'
+      },
       state: {
         blocked: false,
         suspended: false,
@@ -324,13 +358,15 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
     const response = await handle(addedQueryParameterTestEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body)).toEqual({ intervention: accountNotFoundDefaultObject });
+    const payload = JSON.parse(response.body);
+    expect(payload).toEqual(accountNotFoundDefaultObject);
+    expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
 
   it('will add in the history field to the response returned from dynamo db if query parameters are passed in', async () => {
     const accountFoundNotSuspendedRecord = {
       pk: 'testUserID',
-      intervention: 'no intervention',
+      intervention: 'AIS_ACCOUNT_SUSPENDED',
       updatedAt: 123455,
       appliedAt: 12345685809,
       sentAt: 123456789,
@@ -346,12 +382,14 @@ describe('status-retriever-handler', () => {
     };
 
     const accountIsNotSuspended = {
-      updatedAt: 123455,
-      appliedAt: 12345685809,
-      sentAt: 123456789,
-      description: accountFoundNotSuspendedRecord.intervention,
-      reprovedIdentityAt: 849473,
-      resetPasswordAt: 5847392,
+      intervention: {
+        updatedAt: 123455,
+        appliedAt: 12345685809,
+        sentAt: 123456789,
+        description: accountFoundNotSuspendedRecord.intervention,
+        reprovedIdentityAt: 849473,
+        resetPasswordAt: 5847392
+      },
       state: {
         blocked: false,
         suspended: false,
@@ -368,13 +406,15 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
     const response = await handle(addedQueryParameterTestEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body)).toEqual({ intervention: accountIsNotSuspended });
+    const payload = JSON.parse(response.body);
+    expect(payload).toEqual(accountIsNotSuspended);
+    expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
 
   it('will return the history field as an object', async () => {
     const accountFoundNotSuspendedRecord = {
       pk: 'testUserID',
-      intervention: 'no intervention',
+      intervention: 'AIS_NO_INTERVENTION',
       updatedAt: 123455,
       appliedAt: 12345685809,
       sentAt: 123456789,
@@ -390,12 +430,14 @@ describe('status-retriever-handler', () => {
     };
 
     const accountIsNotSuspended = {
-      updatedAt: 123455,
-      appliedAt: 12345685809,
-      sentAt: 123456789,
-      description: accountFoundNotSuspendedRecord.intervention,
-      reprovedIdentityAt: 849473,
-      resetPasswordAt: 5847392,
+      intervention: {
+        updatedAt: 123455,
+        appliedAt: 12345685809,
+        sentAt: 123456789,
+        description: accountFoundNotSuspendedRecord.intervention,
+        reprovedIdentityAt: 849473,
+        resetPasswordAt: 5847392
+      },
       state: {
         blocked: false,
         suspended: false,
@@ -423,13 +465,15 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
     const response = await handle(addedQueryParameterTestEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body)).toEqual({ intervention: accountIsNotSuspended });
+    const payload = JSON.parse(response.body);
+    expect(payload).toEqual(accountIsNotSuspended);
+    expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
 
   it('will publish a metric if a history string is malformed and continue processing the others', async () => {
     const accountFoundNotSuspendedRecord = {
       pk: 'testUserID',
-      intervention: 'no intervention',
+      intervention: 'AIS_ACCOUNT_UNBLOCKED',
       updatedAt: 123455,
       appliedAt: 12345685809,
       sentAt: 123456789,
@@ -450,12 +494,14 @@ describe('status-retriever-handler', () => {
     };
 
     const accountIsNotSuspended = {
-      updatedAt: 123455,
-      appliedAt: 12345685809,
-      sentAt: 123456789,
-      description: accountFoundNotSuspendedRecord.intervention,
-      reprovedIdentityAt: 849473,
-      resetPasswordAt: 5847392,
+      intervention: {
+        updatedAt: 123455,
+        appliedAt: 12345685809,
+        sentAt: 123456789,
+        description: accountFoundNotSuspendedRecord.intervention,
+        reprovedIdentityAt: 849473,
+        resetPasswordAt: 5847392
+      },
       state: {
         blocked: false,
         suspended: false,
@@ -495,7 +541,9 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
     const response = await handle(addedQueryParameterTestEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    expect(JSON.parse(response.body)).toEqual({ intervention: accountIsNotSuspended });
+    const payload = JSON.parse(response.body);
+    expect(payload).toEqual(accountIsNotSuspended);
+    expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
     expect(logger.error).toBeCalledWith('History string is malformed.', { error });
     expect(logAndPublishMetric).toBeCalled();
   });
