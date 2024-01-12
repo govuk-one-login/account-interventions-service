@@ -913,7 +913,7 @@ Resources:
       FunctionName: !Sub '${AWS::StackName}-StatusRetrieverFunction'
       Description: "Retrieves the account's intervention status."
       CodeUri: ../../../dist/handlers/status-retriever-handler
-      MemorySize: 128
+      MemorySize: 512
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
       Timeout: 10
