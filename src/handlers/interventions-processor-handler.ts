@@ -2,11 +2,12 @@ import { Context, SQSBatchItemFailure, SQSBatchResponse, SQSEvent, SQSRecord } f
 import logger from '../commons/logger';
 import { logAndPublishMetric } from '../commons/metrics';
 import {
+  AISInterventionTypes,
   EventsEnum,
   LOGS_PREFIX_SENSITIVE_INFO,
   MetricNames,
   noMetadata,
-  TICF_ACCOUNT_INTERVENTION,
+  TriggerEventsEnum,
 } from '../data-types/constants';
 import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
@@ -48,6 +49,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
   }
 
   const itemFailures: SQSBatchItemFailure[] = [];
+
   const promiseArray = event.Records.map((record: SQSRecord) => {
     return processSQSRecord(record).catch(async (error) => {
       const itemIdentifier = await handleError(error, record);
@@ -87,14 +89,16 @@ async function processSQSRecord(record: SQSRecord) {
 
   const itemFromDB = await service.getAccountStateInformation(userId);
 
-  await validateAccountIsNotDeleted(eventName, userId, recordBody, itemFromDB);
-
-  await validateEventIsNotStale(eventName, recordBody, itemFromDB);
-
   const currentAccountState: StateDetails = formCurrentAccountStateObject(itemFromDB);
+
+  if (itemFromDB) {
+    await validateAccountIsNotDeleted(eventName, userId, recordBody, currentAccountState, itemFromDB);
+    await validateEventIsNotStale(eventName, recordBody, currentAccountState, itemFromDB);
+  }
+
   const statusResult = accountStateEngine.applyEventTransition(eventName, currentAccountState);
   const partialCommandInput = buildPartialUpdateAccountStateCommand(
-    statusResult.newState,
+    statusResult.finalState,
     eventName,
     currentTimestamp.milliseconds,
     recordBody,
@@ -102,9 +106,9 @@ async function processSQSRecord(record: SQSRecord) {
   );
   logger.debug('processed requested event, sending update request to dynamo db');
   await service.updateUserStatus(userId, partialCommandInput);
-  updateAccountStateCountMetric(currentAccountState, statusResult.newState);
+  updateAccountStateCountMetric(currentAccountState, statusResult.finalState);
   logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
-  await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, recordBody, currentTimestamp.milliseconds);
+  await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, recordBody, statusResult);
 }
 
 /**
@@ -123,7 +127,12 @@ async function handleError(error: unknown, record: SQSRecord) {
     });
   else if (error instanceof StateTransitionError) {
     logger.warn('StateTransitionError caught, message will not be retried.', { errorMessage: error.message });
-    await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, JSON.parse(record.body) as TxMAIngressEvent);
+    await sendAuditEvent(
+      'AIS_EVENT_TRANSITION_IGNORED',
+      error.transition,
+      JSON.parse(record.body) as TxMAIngressEvent,
+      error.output,
+    );
   } else {
     logger.error('Error caught, message will be retried.', { errorMessage: (error as Error).message });
     return record.messageId;
@@ -137,12 +146,12 @@ async function handleError(error: unknown, record: SQSRecord) {
  */
 function getEventName(recordBody: TxMAIngressEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
-  if (recordBody.event_name === TICF_ACCOUNT_INTERVENTION) {
+  if (recordBody.event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION) {
     validateInterventionEvent(recordBody);
-    const interventionCode = Number.parseInt(recordBody.extensions!.intervention!.intervention_code);
+    const interventionCode = recordBody.extensions!.intervention!.intervention_code;
     return accountStateEngine.getInterventionEnumFromCode(interventionCode);
   }
-  return recordBody.event_name as EventsEnum;
+  return recordBody.event_name as unknown as EventsEnum;
 }
 
 /**
@@ -151,17 +160,23 @@ function getEventName(recordBody: TxMAIngressEvent): EventsEnum {
  * @param userId - the id of the user whose account is been intervened
  * @param record - the ingress event from TxMA
  * @param itemFromDB - the data retrieved from the database
+ * @param initialState - initial state of the account
  */
 async function validateAccountIsNotDeleted(
   intervention: EventsEnum,
   userId: string,
   record: TxMAIngressEvent,
-  itemFromDB?: DynamoDBStateResult,
+  initialState: StateDetails,
+  itemFromDB: DynamoDBStateResult,
 ) {
   if (itemFromDB?.isAccountDeleted === true) {
     logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
     logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-    await sendAuditEvent('AIS_EVENT_IGNORED_ACCOUNT_DELETED', intervention, record);
+    await sendAuditEvent('AIS_EVENT_IGNORED_ACCOUNT_DELETED', intervention, record, {
+      finalState: initialState,
+      interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+      nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+    });
     throw new ValidationError('Account is marked as deleted.');
   }
 }

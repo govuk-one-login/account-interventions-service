@@ -9,7 +9,7 @@ import {
 import logger from '../../commons/logger';
 import { logAndPublishMetric } from '../../commons/metrics';
 import { ValidationError } from '../../data-types/errors';
-import { EventsEnum, MetricNames } from '../../data-types/constants';
+import { EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { sendAuditEvent } from '../send-audit-events';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 
@@ -50,7 +50,8 @@ describe('event-validation', () => {
       user: {
         user_id: 'abc',
       },
-      event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+      event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+      event_id: '123',
       extensions: {
         intervention: {
           intervention_code: '01',
@@ -70,7 +71,8 @@ describe('event-validation', () => {
       user: {
         user_id: 'abc',
       },
-      event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+      event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+      event_id: '123',
       extensions: {
         intervention: {
           intervention_reason: 'reason',
@@ -114,7 +116,8 @@ describe('event-validation', () => {
       component_id: 'AUTH',
       timestamp: timestamp.seconds - 5,
       user: { user_id: 'USERID' },
-      event_name: 'TICF_ACCOUNT_INTERVENTION',
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+      event_id: '123',
       extensions: {},
     };
     expect(() => validateEventAgainstSchema(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
@@ -132,7 +135,8 @@ describe('event-validation', () => {
       user: {
         user_id: 'abc',
       },
-      event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+      event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+      event_id: '123',
       extensions: {
         intervention: {
           intervention_code: 'nan',
@@ -150,7 +154,8 @@ describe('event-validation', () => {
     const staleEvent = {
       timestamp: timestamp.seconds - 10,
       event_timestamp_ms: timestamp.milliseconds - 10_000,
-      event_name: 'TICF_ACCOUNT_INTERVENTION',
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+      event_id: '123',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       extensions: {
@@ -165,16 +170,32 @@ describe('event-validation', () => {
     };
 
     await expect(
-      async () => await validateEventIsNotStale(EventsEnum.FRAUD_SUSPEND_ACCOUNT, staleEvent, dynamoDBResult),
+      async () =>
+        await validateEventIsNotStale(
+          EventsEnum.FRAUD_SUSPEND_ACCOUNT,
+          staleEvent,
+          {
+            blocked: false,
+            suspended: false,
+            resetPassword: false,
+            reproveIdentity: false,
+          },
+          dynamoDBResult,
+        ),
     ).rejects.toThrow(new ValidationError('Event received predates last applied event for this user.'));
     expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
-    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent);
+    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent, {
+      finalState: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
+      interventionName: 'AIS_NO_INTERVENTION',
+      nextAllowableInterventions: ['01', '03', '04', '05', '06'],
+    });
   });
 
   it('should not throw if event is not stale', async () => {
     const nonStaleEvent = {
       timestamp: timestamp.seconds,
-      event_name: 'TICF_ACCOUNT_INTERVENTION',
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+      event_id: '123',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       extensions: {
@@ -189,7 +210,17 @@ describe('event-validation', () => {
     };
 
     await expect(
-      validateEventIsNotStale(EventsEnum.FRAUD_SUSPEND_ACCOUNT, nonStaleEvent, dynamoDBResult),
+      validateEventIsNotStale(
+        EventsEnum.FRAUD_SUSPEND_ACCOUNT,
+        nonStaleEvent,
+        {
+          blocked: false,
+          suspended: false,
+          resetPassword: false,
+          reproveIdentity: false,
+        },
+        dynamoDBResult,
+      ),
     ).resolves.toEqual(undefined);
     expect(logAndPublishMetric).not.toHaveBeenCalled();
     expect(sendAuditEvent).not.toHaveBeenCalled();
@@ -198,7 +229,8 @@ describe('event-validation', () => {
   it('should throw an error if event timestamp is in the future', async () => {
     const eventInTheFuture = {
       timestamp: timestamp.seconds + 10,
-      event_name: 'TICF_ACCOUNT_INTERVENTION',
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+      event_id: '123',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       extensions: {
@@ -226,7 +258,8 @@ describe('event-validation', () => {
     const eventNotInTheFuture = {
       timestamp: timestamp.seconds - 10,
       event_timestamp_ms: timestamp.milliseconds - 10_000,
-      event_name: 'TICF_ACCOUNT_INTERVENTION',
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+      event_id: '123',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       extensions: {
@@ -248,7 +281,8 @@ describe('event-validation', () => {
 
   it('should throw if level of confidence is too low for a ID Reset event', () => {
     const idResetEventLowConfidence = {
-      event_name: 'IPV_IDENTITY_ISSUED',
+      event_name: TriggerEventsEnum.IPV_IDENTITY_ISSUED,
+      event_id: '123',
       timestamp: 1_234_567,
       client_id: 'UNKNOWN',
       component_id: 'UNKNOWN',
@@ -275,7 +309,8 @@ describe('event-validation', () => {
 
   it('should not throw if level of confidence is high enough for a ID Reset event', () => {
     const idResetEvent = {
-      event_name: 'IPV_IDENTITY_ISSUED',
+      event_name: TriggerEventsEnum.IPV_IDENTITY_ISSUED,
+      event_id: '123',
       timestamp: 1_234_567,
       client_id: 'UNKNOWN',
       component_id: 'UNKNOWN',
@@ -300,7 +335,8 @@ describe('event-validation', () => {
 
   it('should throw if level of confidence field is not present in an ID Reset event', () => {
     const idResetEventLowConfidence = {
-      event_name: 'IPV_IDENTITY_ISSUED',
+      event_name: TriggerEventsEnum.IPV_IDENTITY_ISSUED,
+      event_id: '123',
       timestamp: 1_234_567,
       client_id: 'UNKNOWN',
       component_id: 'UNKNOWN',

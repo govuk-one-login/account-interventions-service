@@ -1,4 +1,4 @@
-import { EventsEnum, AISInterventionTypes } from './constants';
+import { EventsEnum, AISInterventionTypes, TriggerEventsEnum, ActiveStateActions, State } from './constants';
 
 export interface StateDetails {
   blocked: boolean;
@@ -29,8 +29,9 @@ export interface FullAccountInformation {
   auditLevel?: string;
 }
 export interface AccountStateEngineOutput {
-  newState: StateDetails;
+  finalState: StateDetails;
   interventionName?: AISInterventionTypes;
+  nextAllowableInterventions: string[];
 }
 
 export interface CurrentTimeDescriptor {
@@ -46,7 +47,6 @@ export type TxMAEgressEventName =
   | 'AIS_EVENT_IGNORED_IN_FUTURE'
   | 'AIS_EVENT_IGNORED_ACCOUNT_DELETED';
 
-export type TxMAEgressEventType = 'TICF_ACCOUNT_INTERVENTION' | 'USER_LED_ACTION';
 export interface TxMAEgressEvent {
   event_name: TxMAEgressEventName;
   timestamp: number;
@@ -54,18 +54,23 @@ export interface TxMAEgressEvent {
   event_timestamp_ms_formatted?: string;
   component_id?: string;
   user: TxmaUser;
-  extensions: TxMAEgressExtensions;
+  extensions: TxMAEgressExtensions | TxMAEgressBasicExtensions;
 }
 
-export interface TxMAEgressExtensions {
-  eventType: TxMAEgressEventType;
-  event: EventsEnum;
+export interface TxMAEgressExtensions extends TxMAEgressBasicExtensions {
+  description: string | AISInterventionTypes;
+  allowable_interventions: string[];
+  state: State | undefined;
+  action: ActiveStateActions | undefined;
+}
+export interface TxMAEgressBasicExtensions {
+  trigger_event_id: string;
+  trigger_event: string;
   intervention_code: string | undefined;
-  appliedAt: number | undefined;
-  reason: string | undefined;
 }
 export interface TxMAIngressEvent {
-  event_name: string;
+  event_name: TriggerEventsEnum;
+  event_id: string | undefined;
   timestamp: number;
   event_timestamp_ms?: number;
   component_id: string;
@@ -102,14 +107,14 @@ export interface TransitionConfigurationInterface {
     [key: string]: StateDetails;
   };
   edges: {
-    [key: number]: {
+    [key: string]: {
       to: string;
       name: EventsEnum;
       interventionName?: AISInterventionTypes;
     };
   };
   adjacency: {
-    [key: string]: number[];
+    [key: string]: string[];
   };
 }
 
