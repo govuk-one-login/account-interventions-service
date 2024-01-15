@@ -1,4 +1,4 @@
-import { setJestCucumberConfiguration } from 'jest-cucumber';
+const setJestCucumberConfiguration = require('jest-cucumber').setJestCucumberConfiguration;
 
 setJestCucumberConfiguration({
   tagFilter: process.env.tagFilter,
