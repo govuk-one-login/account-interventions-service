@@ -5,15 +5,15 @@ import {
   LogLevel,
 } from '@pact-foundation/pact';
 import {COMPONENT_ID} from "../data-types/constants";
-import {term} from "@pact-foundation/pact/src/dsl/matchers";
-import {boolean, number, string} from "@pact-foundation/pact/src/v3/matchers";
-import {validateEventAgainstSchema} from "../services/validate-event";
+import { term } from "@pact-foundation/pact/src/dsl/matchers";
+import { boolean, number, string } from "@pact-foundation/pact/src/v3/matchers";
+import { validateEventAgainstSchema } from "../services/validate-event";
 const { like } = Matchers;
 
 const path = require('path');
 const LOG_LEVEL = process.env['LOG_LEVEL'] || 'ERROR';
 
-describe('TxMA & AIS - PACT Testing - Consumer', () => {
+describe('TxMA & AIS - Contract Testing - Consumer', () => {
   const messagePact = new MessageConsumerPact({
     consumer: COMPONENT_ID,
     dir: path.resolve(process.cwd(), 'pacts'),

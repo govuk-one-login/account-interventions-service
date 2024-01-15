@@ -4,12 +4,12 @@ import {
   LogLevel,
 } from '@pact-foundation/pact';
 import { COMPONENT_ID } from "../data-types/constants";
-import {string} from "@pact-foundation/pact/src/v3/matchers";
+import { string } from "@pact-foundation/pact/src/v3/matchers";
 
 const path = require('path');
 const LOG_LEVEL = process.env['LOG_LEVEL'] || 'ERROR';
 
-describe('TxMA & AIS - PACT Testing - Consumer', () => {
+describe('AMF & AIS - Contract Testing - Consumer', () => {
   const messagePact = new MessageConsumerPact({
     consumer: COMPONENT_ID,
     dir: path.resolve(process.cwd(), 'pacts'),
