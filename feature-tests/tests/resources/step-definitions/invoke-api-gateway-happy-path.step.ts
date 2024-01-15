@@ -130,10 +130,10 @@ defineFeature(feature, (test) => {
       ) => {
         console.log(`Received History`, response.intervention.history);
         expect(response.intervention.description).toBe(interventionType);
-        expect(response.intervention.history.at(-1).component).toBe(componentHistory);
-        expect(response.intervention.history.at(-1).code).toBe(interventionCodeHistory);
-        expect(response.intervention.history.at(-1).intervention).toBe(interventionHistory);
-        expect(response.intervention.history.at(-1).reason).toBe(reason);
+        expect(response.history.at(-1).component).toBe(componentHistory);
+        expect(response.history.at(-1).code).toBe(interventionCodeHistory);
+        expect(response.history.at(-1).intervention).toBe(interventionHistory);
+        expect(response.history.at(-1).reason).toBe(reason);
       },
     );
   });
