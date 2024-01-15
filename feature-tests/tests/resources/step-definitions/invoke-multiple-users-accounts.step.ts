@@ -25,10 +25,10 @@ defineFeature(feature, (test) => {
           await sendSQSEvent(testUserId, aisEventType);
           response = await invokeGetAccountState(testUserId, historyValue);
           expect(response.intervention.description).toBe('AIS_ACCOUNT_SUSPENDED');
-          expect(response.intervention.state.blocked).toBe(Boolean(false));
-          expect(response.intervention.state.suspended).toBe(Boolean(true));
-          expect(response.intervention.state.resetPassword).toBe(Boolean(false));
-          expect(response.intervention.state.reproveIdentity).toBe(Boolean(false));
+          expect(response.state.blocked).toBe(Boolean(false));
+          expect(response.state.suspended).toBe(Boolean(true));
+          expect(response.state.resetPassword).toBe(Boolean(false));
+          expect(response.state.reproveIdentity).toBe(Boolean(false));
           listOfUsers.push(testUserId);
         }
         await Promise.allSettled(listOfUsers);
