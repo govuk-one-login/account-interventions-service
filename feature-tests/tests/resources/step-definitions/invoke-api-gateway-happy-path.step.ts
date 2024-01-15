@@ -3,7 +3,7 @@ import { generateRandomTestUserId } from '../../../utils/generate-random-test-us
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import { timeDelayForTestEnvironment } from '../../../utils/utility';
-
+import { getRecordFromTable, updateItemInTable } from '../../../utils/dynamodb-update-revert';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
@@ -31,6 +31,20 @@ defineFeature(feature, (test) => {
       async (historyValue) => {
         await timeDelayForTestEnvironment(1500);
         response = await invokeGetAccountState(testUserId, historyValue);
+        console.log(await getRecordFromTable(testUserId));
+        await updateItemInTable(testUserId, {
+          updatedAt: '123',
+          appliedAt: '234',
+          sentAt: response.intervention.sentAt,
+          blocked: response.intervention.state.blocked,
+          suspended: response.intervention.state.suspended,
+          resetPassword: response.intervention.state.resetPassword,
+          reproveIdentity: response.intervention.state.reproveIdentity,
+          description: 'something',
+          history: ['history'],
+          auditLevel: 'standard',
+        });
+        console.log(await getRecordFromTable(testUserId));
       },
     );
 
