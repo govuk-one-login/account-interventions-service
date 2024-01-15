@@ -34,6 +34,7 @@
     "@aws-sdk/client-dynamodb": "^3.490.0",
     "@aws-sdk/client-sqs": "^3.490.0",
     "@aws-sdk/util-dynamodb": "^3.490.0",
+    "@pact-foundation/pact": "^12.1.2",
     "@smithy/node-http-handler": "^2.2.2"
   },
   "devDependencies": {
