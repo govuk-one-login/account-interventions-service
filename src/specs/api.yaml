@@ -105,7 +105,9 @@ components:
             - AIS_ACCOUNT_UNSUSPENDED
             - AIS_ACCOUNT_BLOCKED
             - AIS_ACCOUNT_UNBLOCKED
-            - AIS_USER_PASSWORD_RESET
+            - AIS_FORCED_USER_PASSWORD_RESET
+            - AIS_FORCED_USER_IDENTITY_VERIFY
+            - AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY
         reprovedIdentityAt:
           description: |
             A timestamp (ms) of when the User performed the reprove identity action to unsuspend their account.

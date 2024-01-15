@@ -91,8 +91,8 @@ Mappings:
       TxMAAccountID: 178023842775
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:178023842775:self-staging-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:178023842775:key/e388cb30-2d78-431f-b1a6-847549a815aa
-      OrchestrationVPCID: vpc-0ca40c7d13490419d # Orchestation Staging VPC ID
-      AuthenticationVPCID: vpc-0ca40c7d13490419d # Authentication Staging VPC ID
+      OrchestrationVPCID: vpc-0ca40c7d13490419d # Auth & Orchestration Staging VPC ID
+      AuthenticationVPCID: vpc-0b6f4a5d72f84ed0c # Authentication Sandbox VPC ID
       OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     integration:
@@ -101,7 +101,7 @@ Mappings:
       TxMAAccountID: 729485541398
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:729485541398:self-integration-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:729485541398:key/c360ee61-da3b-48de-998e-68cb91743414
-      OrchestrationVPCID: vpc-04444d1dc96d8822c # Orchestation Integration VPC ID
+      OrchestrationVPCID: vpc-04444d1dc96d8822c # Orchestration Integration VPC ID
       AuthenticationVPCID: vpc-04444d1dc96d8822c # Authentication Integration VPC ID
       OneLoginHomeVPCID: vpc-048c9133a5998efe7 # One Login Home Integration VPC ID
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret

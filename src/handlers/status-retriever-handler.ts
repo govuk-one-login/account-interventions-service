@@ -39,12 +39,14 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
       logAndPublishMetric(MetricNames.ACCOUNT_NOT_FOUND);
 
       const undefinedAccount = transformResponseFromDynamoDatabase({});
+
       if (historyQuery && historyQuery === 'true') {
         undefinedAccount.history = [];
       }
+
       return {
         statusCode: 200,
-        body: JSON.stringify({ intervention: undefinedAccount }),
+        body: JSON.stringify(undefinedAccount),
       };
     }
 
@@ -56,7 +58,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ intervention: accountStatus }),
+      body: JSON.stringify(accountStatus),
     };
   } catch (error) {
     logger.error('A problem occurred with the query.', { error });
@@ -90,10 +92,15 @@ function validateEvent(userId: string) {
 function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformation>) {
   const currentTimestampMs = getCurrentTimestamp().milliseconds;
   const accountStatus: AccountStatus = {
-    updatedAt: item.updatedAt ?? currentTimestampMs,
-    appliedAt: item.appliedAt ?? currentTimestampMs,
-    sentAt: item.sentAt ?? currentTimestampMs,
-    description: item.intervention ?? AISInterventionTypes.AIS_NO_INTERVENTION,
+    intervention: {
+      updatedAt: item.updatedAt ?? currentTimestampMs,
+      appliedAt: item.appliedAt ?? currentTimestampMs,
+      sentAt: item.sentAt ?? currentTimestampMs,
+      description: item.intervention ?? AISInterventionTypes.AIS_NO_INTERVENTION,
+      reprovedIdentityAt: item.reprovedIdentityAt ?? undefined,
+      resetPasswordAt: item.resetPasswordAt ?? undefined,
+      accountDeletedAt: item.deletedAt ?? undefined,
+    },
     state: {
       blocked: item.blocked ?? false,
       suspended: item.suspended ?? false,
@@ -101,8 +108,6 @@ function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformatio
       reproveIdentity: item.reproveIdentity ?? false,
     },
     auditLevel: item.auditLevel ?? 'standard',
-    reprovedIdentityAt: item.reprovedIdentityAt ?? undefined,
-    resetPasswordAt: item.resetPasswordAt ?? undefined,
   };
   return accountStatus;
 }

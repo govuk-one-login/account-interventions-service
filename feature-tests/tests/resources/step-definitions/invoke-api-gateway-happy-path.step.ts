@@ -44,10 +44,10 @@ defineFeature(feature, (test) => {
       ) => {
         console.log(`Received`, { response });
         expect(response.intervention.description).toBe(interventionType);
-        expect(response.intervention.state.blocked).toBe(JSON.parse(blockedState));
-        expect(response.intervention.state.suspended).toBe(JSON.parse(suspendedState));
-        expect(response.intervention.state.resetPassword).toBe(JSON.parse(resetPassword));
-        expect(response.intervention.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
+        expect(response.state.blocked).toBe(JSON.parse(blockedState));
+        expect(response.state.suspended).toBe(JSON.parse(suspendedState));
+        expect(response.state.resetPassword).toBe(JSON.parse(resetPassword));
+        expect(response.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
       },
     );
   });
@@ -87,10 +87,10 @@ defineFeature(feature, (test) => {
       ) => {
         console.log(`Received`, { response });
         expect(response.intervention.description).toBe(interventionType);
-        expect(response.intervention.state.blocked).toBe(JSON.parse(blockedState));
-        expect(response.intervention.state.suspended).toBe(JSON.parse(suspendedState));
-        expect(response.intervention.state.resetPassword).toBe(JSON.parse(resetPassword));
-        expect(response.intervention.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
+        expect(response.state.blocked).toBe(JSON.parse(blockedState));
+        expect(response.state.suspended).toBe(JSON.parse(suspendedState));
+        expect(response.state.resetPassword).toBe(JSON.parse(resetPassword));
+        expect(response.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
       },
     );
   });

@@ -26,6 +26,7 @@ export interface FullAccountInformation {
   updatedAt: number;
   reprovedIdentityAt?: number;
   resetPasswordAt?: number;
+  deletedAt?: number;
   auditLevel?: string;
 }
 export interface AccountStateEngineOutput {
@@ -119,12 +120,15 @@ export interface TransitionConfigurationInterface {
 }
 
 export interface AccountStatus {
-  updatedAt: number;
-  appliedAt: number;
-  sentAt: number;
-  description: string;
-  reprovedIdentityAt: number | undefined;
-  resetPasswordAt: number | undefined;
+  intervention: {
+    updatedAt: number;
+    appliedAt: number;
+    sentAt: number;
+    description: string;
+    reprovedIdentityAt: number | undefined;
+    resetPasswordAt: number | undefined;
+    accountDeletedAt: number | undefined;
+  };
   state: {
     blocked: boolean;
     suspended: boolean;
