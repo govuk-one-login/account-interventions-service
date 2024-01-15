@@ -1,5 +1,6 @@
 Feature: Invoke-APIGateway-HappyPath.feature
 
+    @smoke
     Scenario Outline: Happy Path - Get Request to /ais/userId - Returns Expected Data for <aisEventType>
         Given I send an <aisEventType> intervention message to the TxMA ingress SQS queue
         When I invoke the API to retrieve the intervention status of the user's account. With history <historyValue>

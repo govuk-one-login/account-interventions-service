@@ -1,7 +1,8 @@
-//jest-cucumber-config.js
+const setJestCucumberConfiguration = require('jest-cucumber').setJestCucumberConfiguration;
 
-// const setJestCucumberConfiguration = require('jest-cucumber').setJestCucumberConfiguration;
-
-// setJestCucumberConfiguration({
-//   tagFilter: '@api'
-// });
+setJestCucumberConfiguration({
+  tagFilter: '@smoke',
+  scenarioNameTemplate: (vars) => {
+      return ` ${vars.featureTitle} - ${vars.scenarioTitle}}`;
+  }
+});
