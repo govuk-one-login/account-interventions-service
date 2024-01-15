@@ -167,7 +167,7 @@ Resources:
       CodeUri: ../../../dist/interventions-processor-handler
       Timeout: 5
       Handler: interventions-processor-handler.handler
-      MemorySize: 128
+      MemorySize: 512
       Role: !GetAtt InterventionsProcessorFunctionRole.Arn
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
@@ -913,7 +913,7 @@ Resources:
       FunctionName: !Sub '${AWS::StackName}-StatusRetrieverFunction'
       Description: "Retrieves the account's intervention status."
       CodeUri: ../../../dist/handlers/status-retriever-handler
-      MemorySize: 128
+      MemorySize: 512
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
       Timeout: 10
@@ -1019,7 +1019,7 @@ Resources:
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       CodeUri: ../../../dist/handlers/invoke-private-api
       Timeout: 10
-      MemorySize: 128
+      MemorySize: 256
       KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
       Role: !GetAtt InvokePrivateAPIGatewayFunctionRole.Arn
       Environment:
