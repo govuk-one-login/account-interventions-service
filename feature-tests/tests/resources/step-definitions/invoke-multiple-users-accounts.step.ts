@@ -20,15 +20,15 @@ defineFeature(feature, (test) => {
     given(
       /^I invoke an API to retrieve the (.*) status to the (.*) accounts. With history (.*)$/,
       async (aisEventType, numberOfUsers, historyValue) => {
-        for (let index = 0; index <= numberOfUsers; index++) {
-          const testUserId = generateRandomTestUserId();
+        for (let i = 0; i <= numberOfUsers; i++) {
+          let testUserId = generateRandomTestUserId();
           await sendSQSEvent(testUserId, aisEventType);
           response = await invokeGetAccountState(testUserId, historyValue);
           expect(response.intervention.description).toBe('AIS_ACCOUNT_SUSPENDED');
-          expect(response.state.blocked).toBe(Boolean(false));
-          expect(response.state.suspended).toBe(Boolean(true));
-          expect(response.state.resetPassword).toBe(Boolean(false));
-          expect(response.state.reproveIdentity).toBe(Boolean(false));
+          expect(response.intervention.state.blocked).toBe(Boolean(false));
+          expect(response.intervention.state.suspended).toBe(Boolean(true));
+          expect(response.intervention.state.resetPassword).toBe(Boolean(false));
+          expect(response.intervention.state.reproveIdentity).toBe(Boolean(false));
           listOfUsers.push(testUserId);
         }
         await Promise.allSettled(listOfUsers);
