@@ -3,12 +3,9 @@ import { generateRandomTestUserId } from '../../../utils/generate-random-test-us
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 
-const feature = loadFeature('./tests/resources/features/aisGET/InvokeMultipleUsers-HappyPath.feature', {
-  scenarioNameTemplate: (vars) => `${vars.scenarioTitle}(${vars.scenarioTags.join(',')})`,
-});
+const feature = loadFeature('./tests/resources/features/aisGET/InvokeMultipleUsers-HappyPath.feature');
 
 defineFeature(feature, (test) => {
-  //let testUserIdArray: string[];
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   let response: any;
@@ -23,8 +20,8 @@ defineFeature(feature, (test) => {
     given(
       /^I invoke an API to retrieve the (.*) status to the (.*) accounts. With history (.*)$/,
       async (aisEventType, numberOfUsers, historyValue) => {
-        for (let i = 0; i <= numberOfUsers; i++) {
-          let testUserId = generateRandomTestUserId();
+        for (let index = 0; index <= numberOfUsers; index++) {
+          const testUserId = generateRandomTestUserId();
           await sendSQSEvent(testUserId, aisEventType);
           response = await invokeGetAccountState(testUserId, historyValue);
           expect(response.intervention.description).toBe('AIS_ACCOUNT_SUSPENDED');
@@ -42,6 +39,6 @@ defineFeature(feature, (test) => {
 
     when(/^I Invoke an API to view the records$/, async () => {});
 
-    then(/^the expected (.*) is returned for the requested number of users$/, async (interventionType: string) => {});
+    then(/^the expected (.*) is returned for the requested number of users$/, async () => {});
   });
 });
