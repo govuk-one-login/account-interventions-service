@@ -7,7 +7,7 @@ import { COMPONENT_ID } from "../data-types/constants";
 import {string} from "@pact-foundation/pact/src/v3/matchers";
 
 const path = require('path');
-const LOG_LEVEL = process.env['LOG_LEVEL'] || 'DEBUG';
+const LOG_LEVEL = process.env['LOG_LEVEL'] || 'ERROR';
 
 describe('TxMA & AIS - PACT Testing - Consumer', () => {
   const messagePact = new MessageConsumerPact({

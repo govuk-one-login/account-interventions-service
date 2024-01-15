@@ -11,7 +11,7 @@ import {validateEventAgainstSchema} from "../services/validate-event";
 const { like } = Matchers;
 
 const path = require('path');
-const LOG_LEVEL = process.env['LOG_LEVEL'] || 'DEBUG';
+const LOG_LEVEL = process.env['LOG_LEVEL'] || 'ERROR';
 
 describe('TxMA & AIS - PACT Testing - Consumer', () => {
   const messagePact = new MessageConsumerPact({
