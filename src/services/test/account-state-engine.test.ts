@@ -69,7 +69,7 @@ const passwordResetRequiredUpdate = {
     reproveIdentity: false,
   },
   interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
-  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90'],
+  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '95'],
 };
 const idResetRequiredUpdate = {
   finalState: {
@@ -89,7 +89,7 @@ const pswAndIdResetRequiredUpdate = {
     reproveIdentity: true,
   },
   interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
-  nextAllowableInterventions: ['01', '02', '03', '04', '05', '92', '93'],
+  nextAllowableInterventions: ['01', '02', '03', '04', '05', '92', '93', '94'],
 };
 const unsuspendAccountUpdate = {
   finalState: {
@@ -145,7 +145,7 @@ const idResetSuccessfulUpdateSuspended = {
     resetPassword: true,
     reproveIdentity: false,
   },
-  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90']
+  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '95']
 };
 
 jest.mock('@aws-lambda-powertools/logger');
