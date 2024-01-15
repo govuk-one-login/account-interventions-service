@@ -20,8 +20,8 @@ defineFeature(feature, (test) => {
     given(
       /^I invoke an API to retrieve the (.*) status to the (.*) accounts. With history (.*)$/,
       async (aisEventType, numberOfUsers, historyValue) => {
-        for (let i = 0; i <= numberOfUsers; i++) {
-          let testUserId = generateRandomTestUserId();
+        for (let index = 0; index <= numberOfUsers; index++) {
+          const testUserId = generateRandomTestUserId();
           await sendSQSEvent(testUserId, aisEventType);
           response = await invokeGetAccountState(testUserId, historyValue);
           expect(response.intervention.description).toBe('AIS_ACCOUNT_SUSPENDED');
