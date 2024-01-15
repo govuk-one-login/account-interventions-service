@@ -7,14 +7,14 @@ Feature: Invoke-APIGateway-HappyPath.feature
         Examples:
             | aisEventType              | historyValue | interventionType                                   | blockedState | suspendedState | resetPassword | reproveIdentity |
             | pswResetRequired          | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false        | true           | true          | false           |
-            # | suspendNoAction           | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
-            # | block                     | false        | AIS_ACCOUNT_BLOCKED                                | true         | false          | false         | false           |
-            # | idResetRequired           | false        | AIS_FORCED_USER_IDENTITY_VERIFY                    | false        | true           | false         | true            |
-            # | pswAndIdResetRequired     | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false        | true           | true          | true            |
-            # | unblock                   | false        | AIS_NO_INTERVENTION                                | false        | false          | false         | false           |
-            # | userActionIdResetSuccess  | false        | AIS_NO_INTERVENTION                                | false        | false          | false         | false           |
-            # | userActionPswResetSuccess | false        | AIS_NO_INTERVENTION                                | false        | false          | false         | false           |
-            # | unSuspendAction           | false        | AIS_NO_INTERVENTION                                | false        | false          | false         | false           |
+            | suspendNoAction           | false        | AIS_ACCOUNT_SUSPENDED                              | false        | true           | false         | false           |
+            | block                     | false        | AIS_ACCOUNT_BLOCKED                                | true         | false          | false         | false           |
+            | idResetRequired           | false        | AIS_FORCED_USER_IDENTITY_VERIFY                    | false        | true           | false         | true            |
+            | pswAndIdResetRequired     | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false        | true           | true          | true            |
+            | unblock                   | false        | AIS_NO_INTERVENTION                                | false        | false          | false         | false           |
+            | userActionIdResetSuccess  | false        | AIS_NO_INTERVENTION                                | false        | false          | false         | false           |
+            | userActionPswResetSuccess | false        | AIS_NO_INTERVENTION                                | false        | false          | false         | false           |
+            | unSuspendAction           | false        | AIS_NO_INTERVENTION                                | false        | false          | false         | false           |
 
     Scenario Outline: Happy Path - <originalAisEventType> account - Get Request to /ais/userId - Returns Expected Data for <aisEventType>
         Given I send an <aisEventType> intervention message to the TxMA ingress SQS queue for a Account in <originalAisEventType> state

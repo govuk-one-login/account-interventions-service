@@ -1,27 +1,13 @@
-import { AttributeValue, DynamoDB, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
+import { DynamoDB, UpdateItemCommand, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import EndPoints from '../apiEndpoints/endpoints';
+import { inputObjectForUpdatingItem } from './utility';
 
 const dynamoDatabase = new DynamoDB({
   apiVersion: '2012-11-05',
   region: process.env.AWS_REGION,
 });
-
-type inputObject = {
-  updatedAt: string;
-  appliedAt: string;
-  sentAt: string;
-  description: string;
-  blocked: boolean;
-  suspended: boolean;
-  resetPassword: boolean;
-  reproveIdentity: boolean;
-  history: string[];
-  auditLevel: string;
-  isAccountDeleted?: boolean;
-  reprovedIdentityAt?: string;
-  resetPasswordAt?: string;
-};
 
 export async function getRecordFromTable(userId: string) {
   try {
@@ -41,78 +27,66 @@ export async function getRecordFromTable(userId: string) {
   }
 }
 
-export async function updateItemInTable(userId: string, input: inputObject) {
+/**
+ * Method for updating items in the database.
+ * @param userId - userId used to match accounts in the database
+ * @param input - object containing fields in the database.
+ */
+export async function updateItemInTable(userId: string, input: inputObjectForUpdatingItem) {
   console.log('input', input);
-  const {
-    updatedAt,
-    appliedAt,
-    sentAt,
-    description,
-    blocked,
-    suspended,
-    reproveIdentity,
-    resetPassword,
-    history,
-    auditLevel,
-    reprovedIdentityAt,
-    resetPasswordAt,
-    isAccountDeleted,
-  } = input;
-  const updateRecord: Record<string, AttributeValue> = {
-    updatedAt: { S: updatedAt } ?? undefined,
-    appliedAt: { S: appliedAt } ?? undefined,
-    sentAt: { S: sentAt } ?? undefined,
-    intervention: { S: description } ?? undefined,
-    blocked: { BOOL: blocked } ?? undefined,
-    suspended: { BOOL: suspended } ?? undefined,
-    reproveIdentity: { BOOL: reproveIdentity } ?? undefined,
-    resetPassword: { BOOL: resetPassword } ?? undefined,
-    history: { SS: history } ?? undefined,
-    auditLevel: { S: auditLevel } ?? undefined,
-  };
-  if (reprovedIdentityAt) {
-    updateRecord.reprovedIdentityAt = { S: reprovedIdentityAt };
-  }
-  if (resetPasswordAt) {
-    updateRecord.resetPasswordAt = { S: resetPasswordAt };
-  }
-  if (isAccountDeleted) {
-    updateRecord.isAccountDeleted = { BOOL: isAccountDeleted };
-  }
   try {
     const dynamoConfig: UpdateItemCommandInput = {
       TableName: EndPoints.TABLE_NAME,
       Key: { pk: { S: userId } },
       UpdateExpression:
-        'SET #AA = :aa, #SA = :sa, #D = :d, #RIA = :ria, #RPA = :rpa, #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #AL = :al',
+        'SET #AA = :aa, #SA = :sa, #I = :i, #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #AL = :al, #H = :h',
       ExpressionAttributeNames: {
         '#AA': 'appliedAt',
         '#SA': 'sentAt',
-        '#D': 'description',
-        '#RIA': 'reprovedIdentityAt',
-        '#RPA': 'resetPasswordAt',
+        '#I': 'intervention',
         '#B': 'blocked',
         '#S': 'suspended',
         '#RP': 'resetPassword',
         '#RI': 'reproveIdentity',
         '#UA': 'updatedAt',
         '#AL': 'auditLevel',
+        '#H': 'history',
       },
       ExpressionAttributeValues: {
-        ':aa': updateRecord.appliedAt,
-        ':sa': updateRecord.sentAt,
-        ':d': updateRecord.description,
-        ':ria': updateRecord.reprovedIdentityAt,
-        ':rpa': updateRecord.resetPasswordAt,
-        ':b': updateRecord.blocked,
-        ':s': updateRecord.suspended,
-        ':rp': updateRecord.resetPassword,
-        ':ri': updateRecord.reproveIdentity,
-        ':ua': updateRecord.updatedAt,
-        ':al': updateRecord.auditLevel,
+        ':aa': { N: `${input.appliedAt}` },
+        ':sa': { N: `${input.sentAt}` },
+        ':i': { S: input.intervention },
+        ':b': { BOOL: input.blocked },
+        ':s': { BOOL: input.suspended },
+        ':rp': { BOOL: input.resetPassword },
+        ':ri': { BOOL: input.reproveIdentity },
+        ':ua': { N: `${input.updatedAt}` },
+        ':al': { S: input.auditLevel },
+        ':h': { L: [{ S: input.history }] },
       },
     };
-    await dynamoDatabase.updateItem(dynamoConfig);
+    if (dynamoConfig['ExpressionAttributeNames'] && dynamoConfig['ExpressionAttributeValues']) {
+      if (input.isAccountDeleted) {
+        dynamoConfig['ExpressionAttributeNames']['#IAD'] = 'isAccountDeleted';
+        dynamoConfig['ExpressionAttributeValues'][':iad'] = { BOOL: input.isAccountDeleted };
+        dynamoConfig['UpdateExpression'] += ', #IAD = :iad';
+      }
+      if (input.reprovedIdentityAt) {
+        dynamoConfig['ExpressionAttributeNames']['#RIA'] = 'reprovedIdentityAt';
+        dynamoConfig['ExpressionAttributeValues'][':ria'] = { N: `${input.reprovedIdentityAt}` };
+        dynamoConfig['UpdateExpression'] += ', #RIA = :ria';
+      }
+      if (input.resetPasswordAt) {
+        dynamoConfig['ExpressionAttributeNames']['#RPA'] = 'resetPasswordAt';
+        dynamoConfig['ExpressionAttributeValues'][':rpa'] = { N: `${input.resetPasswordAt}` };
+        dynamoConfig['UpdateExpression'] += ', #RPA = :rpa';
+      }
+    }
+    const dynamo = new DynamoDBClient({
+      region: process.env.AWS_REGION,
+    });
+    const update = new UpdateItemCommand(dynamoConfig);
+    await dynamo.send(update);
   } catch (error) {
     console.log('failed to update the record in the db', { error });
   }
@@ -133,9 +107,3 @@ export async function deleteTestRecord(userId: string) {
     console.log('record did not delete', { error });
   }
 }
-
-// function iterateOverRecord(arr: any[]) {
-//   for (let index = 0; index < arr.length; index++) {
-//     return arr[index];
-//   }
-// }

@@ -22,3 +22,19 @@ export interface CurrentTimeDescriptor {
   milliseconds: number;
   seconds: number;
 }
+
+export type inputObjectForUpdatingItem = {
+  updatedAt: number;
+  appliedAt: number;
+  sentAt: number;
+  intervention: string;
+  blocked: boolean;
+  suspended: boolean;
+  resetPassword: boolean;
+  reproveIdentity: boolean;
+  history: string;
+  auditLevel: string;
+  isAccountDeleted?: boolean;
+  reprovedIdentityAt?: number;
+  resetPasswordAt?: number;
+};
