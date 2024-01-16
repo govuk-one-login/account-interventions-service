@@ -146,7 +146,7 @@ describe('build-partial-update-state-command', () => {
         ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET' },
       },
       UpdateExpression:
-        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h) REMOVE #RPswdA',
+        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h) REMOVE resetPasswordAt',
     };
     const command = buildPartialUpdateAccountStateCommand(
       state,
@@ -190,7 +190,7 @@ describe('build-partial-update-state-command', () => {
         ':int': { S: 'AIS_FORCED_USER_IDENTITY_VERIFY' },
       },
       UpdateExpression:
-        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h) REMOVE #RIdA',
+        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h) REMOVE reprovedIdentityAt',
     };
     const command = buildPartialUpdateAccountStateCommand(
       state,
@@ -234,7 +234,7 @@ describe('build-partial-update-state-command', () => {
         ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY' },
       },
       UpdateExpression:
-        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h) REMOVE #RPswdA, #RIdA',
+        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h) REMOVE resetPasswordAt, reprovedIdentityAt',
     };
     const interventionEventBodyNoMsTimestamp = {
       ...interventionEventBody,
