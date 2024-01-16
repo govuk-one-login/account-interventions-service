@@ -1,5 +1,5 @@
 ---
-name: "Test Publish Feature Tests to Dev"
+name: "Publish Feature Tests to Dev"
 
 on:
   push:
@@ -26,15 +26,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      # - name: Deploy SAM app to ECR
-      #   uses: govuk-one-login/devplatform-upload-action-ecr@4e97f7e56e8be55c3cfe2198a3349c5d6b9104ea # pin@v1
-      #   with:
-      #     artifact-bucket-name: ${{ secrets.DEV_MAIN_ARTIFACT_BUCKET_NAME }}
-      #     container-sign-kms-key-arn: ${{ secrets.DEV_TEST_CONTAINER_SIGN_KMS_KEY }}
-      #     # working-directory: feature-tests/
-      #     # template-file: custom-template.yaml
-      #     role-to-assume-arn: ${{ secrets.DEV_TEST_GH_ACTIONS_ROLE_ARN }}
-      #     ecr-repo-name: ${{ secrets.DEV_TEST_ECR_REPOSITORY }}
       - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # pin@v3
         with:
           ref: ${{ inputs.gitRef }}
@@ -58,21 +49,3 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
           docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
-      # ---
-      # name: 'Test Workflow'
-
-      # on:
-      #  workflow_dispatch:
-
-      # permissions:
-      #  id-token: write
-      #  contents: read
-
-      # jobs:
-      #  test_workflow:
-      #    name: 'Test Workflow'
-      #    runs-on: ubuntu-latest
-      #    timeout-minutes: 60
-      #    steps:
-      #      - name: Step Placeholder
-      #        run: echo "This workflow is designed for testing new workflows from feature branches that have not yet been merged into the main branch."
