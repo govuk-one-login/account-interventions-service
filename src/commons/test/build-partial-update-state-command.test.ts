@@ -146,7 +146,7 @@ describe('build-partial-update-state-command', () => {
         ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET' },
       },
       UpdateExpression:
-        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)',
+        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h) REMOVE #RPswdA',
     };
     const command = buildPartialUpdateAccountStateCommand(
       state,
@@ -154,6 +154,99 @@ describe('build-partial-update-state-command', () => {
       2222,
       interventionEventBody,
       AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
+    );
+    expect(command).toEqual(expectedOutput);
+  });
+  it('should return a partial update command given an intervention is applied and id reset user action is needed', () => {
+    const state: StateDetails = {
+      blocked: false,
+      suspended: true,
+      resetPassword: false,
+      reproveIdentity: true,
+    };
+    const intervention = EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION;
+    const expectedOutput = {
+      ExpressionAttributeNames: {
+        '#B': 'blocked',
+        '#S': 'suspended',
+        '#RP': 'resetPassword',
+        '#RI': 'reproveIdentity',
+        '#UA': 'updatedAt',
+        '#SA': 'sentAt',
+        '#AA': 'appliedAt',
+        '#H': 'history',
+        '#INT': 'intervention',
+      },
+      ExpressionAttributeValues: {
+        ':b': { BOOL: false },
+        ':s': { BOOL: true },
+        ':rp': { BOOL: false },
+        ':ri': { BOOL: true },
+        ':ua': { N: '2222' },
+        ':sa': { N: '123456' },
+        ':aa': { N: '2222' },
+        ':empty_list': { L: [] },
+        ':h': { L: [{ S: '123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' }] },
+        ':int': { S: 'AIS_FORCED_USER_IDENTITY_VERIFY' },
+      },
+      UpdateExpression:
+        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h) REMOVE #RIdA',
+    };
+    const command = buildPartialUpdateAccountStateCommand(
+      state,
+      intervention,
+      2222,
+      interventionEventBody,
+      AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
+    );
+    expect(command).toEqual(expectedOutput);
+  });
+  it('should return a partial update command given an intervention is applied and id reset and psw reset user actions are needed', () => {
+    const state: StateDetails = {
+      blocked: false,
+      suspended: true,
+      resetPassword: true,
+      reproveIdentity: true,
+    };
+    const intervention = EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION;
+    const expectedOutput = {
+      ExpressionAttributeNames: {
+        '#B': 'blocked',
+        '#S': 'suspended',
+        '#RP': 'resetPassword',
+        '#RI': 'reproveIdentity',
+        '#UA': 'updatedAt',
+        '#SA': 'sentAt',
+        '#AA': 'appliedAt',
+        '#H': 'history',
+        '#INT': 'intervention',
+      },
+      ExpressionAttributeValues: {
+        ':b': { BOOL: false },
+        ':s': { BOOL: true },
+        ':rp': { BOOL: true },
+        ':ri': { BOOL: true },
+        ':ua': { N: '2222' },
+        ':sa': { N: '1000000' },
+        ':aa': { N: '2222' },
+        ':empty_list': { L: [] },
+        ':h': { L: [{ S: '1000000|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' }] },
+        ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY' },
+      },
+      UpdateExpression:
+        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h) REMOVE #RPswdA, #RIdA',
+    };
+    const interventionEventBodyNoMsTimestamp = {
+      ...interventionEventBody,
+      event_timestamp_ms: undefined,
+    };
+    const command = buildPartialUpdateAccountStateCommand(
+      state,
+      intervention,
+      2222,
+      // @ts-ignore
+      interventionEventBodyNoMsTimestamp,
+      AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
     );
     expect(command).toEqual(expectedOutput);
   });
