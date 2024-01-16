@@ -34,6 +34,7 @@ export async function getRecordFromTable(userId: string): Promise<UserInformatio
 
 /**
  * Method for updating items in the database.
+ * Note - ensure to align fields when updating the table as it will create fields if they do not exist in the table in DynamoDB.
  * @param userId - userId used to match accounts in the database
  * @param input - object containing fields in the database.
  */
