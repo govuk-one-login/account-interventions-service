@@ -1,27 +1,32 @@
-import { DynamoDB, UpdateItemCommand, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import {
+  DynamoDBClient,
+  UpdateItemCommand,
+  UpdateItemCommandInput,
+  DeleteItemCommand,
+  QueryCommand,
+} from '@aws-sdk/client-dynamodb';
+import { UserInformationFromTable, inputObjectForUpdatingItem } from './utility';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import EndPoints from '../apiEndpoints/endpoints';
-import { inputObjectForUpdatingItem } from './utility';
 
-const dynamoDatabase = new DynamoDB({
-  apiVersion: '2012-11-05',
+const dynamoDatabase = new DynamoDBClient({
   region: process.env.AWS_REGION,
 });
 
-export async function getRecordFromTable(userId: string) {
+export async function getRecordFromTable(userId: string): Promise<UserInformationFromTable | undefined> {
   try {
     console.log('retrieving record from database');
-    const response = await dynamoDatabase.query({
+    const getRecordCommand = new QueryCommand({
       TableName: EndPoints.TABLE_NAME,
       KeyConditionExpression: '#pk = :id_value',
       ExpressionAttributeNames: { '#pk': 'pk' },
       ExpressionAttributeValues: { ':id_value': { S: userId } },
     });
+    const response = await dynamoDatabase.send(getRecordCommand);
     if (!response || !response.Items) {
       throw new Error('the record is undefined or doesnt exist');
     }
-    return unmarshall(response.Items[0]);
+    return unmarshall(response.Items[0]) as UserInformationFromTable;
   } catch (error) {
     console.log('unable to get record', { error });
   }
@@ -33,7 +38,6 @@ export async function getRecordFromTable(userId: string) {
  * @param input - object containing fields in the database.
  */
 export async function updateItemInTable(userId: string, input: inputObjectForUpdatingItem) {
-  console.log('input', input);
   try {
     const dynamoConfig: UpdateItemCommandInput = {
       TableName: EndPoints.TABLE_NAME,
@@ -81,12 +85,14 @@ export async function updateItemInTable(userId: string, input: inputObjectForUpd
         dynamoConfig['ExpressionAttributeValues'][':rpa'] = { N: `${input.resetPasswordAt}` };
         dynamoConfig['UpdateExpression'] += ', #RPA = :rpa';
       }
+      if (input.accountDeletedAt) {
+        dynamoConfig['ExpressionAttributeNames']['#ADA'] = 'accountDeletedAt';
+        dynamoConfig['ExpressionAttributeValues'][':ada'] = { N: `${input.accountDeletedAt}` };
+        dynamoConfig['UpdateExpression'] += ', #ADA = :ada';
+      }
     }
-    const dynamo = new DynamoDBClient({
-      region: process.env.AWS_REGION,
-    });
     const update = new UpdateItemCommand(dynamoConfig);
-    await dynamo.send(update);
+    await dynamoDatabase.send(update);
   } catch (error) {
     console.log('failed to update the record in the db', { error });
   }
@@ -96,13 +102,14 @@ export async function updateItemInTable(userId: string, input: inputObjectForUpd
  * Method to delete a users record from DynamoDB.
  * @param userId - used to search for the user to delete, the user id of the user.
  */
-export async function deleteTestRecord(userId: string) {
+export async function deleteTestRecord(userId: string): Promise<void> {
   try {
     console.log('deleting test user record');
-    await dynamoDatabase.deleteItem({
+    const deleteCommand = new DeleteItemCommand({
       TableName: EndPoints.TABLE_NAME,
       Key: { pk: { S: userId } },
     });
+    await dynamoDatabase.send(deleteCommand);
   } catch (error) {
     console.log('record did not delete', { error });
   }
