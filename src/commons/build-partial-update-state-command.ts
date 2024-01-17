@@ -42,7 +42,10 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RIdA'] = 'reprovedIdentityAt';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':rida'] = { N: `${eventTimestamp}` };
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RIdA = :rida';
-  } else if (eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL) {
+  } else if (
+    eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL ||
+    eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT
+  ) {
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RPswdA'] = 'resetPasswordAt';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':rpswda'] = { N: `${eventTimestamp}` };
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RPswdA = :rpswda';

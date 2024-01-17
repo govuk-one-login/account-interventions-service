@@ -98,13 +98,21 @@ export const transitionConfiguration: TransitionConfigurationInterface = {
       to: 'AccountNeedsIdReset',
       name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
     },
+    '94': {
+      to: 'AccountIsOkay',
+      name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
+    },
+    '95': {
+      to: 'AccountNeedsIdReset',
+      name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
+    },
   },
   adjacency: {
     AccountIsOkay: ['01', '03', '04', '05', '06'],
     AccountIsBlocked: ['07'],
     AccountIsSuspended: ['02', '03', '04', '05', '06'],
-    AccountNeedsPasswordReset: ['01', '02', '03', '05', '06', '90'],
+    AccountNeedsPasswordReset: ['01', '02', '03', '05', '06', '90', '94'],
     AccountNeedsIdReset: ['01', '02', '03', '04', '06', '91'],
-    AccountNeedsPswAndIdReset: ['01', '02', '03', '04', '05', '92', '93'],
+    AccountNeedsPswAndIdReset: ['01', '02', '03', '04', '05', '92', '93', '95'],
   },
 };

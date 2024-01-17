@@ -69,7 +69,7 @@ const passwordResetRequiredUpdate = {
     reproveIdentity: false,
   },
   interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
-  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90'],
+  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '94'],
 };
 const idResetRequiredUpdate = {
   finalState: {
@@ -89,7 +89,7 @@ const pswAndIdResetRequiredUpdate = {
     reproveIdentity: true,
   },
   interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
-  nextAllowableInterventions: ['01', '02', '03', '04', '05', '92', '93'],
+  nextAllowableInterventions: ['01', '02', '03', '04', '05', '92', '93', '95'],
 };
 const unsuspendAccountUpdate = {
   finalState: {
@@ -145,7 +145,7 @@ const idResetSuccessfulUpdateSuspended = {
     resetPassword: true,
     reproveIdentity: false,
   },
-  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90']
+  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '94']
 };
 
 jest.mock('@aws-lambda-powertools/logger');
@@ -219,6 +219,7 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsPswReset, unsuspendAccountUpdate],
         [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsPswReset, suspendAccountUpdate],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountNeedsPswReset, pswResetSuccessfulUpdateUnsuspended],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT, accountNeedsPswReset, pswResetSuccessfulUpdateUnsuspended],
         [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountNeedsPswReset, idResetRequiredUpdate],
         [
           EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
@@ -254,6 +255,7 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountNeedsIDResetAdnPswReset, blockAccountUpdate],
         [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountNeedsIDResetAdnPswReset, idResetRequiredUpdate],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountNeedsIDResetAdnPswReset, pswResetSuccessfulUpdateSuspended],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT, accountNeedsIDResetAdnPswReset, pswResetSuccessfulUpdateSuspended],
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountNeedsIDResetAdnPswReset, passwordResetRequiredUpdate],
         [EventsEnum.IPV_IDENTITY_ISSUED, accountNeedsIDResetAdnPswReset, idResetSuccessfulUpdateSuspended],
         [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsIDResetAdnPswReset, unsuspendAccountUpdate],
@@ -293,10 +295,12 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsOkay],
         [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsOkay],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsOkay],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT, accountIsOkay],
         [EventsEnum.IPV_IDENTITY_ISSUED, accountIsOkay],
 
         [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsSuspended],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsSuspended],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT, accountIsSuspended],
         [EventsEnum.IPV_IDENTITY_ISSUED, accountIsSuspended],
 
         [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsPswReset],
@@ -304,6 +308,7 @@ describe('account-state-service', () => {
 
         [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsIDReset],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountNeedsIDReset],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT, accountNeedsIDReset],
 
         [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsIDResetAdnPswReset],
 
