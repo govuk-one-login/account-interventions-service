@@ -172,6 +172,12 @@ function buildAdditionalAttributes(
   };
 }
 
+/**
+ * Function to check if an event should be sent to TxMA
+ * @param egressEventName - Name of the event to be published to TxMA
+ * @param ingressEventEnum - Name of the original event
+ * @param accountStateEngineOutput - optional parameter containing the output from the State Engine
+ */
 function eventShouldBeIgnored(
   egressEventName: TxMAEgressEventName,
   ingressEventEnum: EventsEnum,
