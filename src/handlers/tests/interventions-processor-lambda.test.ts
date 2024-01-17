@@ -224,7 +224,7 @@ describe('intervention processor handler', () => {
           reproveIdentity: false,
         },
         interventionName: EventsEnum.FRAUD_BLOCK_ACCOUNT,
-        nextAllowableInterventions: []
+        nextAllowableInterventions: [],
       });
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
@@ -241,7 +241,7 @@ describe('intervention processor handler', () => {
             suspended: true,
           },
           interventionName: 'FRAUD_BLOCK_ACCOUNT',
-          nextAllowableInterventions: []
+          nextAllowableInterventions: [],
         },
       );
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
@@ -259,7 +259,7 @@ describe('intervention processor handler', () => {
           reproveIdentity: false,
         },
         interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
-        nextAllowableInterventions: []
+        nextAllowableInterventions: [],
       });
       mockRecord.body = JSON.stringify(resetPasswordEventBody);
       mockEvent.Records = [mockRecord];
@@ -278,7 +278,7 @@ describe('intervention processor handler', () => {
             suspended: false,
           },
           interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
-          nextAllowableInterventions: []
+          nextAllowableInterventions: [],
         },
       );
 

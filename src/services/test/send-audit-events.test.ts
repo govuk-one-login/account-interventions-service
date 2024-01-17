@@ -1,20 +1,20 @@
-import {SendMessageCommand, SQSClient} from '@aws-sdk/client-sqs';
-import {mockClient} from 'aws-sdk-client-mock';
-import {sendAuditEvent} from '../send-audit-events';
+import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
+import { mockClient } from 'aws-sdk-client-mock';
+import { sendAuditEvent } from '../send-audit-events';
 import {
   ActiveStateActions,
   AISInterventionTypes,
   COMPONENT_ID,
   EventsEnum,
   State,
-  TriggerEventsEnum
+  TriggerEventsEnum,
 } from '../../data-types/constants';
-import {logAndPublishMetric} from '../../commons/metrics';
+import { logAndPublishMetric } from '../../commons/metrics';
 import logger from '../../commons/logger';
-import {AppConfigService} from '../app-config-service';
-import {getCurrentTimestamp} from '../../commons/get-current-timestamp';
+import { AppConfigService } from '../app-config-service';
+import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import 'aws-sdk-client-mock-jest';
-import {TxMAIngressEvent} from '../../data-types/interfaces';
+import { TxMAIngressEvent } from '../../data-types/interfaces';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -81,7 +81,7 @@ const sqsCommandInputForUserAction = {
       description: 'AIS_FORCED_USER_PASSWORD_RESET',
       allowable_interventions: [],
       state: State.ACTIVE,
-      action: ActiveStateActions.RESET_PASSWORD
+      action: ActiveStateActions.RESET_PASSWORD,
     },
   }),
 };
@@ -106,7 +106,6 @@ const sqsCommandInputForBlockIntervention = {
   }),
 };
 
-
 const sqsCommandInputForDeletedAccount = {
   QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
   MessageBody: JSON.stringify({
@@ -122,7 +121,7 @@ const sqsCommandInputForDeletedAccount = {
       intervention_code: '01',
       description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
       allowable_interventions: [],
-      state: State.DELETED
+      state: State.DELETED,
     },
   }),
 };
@@ -142,7 +141,7 @@ const sqsCommandInputForSuspendIntervention = {
       intervention_code: '01',
       description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
       allowable_interventions: ['01'],
-      state: State.SUSPENDED
+      state: State.SUSPENDED,
     },
   }),
 };
@@ -162,7 +161,7 @@ const sqsCommandInputForUnsuspendIntervention = {
       intervention_code: '01',
       description: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
       allowable_interventions: ['01'],
-      state: State.ACTIVE
+      state: State.ACTIVE,
     },
   }),
 };
@@ -200,7 +199,7 @@ const sqsCommandInputForSuspendUserAction = {
       description: 'AIS_FORCED_USER_IDENTITY_VERIFY',
       allowable_interventions: [],
       state: State.ACTIVE,
-      action: ActiveStateActions.REPROVE_IDENTITY
+      action: ActiveStateActions.REPROVE_IDENTITY,
     },
   }),
 };
@@ -221,7 +220,7 @@ const sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass = {
       description: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY',
       allowable_interventions: [],
       state: State.ACTIVE,
-      action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY
+      action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY,
     },
   }),
 };
@@ -258,7 +257,7 @@ describe('send-audit-events', () => {
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
       {
-        nextAllowableInterventions: ["01"],
+        nextAllowableInterventions: ['01'],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
         stateResult: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: false },
       },
@@ -383,7 +382,10 @@ describe('send-audit-events', () => {
     expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
-    expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass);
+    expect(sqsMock).toHaveReceivedCommandWith(
+      SendMessageCommand,
+      sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass,
+    );
   });
 
   it('should successfully send the audit event and return a response when an the account is unsuspended', async () => {
@@ -393,7 +395,7 @@ describe('send-audit-events', () => {
       EventsEnum.FRAUD_UNSUSPEND_ACCOUNT,
       ingressInterventionEvent,
       {
-        nextAllowableInterventions: ["01"],
+        nextAllowableInterventions: ['01'],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
         stateResult: { blocked: false, suspended: false, reproveIdentity: false, resetPassword: false },
       },
@@ -411,7 +413,6 @@ describe('send-audit-events', () => {
       'AIS_EVENT_IGNORED_IN_FUTURE',
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
-      undefined
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
@@ -431,10 +432,10 @@ describe('send-audit-events', () => {
           blocked: false,
           suspended: false,
           resetPassword: false,
-          reproveIdentity: false
+          reproveIdentity: false,
         },
-        nextAllowableInterventions: []
-      }
+        nextAllowableInterventions: [],
+      },
     );
     expect(response).toBeUndefined();
     expect(logAndPublishMetric).not.toHaveBeenCalled();

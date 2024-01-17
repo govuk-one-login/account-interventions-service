@@ -230,7 +230,9 @@ describe('build-partial-update-state-command', () => {
         ':sa': { N: '1000000' },
         ':aa': { N: '2222' },
         ':empty_list': { L: [] },
-        ':h': { L: [{ S: '1000000|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' }] },
+        ':h': {
+          L: [{ S: '1000000|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' }],
+        },
         ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY' },
       },
       UpdateExpression:
@@ -244,8 +246,7 @@ describe('build-partial-update-state-command', () => {
       state,
       intervention,
       2222,
-      // @ts-ignore
-      interventionEventBodyNoMsTimestamp,
+      interventionEventBodyNoMsTimestamp as unknown as TxMAIngressEvent,
       AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
     );
     expect(command).toEqual(expectedOutput);

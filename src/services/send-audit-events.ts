@@ -78,48 +78,50 @@ export async function sendAuditEvent(
 
 /**
  * Helper function to build extension object based on the type of event
- * @param event - Original event received from TxMA
- * @param eventEnum - Event name as an EventEnum
+ * @param txMAIngressEvent - Original event received from TxMA
+ * @param ingressEventName - Event name as an EventEnum
  * @param stateEngineOutput - Final state after intervention was/ was not applied
- * @param txmaEventName - The name of the TxMA event name
+ * @param egressEventName - The name of the TxMA event name
  * @returns - TxMAEgressExtensions object
  */
 function buildExtensions(
-  event: TxMAIngressEvent,
-  eventEnum: EventsEnum,
-  txmaEventName: TxMAEgressEventName,
+  txMAIngressEvent: TxMAIngressEvent,
+  ingressEventName: EventsEnum,
+  egressEventName: TxMAEgressEventName,
   stateEngineOutput: AccountStateEngineOutput | undefined,
 ): TxMAEgressExtensions | TxMAEgressBasicExtensions {
   if (stateEngineOutput) {
     return {
-      trigger_event: event.event_name,
-      trigger_event_id: event.event_id ?? 'UNKNOWN',
-      intervention_code: event.extensions?.intervention?.intervention_code,
-      description: userLedActionList.includes(eventEnum) ? 'USER_LED_ACTION' : stateEngineOutput.interventionName!,
+      trigger_event: txMAIngressEvent.event_name,
+      trigger_event_id: txMAIngressEvent.event_id ?? 'UNKNOWN',
+      intervention_code: txMAIngressEvent.extensions?.intervention?.intervention_code,
+      description: userLedActionList.includes(ingressEventName)
+        ? 'USER_LED_ACTION'
+        : stateEngineOutput.interventionName!,
       allowable_interventions: stateEngineOutput.nextAllowableInterventions.filter(
         (intervention) => !nonInterventionsCodes.has(intervention),
       ),
-      ...buildAdditionalAttributes(stateEngineOutput, txmaEventName),
+      ...buildAdditionalAttributes(stateEngineOutput, egressEventName),
     };
   }
   return {
-    trigger_event: event.event_name,
-    trigger_event_id: event.event_id ?? 'UNKNOWN',
-    intervention_code: event.extensions?.intervention?.intervention_code,
+    trigger_event: txMAIngressEvent.event_name,
+    trigger_event_id: txMAIngressEvent.event_id ?? 'UNKNOWN',
+    intervention_code: txMAIngressEvent.extensions?.intervention?.intervention_code,
   };
 }
 
 /**
  * Helper function to build state and action attributes of the extension object based on the final state
  * @param stateEngineOutput - Final state after intervention was/ was not applied
- * @param txmaEventName - The name of the TxMA event name
+ * @param egressEventName - The name of the TxMA event name
  * @returns - an object having state and action as attributes
  */
 function buildAdditionalAttributes(
   stateEngineOutput: AccountStateEngineOutput,
-  txmaEventName: TxMAEgressEventName,
+  egressEventName: TxMAEgressEventName,
 ): { state: State | undefined; action: ActiveStateActions | undefined } {
-  if (txmaEventName === 'AIS_EVENT_IGNORED_ACCOUNT_DELETED')
+  if (egressEventName === 'AIS_EVENT_IGNORED_ACCOUNT_DELETED')
     return {
       state: State.DELETED,
       action: undefined,
@@ -175,17 +177,17 @@ function buildAdditionalAttributes(
 /**
  * Function to check if an event should be sent to TxMA
  * @param egressEventName - Name of the event to be published to TxMA
- * @param ingressEventEnum - Name of the original event
+ * @param ingressEventName - Name of the original event
  * @param accountStateEngineOutput - optional parameter containing the output from the State Engine
  */
 function eventShouldBeIgnored(
   egressEventName: TxMAEgressEventName,
-  ingressEventEnum: EventsEnum,
+  ingressEventName: EventsEnum,
   accountStateEngineOutput?: AccountStateEngineOutput,
 ) {
   if (!accountStateEngineOutput) return false;
   return (
-    userLedActionList.includes(ingressEventEnum) &&
+    userLedActionList.includes(ingressEventName) &&
     !accountStateEngineOutput.stateResult.suspended &&
     !accountStateEngineOutput.stateResult.blocked &&
     !accountStateEngineOutput.stateResult.reproveIdentity &&
