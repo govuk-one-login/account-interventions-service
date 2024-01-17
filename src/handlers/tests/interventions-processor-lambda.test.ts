@@ -147,7 +147,7 @@ describe('intervention processor handler', () => {
       accountStateEngine.applyEventTransition = jest.fn().mockImplementationOnce(() => {
         throw new StateTransitionError('State transition Error', EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, {
           nextAllowableInterventions: [],
-          finalState: {
+          stateResult: {
             blocked: false,
             suspended: false,
             resetPassword: false,

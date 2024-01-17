@@ -319,7 +319,7 @@ describe('account-state-service', () => {
           new StateTransitionError(`${intervention} is not allowed from current state`, intervention,
             {
               nextAllowableInterventions: [],
-              finalState: retrievedAccountState,
+              stateResult: retrievedAccountState,
               interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
             }),
         );
@@ -387,7 +387,7 @@ describe('account-state-service', () => {
           {
             nextAllowableInterventions: [],
             interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-            finalState: accountIsOkay,
+            stateResult: accountIsOkay,
           }
         ),
       );

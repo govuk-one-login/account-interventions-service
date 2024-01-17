@@ -35,19 +35,21 @@ const sqsClient = tracer.captureAWSv3Client(
 
 /**
  * Function that sends Audit Events to the TxMA Egress queue.
- * @param eventName - The event name used for sending off the event to identify the action taken.
- * @param eventEnum - The name of the event as an EventsEnum
- * @param ingressTxmaEvent - The original event from TxMA
- * @param finalState - Current state after applying intervention
+ * @param egressEventName - The event name used for sending off the event to identify the action taken.
+ * @param ingressEventName - The name of the event as an EventsEnum
+ * @param ingressTxMAEvent - The original event from TxMA
+ * @param accountStateEngineOutput - Current state after applying intervention
  * @returns - Response from sending the message to the Queue.
  */
 export async function sendAuditEvent(
-  eventName: TxMAEgressEventName,
-  eventEnum: EventsEnum,
-  ingressTxmaEvent: TxMAIngressEvent,
-  finalState?: AccountStateEngineOutput,
+  egressEventName: TxMAEgressEventName,
+  ingressEventName: EventsEnum,
+  ingressTxMAEvent: TxMAIngressEvent,
+  accountStateEngineOutput?: AccountStateEngineOutput,
 ): Promise<SendMessageCommandOutput | undefined> {
   logger.debug('sendAuditEvent function.');
+
+  if (eventShouldBeIgnored(egressEventName, ingressEventName, accountStateEngineOutput)) return;
 
   const timestamp = getCurrentTimestamp();
 
@@ -56,9 +58,9 @@ export async function sendAuditEvent(
     event_timestamp_ms: timestamp.milliseconds,
     event_timestamp_ms_formatted: timestamp.isoString,
     component_id: COMPONENT_ID,
-    event_name: eventName,
-    user: { user_id: ingressTxmaEvent.user.user_id },
-    extensions: buildExtensions(ingressTxmaEvent, eventEnum, eventName, finalState),
+    event_name: egressEventName,
+    user: { user_id: ingressTxMAEvent.user.user_id },
+    extensions: buildExtensions(ingressTxMAEvent, ingressEventName, egressEventName, accountStateEngineOutput),
   };
 
   const input = { MessageBody: JSON.stringify(txmaEvent), QueueUrl: appConfig.txmaEgressQueueUrl };
@@ -123,41 +125,41 @@ function buildAdditionalAttributes(
       action: undefined,
     };
 
-  if (stateEngineOutput.finalState.blocked)
+  if (stateEngineOutput.stateResult.blocked)
     return {
       state: State.PERMANENTLY_SUSPENDED,
       action: undefined,
     };
 
-  if (!stateEngineOutput.finalState.suspended) {
+  if (!stateEngineOutput.stateResult.suspended) {
     return {
       state: State.ACTIVE,
       action: undefined,
     };
   }
 
-  if (stateEngineOutput.finalState.resetPassword && !stateEngineOutput.finalState.reproveIdentity) {
+  if (stateEngineOutput.stateResult.resetPassword && !stateEngineOutput.stateResult.reproveIdentity) {
     return {
       state: State.ACTIVE,
       action: ActiveStateActions.RESET_PASSWORD,
     };
   }
 
-  if (!stateEngineOutput.finalState.resetPassword && stateEngineOutput.finalState.reproveIdentity) {
+  if (!stateEngineOutput.stateResult.resetPassword && stateEngineOutput.stateResult.reproveIdentity) {
     return {
       state: State.ACTIVE,
       action: ActiveStateActions.REPROVE_IDENTITY,
     };
   }
 
-  if (stateEngineOutput.finalState.resetPassword && stateEngineOutput.finalState.reproveIdentity) {
+  if (stateEngineOutput.stateResult.resetPassword && stateEngineOutput.stateResult.reproveIdentity) {
     return {
       state: State.ACTIVE,
       action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY,
     };
   }
 
-  if (stateEngineOutput.finalState.suspended) {
+  if (stateEngineOutput.stateResult.suspended) {
     return {
       state: State.SUSPENDED,
       action: undefined,
@@ -168,4 +170,20 @@ function buildAdditionalAttributes(
     state: undefined,
     action: undefined,
   };
+}
+
+function eventShouldBeIgnored(
+  egressEventName: TxMAEgressEventName,
+  ingressEventEnum: EventsEnum,
+  accountStateEngineOutput?: AccountStateEngineOutput,
+) {
+  if (!accountStateEngineOutput) return false;
+  return (
+    userLedActionList.includes(ingressEventEnum) &&
+    !accountStateEngineOutput.stateResult.suspended &&
+    !accountStateEngineOutput.stateResult.blocked &&
+    !accountStateEngineOutput.stateResult.reproveIdentity &&
+    !accountStateEngineOutput.stateResult.resetPassword &&
+    egressEventName === 'AIS_EVENT_TRANSITION_IGNORED'
+  );
 }

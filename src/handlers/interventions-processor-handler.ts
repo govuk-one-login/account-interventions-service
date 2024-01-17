@@ -98,7 +98,7 @@ async function processSQSRecord(record: SQSRecord) {
 
   const statusResult = accountStateEngine.applyEventTransition(eventName, currentAccountState);
   const partialCommandInput = buildPartialUpdateAccountStateCommand(
-    statusResult.finalState,
+    statusResult.stateResult,
     eventName,
     currentTimestamp.milliseconds,
     recordBody,
@@ -106,7 +106,7 @@ async function processSQSRecord(record: SQSRecord) {
   );
   logger.debug('processed requested event, sending update request to dynamo db');
   await service.updateUserStatus(userId, partialCommandInput);
-  updateAccountStateCountMetric(currentAccountState, statusResult.finalState);
+  updateAccountStateCountMetric(currentAccountState, statusResult.stateResult);
   logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
   await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, recordBody, statusResult);
 }
@@ -173,7 +173,7 @@ async function validateAccountIsNotDeleted(
     logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
     logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
     await sendAuditEvent('AIS_EVENT_IGNORED_ACCOUNT_DELETED', intervention, record, {
-      finalState: initialState,
+      stateResult: initialState,
       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
       nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
     });

@@ -239,7 +239,7 @@ describe('send-audit-events', () => {
       {
         nextAllowableInterventions: [],
         interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
-        finalState: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: true },
+        stateResult: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: true },
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
@@ -258,7 +258,7 @@ describe('send-audit-events', () => {
       {
         nextAllowableInterventions: [],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
-        finalState: { blocked: true, suspended: true, reproveIdentity: false, resetPassword: true },
+        stateResult: { blocked: true, suspended: true, reproveIdentity: false, resetPassword: true },
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
@@ -277,7 +277,7 @@ describe('send-audit-events', () => {
       {
         nextAllowableInterventions: [],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
-        finalState: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: false },
+        stateResult: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: false },
       },
     );
     expect(response).toBeUndefined();
@@ -298,7 +298,7 @@ describe('send-audit-events', () => {
       {
         nextAllowableInterventions: [],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
-        finalState: { blocked: true, suspended: true, reproveIdentity: false, resetPassword: false },
+        stateResult: { blocked: true, suspended: true, reproveIdentity: false, resetPassword: false },
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
@@ -317,7 +317,7 @@ describe('send-audit-events', () => {
       {
         nextAllowableInterventions: ['01', '91'],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
-        finalState: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: false },
+        stateResult: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: false },
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
@@ -336,7 +336,7 @@ describe('send-audit-events', () => {
       {
         nextAllowableInterventions: [],
         interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
-        finalState: { blocked: false, suspended: true, reproveIdentity: true, resetPassword: false },
+        stateResult: { blocked: false, suspended: true, reproveIdentity: true, resetPassword: false },
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
@@ -355,7 +355,7 @@ describe('send-audit-events', () => {
       {
         nextAllowableInterventions: [],
         interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
-        finalState: { blocked: false, suspended: true, reproveIdentity: true, resetPassword: true },
+        stateResult: { blocked: false, suspended: true, reproveIdentity: true, resetPassword: true },
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
@@ -374,7 +374,7 @@ describe('send-audit-events', () => {
       {
         nextAllowableInterventions: ["01"],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
-        finalState: { blocked: false, suspended: false, reproveIdentity: false, resetPassword: false },
+        stateResult: { blocked: false, suspended: false, reproveIdentity: false, resetPassword: false },
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
