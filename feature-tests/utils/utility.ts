@@ -1,5 +1,3 @@
-import { AttributeValue } from '@aws-sdk/client-dynamodb';
-
 const delay = (ms: number | undefined) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function timeDelayForTestEnvironment(ms = 2000) {
@@ -43,5 +41,19 @@ export type inputObjectForUpdatingItem = {
 };
 
 export interface UserInformationFromTable {
-  record: Record<string, AttributeValue>;
+  pk: string;
+  updatedAt: number;
+  appliedAt: number;
+  sentAt: number;
+  intervention: string;
+  blocked: boolean;
+  suspended: boolean;
+  resetPassword: boolean;
+  reproveIdentity: boolean;
+  auditLevel: string;
+  reprovedIdentityAt?: number;
+  resetPasswordAt?: number;
+  isAccountDeleted?: boolean;
+  accountDeletedAt?: number;
+  history?: string[];
 }
