@@ -30,7 +30,7 @@ export interface FullAccountInformation {
   auditLevel?: string;
 }
 export interface AccountStateEngineOutput {
-  finalState: StateDetails;
+  stateResult: StateDetails;
   interventionName?: AISInterventionTypes;
   nextAllowableInterventions: string[];
 }

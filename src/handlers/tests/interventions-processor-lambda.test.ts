@@ -147,7 +147,7 @@ describe('intervention processor handler', () => {
       accountStateEngine.applyEventTransition = jest.fn().mockImplementationOnce(() => {
         throw new StateTransitionError('State transition Error', EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, {
           nextAllowableInterventions: [],
-          finalState: {
+          stateResult: {
             blocked: false,
             suspended: false,
             resetPassword: false,
@@ -167,7 +167,7 @@ describe('intervention processor handler', () => {
         EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
         interventionEventBody,
         {
-          finalState: {
+          stateResult: {
             blocked: false,
             reproveIdentity: false,
             resetPassword: false,
@@ -181,7 +181,7 @@ describe('intervention processor handler', () => {
 
     it('should succeed when a valid intervention event is received', async () => {
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
-        finalState: {
+        stateResult: {
           blocked: false,
           suspended: true,
           resetPassword: false,
@@ -198,7 +198,7 @@ describe('intervention processor handler', () => {
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
-          finalState: {
+          stateResult: {
             blocked: false,
             reproveIdentity: false,
             resetPassword: false,
@@ -217,14 +217,14 @@ describe('intervention processor handler', () => {
     it('should succeed when an intervention event is received for a non existing user', async () => {
       mockRetrieveRecords.mockReturnValue(undefined);
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
-        finalState: {
+        stateResult: {
           blocked: false,
           suspended: true,
           resetPassword: false,
           reproveIdentity: false,
         },
         interventionName: EventsEnum.FRAUD_BLOCK_ACCOUNT,
-        nextAllowableInterventions: []
+        nextAllowableInterventions: [],
       });
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
@@ -234,14 +234,14 @@ describe('intervention processor handler', () => {
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
-          finalState: {
+          stateResult: {
             blocked: false,
             reproveIdentity: false,
             resetPassword: false,
             suspended: true,
           },
           interventionName: 'FRAUD_BLOCK_ACCOUNT',
-          nextAllowableInterventions: []
+          nextAllowableInterventions: [],
         },
       );
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
@@ -252,14 +252,14 @@ describe('intervention processor handler', () => {
 
     it('should succeed when a valid user action event is received', async () => {
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
-        finalState: {
+        stateResult: {
           blocked: false,
           suspended: false,
           resetPassword: false,
           reproveIdentity: false,
         },
         interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
-        nextAllowableInterventions: []
+        nextAllowableInterventions: [],
       });
       mockRecord.body = JSON.stringify(resetPasswordEventBody);
       mockEvent.Records = [mockRecord];
@@ -271,14 +271,14 @@ describe('intervention processor handler', () => {
         EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
         resetPasswordEventBody,
         {
-          finalState: {
+          stateResult: {
             blocked: false,
             reproveIdentity: false,
             resetPassword: false,
             suspended: false,
           },
           interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
-          nextAllowableInterventions: []
+          nextAllowableInterventions: [],
         },
       );
 
@@ -310,7 +310,7 @@ describe('intervention processor handler', () => {
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
-          finalState: {
+          stateResult: {
             blocked: false,
             reproveIdentity: false,
             resetPassword: false,
@@ -380,7 +380,7 @@ describe('intervention processor handler', () => {
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
-          finalState: {
+          stateResult: {
             blocked: false,
             reproveIdentity: false,
             resetPassword: false,

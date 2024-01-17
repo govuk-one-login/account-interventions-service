@@ -185,7 +185,7 @@ describe('event-validation', () => {
     ).rejects.toThrow(new ValidationError('Event received predates last applied event for this user.'));
     expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
     expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent, {
-      finalState: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
+      stateResult: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
       interventionName: 'AIS_NO_INTERVENTION',
       nextAllowableInterventions: ['01', '03', '04', '05', '06'],
     });

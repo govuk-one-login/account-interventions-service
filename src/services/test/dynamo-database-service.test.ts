@@ -179,7 +179,7 @@ describe('Dynamo DB Service', () => {
         ':isAccountDeleted': { BOOL: true },
         ':ttl': { N: '1685417145' },
         ':false': { BOOL: false },
-        ':deletedAt': { N: '1685404800000' }
+        ':deletedAt': { N: '1685404800000' },
       },
       ReturnValues: 'ALL_NEW',
       ConditionExpression:

@@ -100,7 +100,7 @@ describe('status-retriever-handler', () => {
         sentAt: 123456789,
         description: suspendedRecord.intervention,
         reprovedIdentityAt: 849473,
-        resetPasswordAt: 5847392
+        resetPasswordAt: 5847392,
       },
       state: {
         blocked: false,
@@ -126,7 +126,7 @@ describe('status-retriever-handler', () => {
         updatedAt: 1685404800000,
         appliedAt: 1685404800000,
         sentAt: 1685404800000,
-        description: 'AIS_NO_INTERVENTION'
+        description: 'AIS_NO_INTERVENTION',
       },
       state: {
         blocked: false,
@@ -173,7 +173,7 @@ describe('status-retriever-handler', () => {
         description: accountFoundNotSuspendedRecord.intervention,
         reprovedIdentityAt: 849473,
         resetPasswordAt: 5847392,
-        accountDeletedAt: 12345685809
+        accountDeletedAt: 12345685809,
       },
       state: {
         blocked: false,
@@ -231,7 +231,7 @@ describe('status-retriever-handler', () => {
         sentAt: 123456789,
         description: suspendedRecord.intervention,
         reprovedIdentityAt: 849473,
-        resetPasswordAt: 5847392
+        resetPasswordAt: 5847392,
       },
       state: {
         blocked: false,
@@ -257,7 +257,7 @@ describe('status-retriever-handler', () => {
         updatedAt: 1685404800000,
         appliedAt: 1685404800000,
         sentAt: 1685404800000,
-        description: 'AIS_NO_INTERVENTION'
+        description: 'AIS_NO_INTERVENTION',
       },
       state: {
         blocked: false,
@@ -316,7 +316,7 @@ describe('status-retriever-handler', () => {
         sentAt: 123456789,
         description: nullUpdatedAt.intervention,
         reprovedIdentityAt: 849473,
-        resetPasswordAt: 5847392
+        resetPasswordAt: 5847392,
       },
       state: {
         blocked: false,
@@ -342,7 +342,7 @@ describe('status-retriever-handler', () => {
         updatedAt: 1685404800000,
         appliedAt: 1685404800000,
         sentAt: 1685404800000,
-        description: 'AIS_NO_INTERVENTION'
+        description: 'AIS_NO_INTERVENTION',
       },
       state: {
         blocked: false,
@@ -388,7 +388,7 @@ describe('status-retriever-handler', () => {
         sentAt: 123456789,
         description: accountFoundNotSuspendedRecord.intervention,
         reprovedIdentityAt: 849473,
-        resetPasswordAt: 5847392
+        resetPasswordAt: 5847392,
       },
       state: {
         blocked: false,
@@ -436,7 +436,7 @@ describe('status-retriever-handler', () => {
         sentAt: 123456789,
         description: accountFoundNotSuspendedRecord.intervention,
         reprovedIdentityAt: 849473,
-        resetPasswordAt: 5847392
+        resetPasswordAt: 5847392,
       },
       state: {
         blocked: false,
@@ -500,7 +500,7 @@ describe('status-retriever-handler', () => {
         sentAt: 123456789,
         description: accountFoundNotSuspendedRecord.intervention,
         reprovedIdentityAt: 849473,
-        resetPasswordAt: 5847392
+        resetPasswordAt: 5847392,
       },
       state: {
         blocked: false,

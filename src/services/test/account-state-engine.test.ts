@@ -42,7 +42,7 @@ const accountIsBlocked = {
   reproveIdentity: false,
 };
 const blockAccountUpdate = {
-  finalState: {
+  stateResult: {
     blocked: true,
     suspended: false,
     resetPassword: false,
@@ -52,7 +52,7 @@ const blockAccountUpdate = {
   nextAllowableInterventions: ['07'],
 };
 const suspendAccountUpdate = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: true,
     resetPassword: false,
@@ -62,7 +62,7 @@ const suspendAccountUpdate = {
   nextAllowableInterventions: ['02', '03', '04', '05', '06'],
 };
 const passwordResetRequiredUpdate = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: true,
     resetPassword: true,
@@ -72,7 +72,7 @@ const passwordResetRequiredUpdate = {
   nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '94'],
 };
 const idResetRequiredUpdate = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: true,
     resetPassword: false,
@@ -82,7 +82,7 @@ const idResetRequiredUpdate = {
   nextAllowableInterventions: ['01', '02', '03', '04', '06', '91'],
 };
 const pswAndIdResetRequiredUpdate = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: true,
     resetPassword: true,
@@ -92,7 +92,7 @@ const pswAndIdResetRequiredUpdate = {
   nextAllowableInterventions: ['01', '02', '03', '04', '05', '92', '93', '95'],
 };
 const unsuspendAccountUpdate = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: false,
     resetPassword: false,
@@ -102,7 +102,7 @@ const unsuspendAccountUpdate = {
   nextAllowableInterventions: ['01', '03', '04', '05', '06'],
 };
 const unblockAccountUpdate = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: false,
     resetPassword: false,
@@ -112,40 +112,40 @@ const unblockAccountUpdate = {
   nextAllowableInterventions: ['01', '03', '04', '05', '06'],
 };
 const pswResetSuccessfulUpdateUnsuspended = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: false,
     resetPassword: false,
     reproveIdentity: false,
   },
-  nextAllowableInterventions: ['01', '03', '04', '05', '06']
+  nextAllowableInterventions: ['01', '03', '04', '05', '06'],
 };
 const pswResetSuccessfulUpdateSuspended = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: true,
     resetPassword: false,
     reproveIdentity: true,
   },
-  nextAllowableInterventions: ['01', '02', '03', '04', '06', '91']
+  nextAllowableInterventions: ['01', '02', '03', '04', '06', '91'],
 };
 const idResetSuccessfulUpdateUnsuspended = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: false,
     resetPassword: false,
     reproveIdentity: false,
   },
-  nextAllowableInterventions: ['01', '03', '04', '05', '06']
+  nextAllowableInterventions: ['01', '03', '04', '05', '06'],
 };
 const idResetSuccessfulUpdateSuspended = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: true,
     resetPassword: true,
     reproveIdentity: false,
   },
-  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '94']
+  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '94'],
 };
 
 jest.mock('@aws-lambda-powertools/logger');
@@ -219,7 +219,11 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsPswReset, unsuspendAccountUpdate],
         [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsPswReset, suspendAccountUpdate],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountNeedsPswReset, pswResetSuccessfulUpdateUnsuspended],
-        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT, accountNeedsPswReset, pswResetSuccessfulUpdateUnsuspended],
+        [
+          EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
+          accountNeedsPswReset,
+          pswResetSuccessfulUpdateUnsuspended,
+        ],
         [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountNeedsPswReset, idResetRequiredUpdate],
         [
           EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
@@ -255,7 +259,11 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountNeedsIDResetAdnPswReset, blockAccountUpdate],
         [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountNeedsIDResetAdnPswReset, idResetRequiredUpdate],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountNeedsIDResetAdnPswReset, pswResetSuccessfulUpdateSuspended],
-        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT, accountNeedsIDResetAdnPswReset, pswResetSuccessfulUpdateSuspended],
+        [
+          EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
+          accountNeedsIDResetAdnPswReset,
+          pswResetSuccessfulUpdateSuspended,
+        ],
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountNeedsIDResetAdnPswReset, passwordResetRequiredUpdate],
         [EventsEnum.IPV_IDENTITY_ISSUED, accountNeedsIDResetAdnPswReset, idResetSuccessfulUpdateSuspended],
         [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsIDResetAdnPswReset, unsuspendAccountUpdate],
@@ -321,12 +329,11 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountIsBlocked],
       ])('%p applied on account state: %p', (intervention, retrievedAccountState) => {
         expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(
-          new StateTransitionError(`${intervention} is not allowed from current state`, intervention,
-            {
-              nextAllowableInterventions: [],
-              finalState: retrievedAccountState,
-              interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-            }),
+          new StateTransitionError(`${intervention} is not allowed from current state`, intervention, {
+            nextAllowableInterventions: [],
+            stateResult: retrievedAccountState,
+            interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+          }),
         );
       });
     });
@@ -392,8 +399,8 @@ describe('account-state-service', () => {
           {
             nextAllowableInterventions: [],
             interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-            finalState: accountIsOkay,
-          }
+            stateResult: accountIsOkay,
+          },
         ),
       );
       expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.TRANSITION_SAME_AS_CURRENT_STATE);

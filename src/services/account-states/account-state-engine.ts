@@ -75,7 +75,7 @@ export class AccountStateEngine {
         initialState,
       );
     return {
-      finalState: newStateObject,
+      stateResult: newStateObject,
       interventionName: AccountStateEngine.configuration.edges[transition]?.interventionName as AISInterventionTypes,
       nextAllowableInterventions: this.findPossibleTransitions(this.findAccountStateName(newStateObject)),
     };
@@ -172,7 +172,7 @@ function buildStateTransitionError(
   logAndPublishMetric(metricName);
   logger.error({ message: errorMessage });
   return new StateTransitionError(errorMessage, transition, {
-    finalState: initialState,
+    stateResult: initialState,
     nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
     interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
   });

@@ -35,19 +35,21 @@ const sqsClient = tracer.captureAWSv3Client(
 
 /**
  * Function that sends Audit Events to the TxMA Egress queue.
- * @param eventName - The event name used for sending off the event to identify the action taken.
- * @param eventEnum - The name of the event as an EventsEnum
- * @param ingressTxmaEvent - The original event from TxMA
- * @param finalState - Current state after applying intervention
+ * @param egressEventName - The event name used for sending off the event to identify the action taken.
+ * @param ingressEventName - The name of the event as an EventsEnum
+ * @param ingressTxMAEvent - The original event from TxMA
+ * @param accountStateEngineOutput - Current state after applying intervention
  * @returns - Response from sending the message to the Queue.
  */
 export async function sendAuditEvent(
-  eventName: TxMAEgressEventName,
-  eventEnum: EventsEnum,
-  ingressTxmaEvent: TxMAIngressEvent,
-  finalState?: AccountStateEngineOutput,
+  egressEventName: TxMAEgressEventName,
+  ingressEventName: EventsEnum,
+  ingressTxMAEvent: TxMAIngressEvent,
+  accountStateEngineOutput?: AccountStateEngineOutput,
 ): Promise<SendMessageCommandOutput | undefined> {
   logger.debug('sendAuditEvent function.');
+
+  if (eventShouldBeIgnored(egressEventName, ingressEventName, accountStateEngineOutput)) return;
 
   const timestamp = getCurrentTimestamp();
 
@@ -56,9 +58,9 @@ export async function sendAuditEvent(
     event_timestamp_ms: timestamp.milliseconds,
     event_timestamp_ms_formatted: timestamp.isoString,
     component_id: COMPONENT_ID,
-    event_name: eventName,
-    user: { user_id: ingressTxmaEvent.user.user_id },
-    extensions: buildExtensions(ingressTxmaEvent, eventEnum, eventName, finalState),
+    event_name: egressEventName,
+    user: { user_id: ingressTxMAEvent.user.user_id },
+    extensions: buildExtensions(ingressTxMAEvent, ingressEventName, egressEventName, accountStateEngineOutput),
   };
 
   const input = { MessageBody: JSON.stringify(txmaEvent), QueueUrl: appConfig.txmaEgressQueueUrl };
@@ -76,88 +78,90 @@ export async function sendAuditEvent(
 
 /**
  * Helper function to build extension object based on the type of event
- * @param event - Original event received from TxMA
- * @param eventEnum - Event name as an EventEnum
+ * @param txMAIngressEvent - Original event received from TxMA
+ * @param ingressEventName - Event name as an EventEnum
  * @param stateEngineOutput - Final state after intervention was/ was not applied
- * @param txmaEventName - The name of the TxMA event name
+ * @param egressEventName - The name of the TxMA event name
  * @returns - TxMAEgressExtensions object
  */
 function buildExtensions(
-  event: TxMAIngressEvent,
-  eventEnum: EventsEnum,
-  txmaEventName: TxMAEgressEventName,
+  txMAIngressEvent: TxMAIngressEvent,
+  ingressEventName: EventsEnum,
+  egressEventName: TxMAEgressEventName,
   stateEngineOutput: AccountStateEngineOutput | undefined,
 ): TxMAEgressExtensions | TxMAEgressBasicExtensions {
   if (stateEngineOutput) {
     return {
-      trigger_event: event.event_name,
-      trigger_event_id: event.event_id ?? 'UNKNOWN',
-      intervention_code: event.extensions?.intervention?.intervention_code,
-      description: userLedActionList.includes(eventEnum) ? 'USER_LED_ACTION' : stateEngineOutput.interventionName!,
+      trigger_event: txMAIngressEvent.event_name,
+      trigger_event_id: txMAIngressEvent.event_id ?? 'UNKNOWN',
+      intervention_code: txMAIngressEvent.extensions?.intervention?.intervention_code,
+      description: userLedActionList.includes(ingressEventName)
+        ? 'USER_LED_ACTION'
+        : stateEngineOutput.interventionName!,
       allowable_interventions: stateEngineOutput.nextAllowableInterventions.filter(
         (intervention) => !nonInterventionsCodes.has(intervention),
       ),
-      ...buildAdditionalAttributes(stateEngineOutput, txmaEventName),
+      ...buildAdditionalAttributes(stateEngineOutput, egressEventName),
     };
   }
   return {
-    trigger_event: event.event_name,
-    trigger_event_id: event.event_id ?? 'UNKNOWN',
-    intervention_code: event.extensions?.intervention?.intervention_code,
+    trigger_event: txMAIngressEvent.event_name,
+    trigger_event_id: txMAIngressEvent.event_id ?? 'UNKNOWN',
+    intervention_code: txMAIngressEvent.extensions?.intervention?.intervention_code,
   };
 }
 
 /**
  * Helper function to build state and action attributes of the extension object based on the final state
  * @param stateEngineOutput - Final state after intervention was/ was not applied
- * @param txmaEventName - The name of the TxMA event name
+ * @param egressEventName - The name of the TxMA event name
  * @returns - an object having state and action as attributes
  */
 function buildAdditionalAttributes(
   stateEngineOutput: AccountStateEngineOutput,
-  txmaEventName: TxMAEgressEventName,
+  egressEventName: TxMAEgressEventName,
 ): { state: State | undefined; action: ActiveStateActions | undefined } {
-  if (txmaEventName === 'AIS_EVENT_IGNORED_ACCOUNT_DELETED')
+  if (egressEventName === 'AIS_EVENT_IGNORED_ACCOUNT_DELETED')
     return {
       state: State.DELETED,
       action: undefined,
     };
 
-  if (stateEngineOutput.finalState.blocked)
+  if (stateEngineOutput.stateResult.blocked)
     return {
       state: State.PERMANENTLY_SUSPENDED,
       action: undefined,
     };
 
-  if (!stateEngineOutput.finalState.suspended) {
+  if (!stateEngineOutput.stateResult.suspended) {
     return {
       state: State.ACTIVE,
       action: undefined,
     };
   }
 
-  if (stateEngineOutput.finalState.resetPassword && !stateEngineOutput.finalState.reproveIdentity) {
+  if (stateEngineOutput.stateResult.resetPassword && !stateEngineOutput.stateResult.reproveIdentity) {
     return {
       state: State.ACTIVE,
       action: ActiveStateActions.RESET_PASSWORD,
     };
   }
 
-  if (!stateEngineOutput.finalState.resetPassword && stateEngineOutput.finalState.reproveIdentity) {
+  if (!stateEngineOutput.stateResult.resetPassword && stateEngineOutput.stateResult.reproveIdentity) {
     return {
       state: State.ACTIVE,
       action: ActiveStateActions.REPROVE_IDENTITY,
     };
   }
 
-  if (stateEngineOutput.finalState.resetPassword && stateEngineOutput.finalState.reproveIdentity) {
+  if (stateEngineOutput.stateResult.resetPassword && stateEngineOutput.stateResult.reproveIdentity) {
     return {
       state: State.ACTIVE,
       action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY,
     };
   }
 
-  if (stateEngineOutput.finalState.suspended) {
+  if (stateEngineOutput.stateResult.suspended) {
     return {
       state: State.SUSPENDED,
       action: undefined,
@@ -168,4 +172,26 @@ function buildAdditionalAttributes(
     state: undefined,
     action: undefined,
   };
+}
+
+/**
+ * Function to check if an event should be sent to TxMA
+ * @param egressEventName - Name of the event to be published to TxMA
+ * @param ingressEventName - Name of the original event
+ * @param accountStateEngineOutput - optional parameter containing the output from the State Engine
+ */
+function eventShouldBeIgnored(
+  egressEventName: TxMAEgressEventName,
+  ingressEventName: EventsEnum,
+  accountStateEngineOutput?: AccountStateEngineOutput,
+) {
+  if (!accountStateEngineOutput) return false;
+  return (
+    userLedActionList.includes(ingressEventName) &&
+    !accountStateEngineOutput.stateResult.suspended &&
+    !accountStateEngineOutput.stateResult.blocked &&
+    !accountStateEngineOutput.stateResult.reproveIdentity &&
+    !accountStateEngineOutput.stateResult.resetPassword &&
+    egressEventName === 'AIS_EVENT_TRANSITION_IGNORED'
+  );
 }

@@ -89,7 +89,7 @@ export async function validateEventIsNotStale(
     logger.warn('Event received predates last applied event for this user.');
     logAndPublishMetric(MetricNames.INTERVENTION_EVENT_STALE);
     await sendAuditEvent('AIS_EVENT_IGNORED_STALE', intervention, event, {
-      finalState: initialState,
+      stateResult: initialState,
       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
       nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
     });
