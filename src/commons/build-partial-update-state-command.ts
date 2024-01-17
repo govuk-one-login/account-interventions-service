@@ -65,6 +65,13 @@ export const buildPartialUpdateAccountStateCommand = (
     };
     baseUpdateItemCommandInput['UpdateExpression'] +=
       ', #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
+    if (finalState.resetPassword && finalState.reproveIdentity) {
+      baseUpdateItemCommandInput['UpdateExpression'] += ' REMOVE resetPasswordAt, reprovedIdentityAt';
+    } else if (finalState.resetPassword && !finalState.reproveIdentity) {
+      baseUpdateItemCommandInput['UpdateExpression'] += ' REMOVE resetPasswordAt';
+    } else if (!finalState.resetPassword && finalState.reproveIdentity) {
+      baseUpdateItemCommandInput['UpdateExpression'] += ' REMOVE reprovedIdentityAt';
+    }
   }
   return baseUpdateItemCommandInput;
 };
