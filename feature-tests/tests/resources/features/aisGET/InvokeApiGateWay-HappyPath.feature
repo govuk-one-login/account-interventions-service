@@ -1,6 +1,6 @@
 Feature: Invoke-APIGateway-HappyPath.feature
 
-    @smoke
+    @regression
     Scenario Outline: Happy Path - Get Request to /ais/userId - Returns Expected Data for <aisEventType>
         Given I send an <aisEventType> intervention message to the TxMA ingress SQS queue
         When I invoke the API to retrieve the intervention status of the user's account. With history <historyValue>
@@ -16,8 +16,8 @@ Feature: Invoke-APIGateway-HappyPath.feature
             | userActionIdResetSuccess  | false        | AIS_NO_INTERVENTION                                | false        | false          | false         | false           |
             | userActionPswResetSuccess | false        | AIS_NO_INTERVENTION                                | false        | false          | false         | false           |
             | unSuspendAction           | false        | AIS_NO_INTERVENTION                                | false        | false          | false         | false           |
-
-    @smoke
+  
+    @regression
     Scenario Outline: Happy Path - <originalAisEventType> account - Get Request to /ais/userId - Returns Expected Data for <aisEventType>
         Given I send an <aisEventType> intervention message to the TxMA ingress SQS queue for a Account in <originalAisEventType> state
         When I invoke the API to retrieve the intervention status of the user's account. With history <historyValue>
@@ -75,7 +75,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
             | pswAndIdResetRequired | userActionPswResetSuccess | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false        | true           | false         | true            |
             | pswAndIdResetRequired | unSuspendAction           | false        | AIS_ACCOUNT_UNSUSPENDED                            | false        | false          | false         | false           |
 
-    @smoke
+    @regression
     Scenario Outline: Happy Path - <originalAisEventType> account - Get Request to /ais/userId - Returns Expected Data for <aisEventType> with History values
         Given I send an updated request to the SQS queue with intervention data of the type <aisEventType> from <originalAisEventType>
         When I invoke the API to retrieve the intervention status of the user's account with <historyValue>

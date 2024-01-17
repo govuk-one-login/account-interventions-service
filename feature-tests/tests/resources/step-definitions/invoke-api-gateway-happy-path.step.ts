@@ -130,7 +130,6 @@ defineFeature(feature, (test) => {
         interventionHistory: string,
         reason: string,
       ) => {
-        console.log(`Received response`, response);
         console.log(`Received History`, response.history);
         expect(response.intervention.description).toBe(interventionType);
         expect(response.auditLevel).toBe('standard');
