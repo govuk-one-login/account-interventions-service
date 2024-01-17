@@ -1,6 +1,6 @@
-import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
-import { mockClient } from 'aws-sdk-client-mock';
-import { sendAuditEvent } from '../send-audit-events';
+import {SendMessageCommand, SQSClient} from '@aws-sdk/client-sqs';
+import {mockClient} from 'aws-sdk-client-mock';
+import {sendAuditEvent} from '../send-audit-events';
 import {
   ActiveStateActions,
   AISInterventionTypes,
@@ -9,12 +9,12 @@ import {
   State,
   TriggerEventsEnum
 } from '../../data-types/constants';
-import { logAndPublishMetric } from '../../commons/metrics';
+import {logAndPublishMetric} from '../../commons/metrics';
 import logger from '../../commons/logger';
-import { AppConfigService } from '../app-config-service';
-import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
+import {AppConfigService} from '../app-config-service';
+import {getCurrentTimestamp} from '../../commons/get-current-timestamp';
 import 'aws-sdk-client-mock-jest';
-import { TxMAIngressEvent } from '../../data-types/interfaces';
+import {TxMAIngressEvent} from '../../data-types/interfaces';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -86,7 +86,7 @@ const sqsCommandInputForUserAction = {
   }),
 };
 
-const sqsCommandInputForIntervention = {
+const sqsCommandInputForBlockIntervention = {
   QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
   MessageBody: JSON.stringify({
     timestamp: 1_234_567,
@@ -99,12 +99,13 @@ const sqsCommandInputForIntervention = {
       trigger_event: 'TICF_ACCOUNT_INTERVENTION',
       trigger_event_id: '123',
       intervention_code: '01',
-      description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+      description: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
       allowable_interventions: [],
       state: State.PERMANENTLY_SUSPENDED,
     },
   }),
 };
+
 
 const sqsCommandInputForDeletedAccount = {
   QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
@@ -228,6 +229,7 @@ const sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass = {
 describe('send-audit-events', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    sqsMock.resetHistory();
   });
 
   it('should successfully send the audit event and return a response when a user action event is received', async () => {
@@ -249,23 +251,42 @@ describe('send-audit-events', () => {
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForUserAction);
   });
 
-  it('should successfully send the audit event and return a response when an intervention event is received', async () => {
+  it('should successfully send the audit event and return a response when a suspend event is received', async () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
     const response = await sendAuditEvent(
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
       {
-        nextAllowableInterventions: [],
+        nextAllowableInterventions: ["01"],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
-        stateResult: { blocked: true, suspended: true, reproveIdentity: false, resetPassword: true },
+        stateResult: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: false },
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
-    expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForIntervention);
+    expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendIntervention);
+  });
+
+  it('should successfully send the audit event and return a response when an block event is received', async () => {
+    sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
+    const response = await sendAuditEvent(
+      'AIS_EVENT_TRANSITION_APPLIED',
+      EventsEnum.FRAUD_BLOCK_ACCOUNT,
+      ingressInterventionEvent,
+      {
+        nextAllowableInterventions: [],
+        interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
+        stateResult: { blocked: true, suspended: false, reproveIdentity: false, resetPassword: false },
+      },
+    );
+    expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
+    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(logger.debug).toHaveBeenCalledTimes(2);
+    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
+    expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForBlockIntervention);
   });
 
   it('if SQS call fails, it should log the error and return', async () => {
@@ -275,14 +296,14 @@ describe('send-audit-events', () => {
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
       {
-        nextAllowableInterventions: [],
+        nextAllowableInterventions: ['01'],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
         stateResult: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: false },
       },
     );
     expect(response).toBeUndefined();
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
-    expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForIntervention);
+    expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendIntervention);
     expect(logger.error).toHaveBeenCalledWith(
       'An error happened while trying to send the audit event to the TxMA queue.',
     );
@@ -397,5 +418,26 @@ describe('send-audit-events', () => {
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForFutureInterventions);
+  });
+
+  it('should not send an audit event when the outgoing message is notifying that a user led action was ignored on a non-intervention account', async () => {
+    //sqsMock.reset();
+    const response = await sendAuditEvent(
+      'AIS_EVENT_TRANSITION_IGNORED',
+      EventsEnum.IPV_IDENTITY_ISSUED,
+      ingressUserActionEvent,
+      {
+        stateResult: {
+          blocked: false,
+          suspended: false,
+          resetPassword: false,
+          reproveIdentity: false
+        },
+        nextAllowableInterventions: []
+      }
+    );
+    expect(response).toBeUndefined();
+    expect(logAndPublishMetric).not.toHaveBeenCalled();
+    expect(sqsMock).not.toHaveReceivedCommand(SendMessageCommand);
   });
 });
