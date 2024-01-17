@@ -42,7 +42,7 @@ const accountIsBlocked = {
   reproveIdentity: false,
 };
 const blockAccountUpdate = {
-  finalState: {
+  stateResult: {
     blocked: true,
     suspended: false,
     resetPassword: false,
@@ -52,7 +52,7 @@ const blockAccountUpdate = {
   nextAllowableInterventions: ['07'],
 };
 const suspendAccountUpdate = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: true,
     resetPassword: false,
@@ -62,7 +62,7 @@ const suspendAccountUpdate = {
   nextAllowableInterventions: ['02', '03', '04', '05', '06'],
 };
 const passwordResetRequiredUpdate = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: true,
     resetPassword: true,
@@ -72,7 +72,7 @@ const passwordResetRequiredUpdate = {
   nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '94'],
 };
 const idResetRequiredUpdate = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: true,
     resetPassword: false,
@@ -82,7 +82,7 @@ const idResetRequiredUpdate = {
   nextAllowableInterventions: ['01', '02', '03', '04', '06', '91'],
 };
 const pswAndIdResetRequiredUpdate = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: true,
     resetPassword: true,
@@ -92,7 +92,7 @@ const pswAndIdResetRequiredUpdate = {
   nextAllowableInterventions: ['01', '02', '03', '04', '05', '92', '93', '95'],
 };
 const unsuspendAccountUpdate = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: false,
     resetPassword: false,
@@ -102,7 +102,7 @@ const unsuspendAccountUpdate = {
   nextAllowableInterventions: ['01', '03', '04', '05', '06'],
 };
 const unblockAccountUpdate = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: false,
     resetPassword: false,
@@ -112,7 +112,7 @@ const unblockAccountUpdate = {
   nextAllowableInterventions: ['01', '03', '04', '05', '06'],
 };
 const pswResetSuccessfulUpdateUnsuspended = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: false,
     resetPassword: false,
@@ -121,7 +121,7 @@ const pswResetSuccessfulUpdateUnsuspended = {
   nextAllowableInterventions: ['01', '03', '04', '05', '06']
 };
 const pswResetSuccessfulUpdateSuspended = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: true,
     resetPassword: false,
@@ -130,7 +130,7 @@ const pswResetSuccessfulUpdateSuspended = {
   nextAllowableInterventions: ['01', '02', '03', '04', '06', '91']
 };
 const idResetSuccessfulUpdateUnsuspended = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: false,
     resetPassword: false,
@@ -139,7 +139,7 @@ const idResetSuccessfulUpdateUnsuspended = {
   nextAllowableInterventions: ['01', '03', '04', '05', '06']
 };
 const idResetSuccessfulUpdateSuspended = {
-  finalState: {
+  stateResult: {
     blocked: false,
     suspended: true,
     resetPassword: true,
