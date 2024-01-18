@@ -97,11 +97,14 @@ async function processSQSRecord(record: SQSRecord) {
   }
 
   const statusResult = accountStateEngine.applyEventTransition(eventName, currentAccountState);
+  const previousInterventionAppliedAt = Math.floor(itemFromDB?.appliedAt ? itemFromDB.appliedAt / 1000 : 0);
+
   const partialCommandInput = buildPartialUpdateAccountStateCommand(
     statusResult.stateResult,
     eventName,
     currentTimestamp.milliseconds,
     recordBody,
+    previousInterventionAppliedAt,
     statusResult.interventionName,
   );
   logger.debug('processed requested event, sending update request to dynamo db');

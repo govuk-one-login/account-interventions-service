@@ -31,6 +31,7 @@ export enum MetricNames {
   EVENT_DELIVERY_LATENCY = 'EVENT_DELIVERY_LATENCY',
   ACCOUNTS_BLOCKED = 'ACCOUNTS_BLOCKED',
   ACCOUNTS_SUSPENDED = 'ACCOUNTS_SUSPENDED',
+  TIME_TO_RESOLVE = 'TIME_TO_RESOLVE',
 }
 
 export const noMetadata: { key: string; value: string }[] = [];
