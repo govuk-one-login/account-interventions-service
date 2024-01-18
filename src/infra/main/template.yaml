@@ -1164,6 +1164,11 @@ Resources:
       TracingEnabled: true
       EndpointConfiguration:
         Type: PRIVATE
+        VpcEndpointIds:
+          - vpce-0339d04aeb67de9da # Authentication Staging VPC Endpoint ID
+          - vpce-068df58b11adba0c7 # Authentication & Orchestration Intergration VPC Endpoint ID
+          - vpce-0e7b281bd24fbd378 # Authentication & Orchestration Production VPC Endpoint ID
+          - vpce-040f33c3489ff777b # Orchestration Sandbox VPC endpoint ID
       Tags:
         CheckovRulesToSkip: CKV_AWS_120
         Product: !Ref ProductTagValue
