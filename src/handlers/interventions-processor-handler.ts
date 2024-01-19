@@ -24,7 +24,7 @@ import { AccountStateEngine } from '../services/account-states/account-state-eng
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { sendAuditEvent } from '../services/send-audit-events';
 import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
-import { updateAccountStateCountMetric } from '../commons/update-account-state-metrics';
+import { publishTimeToResolveMetrics, updateAccountStateCountMetric } from '../commons/metrics-helper';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
@@ -97,18 +97,23 @@ async function processSQSRecord(record: SQSRecord) {
   }
 
   const statusResult = accountStateEngine.applyEventTransition(eventName, currentAccountState);
-  const previousInterventionAppliedAt = Math.floor(itemFromDB?.appliedAt ? itemFromDB.appliedAt / 1000 : 0);
-
   const partialCommandInput = buildPartialUpdateAccountStateCommand(
     statusResult.stateResult,
     eventName,
     currentTimestamp.milliseconds,
     recordBody,
-    previousInterventionAppliedAt,
     statusResult.interventionName,
   );
-  logger.debug('processed requested event, sending update request to dynamo db');
+  logger.debug('Updating user status', { userId, partialCommandInput });
   await service.updateUserStatus(userId, partialCommandInput);
+  publishTimeToResolveMetrics(
+    currentAccountState,
+    statusResult.stateResult,
+    itemFromDB?.appliedAt ? itemFromDB.appliedAt : currentTimestamp.milliseconds,
+    currentTimestamp.milliseconds,
+    eventName,
+  );
+
   updateAccountStateCountMetric(currentAccountState, statusResult.stateResult);
   logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
   await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, recordBody, statusResult);

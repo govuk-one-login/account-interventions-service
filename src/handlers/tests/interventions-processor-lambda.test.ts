@@ -11,12 +11,14 @@ import { StateTransitionError, TooManyRecordsError, ValidationError } from '../.
 import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { sendAuditEvent } from '../../services/send-audit-events';
 import { TxMAIngressEvent } from '../../data-types/interfaces';
+import { publishTimeToResolveMetrics } from '../../commons/metrics-helper';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
 jest.mock('@aws-sdk/util-dynamodb');
 jest.mock('../../services/dynamo-database-service');
 jest.mock('../../services/send-audit-events');
+jest.mock('../../commons/metrics-helper');
 
 jest.mock('../../commons/get-current-timestamp', () => ({
   getCurrentTimestamp: jest.fn().mockImplementation(() => {
@@ -135,6 +137,7 @@ describe('intervention processor handler', () => {
       await handler({ Records: [] }, mockContext);
       expect(loggerWarnSpy).toHaveBeenCalledWith('Received no records.');
       expect(logAndPublishMetric).toHaveBeenCalledWith('INTERVENTION_EVENT_INVALID');
+      expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
     it('should not retry the record if a StateTransitionError is received', async () => {
@@ -177,6 +180,7 @@ describe('intervention processor handler', () => {
           nextAllowableInterventions: [],
         },
       );
+      expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
     it('should succeed when a valid intervention event is received', async () => {
@@ -212,6 +216,7 @@ describe('intervention processor handler', () => {
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
         eventName: 'FRAUD_BLOCK_ACCOUNT',
       });
+      expect(publishTimeToResolveMetrics).toHaveBeenCalledTimes(1);
     });
 
     it('should succeed when an intervention event is received for a non existing user', async () => {
@@ -248,6 +253,7 @@ describe('intervention processor handler', () => {
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
         eventName: 'FRAUD_BLOCK_ACCOUNT',
       });
+      expect(publishTimeToResolveMetrics).toHaveBeenCalledTimes(1);
     });
 
     it('should succeed when a valid user action event is received', async () => {
@@ -286,6 +292,7 @@ describe('intervention processor handler', () => {
       expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
         eventName: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
       });
+      expect(publishTimeToResolveMetrics).toHaveBeenCalledTimes(1);
     });
 
     it('should not process the event if the user account is marked as deleted', async () => {
@@ -320,6 +327,7 @@ describe('intervention processor handler', () => {
           nextAllowableInterventions: ['01', '03', '04', '05', '06'],
         },
       );
+      expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
     it('should return message id to be retried if event is in the future', async () => {
@@ -337,16 +345,17 @@ describe('intervention processor handler', () => {
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBodyInTheFuture,
       );
+      expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
     it('should ignore the event if body is invalid', async () => {
       mockValidateEventAgainstSchema.mockImplementationOnce(() => {
         throw new ValidationError('invalid event');
       });
-
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
+      expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
     it('should return message id to be retried if dynamo db operation fails', async () => {
@@ -358,6 +367,7 @@ describe('intervention processor handler', () => {
           },
         ],
       });
+      expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
     it('should not process the event and return if the event timestamp predates the latest applied intervention for the user ', async () => {
@@ -390,6 +400,7 @@ describe('intervention processor handler', () => {
           nextAllowableInterventions: ['01', '03', '04', '05', '06'],
         },
       );
+      expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
     it('should successfully process valid event from fraud', async () => {
@@ -398,7 +409,7 @@ describe('intervention processor handler', () => {
         reproveIdentity: false,
         resetPassword: false,
         suspended: false,
-        isAccountDeleted: true,
+        isAccountDeleted: false,
       });
       mockRecord = {
         messageId: '123',
@@ -428,9 +439,20 @@ describe('intervention processor handler', () => {
         eventSourceARN: '',
         awsRegion: '',
       };
+      accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
+        stateResult: {
+          blocked: false,
+          suspended: false,
+          resetPassword: false,
+          reproveIdentity: false,
+        },
+        interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
+        nextAllowableInterventions: [],
+      });
       expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
         batchItemFailures: [],
       });
+      expect(publishTimeToResolveMetrics).toHaveBeenCalledTimes(1);
     });
 
     it('should not retry if too many items are returned', async () => {
@@ -442,6 +464,7 @@ describe('intervention processor handler', () => {
         'Too many records were returned from the database. Message will not be retried',
         { errorMessage: 'Too many records' },
       );
+      expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
     it('should ignore if level of confidence is not P2 for an ID Reset user action event', async () => {
@@ -477,6 +500,7 @@ describe('intervention processor handler', () => {
       });
       expect(logAndPublishMetric).toHaveBeenCalledWith('CONFIDENCE_LEVEL_TOO_LOW');
       expect(logger.warn).toHaveBeenCalledWith('Received interventions has low level of confidence: P1');
+      expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
   });
 });

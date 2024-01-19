@@ -2,6 +2,7 @@
   "event_name": "IPV_IDENTITY_ISSUED",
   "event_id": "123",
   "timestamp": 1234567,
+  "event_timestamp_ms": 1234567000,
   "client_id": "UNKNOWN",
   "component_id": "UNKNOWN",
   "user": {

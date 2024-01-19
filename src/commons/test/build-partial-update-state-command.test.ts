@@ -79,11 +79,8 @@ describe('build-partial-update-state-command', () => {
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda',
     };
-    const command = buildPartialUpdateAccountStateCommand(state, userAction, 4444, resetPasswordEventBody, 2);
+    const command = buildPartialUpdateAccountStateCommand(state, userAction, 4444, resetPasswordEventBody);
     expect(command).toEqual(expectedOutput);
-    expect(logAndPublishMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 1, {
-      passwordReset: '2'
-    });
   });
 
   it('should return a partial update command given IPV successful id reset is applied', () => {
@@ -113,11 +110,8 @@ describe('build-partial-update-state-command', () => {
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida',
     };
-    const command = buildPartialUpdateAccountStateCommand(state, userAction, 4444, resetPasswordEventBody, 2);
+    const command = buildPartialUpdateAccountStateCommand(state, userAction, 4444, resetPasswordEventBody);
     expect(command).toEqual(expectedOutput);
-    expect(logAndPublishMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 1, {
-      reproveIdentity: '2'
-    });
   });
 
   it('should return a partial update command given an intervention is applied', () => {
@@ -160,7 +154,6 @@ describe('build-partial-update-state-command', () => {
       intervention,
       4444,
       interventionEventBody,
-      2,
       AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
     );
     expect(command).toEqual(expectedOutput);
@@ -205,13 +198,9 @@ describe('build-partial-update-state-command', () => {
       intervention,
       4444,
       interventionEventBody,
-      2,
       AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
     );
     expect(command).toEqual(expectedOutput);
-    expect(logAndPublishMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 1, {
-      suspension: '2'
-    });
   });
 
   it('should return a partial update command given an intervention is applied and id reset user action is needed', () => {
@@ -254,7 +243,6 @@ describe('build-partial-update-state-command', () => {
       intervention,
       4444,
       interventionEventBody,
-      2,
       AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
     );
     expect(command).toEqual(expectedOutput);
@@ -305,7 +293,6 @@ describe('build-partial-update-state-command', () => {
       intervention,
       4444,
       interventionEventBodyNoMsTimestamp as unknown as TxMAIngressEvent,
-      2,
       AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
     );
     expect(command).toEqual(expectedOutput);
@@ -319,7 +306,7 @@ describe('build-partial-update-state-command', () => {
       reproveIdentity: true,
     };
     const intervention = EventsEnum.FRAUD_BLOCK_ACCOUNT;
-    expect(() => buildPartialUpdateAccountStateCommand(state, intervention, 4444, interventionEventBody, 2)).toThrow(
+    expect(() => buildPartialUpdateAccountStateCommand(state, intervention, 4444, interventionEventBody)).toThrow(
       new Error('The intervention received did not have an interventionName field.'),
     );
     expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
