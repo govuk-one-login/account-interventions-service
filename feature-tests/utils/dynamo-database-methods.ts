@@ -5,7 +5,7 @@ import {
   DeleteItemCommand,
   QueryCommand,
 } from '@aws-sdk/client-dynamodb';
-import { UserInformationFromTable, inputObjectForUpdatingItem } from './utility';
+import { InformationFromTable } from './utility';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import EndPoints from '../apiEndpoints/endpoints';
 
@@ -13,7 +13,7 @@ const dynamoDatabase = new DynamoDBClient({
   region: process.env.AWS_REGION,
 });
 
-export async function getRecordFromTable(userId: string): Promise<UserInformationFromTable | undefined> {
+export async function getRecordFromTable(userId: string): Promise<InformationFromTable | undefined> {
   try {
     console.log('retrieving record from database');
     const getRecordCommand = new QueryCommand({
@@ -26,7 +26,7 @@ export async function getRecordFromTable(userId: string): Promise<UserInformatio
     if (!response || !response.Items) {
       throw new Error('the record is undefined or doesnt exist');
     }
-    return unmarshall(response.Items[0]) as UserInformationFromTable;
+    return unmarshall(response.Items[0]) as InformationFromTable;
   } catch (error) {
     console.log('unable to get record', { error });
   }
@@ -38,7 +38,7 @@ export async function getRecordFromTable(userId: string): Promise<UserInformatio
  * @param userId - userId used to match accounts in the database
  * @param input - object containing fields in the database.
  */
-export async function updateItemInTable(userId: string, input: inputObjectForUpdatingItem) {
+export async function updateItemInTable(userId: string, input: InformationFromTable) {
   try {
     const dynamoConfig: UpdateItemCommandInput = {
       TableName: EndPoints.TABLE_NAME,
@@ -66,8 +66,6 @@ export async function updateItemInTable(userId: string, input: inputObjectForUpd
         ':rp': { BOOL: input.resetPassword },
         ':ri': { BOOL: input.reproveIdentity },
         ':ua': { N: `${input.updatedAt}` },
-        ':al': { S: input.auditLevel },
-        ':h': { L: [{ S: input.history }] },
       },
     };
     if (dynamoConfig['ExpressionAttributeNames'] && dynamoConfig['ExpressionAttributeValues']) {
@@ -90,6 +88,16 @@ export async function updateItemInTable(userId: string, input: inputObjectForUpd
         dynamoConfig['ExpressionAttributeNames']['#ADA'] = 'accountDeletedAt';
         dynamoConfig['ExpressionAttributeValues'][':ada'] = { N: `${input.accountDeletedAt}` };
         dynamoConfig['UpdateExpression'] += ', #ADA = :ada';
+      }
+      if (input.auditLevel) {
+        dynamoConfig['ExpressionAttributeNames']['#AL'] = 'auditLevel';
+        dynamoConfig['ExpressionAttributeValues'][':al'] = { S: input.auditLevel };
+        dynamoConfig['UpdateExpression'] += ', #AL = :al';
+      }
+      if (input.history) {
+        dynamoConfig['ExpressionAttributeNames']['#H'] = 'history';
+        dynamoConfig['ExpressionAttributeValues'][':h'] = { L: [{ S: input.history }] };
+        dynamoConfig['UpdateExpression'] += ', #H = :h';
       }
     }
     const update = new UpdateItemCommand(dynamoConfig);

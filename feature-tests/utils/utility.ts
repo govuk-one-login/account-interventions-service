@@ -23,7 +23,7 @@ export interface CurrentTimeDescriptor {
   seconds: number;
 }
 
-export type inputObjectForUpdatingItem = {
+export type InformationFromTable = {
   updatedAt: number;
   appliedAt: number;
   sentAt: number;
@@ -32,28 +32,11 @@ export type inputObjectForUpdatingItem = {
   suspended: boolean;
   resetPassword: boolean;
   reproveIdentity: boolean;
-  history: string;
-  auditLevel: string;
+  history?: string;
+  auditLevel?: string;
   isAccountDeleted?: boolean;
   reprovedIdentityAt?: number;
   resetPasswordAt?: number;
   accountDeletedAt?: number;
+  pk?: string;
 };
-
-export interface UserInformationFromTable {
-  pk: string;
-  updatedAt: number;
-  appliedAt: number;
-  sentAt: number;
-  intervention: string;
-  blocked: boolean;
-  suspended: boolean;
-  resetPassword: boolean;
-  reproveIdentity: boolean;
-  auditLevel: string;
-  reprovedIdentityAt?: number;
-  resetPasswordAt?: number;
-  isAccountDeleted?: boolean;
-  accountDeletedAt?: number;
-  history?: string[];
-}
