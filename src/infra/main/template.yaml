@@ -1174,11 +1174,11 @@ Resources:
       TracingEnabled: true
       EndpointConfiguration:
         Type: PRIVATE
-        Condition: !If
+        VpcEndpointIds: !If
           - IsNotInternal
-          - VpcEndpointIds:
-            - !FindInMap [ EnvConfig, !Ref Environment, AuthenticationVPCEndpointID ]
+          - - !FindInMap [ EnvConfig, !Ref Environment, AuthenticationVPCEndpointID ]
             - !FindInMap [ EnvConfig, !Ref Environment, OrchestrationVPCEndpointID ]
+          - AWS::NoValue
       Tags:
         CheckovRulesToSkip: CKV_AWS_120
         Product: !Ref ProductTagValue
