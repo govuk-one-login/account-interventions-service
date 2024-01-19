@@ -44,7 +44,7 @@ export async function updateItemInTable(userId: string, input: InformationFromTa
       TableName: EndPoints.TABLE_NAME,
       Key: { pk: { S: userId } },
       UpdateExpression:
-        'SET #AA = :aa, #SA = :sa, #I = :i, #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #AL = :al, #H = :h',
+        'SET #AA = :aa, #SA = :sa, #I = :i, #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
       ExpressionAttributeNames: {
         '#AA': 'appliedAt',
         '#SA': 'sentAt',
@@ -54,8 +54,6 @@ export async function updateItemInTable(userId: string, input: InformationFromTa
         '#RP': 'resetPassword',
         '#RI': 'reproveIdentity',
         '#UA': 'updatedAt',
-        '#AL': 'auditLevel',
-        '#H': 'history',
       },
       ExpressionAttributeValues: {
         ':aa': { N: `${input.appliedAt}` },
