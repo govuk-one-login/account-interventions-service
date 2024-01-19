@@ -32,6 +32,10 @@
     "ParameterValue": "Yes"
   },
   {
+    "ParameterKey": "AthenaApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
     "ParameterKey": "ECRApiEnabled",
     "ParameterValue": "No"
   },
@@ -52,6 +56,10 @@
     "ParameterValue": "No"
   },
   {
+    "ParameterKey": "GlueApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
     "ParameterKey": "KMSApiEnabled",
     "ParameterValue": "Yes"
   },
@@ -65,6 +73,10 @@
   },
   {
     "ParameterKey": "RestAPIGWVpcLinkEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "AccessLogsCustomBucketNameEnabled",
     "ParameterValue": "Yes"
   },
   {
@@ -96,6 +108,18 @@
     "ParameterValue": "No"
   },
   {
+    "ParameterKey": "SESSmtpEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "STSApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "SESApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
     "ParameterKey": "VpcLinkEnabled",
     "ParameterValue": "Yes"
   },
@@ -104,27 +128,11 @@
     "ParameterValue": "Yes"
   },
   {
-    "ParameterKey": "GlueApiEnabled",
+    "ParameterKey": "TextractApiEnabled",
     "ParameterValue": "No"
   },
   {
-    "ParameterKey": "AccessLogsCustomBucketNameEnabled",
-    "ParameterValue": "Yes"
-  },
-  {
-    "ParameterKey": "CloudFormationEndpointEnabled",
-    "ParameterValue": "No"
-  },
-  {
-    "ParameterKey": "SESApiEnabled",
-    "ParameterValue": "No"
-  },
-  {
-    "ParameterKey": "SESSmtpEnabled",
-    "ParameterValue": "No"
-  },
-  {
-    "ParameterKey": "STSApiEnabled",
+    "ParameterKey": "BatchApiEnabled",
     "ParameterValue": "No"
   },
   {
@@ -138,5 +146,17 @@
   {
     "ParameterKey": "ZoneCEIPAllocationId",
     "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "DynatraceApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "CloudFormationEndpointEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "CodeBuildApiEnabled",
+    "ParameterValue": "No"
   }
 ]

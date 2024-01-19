@@ -16,4 +16,4 @@ export AWS_ACCOUNT=$AWS_ACCOUNT
 ./provisioner.sh $AWS_ACCOUNT alerting-integration alerting-integration v1.0.5 || exit 1
 ./provisioner.sh $AWS_ACCOUNT certificate-expiry certificate-expiry v1.0.4 || exit 1
 
-./provisioner.sh $AWS_ACCOUNT vpc vpc v2.1.0 || exit 1
+./provisioner.sh $AWS_ACCOUNT vpc vpc v2.3.1 || exit 1
