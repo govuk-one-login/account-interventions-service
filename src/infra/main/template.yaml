@@ -72,11 +72,10 @@ Mappings:
       TxMAIngressQueueARN: "Uses Internal TxMAIngressQueue"
       TxMAIngressQueueKmsKeyARN: "Uses the SQSEncryptionKey with Internal TxMAIngressQueue"
       OrchestrationVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
-      OrchestrationVPCEndpointID: none
       AuthenticationVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
-      AuthenticationVPCEndpointID: none
       OneLoginHomeVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
+      UniqueVPCEndpointIDs: none
+      DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     build:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:301577035144:UserAccountDeletion
@@ -84,11 +83,10 @@ Mappings:
       TxMAIngressQueueARN: "Uses Internal TxMAIngressQueue"
       TxMAIngressQueueKmsKeyARN: "Uses the SQSEncryptionKey with Internal TxMAIngressQueue"
       OrchestrationVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
-      OrchestrationVPCEndpointID: none
       AuthenticationVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
-      AuthenticationVPCEndpointID: none
       OneLoginHomeVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
+      UniqueVPCEndpointIDs: none
+      DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     staging:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:539729775994:UserAccountDeletion
@@ -96,11 +94,10 @@ Mappings:
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:178023842775:self-staging-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:178023842775:key/e388cb30-2d78-431f-b1a6-847549a815aa
       OrchestrationVPCID: vpc-0ca40c7d13490419d # Auth & Orchestration Staging VPC ID
-      OrchestrationVPCEndpointID: vpce-040f33c3489ff777b # Orchestration Sandbox VPC endpoint ID
       AuthenticationVPCID: vpc-0b6f4a5d72f84ed0c # Authentication Sandbox VPC ID
-      AuthenticationVPCEndpointID: vpce-0339d04aeb67de9da # Authentication Staging VPC Endpoint ID
       OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
+      UniqueVPCEndpointIDs: vpce-040f33c3489ff777b,vpce-0339d04aeb67de9da # Auth/Orch Sandbox & Staging VPC endpoint IDs
+      DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     integration:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:666500506359:UserAccountDeletion
@@ -108,11 +105,10 @@ Mappings:
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:729485541398:self-integration-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:729485541398:key/c360ee61-da3b-48de-998e-68cb91743414
       OrchestrationVPCID: vpc-04444d1dc96d8822c # Orchestration Integration VPC ID
-      OrchestrationVPCEndpointID: vpce-068df58b11adba0c7 # Authentication & Orchestration Intergration VPC Endpoint ID
       AuthenticationVPCID: vpc-04444d1dc96d8822c # Authentication Integration VPC ID
-      AuthenticationVPCEndpointID: vpce-068df58b11adba0c7 # Authentication & Orchestration Intergration VPC Endpoint ID
       OneLoginHomeVPCID: vpc-048c9133a5998efe7 # One Login Home Integration VPC ID
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
+      UniqueVPCEndpointIDs: vpce-068df58b11adba0c7 # Authentication & Orchestration Integration Shared VPC Endpoint ID
+      DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     production:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:026991849909:UserAccountDeletion
@@ -120,11 +116,10 @@ Mappings:
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:451773080033:self-production-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:451773080033:key/5bbb4188-6774-4fe8-a78a-968f5e435295
       OrchestrationVPCID: vpc-00012e96e1cd0bf95 # Orchestration Production VPC ID
-      OrchestrationVPCEndpointID: vpce-0e7b281bd24fbd378 # Authentication & Orchestration Production VPC Endpoint ID
       AuthenticationVPCID: vpc-00012e96e1cd0bf95 # Authentication Production VPC ID
-      AuthenticationVPCEndpointID: vpce-0e7b281bd24fbd378 # Authentication & Orchestration Production VPC Endpoint ID
       OneLoginHomeVPCID: vpc-0c94e753d20410154 # One Login Home Production VPC ID
-      dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables # pragma: allowlist secret
+      UniqueVPCEndpointIDs: vpce-0e7b281bd24fbd378 # Authentication & Orchestration Production Shared VPC Endpoint ID
+      DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables # pragma: allowlist secret
 
 Globals:
   Function:
@@ -141,19 +136,19 @@ Globals:
         AWS_LAMBDA_EXEC_WRAPPER: /opt/dynatrace
         DT_CONNECTION_AUTH_TOKEN: !Sub
           - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_AUTH_TOKEN}}' # pragma: allowlist secret
-          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, dynatraceSecretArn ]
+          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, DynatraceSecretArn ]
         DT_CONNECTION_BASE_URL: !Sub
           - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_BASE_URL}}' # pragma: allowlist secret
-          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, dynatraceSecretArn ]
+          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, DynatraceSecretArn ]
         DT_CLUSTER_ID: !Sub
           - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CLUSTER_ID}}' # pragma: allowlist secret
-          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, dynatraceSecretArn ]
+          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, DynatraceSecretArn ]
         DT_LOG_COLLECTION_AUTH_TOKEN: !Sub
           - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_LOG_COLLECTION_AUTH_TOKEN}}' # pragma: allowlist secret
-          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, dynatraceSecretArn ]
+          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, DynatraceSecretArn ]
         DT_TENANT: !Sub
           - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANT}}' # pragma: allowlist secret
-          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, dynatraceSecretArn ]
+          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, DynatraceSecretArn ]
         DT_OPEN_TELEMETRY_ENABLE_INTEGRATION: "true"
     VpcConfig:
       SubnetIds:
@@ -165,7 +160,7 @@ Globals:
     Layers: #Dynatrace lambda layer
       - !Sub
         - '{{resolve:secretsmanager:${SecretArn}:SecretString:NODEJS_LAYER}}' # pragma: allowlist secret # Node.js layer for all Lambda's
-        - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, dynatraceSecretArn ]
+        - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, DynatraceSecretArn ]
 
 Resources:
   ### Interventions Processor ###
@@ -1176,8 +1171,7 @@ Resources:
         Type: PRIVATE
         VpcEndpointIds: !If
           - IsNotInternal
-          - - !FindInMap [ EnvConfig, !Ref Environment, AuthenticationVPCEndpointID ]
-            - !FindInMap [ EnvConfig, !Ref Environment, OrchestrationVPCEndpointID ]
+          - !Split [",",  !FindInMap [ EnvConfig, !Ref Environment, UniqueVPCEndpointIDs ] ]
           - []
       Tags:
         CheckovRulesToSkip: CKV_AWS_120
