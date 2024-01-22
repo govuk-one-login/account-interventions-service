@@ -57,6 +57,9 @@ typings/
 # dotenv environment variables file
 .env
 
+# List of users file
+usersList.txt
+
 # App specific
 govuk_modules/
 public/

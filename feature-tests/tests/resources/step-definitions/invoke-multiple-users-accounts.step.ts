@@ -2,6 +2,10 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
+import { updateItemInTable } from '../../../utils/dynamo-database-methods';
+import { InformationFromTable } from '../../../utils/utility';
+import * as fs from 'fs';
+import { join } from 'path';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeMultipleUsers-HappyPath.feature');
 
@@ -20,7 +24,7 @@ defineFeature(feature, (test) => {
     given(
       /^I invoke an API to retrieve the (.*) status to the (.*) accounts. With history (.*)$/,
       async (aisEventType, numberOfUsers, historyValue) => {
-        for (let index = 0; index <= numberOfUsers; index++) {
+        for (let index = 0; index < numberOfUsers; index++) {
           const testUserId = generateRandomTestUserId();
           await sendSQSEvent(testUserId, aisEventType);
           response = await invokeGetAccountState(testUserId, historyValue);
@@ -28,14 +32,46 @@ defineFeature(feature, (test) => {
           listOfUsers.push(testUserId);
         }
         await Promise.allSettled(listOfUsers);
-        console.log("userId's" + listOfUsers);
       },
     );
 
-    and(/^I set the Id reset flag to TRUE$/, async () => {});
+    and(/^I update the Id reset flag to TRUE$/, async () => {
+      const updateResetPasswordItemInTable: InformationFromTable = {
+        updatedAt: response.intervention.updatedAt,
+        sentAt: response.intervention.sentAt,
+        appliedAt: response.intervention.appliedAt,
+        intervention: response.intervention.description,
+        suspended: response.state.suspended,
+        reproveIdentity: response.state.reproveIdentity,
+        resetPassword: true,
+        blocked: response.state.blocked,
+      };
+      for (let index = 0; index < listOfUsers.length; index++) {
+        await updateItemInTable(listOfUsers[index], updateResetPasswordItemInTable);
+      }
+    });
 
-    when(/^I Invoke an API to view the records$/, async () => {});
+    when(/^I Invoke an API to view the records$/, async () => {
+      for (let index = 0; index < listOfUsers.length; index++) {
+        response = await invokeGetAccountState(listOfUsers[index], true);
+      }
+    });
 
-    then(/^the expected (.*) is returned for the requested number of users$/, async () => {});
+    then(/^the expected response (.*) is returned for the requested number of users$/, async (interventionType) => {
+      for (let index = 0; index < listOfUsers.length; index++) {
+        expect(response.intervention.description).toBe(interventionType);
+        expect(response.state.blocked).toBe(false);
+        expect(response.state.suspended).toBe(true);
+        expect(response.state.resetPassword).toBe(true);
+        expect(response.state.reproveIdentity).toBe(false);
+      }
+      // Writing the list of users to the usersList file
+      try {
+        fs.writeFileSync('usersList.txt', JSON.stringify(listOfUsers), { flag: 'w' });
+        console.log('File written successfully');
+      } catch (error) {
+        console.error('Error while writing the list of users to a file', { error });
+      }
+    });
   });
 });
