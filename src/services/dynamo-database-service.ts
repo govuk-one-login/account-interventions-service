@@ -17,7 +17,7 @@ import { logAndPublishMetric } from '../commons/metrics';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { DynamoDBStateResult, FullAccountInformation } from '../data-types/interfaces';
 import { TooManyRecordsError } from '../data-types/errors';
-import { updateAccountStateCountMetricAfterDeletion } from '../commons/update-account-state-metrics';
+import { updateAccountStateCountMetricAfterDeletion } from '../commons/metrics-helper';
 
 const appConfig = AppConfigService.getInstance();
 export class DynamoDatabaseService {

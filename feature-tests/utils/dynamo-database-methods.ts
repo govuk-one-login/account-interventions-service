@@ -43,8 +43,7 @@ export async function updateItemInTable(userId: string, input: InformationFromTa
     const dynamoConfig: UpdateItemCommandInput = {
       TableName: EndPoints.TABLE_NAME,
       Key: { pk: { S: userId } },
-      UpdateExpression:
-        'SET #AA = :aa, #SA = :sa, #I = :i, #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
+      UpdateExpression: 'SET #AA = :aa, #SA = :sa, #I = :i, #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
       ExpressionAttributeNames: {
         '#AA': 'appliedAt',
         '#SA': 'sentAt',

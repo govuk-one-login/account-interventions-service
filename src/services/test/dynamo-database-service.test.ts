@@ -13,11 +13,11 @@ import logger from '../../commons/logger';
 import { TooManyRecordsError } from '../../data-types/errors';
 import { logAndPublishMetric } from '../../commons/metrics';
 import { MetricNames } from '../../data-types/constants';
-import { updateAccountStateCountMetricAfterDeletion } from '../../commons/update-account-state-metrics';
+import { updateAccountStateCountMetricAfterDeletion } from '../../commons/metrics-helper';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
-jest.mock('../../commons/update-account-state-metrics');
+jest.mock('../../commons/metrics-helper');
 jest.mock('@smithy/node-http-handler');
 
 const ddbMock = mockClient(DynamoDBClient);

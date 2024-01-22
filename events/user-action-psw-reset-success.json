@@ -2,6 +2,7 @@
   "event_name": "AUTH_PASSWORD_RESET_SUCCESSFUL",
   "event_id": "123",
   "timestamp": 1697629119,
+  "event_timestamp_ms": 1697629119000,
   "client_id": "UNKNOWN",
   "component_id": "UNKNOWN",
   "user": {
