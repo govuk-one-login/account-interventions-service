@@ -74,7 +74,7 @@ async function processSQSRecord(record: SQSRecord) {
   const recordBody: TxMAIngressEvent = JSON.parse(record.body);
   validateEventAgainstSchema(recordBody);
   const eventName = getEventName(recordBody);
-  logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention received.`, { intervention: eventName });
+  logger.debug('Intervention received.', { intervention: eventName });
   validateLevelOfConfidence(eventName, recordBody);
   await validateEventIsNotInFuture(eventName, recordBody);
 
@@ -104,7 +104,7 @@ async function processSQSRecord(record: SQSRecord) {
     recordBody,
     statusResult.interventionName,
   );
-  logger.debug('Updating user status', { userId, partialCommandInput });
+  logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Updating user status`, { userId, partialCommandInput });
   await service.updateUserStatus(userId, partialCommandInput);
   publishTimeToResolveMetrics(
     currentAccountState,
