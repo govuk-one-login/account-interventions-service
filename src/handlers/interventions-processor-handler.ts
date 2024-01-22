@@ -109,7 +109,7 @@ async function processSQSRecord(record: SQSRecord) {
   publishTimeToResolveMetrics(
     currentAccountState,
     statusResult.stateResult,
-    itemFromDB?.appliedAt ? itemFromDB.appliedAt : currentTimestamp.milliseconds,
+    itemFromDB?.appliedAt || currentTimestamp.milliseconds,
     currentTimestamp.milliseconds,
     eventName,
   );
