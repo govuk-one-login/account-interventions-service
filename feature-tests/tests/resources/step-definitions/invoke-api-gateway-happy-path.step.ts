@@ -3,6 +3,7 @@ import { generateRandomTestUserId } from '../../../utils/generate-random-test-us
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import { timeDelayForTestEnvironment } from '../../../utils/utility';
+import { aisEventRepsonse } from '../../../utils/ais-event-response';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature', {
   scenarioNameTemplate: (vars) => `${vars.scenarioTitle}(${vars.scenarioTags.join(',')})`,
@@ -80,14 +81,10 @@ defineFeature(feature, (test) => {
     );
 
     then(
-      /^I expect the intervention to be (.*), with the following state settings (.*), (.*), (.*) and (.*)$/,
-      async (
-        interventionType: string,
-        blockedState: string,
-        suspendedState: string,
-        resetPassword: string,
-        reproveIdentity: string,
-      ) => {
+      /^I expect the response with all the valid state fields for the (.*) and (.*)$/,
+      async (aisEventType: keyof typeof aisEventRepsonse, originalAisEventType: keyof typeof aisEventRepsonse) => {
+        const event = { ...aisEventRepsonse[aisEventType] };
+        const event2 = { ...aisEventRepsonse[originalAisEventType] };
         console.log(`Received`, { response });
         expect(response.intervention.description).toBe(interventionType);
         expect(response.state.blocked).toBe(JSON.parse(blockedState));
@@ -226,6 +223,69 @@ defineFeature(feature, (test) => {
       expect(response.history.at(4).intervention).toBe(`FRAUD_BLOCK_ACCOUNT`);
       expect(response.history.at(5).intervention).toBe(`FRAUD_UNBLOCK_ACCOUNT`);
       expect(response.auditLevel).toBe('standard');
+    });
+  });
+
+  test('Happy Path - Field Validation - Get Request to /ais/userId -  Multiple Transitions from one event type to other event types', ({
+    given,
+    when,
+    then,
+  }) => {
+    given(
+      /^I send a multiple requests to sqs queue to transit from one event type to other event types with single userId$/,
+      async function () {
+        console.log('sending first message to put the user in : passwordResetRequired');
+        await sendSQSEvent(testUserId, `pswResetRequired`);
+        // response = await invokeGetAccountState(testUserId, true);
+        // expect(response.intervention.description).toBe(`AIS_FORCED_USER_PASSWORD_RESET`);
+
+        await timeDelayForTestEnvironment(500);
+        console.log('sending second message to put the user in : suspendNoAction');
+        await sendSQSEvent(testUserId, `suspendNoAction`);
+        // response = await invokeGetAccountState(testUserId, true);
+        // expect(response.intervention.description).toBe(`AIS_ACCOUNT_SUSPENDED`);
+
+        await timeDelayForTestEnvironment(500);
+        console.log('sending third message to put the user in : idResetRequired');
+        await sendSQSEvent(testUserId, `idResetRequired`);
+        // response = await invokeGetAccountState(testUserId, true);
+        // expect(response.intervention.description).toBe(`AIS_FORCED_USER_IDENTITY_VERIFY`);
+
+        await timeDelayForTestEnvironment(500);
+        console.log('sending fourth message to put the user in : pswAndIdResetRequired');
+        await sendSQSEvent(testUserId, `pswAndIdResetRequired`);
+        // response = await invokeGetAccountState(testUserId, true);
+        // expect(response.intervention.description).toBe(`AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY`);
+
+        await timeDelayForTestEnvironment(500);
+        console.log('sending fifth message to put the user in : block');
+        await sendSQSEvent(testUserId, `block`);
+        // response = await invokeGetAccountState(testUserId, true);
+        // expect(response.intervention.description).toBe(`AIS_ACCOUNT_BLOCKED`);
+
+        await timeDelayForTestEnvironment(500);
+        console.log('sending sixth message to put the user in : unblock');
+        await sendSQSEvent(testUserId, `unblock`);
+        // response = await invokeGetAccountState(testUserId, true);
+        // expect(response.intervention.description).toBe(`AIS_ACCOUNT_UNBLOCKED`);
+      },
+    );
+
+    when(/^I invoke an apiGateway to retreive the status of the invalid userId with history as true$/, async () => {
+      await timeDelayForTestEnvironment(500);
+      response = await invokeGetAccountState(testUserId, true);
+    });
+
+    then(/^I should receive every transition event history data in the response for the ais endpoint$/, async () => {
+      console.log(`Received History`, response.history);
+      expect(response.history.length === 6);
+      expect(response.intervention.description).toBe(`AIS_ACCOUNT_UNBLOCKED`);
+      expect(response.history.at(0).intervention).toBe(`FRAUD_FORCED_USER_PASSWORD_RESET`);
+      expect(response.history.at(1).intervention).toBe(`FRAUD_SUSPEND_ACCOUNT`);
+      expect(response.history.at(2).intervention).toBe(`FRAUD_FORCED_USER_IDENTITY_REVERIFICATION`);
+      expect(response.history.at(3).intervention).toBe(`FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION`);
+      expect(response.history.at(4).intervention).toBe(`FRAUD_BLOCK_ACCOUNT`);
+      expect(response.history.at(5).intervention).toBe(`FRAUD_UNBLOCK_ACCOUNT`);
     });
   });
 });
