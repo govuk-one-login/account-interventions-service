@@ -4,8 +4,7 @@ import { sendSQSEvent } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import { updateItemInTable } from '../../../utils/dynamo-database-methods';
 import { InformationFromTable } from '../../../utils/utility';
-import * as fs from 'fs';
-import { join } from 'path';
+import * as fs from 'node:fs';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeMultipleUsers-HappyPath.feature');
 
@@ -46,14 +45,14 @@ defineFeature(feature, (test) => {
         resetPassword: true,
         blocked: response.state.blocked,
       };
-      for (let index = 0; index < listOfUsers.length; index++) {
-        await updateItemInTable(listOfUsers[index], updateResetPasswordItemInTable);
+      for (const listOfUser of listOfUsers) {
+        await updateItemInTable(listOfUser, updateResetPasswordItemInTable);
       }
     });
 
     when(/^I Invoke an API to view the records$/, async () => {
-      for (let index = 0; index < listOfUsers.length; index++) {
-        response = await invokeGetAccountState(listOfUsers[index], true);
+      for (const listOfUser of listOfUsers) {
+        response = await invokeGetAccountState(listOfUser, true);
       }
     });
 
