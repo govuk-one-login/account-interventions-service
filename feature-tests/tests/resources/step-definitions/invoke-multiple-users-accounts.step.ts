@@ -32,7 +32,6 @@ defineFeature(feature, (test) => {
           listOfUsers.push(testUserId);
         }
         await Promise.allSettled(listOfUsers);
-        console.log("userId's" + listOfUsers);
       },
     );
 
