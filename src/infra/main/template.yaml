@@ -1291,5 +1291,5 @@ Outputs:
 
   TxMAIngressSqsQueueUrl:
     Condition: IsInternal
-    Description: "Endpoint URL for TxMA Ingress Queue"
+    Description: "Endpoint URL for TxMA Ingress Queues"
     Value: !Ref TxMAIngressQueue
