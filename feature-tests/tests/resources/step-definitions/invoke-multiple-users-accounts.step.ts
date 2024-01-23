@@ -3,7 +3,7 @@ import { generateRandomTestUserId } from '../../../utils/generate-random-test-us
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import { updateItemInTable } from '../../../utils/dynamo-database-methods';
-import { InformationFromTable } from '../../../utils/utility';
+import { InformationFromTable, timeDelayForTestEnvironment } from '../../../utils/utility';
 import * as fs from 'node:fs';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeMultipleUsers-HappyPath.feature');
@@ -26,6 +26,7 @@ defineFeature(feature, (test) => {
         for (let index = 0; index < numberOfUsers; index++) {
           const testUserId = generateRandomTestUserId();
           await sendSQSEvent(testUserId, aisEventType);
+          await timeDelayForTestEnvironment(500);
           response = await invokeGetAccountState(testUserId, historyValue);
           expect(response.intervention.description).toBe('AIS_ACCOUNT_SUSPENDED');
           listOfUsers.push(testUserId);
