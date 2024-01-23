@@ -14,7 +14,7 @@ defineFeature(feature, (test) => {
   let response: any;
   const listOfUsers: string[] = [];
 
-  test('Happy Path - create multiple users - Returns Expected Data for the <aisEventType>', ({
+  test('Happy Path - create multiple users - Returns Expected Data for <aisEventType>', ({
     given,
     and,
     when,
