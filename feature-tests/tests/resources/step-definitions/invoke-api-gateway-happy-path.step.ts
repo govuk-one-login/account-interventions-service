@@ -48,6 +48,7 @@ defineFeature(feature, (test) => {
         expect(response.state.suspended).toBe(JSON.parse(suspendedState));
         expect(response.state.resetPassword).toBe(JSON.parse(resetPassword));
         expect(response.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
+        expect(response.auditLevel).toBe('standard');
       },
     );
   });
@@ -91,6 +92,7 @@ defineFeature(feature, (test) => {
         expect(response.state.suspended).toBe(JSON.parse(suspendedState));
         expect(response.state.resetPassword).toBe(JSON.parse(resetPassword));
         expect(response.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
+        expect(response.auditLevel).toBe('standard');
       },
     );
   });
@@ -130,6 +132,7 @@ defineFeature(feature, (test) => {
       ) => {
         console.log(`Received History`, response.intervention.history);
         expect(response.intervention.description).toBe(interventionType);
+        expect(response.auditLevel).toBe('standard');
         expect(response.history.at(-1).component).toBe(componentHistory);
         expect(response.history.at(-1).code).toBe(interventionCodeHistory);
         expect(response.history.at(-1).intervention).toBe(interventionHistory);
@@ -158,6 +161,7 @@ defineFeature(feature, (test) => {
     then(/^I should receive the appropriate (.*) for the ais endpoint$/, async (interventionType) => {
       console.log(`Received`, { response });
       expect(response.intervention.description).toBe(interventionType);
+      expect(response.auditLevel).toBe('standard');
     });
   });
 });
