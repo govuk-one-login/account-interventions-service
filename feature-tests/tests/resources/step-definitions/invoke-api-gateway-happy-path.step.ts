@@ -3,9 +3,10 @@ import { generateRandomTestUserId } from '../../../utils/generate-random-test-us
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import { timeDelayForTestEnvironment } from '../../../utils/utility';
-import { aisEventRepsonse } from '../../../utils/ais-event-response';
 
-const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
+const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature', {
+  scenarioNameTemplate: (vars) => `${vars.scenarioTitle}(${vars.scenarioTags.join(',')})`,
+});
 
 defineFeature(feature, (test) => {
   let testUserId: string;
@@ -79,10 +80,14 @@ defineFeature(feature, (test) => {
     );
 
     then(
-      /^I expect the response with all the valid state fields for the (.*) and (.*)$/,
-      async (aisEventType: keyof typeof aisEventRepsonse, originalAisEventType: keyof typeof aisEventRepsonse) => {
-        const event = { ...aisEventRepsonse[aisEventType] };
-        const event2 = { ...aisEventRepsonse[originalAisEventType] };
+      /^I expect the intervention to be (.*), with the following state settings (.*), (.*), (.*) and (.*)$/,
+      async (
+        interventionType: string,
+        blockedState: string,
+        suspendedState: string,
+        resetPassword: string,
+        reproveIdentity: string,
+      ) => {
         console.log(`Received`, { response });
         expect(response.intervention.description).toBe(interventionType);
         expect(response.state.blocked).toBe(JSON.parse(blockedState));
