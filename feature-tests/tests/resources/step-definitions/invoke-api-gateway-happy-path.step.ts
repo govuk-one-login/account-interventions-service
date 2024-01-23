@@ -198,7 +198,7 @@ defineFeature(feature, (test) => {
       },
     );
 
-    when(/^I invoke an apiGateway to retreive the status of the invalid userId with history as true$/, async () => {
+    when(/^I invoke apiGateway to retreive the status of the valid userId with history as true$/, async () => {
       await timeDelayForTestEnvironment(500);
       response = await invokeGetAccountState(testUserId, true);
     });
@@ -208,9 +208,13 @@ defineFeature(feature, (test) => {
       console.log(`Received History`, response.history);
       expect(response.history.length === 6);
       expect(response.intervention.description).toBe(`AIS_ACCOUNT_UNBLOCKED`);
+      expect(response.history.at(0).intervention).toBe(`FRAUD_FORCED_USER_PASSWORD_RESET`);
+      expect(response.history.at(1).intervention).toBe(`FRAUD_SUSPEND_ACCOUNT`);
+      expect(response.history.at(2).intervention).toBe(`FRAUD_FORCED_USER_IDENTITY_REVERIFICATION`);
       expect(response.history.at(3).intervention).toBe(`FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION`);
       expect(response.history.at(4).intervention).toBe(`FRAUD_BLOCK_ACCOUNT`);
       expect(response.history.at(5).intervention).toBe(`FRAUD_UNBLOCK_ACCOUNT`);
+      expect(response.history.at(-1).intervention).toBe(`FRAUD_UNBLOCK_ACCOUNT`);
       expect(response.auditLevel).toBe('standard');
     });
   });
