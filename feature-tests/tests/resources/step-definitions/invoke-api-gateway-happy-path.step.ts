@@ -34,14 +34,13 @@ defineFeature(feature, (test) => {
     );
 
     then(
-      /^I expect the intervention to be (.*), with the following state settings (.*), (.*), (.*) and (.*) with the (.*) returned$/,
+      /^I expect the intervention to be (.*), with the following state settings (.*), (.*), (.*) and (.*)$/,
       async (
         interventionType: string,
         blockedState: string,
         suspendedState: string,
         resetPassword: string,
         reproveIdentity: string,
-        auditLevel: string,
       ) => {
         console.log(`Received`, { response });
         expect(response.intervention.description).toBe(interventionType);
@@ -49,7 +48,7 @@ defineFeature(feature, (test) => {
         expect(response.state.suspended).toBe(JSON.parse(suspendedState));
         expect(response.state.resetPassword).toBe(JSON.parse(resetPassword));
         expect(response.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
-        expect(response.auditLevel).toBe(auditLevel);
+        expect(response.auditLevel).toBe('standard');
       },
     );
   });
@@ -79,14 +78,13 @@ defineFeature(feature, (test) => {
     );
 
     then(
-      /^I expect the intervention to be (.*), with the following state settings (.*), (.*), (.*) and (.*) with the (.*) returned$/,
+      /^I expect the intervention to be (.*), with the following state settings (.*), (.*), (.*) and (.*)$/,
       async (
         interventionType: string,
         blockedState: string,
         suspendedState: string,
         resetPassword: string,
         reproveIdentity: string,
-        auditLevel: string,
       ) => {
         console.log(`Received`, { response });
         expect(response.intervention.description).toBe(interventionType);
@@ -94,7 +92,7 @@ defineFeature(feature, (test) => {
         expect(response.state.suspended).toBe(JSON.parse(suspendedState));
         expect(response.state.resetPassword).toBe(JSON.parse(resetPassword));
         expect(response.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
-        expect(response.auditLevel).toBe(auditLevel);
+        expect(response.auditLevel).toBe('standard');
       },
     );
   });
@@ -124,18 +122,17 @@ defineFeature(feature, (test) => {
     );
 
     then(
-      /^I expect the intervention to be (.*), with the following history values with (.*), (.*), (.*), (.*) with the (.*) returned$/,
+      /^I expect the intervention to be (.*), with the following history values with (.*), (.*), (.*), (.*)$/,
       async (
         interventionType: string,
         componentHistory: string,
         interventionCodeHistory: string,
         interventionHistory: string,
         reason: string,
-        auditLevel: string,
       ) => {
         console.log(`Received History`, response.intervention.history);
         expect(response.intervention.description).toBe(interventionType);
-        expect(response.auditLevel).toBe(auditLevel);
+        expect(response.auditLevel).toBe('standard');
         expect(response.history.at(-1).component).toBe(componentHistory);
         expect(response.history.at(-1).code).toBe(interventionCodeHistory);
         expect(response.history.at(-1).intervention).toBe(interventionHistory);
@@ -161,13 +158,10 @@ defineFeature(feature, (test) => {
       response = await invokeGetAccountState(testUserId, historyValue);
     });
 
-    then(
-      /^I should receive the appropriate (.*) for the ais endpoint with the (.*) returned$/,
-      async (interventionType, auditLevel) => {
-        console.log(`Received`, { response });
-        expect(response.intervention.description).toBe(interventionType);
-        expect(response.auditLevel).toBe(auditLevel);
-      },
-    );
+    then(/^I should receive the appropriate (.*) for the ais endpoint$/, async (interventionType) => {
+      console.log(`Received`, { response });
+      expect(response.intervention.description).toBe(interventionType);
+      expect(response.auditLevel).toBe('standard');
+    });
   });
 });
