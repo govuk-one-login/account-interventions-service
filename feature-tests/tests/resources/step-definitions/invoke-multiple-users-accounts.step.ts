@@ -45,14 +45,14 @@ defineFeature(feature, (test) => {
         resetPassword: true,
         blocked: response.state.blocked,
       };
-      for (const listOfUser of listOfUsers) {
-        await updateItemInTable(listOfUser, updateResetPasswordItemInTable);
+      for (const user of listOfUsers) {
+        await updateItemInTable(user, updateResetPasswordItemInTable);
       }
     });
 
     when(/^I Invoke an API to view the records$/, async () => {
-      for (const listOfUser of listOfUsers) {
-        response = await invokeGetAccountState(listOfUser, true);
+      for (const user of listOfUsers) {
+        response = await invokeGetAccountState(user, true);
       }
     });
 
