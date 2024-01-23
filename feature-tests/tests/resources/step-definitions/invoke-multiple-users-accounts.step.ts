@@ -49,7 +49,7 @@ defineFeature(feature, (test) => {
       for (const user of listOfUsers) {
         await timeDelayForTestEnvironment(500);
         await updateItemInTable(user, updateResetPasswordItemInTable);
-        let getItem = await getRecordFromTable(user);
+        const getItem = await getRecordFromTable(user);
         if (getItem) {
           console.log(getItem);
           expect(getItem.resetPassword).toBe(true);
@@ -61,6 +61,10 @@ defineFeature(feature, (test) => {
       for (const user of listOfUsers) {
         await timeDelayForTestEnvironment(200);
         response = await invokeGetAccountState(user, true);
+        expect(response.state.blocked).toBe(false);
+        expect(response.state.suspended).toBe(true);
+        expect(response.state.resetPassword).toBe(true);
+        expect(response.state.reproveIdentity).toBe(false);
       }
     });
 
