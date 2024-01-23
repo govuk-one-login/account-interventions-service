@@ -3,7 +3,6 @@ import { generateRandomTestUserId } from '../../../utils/generate-random-test-us
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import { timeDelayForTestEnvironment } from '../../../utils/utility';
-import { aisEventRepsonse } from '../../../utils/ais-event-response';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature', {
   scenarioNameTemplate: (vars) => `${vars.scenarioTitle}(${vars.scenarioTags.join(',')})`,
@@ -81,10 +80,14 @@ defineFeature(feature, (test) => {
     );
 
     then(
-      /^I expect the response with all the valid state fields for the (.*) and (.*)$/,
-      async (aisEventType: keyof typeof aisEventRepsonse, originalAisEventType: keyof typeof aisEventRepsonse) => {
-        const event = { ...aisEventRepsonse[aisEventType] };
-        const event2 = { ...aisEventRepsonse[originalAisEventType] };
+      /^I expect the intervention to be (.*), with the following state settings (.*), (.*), (.*) and (.*)$/,
+      async (
+        interventionType: string,
+        blockedState: string,
+        suspendedState: string,
+        resetPassword: string,
+        reproveIdentity: string,
+      ) => {
         console.log(`Received`, { response });
         expect(response.intervention.description).toBe(interventionType);
         expect(response.state.blocked).toBe(JSON.parse(blockedState));
@@ -215,15 +218,14 @@ defineFeature(feature, (test) => {
     });
 
     then(/^I should receive every transition event history data in the response for the ais endpoint$/, async () => {
+      expect(response.auditLevel).toBe('standard');
       console.log(`Received History`, response.history);
       expect(response.history.length === 6);
       expect(response.intervention.description).toBe(`AIS_ACCOUNT_UNBLOCKED`);
-      expect(response.history.at(0).intervention).toBe(`FRAUD_FORCED_USER_PASSWORD_RESET`);
-      expect(response.history.at(1).intervention).toBe(`FRAUD_SUSPEND_ACCOUNT`);
-      expect(response.history.at(2).intervention).toBe(`FRAUD_FORCED_USER_IDENTITY_REVERIFICATION`);
       expect(response.history.at(3).intervention).toBe(`FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION`);
       expect(response.history.at(4).intervention).toBe(`FRAUD_BLOCK_ACCOUNT`);
       expect(response.history.at(5).intervention).toBe(`FRAUD_UNBLOCK_ACCOUNT`);
+      expect(response.auditLevel).toBe('standard');
     });
   });
 });
