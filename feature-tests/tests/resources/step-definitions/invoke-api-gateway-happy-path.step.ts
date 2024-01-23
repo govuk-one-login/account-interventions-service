@@ -177,38 +177,26 @@ defineFeature(feature, (test) => {
       async function () {
         console.log('sending first message to put the user in : passwordResetRequired');
         await sendSQSEvent(testUserId, `pswResetRequired`);
-        // response = await invokeGetAccountState(testUserId, true);
-        // expect(response.intervention.description).toBe(`AIS_FORCED_USER_PASSWORD_RESET`);
 
         await timeDelayForTestEnvironment(500);
         console.log('sending second message to put the user in : suspendNoAction');
         await sendSQSEvent(testUserId, `suspendNoAction`);
-        // response = await invokeGetAccountState(testUserId, true);
-        // expect(response.intervention.description).toBe(`AIS_ACCOUNT_SUSPENDED`);
 
         await timeDelayForTestEnvironment(500);
         console.log('sending third message to put the user in : idResetRequired');
         await sendSQSEvent(testUserId, `idResetRequired`);
-        // response = await invokeGetAccountState(testUserId, true);
-        // expect(response.intervention.description).toBe(`AIS_FORCED_USER_IDENTITY_VERIFY`);
 
         await timeDelayForTestEnvironment(500);
         console.log('sending fourth message to put the user in : pswAndIdResetRequired');
         await sendSQSEvent(testUserId, `pswAndIdResetRequired`);
-        // response = await invokeGetAccountState(testUserId, true);
-        // expect(response.intervention.description).toBe(`AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY`);
 
         await timeDelayForTestEnvironment(500);
         console.log('sending fifth message to put the user in : block');
         await sendSQSEvent(testUserId, `block`);
-        // response = await invokeGetAccountState(testUserId, true);
-        // expect(response.intervention.description).toBe(`AIS_ACCOUNT_BLOCKED`);
 
         await timeDelayForTestEnvironment(500);
         console.log('sending sixth message to put the user in : unblock');
         await sendSQSEvent(testUserId, `unblock`);
-        // response = await invokeGetAccountState(testUserId, true);
-        // expect(response.intervention.description).toBe(`AIS_ACCOUNT_UNBLOCKED`);
       },
     );
 
