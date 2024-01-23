@@ -47,12 +47,14 @@ defineFeature(feature, (test) => {
         blocked: response.state.blocked,
       };
       for (const user of listOfUsers) {
+        await timeDelayForTestEnvironment(500);
         await updateItemInTable(user, updateResetPasswordItemInTable);
       }
     });
 
     when(/^I Invoke an API to view the records$/, async () => {
       for (const user of listOfUsers) {
+        await timeDelayForTestEnvironment(200);
         response = await invokeGetAccountState(user, true);
       }
     });
