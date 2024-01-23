@@ -56,17 +56,22 @@ defineFeature(feature, (test) => {
       for (const user of listOfUsers) {
         await timeDelayForTestEnvironment(200);
         response = await invokeGetAccountState(user, true);
-      }
-    });
-
-    then(/^the expected response (.*) is returned for the requested number of users$/, async (interventionType) => {
-      for (let index = 0; index < listOfUsers.length; index++) {
-        expect(response.intervention.description).toBe(interventionType);
+        expect(response.intervention.description).toBe("AIS_ACCOUNT_SUSPENDED");
         expect(response.state.blocked).toBe(false);
         expect(response.state.suspended).toBe(true);
         expect(response.state.resetPassword).toBe(true);
         expect(response.state.reproveIdentity).toBe(false);
       }
+    });
+
+    then(/^the expected response (.*) is returned for the requested number of users$/, async (interventionType) => {
+      // for (let index = 0; index < listOfUsers.length; index++) {
+      //   expect(response.intervention.description).toBe(interventionType);
+      //   expect(response.state.blocked).toBe(false);
+      //   expect(response.state.suspended).toBe(true);
+      //   expect(response.state.resetPassword).toBe(true);
+      //   expect(response.state.reproveIdentity).toBe(false);
+      // }
       // Writing the list of users to the usersList file
       try {
         fs.writeFileSync('usersList.txt', JSON.stringify(listOfUsers), { flag: 'w' });
