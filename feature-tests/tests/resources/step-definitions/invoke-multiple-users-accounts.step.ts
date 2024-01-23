@@ -2,7 +2,7 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
-import { updateItemInTable } from '../../../utils/dynamo-database-methods';
+import { getRecordFromTable, updateItemInTable } from '../../../utils/dynamo-database-methods';
 import { InformationFromTable, timeDelayForTestEnvironment } from '../../../utils/utility';
 import * as fs from 'node:fs';
 
@@ -49,6 +49,11 @@ defineFeature(feature, (test) => {
       for (const user of listOfUsers) {
         await timeDelayForTestEnvironment(500);
         await updateItemInTable(user, updateResetPasswordItemInTable);
+        let getItem = await getRecordFromTable(user);
+        if (getItem) {
+          console.log(getItem);
+          expect(getItem.resetPassword).toBe(true);
+        }
       }
     });
 
@@ -56,23 +61,18 @@ defineFeature(feature, (test) => {
       for (const user of listOfUsers) {
         await timeDelayForTestEnvironment(200);
         response = await invokeGetAccountState(user, true);
-        expect(response.intervention.description).toBe("AIS_ACCOUNT_SUSPENDED");
+      }
+    });
+
+    then(/^the expected response (.*) is returned for the requested number of users$/, async (interventionType) => {
+      for (let index = 0; index < listOfUsers.length; index++) {
+        expect(response.intervention.description).toBe(interventionType);
         expect(response.state.blocked).toBe(false);
         expect(response.state.suspended).toBe(true);
         expect(response.state.resetPassword).toBe(true);
         expect(response.state.reproveIdentity).toBe(false);
       }
-    });
-
-    then(/^the expected response (.*) is returned for the requested number of users$/, async (interventionType) => {
-      // for (let index = 0; index < listOfUsers.length; index++) {
-      //   expect(response.intervention.description).toBe(interventionType);
-      //   expect(response.state.blocked).toBe(false);
-      //   expect(response.state.suspended).toBe(true);
-      //   expect(response.state.resetPassword).toBe(true);
-      //   expect(response.state.reproveIdentity).toBe(false);
-      // }
-      // Writing the list of users to the usersList file
+      //Writing the list of users to the usersList file
       try {
         fs.writeFileSync('usersList.txt', JSON.stringify(listOfUsers), { flag: 'w' });
         console.log('File written successfully');
