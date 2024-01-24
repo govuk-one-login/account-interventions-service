@@ -118,7 +118,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
             | aisEventType    | historyValue | interventionType    | testUserId |
             | suspendNoAction | false        | AIS_NO_INTERVENTION |            |
 
-
+    @regression
     Scenario: Happy Path - Field Validation - Get Request to /ais/userId -  Multiple Transitions from one event type to other event types
         Given I send a multiple requests to sqs queue to transit from one event type to other event types with single userId
         When I invoke apiGateway to retreive the status of the valid userId with history as true
