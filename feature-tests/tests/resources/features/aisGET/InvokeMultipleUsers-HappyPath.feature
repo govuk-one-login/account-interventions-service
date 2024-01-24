@@ -8,4 +8,4 @@ Feature: Invoke-MultipleUsers-HappyPath.feature
         Then the expected response <interventionType> is returned for the requested number of users
         Examples:
             | aisEventType    | numberOfusers | historyValue | interventionType      |
-            | suspendNoAction | 1             | false        | AIS_ACCOUNT_SUSPENDED |
+            | suspendNoAction | 25            | false        | AIS_ACCOUNT_SUSPENDED |

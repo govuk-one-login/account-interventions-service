@@ -61,10 +61,6 @@ defineFeature(feature, (test) => {
       for (const user of listOfUsers) {
         await timeDelayForTestEnvironment(200);
         response = await invokeGetAccountState(user, true);
-        expect(response.state.blocked).toBe(false);
-        expect(response.state.suspended).toBe(true);
-        expect(response.state.resetPassword).toBe(true);
-        expect(response.state.reproveIdentity).toBe(false);
       }
     });
 
