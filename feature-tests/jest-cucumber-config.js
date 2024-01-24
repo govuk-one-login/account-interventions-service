@@ -1,7 +1,6 @@
-//jest-cucumber-config.js
+const setJestCucumberConfiguration = require('jest-cucumber').setJestCucumberConfiguration;
 
-// const setJestCucumberConfiguration = require('jest-cucumber').setJestCucumberConfiguration;
-
-// setJestCucumberConfiguration({
-//   tagFilter: '@api'
-// });
+setJestCucumberConfiguration({
+  tagFilter: process.env.tagFilter,
+  errorOnMissingScenariosAndSteps: false
+});

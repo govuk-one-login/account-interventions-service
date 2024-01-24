@@ -9,6 +9,7 @@ const config: Config = {
   testMatch: ['**/**/*.step.ts'],
   verbose: true,
   forceExit: true,
+  setupFiles: ['./jest-cucumber-config'],
   //coverageReporters: ["html","text"],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
