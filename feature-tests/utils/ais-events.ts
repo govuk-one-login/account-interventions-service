@@ -5,6 +5,7 @@ interface Event {
   timestamp: number;
   event_timestamp_ms: number;
   event_name: string;
+  event_id: string;
   component_id: string;
   client_id?: string;
   user: {
@@ -26,6 +27,7 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
@@ -43,6 +45,7 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
@@ -60,6 +63,7 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
@@ -77,6 +81,7 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
@@ -94,6 +99,7 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
@@ -111,6 +117,7 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
@@ -128,6 +135,7 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
@@ -143,6 +151,7 @@ export const aisEvents: {
 
   userActionIdResetSuccess: {
     event_name: 'IPV_IDENTITY_ISSUED',
+    event_id: '123',
     timestamp: seconds,
     event_timestamp_ms: ms,
     client_id: 'UNKNOWN',
@@ -165,6 +174,7 @@ export const aisEvents: {
 
   userActionPswResetSuccess: {
     event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+    event_id: '123',
     timestamp: seconds,
     event_timestamp_ms: ms,
     client_id: 'UNKNOWN',
