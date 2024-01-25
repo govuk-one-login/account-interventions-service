@@ -32,6 +32,9 @@ export const aisEvents: {
       intervention: {
         intervention_code: '01',
         intervention_reason: 'suspend - 01',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
       },
     },
   },
@@ -46,6 +49,9 @@ export const aisEvents: {
       intervention: {
         intervention_code: '02',
         intervention_reason: 'unsuspend - 02',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
       },
     },
   },
@@ -60,6 +66,9 @@ export const aisEvents: {
       intervention: {
         intervention_code: '03',
         intervention_reason: 'block - 03',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
       },
     },
   },
@@ -74,6 +83,9 @@ export const aisEvents: {
       intervention: {
         intervention_code: '04',
         intervention_reason: 'password reset - 04',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
       },
     },
   },
@@ -88,6 +100,9 @@ export const aisEvents: {
       intervention: {
         intervention_code: '05',
         intervention_reason: 'id reset - 05',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
       },
     },
   },
@@ -102,6 +117,9 @@ export const aisEvents: {
       intervention: {
         intervention_code: '06',
         intervention_reason: 'password and id reset - 06',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
       },
     },
   },
@@ -116,6 +134,9 @@ export const aisEvents: {
       intervention: {
         intervention_code: '07',
         intervention_reason: 'unblock - 07',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
       },
     },
   },
