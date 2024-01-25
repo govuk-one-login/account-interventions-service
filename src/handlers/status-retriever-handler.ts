@@ -19,7 +19,7 @@ const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableN
  */
 export const handle = async (event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> => {
   logger.addContext(context);
-  logger.debug('Status-Retriever-Handler.');
+  logger.debug('Status-Retriever-Handler.', { event });
 
   if (!event.pathParameters?.['userId']) {
     logAndPublishMetric(MetricNames.INVALID_SUBJECT_ID);
