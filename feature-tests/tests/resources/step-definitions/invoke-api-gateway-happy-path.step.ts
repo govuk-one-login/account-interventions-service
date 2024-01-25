@@ -164,4 +164,58 @@ defineFeature(feature, (test) => {
       expect(response.auditLevel).toBe('standard');
     });
   });
+
+  test('Happy Path - Field Validation - Get Request to /ais/userId -  Multiple Transitions from one event type to other event types', ({
+    given,
+    when,
+    then,
+  }) => {
+    given(
+      /^I send a multiple requests to sqs queue to transit from one event type to other event types with single userId$/,
+      async function () {
+        console.log('sending first message to put the user in : passwordResetRequired');
+        await sendSQSEvent(testUserId, `pswResetRequired`);
+
+        await timeDelayForTestEnvironment(500);
+        console.log('sending second message to put the user in : suspendNoAction');
+        await sendSQSEvent(testUserId, `suspendNoAction`);
+
+        await timeDelayForTestEnvironment(500);
+        console.log('sending third message to put the user in : idResetRequired');
+        await sendSQSEvent(testUserId, `idResetRequired`);
+
+        await timeDelayForTestEnvironment(500);
+        console.log('sending fourth message to put the user in : pswAndIdResetRequired');
+        await sendSQSEvent(testUserId, `pswAndIdResetRequired`);
+
+        await timeDelayForTestEnvironment(500);
+        console.log('sending fifth message to put the user in : block');
+        await sendSQSEvent(testUserId, `block`);
+
+        await timeDelayForTestEnvironment(500);
+        console.log('sending sixth message to put the user in : unblock');
+        await sendSQSEvent(testUserId, `unblock`);
+      },
+    );
+
+    when(/^I invoke apiGateway to retreive the status of the valid userId with history as true$/, async () => {
+      await timeDelayForTestEnvironment(500);
+      response = await invokeGetAccountState(testUserId, true);
+    });
+
+    then(/^I should receive every transition event history data in the response for the ais endpoint$/, async () => {
+      expect(response.auditLevel).toBe('standard');
+      console.log(`Received History`, response.history);
+      expect(response.history.length === 6);
+      expect(response.intervention.description).toBe(`AIS_ACCOUNT_UNBLOCKED`);
+      expect(response.history.at(0).intervention).toBe(`FRAUD_FORCED_USER_PASSWORD_RESET`);
+      expect(response.history.at(1).intervention).toBe(`FRAUD_SUSPEND_ACCOUNT`);
+      expect(response.history.at(2).intervention).toBe(`FRAUD_FORCED_USER_IDENTITY_REVERIFICATION`);
+      expect(response.history.at(3).intervention).toBe(`FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION`);
+      expect(response.history.at(4).intervention).toBe(`FRAUD_BLOCK_ACCOUNT`);
+      expect(response.history.at(5).intervention).toBe(`FRAUD_UNBLOCK_ACCOUNT`);
+      expect(response.history.at(-1).intervention).toBe(`FRAUD_UNBLOCK_ACCOUNT`);
+      expect(response.auditLevel).toBe('standard');
+    });
+  });
 });
