@@ -152,11 +152,11 @@ $ sh staging_pipelines.sh
 
 |             | ais-main-pipeline | ais-core-pipeline | ais-alarm-pipeline | alerting-integration | api-gateway-logs | certificate-expiry | vpc    | ecr-image-scan-findings-logger | lambda-audit-hook |  checkov-hook | infra-audit-hook |
 |-------------|-------------------|-------------------|--------------------|----------------------|------------------|--------------------|--------|--------------------------------|-------------------|---------------|------------------|
-| Dev         | v2.44.0           | v2.44.0           | v2.44.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a           | n/a              |
-| Build       | v2.44.0           | v2.44.0           | v2.44.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a           | n/a              |
-| Staging     | v2.44.0           | v2.44.0           | v2.44.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a           | n/a              |
-| Integration | v2.44.0           | v2.44.0           | v2.44.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a           | n/a              |
-| Production  | v2.44.0           | v2.44.0           | v2.44.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | n/a                            | n/a               | n/a           | n/a              |
+| Dev         | v2.45.4           | v2.45.4           | v2.45.4            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a           | n/a              |
+| Build       | v2.45.4           | v2.45.4           | v2.45.4            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a           | n/a              |
+| Staging     | v2.45.4           | v2.45.4           | v2.45.4            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a           | n/a              |
+| Integration | v2.45.4           | v2.45.4           | v2.45.4            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a           | n/a              |
+| Production  | v2.45.4           | v2.45.4           | v2.45.4            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | n/a                            | n/a               | n/a           | n/a              |
 
 
 ## Additional Info
