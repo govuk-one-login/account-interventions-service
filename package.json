@@ -31,7 +31,8 @@
     "@aws-sdk/client-dynamodb": "^3.509.0",
     "@aws-sdk/client-sqs": "^3.509.0",
     "@aws-sdk/util-dynamodb": "^3.509.0",
-    "@smithy/node-http-handler": "^2.3.1"
+    "@smithy/node-http-handler": "^2.3.1",
+    "axios": "^1.6.5"
   },
   "devDependencies": {
     "esbuild": "0.20.0",
