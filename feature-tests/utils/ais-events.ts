@@ -5,6 +5,7 @@ interface Event {
   timestamp: number;
   event_timestamp_ms: number;
   event_name: string;
+  event_id: string;
   component_id: string;
   client_id?: string;
   user: {
@@ -26,12 +27,16 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
         intervention_code: '01',
         intervention_reason: 'suspend - 01',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
       },
     },
   },
@@ -40,12 +45,16 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
         intervention_code: '02',
         intervention_reason: 'unsuspend - 02',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
       },
     },
   },
@@ -54,12 +63,16 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
         intervention_code: '03',
         intervention_reason: 'block - 03',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
       },
     },
   },
@@ -68,12 +81,16 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
         intervention_code: '04',
         intervention_reason: 'password reset - 04',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
       },
     },
   },
@@ -82,12 +99,16 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
         intervention_code: '05',
         intervention_reason: 'id reset - 05',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
       },
     },
   },
@@ -96,12 +117,16 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
         intervention_code: '06',
         intervention_reason: 'password and id reset - 06',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
       },
     },
   },
@@ -110,18 +135,23 @@ export const aisEvents: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
     extensions: {
       intervention: {
         intervention_code: '07',
         intervention_reason: 'unblock - 07',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
       },
     },
   },
 
   userActionIdResetSuccess: {
     event_name: 'IPV_IDENTITY_ISSUED',
+    event_id: '123',
     timestamp: seconds,
     event_timestamp_ms: ms,
     client_id: 'UNKNOWN',
@@ -144,6 +174,7 @@ export const aisEvents: {
 
   userActionPswResetSuccess: {
     event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+    event_id: '123',
     timestamp: seconds,
     event_timestamp_ms: ms,
     client_id: 'UNKNOWN',
