@@ -194,6 +194,7 @@ Resources:
           TABLE_NAME:
             Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
           TXMA_QUEUE_URL: !Ref TxMAEgressQueue
+          HISTORY_RETENTION_SECONDS: 63072000
       Tags:
         Product: !Ref ProductTagValue
         System: !Ref SystemTagValue

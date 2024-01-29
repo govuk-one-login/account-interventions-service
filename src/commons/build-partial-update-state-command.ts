@@ -46,6 +46,10 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RIdA'] = 'reprovedIdentityAt';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':rida'] = { N: `${eventTimestamp}` };
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RIdA = :rida';
+    baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
+      L: extractValidHistoryItemIndices(historyList),
+    };
     return baseUpdateItemCommandInput;
   }
   if (
@@ -55,6 +59,10 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RPswdA'] = 'resetPasswordAt';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':rpswda'] = { N: `${eventTimestamp}` };
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RPswdA = :rpswda';
+    baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
+      L: extractValidHistoryItemIndices(historyList),
+    };
     return baseUpdateItemCommandInput;
   }
   if (!interventionName) {
@@ -69,13 +77,14 @@ export const buildPartialUpdateAccountStateCommand = (
   baseUpdateItemCommandInput['ExpressionAttributeValues'][':sa'] = { N: `${eventTimestamp}` };
   const stringBuilder = new HistoryStringBuilder();
   baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
-  baseUpdateItemCommandInput['ExpressionAttributeValues'][':empty_list'] = { L: [] };
   baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
-    L: [{ S: stringBuilder.getHistoryString(interventionEvent, eventTimestamp) }],
+    L: [
+      ...extractValidHistoryItemIndices(historyList),
+      { S: stringBuilder.getHistoryString(interventionEvent, eventTimestamp) },
+    ],
   };
-  baseUpdateItemCommandInput['UpdateExpression'] +=
-    ', #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
-  baseUpdateItemCommandInput['UpdateExpression'] += buildRemoveExpression(finalState, historyList);
+  baseUpdateItemCommandInput['UpdateExpression'] += ', #INT = :int, #SA = :sa, #AA = :aa, #H = :h';
+  baseUpdateItemCommandInput['UpdateExpression'] += buildRemoveExpression(finalState);
 
   return baseUpdateItemCommandInput;
 };
@@ -83,46 +92,37 @@ export const buildPartialUpdateAccountStateCommand = (
 /**
  * Helper function to build the Remove Expression for DynamoDB update
  * @param finalState - new account state object
- * @param historyList - list of history items
  */
-function buildRemoveExpression(finalState: StateDetails, historyList: string[]) {
-  let removeExpression = '';
+function buildRemoveExpression(finalState: StateDetails) {
+  const itemsToRemove = [];
 
-  const expiredHistoryRemove = updateExpiredHistory(historyList);
-  removeExpression += expiredHistoryRemove ? expiredHistoryRemove + ', ' : removeExpression;
-
-  if (finalState.resetPassword && finalState.reproveIdentity) {
-    removeExpression += 'resetPasswordAt, reprovedIdentityAt';
-  } else if (finalState.resetPassword && !finalState.reproveIdentity) {
-    removeExpression += 'resetPasswordAt';
-  } else if (!finalState.resetPassword && finalState.reproveIdentity) {
-    removeExpression += 'reprovedIdentityAt';
+  if (finalState.resetPassword) {
+    itemsToRemove.push('resetPasswordAt');
+  }
+  if (finalState.reproveIdentity) {
+    itemsToRemove.push('reprovedIdentityAt');
   }
 
-  if (removeExpression) {
-    removeExpression = ' REMOVE ' + removeExpression;
+  if (itemsToRemove.length === 0) {
+    return '';
   }
 
-  return removeExpression;
+  return ' REMOVE ' + itemsToRemove.join(', ');
 }
 
-/**
- * Helper function to determine if any of the history items has exceeded the retention period.
- * @param historyList - list of history items
- */
-function updateExpiredHistory(historyList: string[]) {
+function extractValidHistoryItemIndices(historyList: string[]) {
   const historyStringBuilder = new HistoryStringBuilder();
-  const listOfHistoryStringsToDelete: string[] = [];
+  const listOfHistoryStringsToKeep: Array<{ S: string }> = [];
 
-  for (const index in historyList) {
-    const historyString = historyList[index]!;
-    const historyObject = historyStringBuilder.getHistoryObject(historyString);
-    const sendAtSecs = Math.floor(new Date(historyObject.sentAt).getTime() / 1000);
-    const retentionPer = AppConfigService.getInstance().historyRetentionSeconds;
-    const currentTimeSecs = getCurrentTimestamp().seconds;
-    if (sendAtSecs + retentionPer < currentTimeSecs) {
-      listOfHistoryStringsToDelete.push(`history[${index}]`);
+  for (const historyItem of historyList) {
+    const historyObject = historyStringBuilder.getHistoryObject(historyItem);
+    const sendAtSeconds = Math.floor(new Date(historyObject.sentAt).getTime() / 1000);
+    const retentionPeriod = AppConfigService.getInstance().historyRetentionSeconds;
+    const currentTimeSeconds = getCurrentTimestamp().seconds;
+    if (sendAtSeconds + retentionPeriod >= currentTimeSeconds) {
+      listOfHistoryStringsToKeep.push({ S: historyItem });
     }
   }
-  return listOfHistoryStringsToDelete.join(', ');
+
+  return listOfHistoryStringsToKeep;
 }
