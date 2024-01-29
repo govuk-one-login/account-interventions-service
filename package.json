@@ -40,7 +40,7 @@
   "devDependencies": {
     "@pact-foundation/pact": "^12.1.2",
     "@stoplight/spectral-cli": "^6.11.0",
-    "@types/aws-lambda": "^8.10.131",
+    "@types/aws-lambda": "^8.10.132",
     "@types/jest": "^29.5.11",
     "@types/node": "^18.19.8",
     "@types/webpack": "^5.28.5",
