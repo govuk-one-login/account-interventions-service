@@ -48,7 +48,7 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RIdA = :rida';
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
-      L: extractValidHistoryItemIndices(historyList),
+      L: extractValidHistoryItems(historyList),
     };
     return baseUpdateItemCommandInput;
   }
@@ -61,7 +61,7 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RPswdA = :rpswda';
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
-      L: extractValidHistoryItemIndices(historyList),
+      L: extractValidHistoryItems(historyList),
     };
     return baseUpdateItemCommandInput;
   }
@@ -79,7 +79,7 @@ export const buildPartialUpdateAccountStateCommand = (
   baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
   baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
     L: [
-      ...extractValidHistoryItemIndices(historyList),
+      ...extractValidHistoryItems(historyList),
       { S: stringBuilder.getHistoryString(interventionEvent, eventTimestamp) },
     ],
   };
@@ -110,7 +110,7 @@ function buildRemoveExpression(finalState: StateDetails) {
   return ' REMOVE ' + itemsToRemove.join(', ');
 }
 
-function extractValidHistoryItemIndices(historyList: string[]) {
+function extractValidHistoryItems(historyList: string[]) {
   const historyStringBuilder = new HistoryStringBuilder();
   const listOfHistoryStringsToKeep: Array<{ S: string }> = [];
 
