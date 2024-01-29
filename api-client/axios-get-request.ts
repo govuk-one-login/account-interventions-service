@@ -1,9 +1,9 @@
-import { instance } from "./axios-config";
+import { instance } from './axios-config';
 //import { axios } from './axios-config';
 
 export async function getRequest(userId: string) {
   try {
-    await instance.get(`https://072ifz6cp9.execute-api.eu-west-2.amazonaws.com/v1/ais/${userId}`);
+    await instance.get(userId);
   } catch (error) {
     console.log(error);
   }
@@ -19,8 +19,8 @@ export async function getRequest(userId: string) {
 //     console.log(error);
 //   }
 // }
-      
-// 
+
+//
 // const options = {
 //   url: 'https://vpce-svc-0762b4928b8687636.execute-api.eu-west-2.vpce.amazonaws.com/v1',
 //   method: 'get',
