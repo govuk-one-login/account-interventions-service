@@ -77,17 +77,17 @@
     "@aws-sdk/util-utf8-browser" "^3.0.0"
     tslib "^1.11.1"
 
-"@aws-lambda-powertools/commons@^1.17.0":
-  version "1.17.0"
-  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/commons/-/commons-1.17.0.tgz#01c78e1c9344dcd8209160f54229269ef6981086"
-  integrity sha512-eZbOUGKH+oNG49oObXucffTdUyj0XmQTnddgDWmSWLgAQ4/L60n7x80hYOTCmDqATxPoA4ADa+fzAxGx0hyaxQ==
+"@aws-lambda-powertools/commons@^1.17.0", "@aws-lambda-powertools/commons@^1.18.0":
+  version "1.18.0"
+  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/commons/-/commons-1.18.0.tgz#ea0f4a367e9b3b0dcc55a64a70a397ab1a51f11d"
+  integrity sha512-oSnST8Wr3WZcT/FgCUzZYUFB+qYHWMAKS0GhWbUqHZMr7I5F75jq/JbeUUF16ShOMGgnEzs5oJjizBYVTI6Oww==
 
-"@aws-lambda-powertools/logger@^1.17.0":
-  version "1.17.0"
-  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/logger/-/logger-1.17.0.tgz#b62ae91c9ea5cd79630ccd5d6efa55ce89b1f75e"
-  integrity sha512-HdesKvINDebLsxEyLzjEvn4ZiO3lYnl9Ol7GuRGgSTsB4byEeRbhAghCGCPZb0CA/NaDVQleaLTTjjsJjm6I7A==
+"@aws-lambda-powertools/logger@^1.18.0":
+  version "1.18.0"
+  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/logger/-/logger-1.18.0.tgz#55e815a3f005f42b84e88a7ae89937feb1c66fbf"
+  integrity sha512-oB4FPMYNPjME6xsDfm7rxRBHwaH0dQl+bmO9cDbRfiCsZfQxKtTiSvROGt6AvRo+5rhPZyCdn5eAHqCJ4f5tVQ==
   dependencies:
-    "@aws-lambda-powertools/commons" "^1.17.0"
+    "@aws-lambda-powertools/commons" "^1.18.0"
     lodash.merge "^4.6.2"
 
 "@aws-lambda-powertools/metrics@^1.17.0":
@@ -3025,19 +3025,10 @@ aws-xray-sdk-core@^3.5.3:
     cls-hooked "^4.2.2"
     semver "^7.5.3"
 
-axios@^1.6.0:
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.2.tgz#de67d42c755b571d3e698df1b6504cde9b0ee9f2"
-  integrity sha512-7i24Ri4pmDRfJTR7LDBhsOTtcm+9kjX5WiY1X3wIisx6G9So3pfMkEiU7emUBe46oceVImccTEM3k6C5dbVW8A==
-  dependencies:
-    follow-redirects "^1.15.0"
-    form-data "^4.0.0"
-    proxy-from-env "^1.1.0"
-
-axios@^1.6.1:
-  version "1.6.5"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.5.tgz#2c090da14aeeab3770ad30c3a1461bc970fb0cd8"
-  integrity sha512-Ii012v05KEVuUoFWmMW/UQv9aRIc3ZwkWDcM+h5Il8izZCtRVpDUfwpoFf7eOtajT3QiGR4yDUx7lPqHJULgbg==
+axios@^0.21.1, axios@^1.6.0, axios@^1.6.1, axios@^1.6.5:
+  version "1.6.7"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.7.tgz#7b48c2e27c96f9c68a2f8f31e2ab19f59b06b0a7"
+  integrity sha512-/hDJGff6/c7u0hDkvkGxR/oy6CbCs8ziCsC7SqmhjfozqiJGc8Z11wrv9z9lYfY4K8l+H9TpjcMDX0xOZmx+RA==
   dependencies:
     follow-redirects "^1.15.4"
     form-data "^4.0.0"
