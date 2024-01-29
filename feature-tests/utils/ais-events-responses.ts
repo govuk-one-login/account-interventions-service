@@ -1,4 +1,4 @@
-export const aisEventRepsonse = {
+export const aisEventResponse = {
   pswResetRequired: {
     description: 'AIS_FORCED_USER_PASSWORD_RESET',
     blocked: false,

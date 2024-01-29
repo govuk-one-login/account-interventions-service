@@ -3,7 +3,7 @@ import { generateRandomTestUserId } from '../../../utils/generate-random-test-us
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import { timeDelayForTestEnvironment } from '../../../utils/utility';
-import { aisEventRepsonse } from '../../../utils/ais-events-responses';
+import { aisEventResponse } from '../../../utils/ais-events-responses';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
@@ -36,19 +36,19 @@ defineFeature(feature, (test) => {
 
     then(
       /^I expect the response with all the valid state flags for (.*)$/,
-      async (aisEventType: keyof typeof aisEventRepsonse) => {
+      async (aisEventType: keyof typeof aisEventResponse) => {
         console.log(`Received`, { response });
         const eventTypes = ['unSuspendAction', 'unblock'];
         if (eventTypes.includes(aisEventType)) {
           expect(response.intervention.description).toBe('AIS_NO_INTERVENTION');
         } else {
-          expect(response.intervention.description).toBe(aisEventRepsonse[aisEventType].description);
+          expect(response.intervention.description).toBe(aisEventResponse[aisEventType].description);
         }
-        expect(response.state.blocked).toBe(aisEventRepsonse[aisEventType].blocked);
-        expect(response.state.suspended).toBe(aisEventRepsonse[aisEventType].suspended);
-        expect(response.state.resetPassword).toBe(aisEventRepsonse[aisEventType].resetPassword);
-        expect(response.state.reproveIdentity).toBe(aisEventRepsonse[aisEventType].reproveIdentity);
-        expect(response.auditLevel).toBe(aisEventRepsonse[aisEventType].auditLevel);
+        expect(response.state.blocked).toBe(aisEventResponse[aisEventType].blocked);
+        expect(response.state.suspended).toBe(aisEventResponse[aisEventType].suspended);
+        expect(response.state.resetPassword).toBe(aisEventResponse[aisEventType].resetPassword);
+        expect(response.state.reproveIdentity).toBe(aisEventResponse[aisEventType].reproveIdentity);
+        expect(response.auditLevel).toBe(aisEventResponse[aisEventType].auditLevel);
       },
     );
   });
@@ -79,14 +79,14 @@ defineFeature(feature, (test) => {
 
     then(
       /^I expect the response with all the valid state fields for the (.*)$/,
-      async (allowableAisEventType: keyof typeof aisEventRepsonse) => {
+      async (allowableAisEventType: keyof typeof aisEventResponse) => {
         console.log(`Received`, { response });
-        expect(response.intervention.description).toBe(aisEventRepsonse[allowableAisEventType].description);
-        expect(response.state.blocked).toBe(aisEventRepsonse[allowableAisEventType].blocked);
-        expect(response.state.suspended).toBe(aisEventRepsonse[allowableAisEventType].suspended);
-        expect(response.state.resetPassword).toBe(aisEventRepsonse[allowableAisEventType].resetPassword);
-        expect(response.state.reproveIdentity).toBe(aisEventRepsonse[allowableAisEventType].reproveIdentity);
-        expect(response.auditLevel).toBe(aisEventRepsonse[allowableAisEventType].auditLevel);
+        expect(response.intervention.description).toBe(aisEventResponse[allowableAisEventType].description);
+        expect(response.state.blocked).toBe(aisEventResponse[allowableAisEventType].blocked);
+        expect(response.state.suspended).toBe(aisEventResponse[allowableAisEventType].suspended);
+        expect(response.state.resetPassword).toBe(aisEventResponse[allowableAisEventType].resetPassword);
+        expect(response.state.reproveIdentity).toBe(aisEventResponse[allowableAisEventType].reproveIdentity);
+        expect(response.auditLevel).toBe(aisEventResponse[allowableAisEventType].auditLevel);
       },
     );
   });
@@ -117,14 +117,14 @@ defineFeature(feature, (test) => {
 
     then(
       /^I expect the response with all the valid state fields for the (.*)$/,
-      async (originalAisEventType: keyof typeof aisEventRepsonse) => {
+      async (originalAisEventType: keyof typeof aisEventResponse) => {
         console.log(`Received`, { response });
-        expect(response.intervention.description).toBe(aisEventRepsonse[originalAisEventType].description);
-        expect(response.state.blocked).toBe(aisEventRepsonse[originalAisEventType].blocked);
-        expect(response.state.suspended).toBe(aisEventRepsonse[originalAisEventType].suspended);
-        expect(response.state.resetPassword).toBe(aisEventRepsonse[originalAisEventType].resetPassword);
-        expect(response.state.reproveIdentity).toBe(aisEventRepsonse[originalAisEventType].reproveIdentity);
-        expect(response.auditLevel).toBe(aisEventRepsonse[originalAisEventType].auditLevel);
+        expect(response.intervention.description).toBe(aisEventResponse[originalAisEventType].description);
+        expect(response.state.blocked).toBe(aisEventResponse[originalAisEventType].blocked);
+        expect(response.state.suspended).toBe(aisEventResponse[originalAisEventType].suspended);
+        expect(response.state.resetPassword).toBe(aisEventResponse[originalAisEventType].resetPassword);
+        expect(response.state.reproveIdentity).toBe(aisEventResponse[originalAisEventType].reproveIdentity);
+        expect(response.auditLevel).toBe(aisEventResponse[originalAisEventType].auditLevel);
       },
     );
   });
@@ -199,14 +199,14 @@ defineFeature(feature, (test) => {
 
     then(
       /^I expect the response with history values for the (.*)$/,
-      async (aisEventType: keyof typeof aisEventRepsonse) => {
+      async (aisEventType: keyof typeof aisEventResponse) => {
         console.log(`Received History`, response.history);
-        expect(response.intervention.description).toBe(aisEventRepsonse[aisEventType].description);
-        expect(response.history.at(-1).component).toBe(aisEventRepsonse[aisEventType].componentHistory);
-        expect(response.history.at(-1).code).toBe(aisEventRepsonse[aisEventType].interventionCodeHistory);
-        expect(response.history.at(-1).intervention).toBe(aisEventRepsonse[aisEventType].interventionHistory);
-        expect(response.history.at(-1).reason).toBe(aisEventRepsonse[aisEventType].reason);
-        expect(response.auditLevel).toBe(aisEventRepsonse[aisEventType].auditLevel);
+        expect(response.intervention.description).toBe(aisEventResponse[aisEventType].description);
+        expect(response.history.at(-1).component).toBe(aisEventResponse[aisEventType].componentHistory);
+        expect(response.history.at(-1).code).toBe(aisEventResponse[aisEventType].interventionCodeHistory);
+        expect(response.history.at(-1).intervention).toBe(aisEventResponse[aisEventType].interventionHistory);
+        expect(response.history.at(-1).reason).toBe(aisEventResponse[aisEventType].reason);
+        expect(response.auditLevel).toBe(aisEventResponse[aisEventType].auditLevel);
       },
     );
   });
