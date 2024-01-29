@@ -8,9 +8,9 @@ jest.mock('../../commons/metrics');
 jest.mock('../../commons/get-current-timestamp', () => ({
   getCurrentTimestamp: jest.fn().mockImplementation(() => {
     return {
-      milliseconds: 1_234_567_890,
+      milliseconds: 1706544555234,
       isoString: 'today',
-      seconds: 1_234_567,
+      seconds: 1706544555,
     };
   }),
 }));
@@ -79,7 +79,7 @@ describe('build-partial-update-state-command', () => {
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda',
     };
-    const command = buildPartialUpdateAccountStateCommand(state, userAction, 4444, resetPasswordEventBody);
+    const command = buildPartialUpdateAccountStateCommand(state, userAction, 4444, resetPasswordEventBody, []);
     expect(command).toEqual(expectedOutput);
   });
 
@@ -110,7 +110,7 @@ describe('build-partial-update-state-command', () => {
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida',
     };
-    const command = buildPartialUpdateAccountStateCommand(state, userAction, 4444, resetPasswordEventBody);
+    const command = buildPartialUpdateAccountStateCommand(state, userAction, 4444, resetPasswordEventBody,[]);
     expect(command).toEqual(expectedOutput);
   });
 
@@ -154,6 +154,7 @@ describe('build-partial-update-state-command', () => {
       intervention,
       4444,
       interventionEventBody,
+      [],
       AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
     );
     expect(command).toEqual(expectedOutput);
@@ -198,6 +199,7 @@ describe('build-partial-update-state-command', () => {
       intervention,
       4444,
       interventionEventBody,
+      [],
       AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
     );
     expect(command).toEqual(expectedOutput);
@@ -243,6 +245,7 @@ describe('build-partial-update-state-command', () => {
       intervention,
       4444,
       interventionEventBody,
+      [],
       AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
     );
     expect(command).toEqual(expectedOutput);
@@ -282,7 +285,7 @@ describe('build-partial-update-state-command', () => {
         ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY' },
       },
       UpdateExpression:
-        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h) REMOVE resetPasswordAt, reprovedIdentityAt',
+        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h) REMOVE history[0], resetPasswordAt, reprovedIdentityAt',
     };
     const interventionEventBodyNoMsTimestamp = {
       ...interventionEventBody,
@@ -293,6 +296,7 @@ describe('build-partial-update-state-command', () => {
       intervention,
       4444,
       interventionEventBodyNoMsTimestamp as unknown as TxMAIngressEvent,
+      ['1611937409000|TICF_CRI|02|reason|originating_component_id|originator_reference_id|requester_id'],
       AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
     );
     expect(command).toEqual(expectedOutput);
@@ -306,7 +310,7 @@ describe('build-partial-update-state-command', () => {
       reproveIdentity: true,
     };
     const intervention = EventsEnum.FRAUD_BLOCK_ACCOUNT;
-    expect(() => buildPartialUpdateAccountStateCommand(state, intervention, 4444, interventionEventBody)).toThrow(
+    expect(() => buildPartialUpdateAccountStateCommand(state, intervention, 4444, interventionEventBody, [])).toThrow(
       new Error('The intervention received did not have an interventionName field.'),
     );
     expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);

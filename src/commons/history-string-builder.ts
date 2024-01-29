@@ -54,8 +54,8 @@ export class HistoryStringBuilder {
 
   /**
    * Method to get the history object and validates if it contains the correct amount of components.
-   * @param historyString - string passed in with seperators ('|') included. This will be
-   * recieved from DynamoDB.
+   * @param historyString - string passed in with separators ('|') included. This will be
+   * received from DynamoDB.
    * @returns - The history string transformed into an object.
    */
   public getHistoryObject(historyString: string): HistoryObject {
@@ -67,7 +67,7 @@ export class HistoryStringBuilder {
 
   /**
    * Method to take the history string and transform it into an object.
-   * @param array - Array of strings recieved from DynamoDB.
+   * @param array - Array of strings received from DynamoDB.
    * @returns - The string transformed into an object with the relevant parts.
    * Optional parts are left as an empty string ('')
    */

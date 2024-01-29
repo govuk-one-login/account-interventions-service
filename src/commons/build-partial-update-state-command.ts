@@ -3,6 +3,8 @@ import { UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { AISInterventionTypes, EventsEnum, MetricNames } from '../data-types/constants';
 import { logAndPublishMetric } from './metrics';
 import { HistoryStringBuilder } from './history-string-builder';
+import { AppConfigService } from '../services/app-config-service';
+import { getCurrentTimestamp } from './get-current-timestamp';
 
 /**
  * Method to build a Partial of UpdateItemCommandInput
@@ -11,12 +13,14 @@ import { HistoryStringBuilder } from './history-string-builder';
  * @param currentTimestamp - timestamp of now in ms
  * @param interventionEvent - intervention type
  * @param interventionName - optional intervention name if the event was a fraud intervention
+ * @param historyList - list of history items
  */
 export const buildPartialUpdateAccountStateCommand = (
   finalState: StateDetails,
   eventName: EventsEnum,
   currentTimestamp: number,
   interventionEvent: TxMAIngressEvent,
+  historyList: string[],
   interventionName?: AISInterventionTypes,
 ): Partial<UpdateItemCommandInput> => {
   const eventTimestamp = interventionEvent.event_timestamp_ms ?? interventionEvent.timestamp * 1000;
@@ -71,12 +75,54 @@ export const buildPartialUpdateAccountStateCommand = (
   };
   baseUpdateItemCommandInput['UpdateExpression'] +=
     ', #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
-  if (finalState.resetPassword && finalState.reproveIdentity) {
-    baseUpdateItemCommandInput['UpdateExpression'] += ' REMOVE resetPasswordAt, reprovedIdentityAt';
-  } else if (finalState.resetPassword && !finalState.reproveIdentity) {
-    baseUpdateItemCommandInput['UpdateExpression'] += ' REMOVE resetPasswordAt';
-  } else if (!finalState.resetPassword && finalState.reproveIdentity) {
-    baseUpdateItemCommandInput['UpdateExpression'] += ' REMOVE reprovedIdentityAt';
-  }
+  baseUpdateItemCommandInput['UpdateExpression'] += buildRemoveExpression(finalState, historyList);
+
   return baseUpdateItemCommandInput;
 };
+
+/**
+ * Helper function to build the Remove Expression for DynamoDB update
+ * @param finalState - new account state object
+ * @param historyList - list of history items
+ */
+function buildRemoveExpression(finalState: StateDetails, historyList: string[]) {
+  let removeExpression = '';
+
+  const expiredHistoryRemove = updateExpiredHistory(historyList);
+  removeExpression += expiredHistoryRemove ? expiredHistoryRemove + ', ' : removeExpression;
+
+  if (finalState.resetPassword && finalState.reproveIdentity) {
+    removeExpression += 'resetPasswordAt, reprovedIdentityAt';
+  } else if (finalState.resetPassword && !finalState.reproveIdentity) {
+    removeExpression += 'resetPasswordAt';
+  } else if (!finalState.resetPassword && finalState.reproveIdentity) {
+    removeExpression += 'reprovedIdentityAt';
+  }
+
+  if (removeExpression) {
+    removeExpression = ' REMOVE ' + removeExpression;
+  }
+
+  return removeExpression;
+}
+
+/**
+ * Helper function to determine if any of the history items has exceeded the retention period.
+ * @param historyList - list of history items
+ */
+function updateExpiredHistory(historyList: string[]) {
+  const historyStringBuilder = new HistoryStringBuilder();
+  const listOfHistoryStringsToDelete: string[] = [];
+
+  for (const index in historyList) {
+    const historyString = historyList[index]!;
+    const historyObject = historyStringBuilder.getHistoryObject(historyString);
+    const sendAtSecs = Math.floor(new Date(historyObject.sentAt).getTime() / 1000);
+    const retentionPer = AppConfigService.getInstance().historyRetentionSeconds;
+    const currentTimeSecs = getCurrentTimestamp().seconds;
+    if (sendAtSecs + retentionPer < currentTimeSecs) {
+      listOfHistoryStringsToDelete.push(`history[${index}]`);
+    }
+  }
+  return listOfHistoryStringsToDelete.join(', ');
+}

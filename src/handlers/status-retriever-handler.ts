@@ -84,7 +84,7 @@ function validateEvent(userId: string) {
 }
 
 /**
- * Function to transform the response from DynamobDB into an object.
+ * Function to transform the response from DynamoDB into an object.
  * @param item - Response from DynamoDB
  * @returns - An object with all the required fields for the handler response. Creates a default object if any fields are undefined.
  * Updates timestamps to now if they are returned as null.

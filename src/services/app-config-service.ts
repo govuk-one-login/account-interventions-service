@@ -41,6 +41,10 @@ export class AppConfigService {
     return this.validateIsHTTPSUrl('TXMA_QUEUE_URL');
   }
 
+  public get historyRetentionSeconds(): number {
+    return this.validateNumberEnvVars('HISTORY_RETENTION_SECONDS');
+  }
+
   /**
    * A method for validating environment variables.
    *

@@ -43,7 +43,7 @@ export class DynamoDatabaseService {
   public async getAccountStateInformation(userId: string): Promise<DynamoDBStateResult | undefined> {
     const parameters = this.getInputParameterForDatabaseQuery(userId);
     parameters.ProjectionExpression =
-      'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted';
+      'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted, history';
     const response: QueryCommandOutput = await this.dynamoClient.send(new QueryCommand(parameters));
     return this.validateQueryResponse<DynamoDBStateResult>(response);
   }

@@ -103,6 +103,7 @@ async function processSQSRecord(record: SQSRecord) {
     eventName,
     currentTimestamp.milliseconds,
     recordBody,
+    itemFromDB?.history ?? [],
     statusResult.interventionName,
   );
   logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Updating user status`, { userId, partialCommandInput });

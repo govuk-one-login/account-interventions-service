@@ -96,7 +96,7 @@ describe('Dynamo DB Service', () => {
       KeyConditionExpression: '#pk = :id_value',
       ExpressionAttributeNames: { '#pk': 'pk' },
       ExpressionAttributeValues: { ':id_value': { S: 'abc' } },
-      ProjectionExpression: 'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted',
+      ProjectionExpression: 'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted, history',
     };
     queryCommandMock.resolvesOnce({ Items: items });
     await new DynamoDatabaseService('abc').getAccountStateInformation('abc');
