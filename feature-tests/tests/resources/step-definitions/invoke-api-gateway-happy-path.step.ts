@@ -3,6 +3,7 @@ import { generateRandomTestUserId } from '../../../utils/generate-random-test-us
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import { timeDelayForTestEnvironment } from '../../../utils/utility';
+import { aisEventResponse } from '../../../utils/ais-events-responses';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
@@ -34,38 +35,37 @@ defineFeature(feature, (test) => {
     );
 
     then(
-      /^I expect the intervention to be (.*), with the following state settings (.*), (.*), (.*) and (.*)$/,
-      async (
-        interventionType: string,
-        blockedState: string,
-        suspendedState: string,
-        resetPassword: string,
-        reproveIdentity: string,
-      ) => {
+      /^I expect the response with all the valid state flags for (.*)$/,
+      async (aisEventType: keyof typeof aisEventResponse) => {
         console.log(`Received`, { response });
-        expect(response.intervention.description).toBe(interventionType);
-        expect(response.state.blocked).toBe(JSON.parse(blockedState));
-        expect(response.state.suspended).toBe(JSON.parse(suspendedState));
-        expect(response.state.resetPassword).toBe(JSON.parse(resetPassword));
-        expect(response.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
-        expect(response.auditLevel).toBe('standard');
+        const eventTypes = ['unSuspendAction', 'unblock'];
+        if (eventTypes.includes(aisEventType)) {
+          expect(response.intervention.description).toBe('AIS_NO_INTERVENTION');
+        } else {
+          expect(response.intervention.description).toBe(aisEventResponse[aisEventType].description);
+        }
+        expect(response.state.blocked).toBe(aisEventResponse[aisEventType].blocked);
+        expect(response.state.suspended).toBe(aisEventResponse[aisEventType].suspended);
+        expect(response.state.resetPassword).toBe(aisEventResponse[aisEventType].resetPassword);
+        expect(response.state.reproveIdentity).toBe(aisEventResponse[aisEventType].reproveIdentity);
+        expect(response.auditLevel).toBe(aisEventResponse[aisEventType].auditLevel);
       },
     );
   });
 
-  test('Happy Path - <originalAisEventType> account - Get Request to /ais/userId - Returns Expected Data for <aisEventType>', ({
+  test('Happy Path - Get Request to /ais/userId - allowable Transition from <originalAisEventType> to <allowableAisEventType> - Return expected data', ({
     given,
     when,
     then,
   }) => {
     given(
       /^I send an (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
-      async (aisEventType, originalAisEventType) => {
+      async (allowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
         await timeDelayForTestEnvironment(500);
-        console.log('sending second message to put the user in : ' + aisEventType);
-        await sendSQSEvent(testUserId, aisEventType);
+        console.log('sending second message to put the user in : ' + allowableAisEventType);
+        await sendSQSEvent(testUserId, allowableAisEventType);
       },
     );
 
@@ -78,18 +78,94 @@ defineFeature(feature, (test) => {
     );
 
     then(
-      /^I expect the intervention to be (.*), with the following state settings (.*), (.*), (.*) and (.*)$/,
+      /^I expect the response with all the valid state fields for the (.*)$/,
+      async (allowableAisEventType: keyof typeof aisEventResponse) => {
+        console.log(`Received`, { response });
+        expect(response.intervention.description).toBe(aisEventResponse[allowableAisEventType].description);
+        expect(response.state.blocked).toBe(aisEventResponse[allowableAisEventType].blocked);
+        expect(response.state.suspended).toBe(aisEventResponse[allowableAisEventType].suspended);
+        expect(response.state.resetPassword).toBe(aisEventResponse[allowableAisEventType].resetPassword);
+        expect(response.state.reproveIdentity).toBe(aisEventResponse[allowableAisEventType].reproveIdentity);
+        expect(response.auditLevel).toBe(aisEventResponse[allowableAisEventType].auditLevel);
+      },
+    );
+  });
+
+  test('Happy Path - Get Request to /ais/userId - non-allowable Transition from <originalAisEventType> to <nonAllowableAisEventType> - Returns expected data', ({
+    given,
+    when,
+    then,
+  }) => {
+    given(
+      /^I send an (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
+      async (nonAllowableAisEventType, originalAisEventType) => {
+        console.log('sending first message to put the user in : ' + originalAisEventType);
+        await sendSQSEvent(testUserId, originalAisEventType);
+        await timeDelayForTestEnvironment(500);
+        console.log('sending second message to put the user in : ' + nonAllowableAisEventType);
+        await sendSQSEvent(testUserId, nonAllowableAisEventType);
+      },
+    );
+
+    when(
+      /^I invoke the API to retrieve the intervention status of the user's account. With history (.*)$/,
+      async (historyValue) => {
+        await timeDelayForTestEnvironment(500);
+        response = await invokeGetAccountState(testUserId, historyValue);
+      },
+    );
+
+    then(
+      /^I expect the response with all the valid state fields for the (.*)$/,
+      async (originalAisEventType: keyof typeof aisEventResponse) => {
+        console.log(`Received`, { response });
+        expect(response.intervention.description).toBe(aisEventResponse[originalAisEventType].description);
+        expect(response.state.blocked).toBe(aisEventResponse[originalAisEventType].blocked);
+        expect(response.state.suspended).toBe(aisEventResponse[originalAisEventType].suspended);
+        expect(response.state.resetPassword).toBe(aisEventResponse[originalAisEventType].resetPassword);
+        expect(response.state.reproveIdentity).toBe(aisEventResponse[originalAisEventType].reproveIdentity);
+        expect(response.auditLevel).toBe(aisEventResponse[originalAisEventType].auditLevel);
+      },
+    );
+  });
+
+  test('Happy Path - Get Request to /ais/userId - non-allowable Transition from <originalAisEventType> to <nonAllowableAisEventType> - Get Request to /ais/userId - Returns expected data with diff flags', ({
+    given,
+    when,
+    then,
+  }) => {
+    given(
+      /^I send an (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
+      async (nonAllowableAisEventType, originalAisEventType) => {
+        console.log('sending first message to put the user in : ' + originalAisEventType);
+        await sendSQSEvent(testUserId, originalAisEventType);
+        await timeDelayForTestEnvironment(500);
+        console.log('sending second message to put the user in : ' + nonAllowableAisEventType);
+        await sendSQSEvent(testUserId, nonAllowableAisEventType);
+      },
+    );
+
+    when(
+      /^I invoke the API to retrieve the intervention status of the user's account. With history (.*)$/,
+      async (historyValue) => {
+        await timeDelayForTestEnvironment(500);
+        response = await invokeGetAccountState(testUserId, historyValue);
+      },
+    );
+
+    then(
+      /^I expect response with valid fields for (.*) with state flags as (.*), (.*), (.*) and (.*)$/,
       async (
-        interventionType: string,
-        blockedState: string,
-        suspendedState: string,
-        resetPassword: string,
-        reproveIdentity: string,
-      ) => {
+        interventionType:string,
+        blocked:string,
+        suspended:string,
+        resetPassword:string,
+        reproveIdentity:string
+        ) => {
         console.log(`Received`, { response });
         expect(response.intervention.description).toBe(interventionType);
-        expect(response.state.blocked).toBe(JSON.parse(blockedState));
-        expect(response.state.suspended).toBe(JSON.parse(suspendedState));
+        expect(response.state.blocked).toBe(JSON.parse(blocked));
+        expect(response.state.suspended).toBe(JSON.parse(suspended));
         expect(response.state.resetPassword).toBe(JSON.parse(resetPassword));
         expect(response.state.reproveIdentity).toBe(JSON.parse(reproveIdentity));
         expect(response.auditLevel).toBe('standard');
@@ -97,7 +173,7 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('Happy Path - <originalAisEventType> account - Get Request to /ais/userId - Returns Expected Data for <aisEventType> with History values', ({
+  test('Happy Path - Get Request to /ais/userId - allowable Transition from <originalAisEventType> to <allowableAisEventType> - Get Request to /ais/userId - Returns expected data with history values', ({
     given,
     when,
     then,
@@ -122,26 +198,20 @@ defineFeature(feature, (test) => {
     );
 
     then(
-      /^I expect the intervention to be (.*), with the following history values with (.*), (.*), (.*), (.*)$/,
-      async (
-        interventionType: string,
-        componentHistory: string,
-        interventionCodeHistory: string,
-        interventionHistory: string,
-        reason: string,
-      ) => {
+      /^I expect the response with history values for the (.*)$/,
+      async (aisEventType: keyof typeof aisEventResponse) => {
         console.log(`Received History`, response.history);
-        expect(response.intervention.description).toBe(interventionType);
-        expect(response.auditLevel).toBe('standard');
-        expect(response.history.at(-1).component).toBe(componentHistory);
-        expect(response.history.at(-1).code).toBe(interventionCodeHistory);
-        expect(response.history.at(-1).intervention).toBe(interventionHistory);
-        expect(response.history.at(-1).reason).toBe(reason);
+        expect(response.intervention.description).toBe(aisEventResponse[aisEventType].description);
+        expect(response.history.at(-1).component).toBe(aisEventResponse[aisEventType].componentHistory);
+        expect(response.history.at(-1).code).toBe(aisEventResponse[aisEventType].interventionCodeHistory);
+        expect(response.history.at(-1).intervention).toBe(aisEventResponse[aisEventType].interventionHistory);
+        expect(response.history.at(-1).reason).toBe(aisEventResponse[aisEventType].reason);
+        expect(response.auditLevel).toBe(aisEventResponse[aisEventType].auditLevel);
       },
     );
   });
 
-  test('Happy Path - Field Validation - Get Request to /ais/userId - Returns Expected Data for <aisEventType> with specific field validation', ({
+  test('Happy Path - Get Request to /ais/userId - Field Validation - Returns Expected Data for <aisEventType> with specific field validation', ({
     given,
     when,
     then,
@@ -165,7 +235,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Happy Path - Field Validation - Get Request to /ais/userId -  Multiple Transitions from one event type to other event types', ({
+  test('Happy Path - Get Request to /ais/userId - Multiple Transitions from one event type to other event types', ({
     given,
     when,
     then,
