@@ -119,7 +119,7 @@ export function attemptToParseJson(jsonString: string) {
   try {
     return JSON.parse(jsonString) as TxMAIngressEvent;
   } catch (error) {
-    logger.error('record body could not be parsed to valid JSON.', { error });
+    logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} record body could not be parsed to valid JSON.`, { error });
     logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
     throw new ValidationError('record body could not be parsed to valid JSON.');
   }
