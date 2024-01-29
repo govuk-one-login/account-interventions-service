@@ -45,7 +45,7 @@
     "@types/node": "^18.19.8",
     "@types/webpack": "^5.28.5",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
-    "@typescript-eslint/parser": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.1",
     "aws-crt": "^1.21.0",
     "aws-lambda": "^1.0.7",
     "aws-sdk-client-mock": "^3.0.1",
