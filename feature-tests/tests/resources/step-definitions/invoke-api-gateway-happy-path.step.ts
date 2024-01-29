@@ -156,12 +156,12 @@ defineFeature(feature, (test) => {
     then(
       /^I expect response with valid fields for (.*) with state flags as (.*), (.*), (.*) and (.*)$/,
       async (
-        interventionType:string,
-        blocked:string,
-        suspended:string,
-        resetPassword:string,
-        reproveIdentity:string
-        ) => {
+        interventionType: string,
+        blocked: string,
+        suspended: string,
+        resetPassword: string,
+        reproveIdentity: string,
+      ) => {
         console.log(`Received`, { response });
         expect(response.intervention.description).toBe(interventionType);
         expect(response.state.blocked).toBe(JSON.parse(blocked));

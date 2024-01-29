@@ -12,6 +12,7 @@ import {
 import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
 import {
+  attemptToParseJson,
   validateEventAgainstSchema,
   validateEventIsNotInFuture,
   validateEventIsNotStale,
@@ -42,7 +43,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
 
   if (event.Records.length === 0) {
     logger.warn('Received no records.');
-    logAndPublishMetric(MetricNames.INTERVENTION_EVENT_INVALID);
+    logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
     return {
       batchItemFailures: [],
     };
@@ -71,7 +72,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
  */
 async function processSQSRecord(record: SQSRecord) {
   const currentTimestamp = getCurrentTimestamp();
-  const recordBody: TxMAIngressEvent = JSON.parse(record.body);
+  const recordBody = attemptToParseJson(record.body);
   validateEventAgainstSchema(recordBody);
   const eventName = getEventName(recordBody);
   logger.debug('Intervention received.', { intervention: eventName });
