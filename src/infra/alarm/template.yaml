@@ -322,44 +322,6 @@ Resources:
 #
 # Cloudwatch alarms for Account Interventions Processor
 #
-  EventValidationFailed:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Intervention event failed validation."
-      Namespace: !Ref SystemTagValue
-      MetricName: INTERVENTION_EVENT_INVALID
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Statistic: Sum
-      Threshold: 5
-      EvaluationPeriods: 1
-      Period: 60
-      TreatMissingData: notBreaching
-      Dimensions:
-        - Name: service
-          Value: InterventionsProcessorFunction
-
-  TooManyEventsValidationFailed:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Too many intervention events failed validation."
-      Namespace: !Ref SystemTagValue
-      MetricName: INTERVENTION_EVENT_INVALID
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Statistic: Sum
-      Threshold: 5
-      EvaluationPeriods: 5
-      Period: 60
-      TreatMissingData: notBreaching
-      Dimensions:
-        - Name: service
-          Value: InterventionsProcessorFunction
-
   InvalidEventReceived:
     Type: AWS::CloudWatch::Alarm
     Properties:

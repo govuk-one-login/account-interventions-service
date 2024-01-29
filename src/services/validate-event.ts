@@ -107,3 +107,20 @@ function isEventAfterLastEvent(eventTimeStamp: number, sentAt?: number, appliedA
   const latestIntervention = sentAt ?? appliedAt ?? 0;
   return eventTimeStamp > latestIntervention;
 }
+
+/**
+ * Helper function attempt to parse a string into a JSON object
+ * It returns the parsed object if successful throws a {@link ValidationError} otherwise
+ * @param jsonString - string to be parsed into JSON
+ * @throws ValidationError - returned if the string is not valid JSON
+ * @returns TxMAIngressEvent - event parsed from string
+ */
+export function attemptToParseJson(jsonString: string) {
+  try {
+    return JSON.parse(jsonString) as TxMAIngressEvent;
+  } catch (error) {
+    logger.error('record body could not be parsed to valid JSON.', { error });
+    logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
+    throw new ValidationError('record body could not be parsed to valid JSON.');
+  }
+}

@@ -136,10 +136,18 @@ describe('intervention processor handler', () => {
       const loggerWarnSpy = jest.spyOn(logger, 'warn');
       await handler({ Records: [] }, mockContext);
       expect(loggerWarnSpy).toHaveBeenCalledWith('Received no records.');
-      expect(logAndPublishMetric).toHaveBeenCalledWith('INTERVENTION_EVENT_INVALID');
+      expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
+    it('should not retry if message body cannot be parsed to valid JSON', async () => {
+      mockRecord.body = ' ';
+      expect(await handler(mockEvent, mockContext)).toEqual({
+        batchItemFailures: [],
+      });
+      expect(logger.error).toHaveBeenCalledWith('record body could not be parsed to valid JSON.', {"error": new SyntaxError("Unexpected end of JSON input")});
+      expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
+    })
     it('should not retry the record if a StateTransitionError is received', async () => {
       mockRetrieveRecords.mockReturnValue({
         blocked: false,
