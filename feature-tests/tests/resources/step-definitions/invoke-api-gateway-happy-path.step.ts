@@ -59,7 +59,7 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     given(
-      /^I send an (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
+      /^I send an (.*) allowable intervention event message to the TxMA ingress SQS queue for a Account in (.*) state$/,
       async (allowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
@@ -97,7 +97,7 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     given(
-      /^I send a (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
+      /^I send an (.*) non-allowable intervention event message to the TxMA ingress SQS queue for a Account in (.*) state$/,
       async (nonAllowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
@@ -129,13 +129,13 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('Happy Path - Get Request to /ais/userId - non-allowable Transition from <originalAisEventType> to <nonAllowableAisEventType> - Get Request to /ais/userId - Returns expected data with diff flags', ({
+  test('Get Request to /ais/userId - Password and Id non-allowable Transition from <originalAisEventType> to <nonAllowableAisEventType> - Returns expected data', ({
     given,
     when,
     then,
   }) => {
     given(
-      /^I send (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
+      /^I send an (.*) non-allowable event type password or id Reset intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
       async (nonAllowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
