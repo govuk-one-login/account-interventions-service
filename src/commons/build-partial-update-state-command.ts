@@ -4,7 +4,6 @@ import { AISInterventionTypes, EventsEnum, MetricNames } from '../data-types/con
 import { logAndPublishMetric } from './metrics';
 import { HistoryStringBuilder } from './history-string-builder';
 import { AppConfigService } from '../services/app-config-service';
-import { getCurrentTimestamp } from './get-current-timestamp';
 
 /**
  * Method to build a Partial of UpdateItemCommandInput
@@ -48,7 +47,7 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RIdA = :rida';
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
-      L: extractValidHistoryItems(historyList),
+      L: extractValidHistoryItems(historyList, currentTimestamp),
     };
     return baseUpdateItemCommandInput;
   }
@@ -61,7 +60,7 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RPswdA = :rpswda';
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
-      L: extractValidHistoryItems(historyList),
+      L: extractValidHistoryItems(historyList, currentTimestamp),
     };
     return baseUpdateItemCommandInput;
   }
@@ -79,7 +78,7 @@ export const buildPartialUpdateAccountStateCommand = (
   baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
   baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
     L: [
-      ...extractValidHistoryItems(historyList),
+      ...extractValidHistoryItems(historyList, currentTimestamp),
       { S: stringBuilder.getHistoryString(interventionEvent, eventTimestamp) },
     ],
   };
@@ -113,17 +112,19 @@ function buildRemoveExpression(finalState: StateDetails) {
 /**
  * Helper function to determine which history items have not exceeded the retention period.
  * @param historyList - list of history items
+ * @param currentTimestampMs - current timestamp in milliseconds
  */
-function extractValidHistoryItems(historyList: string[]) {
+function extractValidHistoryItems(historyList: string[], currentTimestampMs: number) {
   const historyStringBuilder = new HistoryStringBuilder();
-  const retentionPeriod = AppConfigService.getInstance().historyRetentionSeconds;
-  const currentTimeSeconds = getCurrentTimestamp().seconds;
 
-  return historyList.map((historyItem) => {
+  // eslint-disable-next-line unicorn/no-array-reduce
+  return historyList.reduce<Array<{ S: string }>>((validHistoryItems, historyItem) => {
     const historyObject = historyStringBuilder.getHistoryObject(historyItem);
-    const sendAtSeconds = Math.floor(new Date(historyObject.sentAt).getTime() / 1000);
-    if (sendAtSeconds + retentionPeriod >= currentTimeSeconds) {
-      return { S: historyItem };
+    const sendAtMs = new Date(historyObject.sentAt).getTime();
+    if (sendAtMs + AppConfigService.getInstance().historyRetentionSeconds * 1000 >= currentTimestampMs) {
+      validHistoryItems.push({ S: historyItem });
     }
-  });
+
+    return validHistoryItems;
+  }, []);
 }
