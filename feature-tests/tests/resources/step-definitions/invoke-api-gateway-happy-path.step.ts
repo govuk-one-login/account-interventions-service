@@ -97,7 +97,7 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     given(
-      /^I send an (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
+      /^I send a (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
       async (nonAllowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
@@ -135,7 +135,7 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     given(
-      /^I send an (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
+      /^I send (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
       async (nonAllowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
