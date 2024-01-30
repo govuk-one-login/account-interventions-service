@@ -59,7 +59,7 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     given(
-      /^I send an (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
+      /^I send an (.*) allowable intervention event message to the TxMA ingress SQS queue for a Account in (.*) state$/,
       async (allowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
@@ -70,7 +70,7 @@ defineFeature(feature, (test) => {
     );
 
     when(
-      /^I invoke the API to retrieve the intervention status of the user's account. With history (.*)$/,
+      /^I invoke the API to retrieve the allowable intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
         await timeDelayForTestEnvironment(500);
         response = await invokeGetAccountState(testUserId, historyValue);
@@ -97,7 +97,7 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     given(
-      /^I send an (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
+      /^I send an (.*) non-allowable intervention event message to the TxMA ingress SQS queue for a Account in (.*) state$/,
       async (nonAllowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
@@ -108,7 +108,7 @@ defineFeature(feature, (test) => {
     );
 
     when(
-      /^I invoke the API to retrieve the intervention status of the user's account. With history (.*)$/,
+      /^I invoke the API to retrieve the non-allowable intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
         await timeDelayForTestEnvironment(500);
         response = await invokeGetAccountState(testUserId, historyValue);
@@ -116,7 +116,7 @@ defineFeature(feature, (test) => {
     );
 
     then(
-      /^I expect the response with all the valid state fields for the (.*)$/,
+      /^I expect the response with all the state fields for the (.*)$/,
       async (originalAisEventType: keyof typeof aisEventResponse) => {
         console.log(`Received`, { response });
         expect(response.intervention.description).toBe(aisEventResponse[originalAisEventType].description);
@@ -129,13 +129,13 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('Happy Path - Get Request to /ais/userId - non-allowable Transition from <originalAisEventType> to <nonAllowableAisEventType> - Get Request to /ais/userId - Returns expected data with diff flags', ({
+  test('Get Request to /ais/userId - Password and Id non-allowable Transition from <originalAisEventType> to <nonAllowableAisEventType> - Returns expected data', ({
     given,
     when,
     then,
   }) => {
     given(
-      /^I send an (.*) intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
+      /^I send an (.*) non-allowable event type password or id Reset intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
       async (nonAllowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
@@ -146,7 +146,7 @@ defineFeature(feature, (test) => {
     );
 
     when(
-      /^I invoke the API to retrieve the intervention status of the user's account. With history (.*)$/,
+      /^I invoke the API to retrieve the intervention status of the user's account with history (.*)$/,
       async (historyValue) => {
         await timeDelayForTestEnvironment(500);
         response = await invokeGetAccountState(testUserId, historyValue);
@@ -190,7 +190,7 @@ defineFeature(feature, (test) => {
     );
 
     when(
-      /^I invoke the API to retrieve the intervention status of the user's account with (.*)$/,
+      /^I invoke the API to retrieve the allowable intervention status of the user's account with (.*)$/,
       async (historyValue) => {
         await timeDelayForTestEnvironment(500);
         response = await invokeGetAccountState(testUserId, historyValue);
