@@ -70,7 +70,7 @@ defineFeature(feature, (test) => {
     );
 
     when(
-      /^I invoke the API to retrieve the intervention status of the user's account. With history (.*)$/,
+      /^I invoke the API to retrieve the allowable intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
         await timeDelayForTestEnvironment(500);
         response = await invokeGetAccountState(testUserId, historyValue);
@@ -108,7 +108,7 @@ defineFeature(feature, (test) => {
     );
 
     when(
-      /^I invoke the API to retrieve the intervention status of the user's account. With history (.*)$/,
+      /^I invoke the API to retrieve the non-allowable intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
         await timeDelayForTestEnvironment(500);
         response = await invokeGetAccountState(testUserId, historyValue);
@@ -116,7 +116,7 @@ defineFeature(feature, (test) => {
     );
 
     then(
-      /^I expect the response with all the valid state fields for the (.*)$/,
+      /^I expect the response with all the state fields for the (.*)$/,
       async (originalAisEventType: keyof typeof aisEventResponse) => {
         console.log(`Received`, { response });
         expect(response.intervention.description).toBe(aisEventResponse[originalAisEventType].description);
@@ -146,7 +146,7 @@ defineFeature(feature, (test) => {
     );
 
     when(
-      /^I invoke the API to retrieve the intervention status of the user's account. With history (.*)$/,
+      /^I invoke the API to retrieve the intervention status of the user's account with history (.*)$/,
       async (historyValue) => {
         await timeDelayForTestEnvironment(500);
         response = await invokeGetAccountState(testUserId, historyValue);
@@ -190,7 +190,7 @@ defineFeature(feature, (test) => {
     );
 
     when(
-      /^I invoke the API to retrieve the intervention status of the user's account with (.*)$/,
+      /^I invoke the API to retrieve the allowable intervention status of the user's account with (.*)$/,
       async (historyValue) => {
         await timeDelayForTestEnvironment(500);
         response = await invokeGetAccountState(testUserId, historyValue);

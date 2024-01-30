@@ -20,7 +20,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
     @regression
     Scenario Outline: Happy Path - Get Request to /ais/userId - allowable Transition from <originalAisEventType> to <allowableAisEventType> - Return expected data
         Given I send an <allowableAisEventType> intervention message to the TxMA ingress SQS queue for a Account in <originalAisEventType> state
-        When I invoke the API to retrieve the intervention status of the user's account. With history <historyValue>
+        When I invoke the API to retrieve the allowable intervention status of the user's account. With history <historyValue>
         Then I expect the response with all the valid state fields for the <allowableAisEventType>
         Examples:
             | originalAisEventType  | allowableAisEventType | historyValue |
@@ -58,8 +58,8 @@ Feature: Invoke-APIGateway-HappyPath.feature
     @regression
     Scenario Outline: Happy Path - Get Request to /ais/userId - non-allowable Transition from <originalAisEventType> to <nonAllowableAisEventType> - Returns expected data
         Given I send an <nonAllowableAisEventType> intervention message to the TxMA ingress SQS queue for a Account in <originalAisEventType> state
-        When I invoke the API to retrieve the intervention status of the user's account. With history <historyValue>
-        Then I expect the response with all the valid state fields for the <originalAisEventType>
+        When I invoke the API to retrieve the non-allowable intervention status of the user's account. With history <historyValue>
+        Then I expect the response with all the state fields for the <originalAisEventType>
         Examples:
             | originalAisEventType  | nonAllowableAisEventType  | historyValue |
             # password reset required account status to new intervention type
@@ -87,7 +87,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
     @regression
     Scenario Outline: Happy Path - Get Request to /ais/userId - non-allowable Transition from <originalAisEventType> to <nonAllowableAisEventType> - Get Request to /ais/userId - Returns expected data with diff flags
         Given I send an <nonAllowableAisEventType> intervention message to the TxMA ingress SQS queue for a Account in <originalAisEventType> state
-        When I invoke the API to retrieve the intervention status of the user's account. With history <historyValue>
+        When I invoke the API to retrieve the intervention status of the user's account with history <historyValue>
         Then I expect response with valid fields for <interventionType> with state flags as <blocked>, <suspended>, <resetPassword> and <reproveIdentity>
         Examples:
             | originalAisEventType  | nonAllowableAisEventType  | historyValue | interventionType                                                 | blocked | suspended | resetPassword | reproveIdentity |
@@ -99,7 +99,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
     @regression
     Scenario Outline: Happy Path - Get Request to /ais/userId - allowable Transition from <originalAisEventType> to <allowableAisEventType> - Get Request to /ais/userId - Returns expected data with history values
         Given I send an updated request to the SQS queue with intervention data of the type <aisEventType> from <originalAisEventType>
-        When I invoke the API to retrieve the intervention status of the user's account with <historyValue>
+        When I invoke the API to retrieve the allowable intervention status of the user's account with <historyValue>
         Then I expect the response with history values for the <aisEventType>
         Examples:
             | originalAisEventType  | aisEventType          | historyValue |
