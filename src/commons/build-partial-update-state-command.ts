@@ -110,19 +110,20 @@ function buildRemoveExpression(finalState: StateDetails) {
   return ' REMOVE ' + itemsToRemove.join(', ');
 }
 
+/**
+ * Helper function to determine which history items have not exceeded the retention period.
+ * @param historyList - list of history items
+ */
 function extractValidHistoryItems(historyList: string[]) {
   const historyStringBuilder = new HistoryStringBuilder();
-  const listOfHistoryStringsToKeep: Array<{ S: string }> = [];
+  const retentionPeriod = AppConfigService.getInstance().historyRetentionSeconds;
+  const currentTimeSeconds = getCurrentTimestamp().seconds;
 
-  for (const historyItem of historyList) {
+  return historyList.map((historyItem) => {
     const historyObject = historyStringBuilder.getHistoryObject(historyItem);
     const sendAtSeconds = Math.floor(new Date(historyObject.sentAt).getTime() / 1000);
-    const retentionPeriod = AppConfigService.getInstance().historyRetentionSeconds;
-    const currentTimeSeconds = getCurrentTimestamp().seconds;
     if (sendAtSeconds + retentionPeriod >= currentTimeSeconds) {
-      listOfHistoryStringsToKeep.push({ S: historyItem });
+      return { S: historyItem };
     }
-  }
-
-  return listOfHistoryStringsToKeep;
+  });
 }
