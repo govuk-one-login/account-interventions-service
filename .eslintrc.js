@@ -20,6 +20,7 @@ module.exports = {
     'unicorn/filename-case': ['error', { case: 'kebabCase' }],
     'unicorn/prevent-abbreviations': ['warn'],
     'unicorn/error-message': ['warn'],
+    'unicorn/no-array-reduce': ['off'],
     'unicorn/prefer-logical-operator-over-ternary': ['warn'],
     'unicorn/prefer-spread': ['warn'],
     'tsdoc/syntax': ['warn'],

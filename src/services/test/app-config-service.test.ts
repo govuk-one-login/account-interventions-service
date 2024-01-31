@@ -77,6 +77,7 @@ describe('AppConfigService', () => {
     expect(appConfig.metricServiceName).toEqual('test');
     expect(appConfig.maxRetentionSeconds).toEqual(12_345);
     expect(appConfig.txmaEgressQueueUrl).toEqual('https://sqs.eu-west-2.amazonaws.com/111122223333/TxMAQueue');
+    expect(appConfig.historyRetentionSeconds).toEqual(63072000);
   });
 
   it('should throw an error if the environmental variable is not a number', () => {

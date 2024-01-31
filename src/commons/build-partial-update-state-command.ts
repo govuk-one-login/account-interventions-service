@@ -3,6 +3,7 @@ import { UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { AISInterventionTypes, EventsEnum, MetricNames } from '../data-types/constants';
 import { logAndPublishMetric } from './metrics';
 import { HistoryStringBuilder } from './history-string-builder';
+import { AppConfigService } from '../services/app-config-service';
 
 /**
  * Method to build a Partial of UpdateItemCommandInput
@@ -11,12 +12,14 @@ import { HistoryStringBuilder } from './history-string-builder';
  * @param currentTimestamp - timestamp of now in ms
  * @param interventionEvent - intervention type
  * @param interventionName - optional intervention name if the event was a fraud intervention
+ * @param historyList - list of history items
  */
 export const buildPartialUpdateAccountStateCommand = (
   finalState: StateDetails,
   eventName: EventsEnum,
   currentTimestamp: number,
   interventionEvent: TxMAIngressEvent,
+  historyList: string[],
   interventionName?: AISInterventionTypes,
 ): Partial<UpdateItemCommandInput> => {
   const eventTimestamp = interventionEvent.event_timestamp_ms ?? interventionEvent.timestamp * 1000;
@@ -42,6 +45,10 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RIdA'] = 'reprovedIdentityAt';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':rida'] = { N: `${eventTimestamp}` };
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RIdA = :rida';
+    baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
+      L: extractValidHistoryItems(historyList, currentTimestamp),
+    };
     return baseUpdateItemCommandInput;
   }
   if (
@@ -51,6 +58,10 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RPswdA'] = 'resetPasswordAt';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':rpswda'] = { N: `${eventTimestamp}` };
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RPswdA = :rpswda';
+    baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
+      L: extractValidHistoryItems(historyList, currentTimestamp),
+    };
     return baseUpdateItemCommandInput;
   }
   if (!interventionName) {
@@ -65,18 +76,54 @@ export const buildPartialUpdateAccountStateCommand = (
   baseUpdateItemCommandInput['ExpressionAttributeValues'][':sa'] = { N: `${eventTimestamp}` };
   const stringBuilder = new HistoryStringBuilder();
   baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
-  baseUpdateItemCommandInput['ExpressionAttributeValues'][':empty_list'] = { L: [] };
   baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
-    L: [{ S: stringBuilder.getHistoryString(interventionEvent, eventTimestamp) }],
+    L: [
+      ...extractValidHistoryItems(historyList, currentTimestamp),
+      { S: stringBuilder.getHistoryString(interventionEvent, eventTimestamp) },
+    ],
   };
-  baseUpdateItemCommandInput['UpdateExpression'] +=
-    ', #INT = :int, #SA = :sa, #AA = :aa, #H = list_append(if_not_exists(#H, :empty_list), :h)';
-  if (finalState.resetPassword && finalState.reproveIdentity) {
-    baseUpdateItemCommandInput['UpdateExpression'] += ' REMOVE resetPasswordAt, reprovedIdentityAt';
-  } else if (finalState.resetPassword && !finalState.reproveIdentity) {
-    baseUpdateItemCommandInput['UpdateExpression'] += ' REMOVE resetPasswordAt';
-  } else if (!finalState.resetPassword && finalState.reproveIdentity) {
-    baseUpdateItemCommandInput['UpdateExpression'] += ' REMOVE reprovedIdentityAt';
-  }
+  baseUpdateItemCommandInput['UpdateExpression'] += ', #INT = :int, #SA = :sa, #AA = :aa, #H = :h';
+  baseUpdateItemCommandInput['UpdateExpression'] += buildRemoveExpression(finalState);
+
   return baseUpdateItemCommandInput;
 };
+
+/**
+ * Helper function to build the Remove Expression for DynamoDB update
+ * @param finalState - new account state object
+ */
+function buildRemoveExpression(finalState: StateDetails) {
+  const itemsToRemove = [];
+
+  if (finalState.resetPassword) {
+    itemsToRemove.push('resetPasswordAt');
+  }
+  if (finalState.reproveIdentity) {
+    itemsToRemove.push('reprovedIdentityAt');
+  }
+
+  if (itemsToRemove.length === 0) {
+    return '';
+  }
+
+  return ' REMOVE ' + itemsToRemove.join(', ');
+}
+
+/**
+ * Helper function to determine which history items have not exceeded the retention period.
+ * @param historyList - list of history items
+ * @param currentTimestampMs - current timestamp in milliseconds
+ */
+function extractValidHistoryItems(historyList: string[], currentTimestampMs: number) {
+  const historyStringBuilder = new HistoryStringBuilder();
+
+  return historyList.reduce((validHistoryItems: { S: string }[], historyItem: string) => {
+    const historyObject = historyStringBuilder.getHistoryObject(historyItem);
+    const sendAtMs = new Date(historyObject.sentAt).getTime();
+    if (sendAtMs + AppConfigService.getInstance().historyRetentionSeconds * 1000 >= currentTimestampMs) {
+      validHistoryItems.push({ S: historyItem });
+    }
+
+    return validHistoryItems;
+  }, []);
+}

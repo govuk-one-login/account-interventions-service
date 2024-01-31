@@ -13,3 +13,4 @@ process.env['TABLE_NAME'] = 'table_name';
 process.env['AWS_REGION'] = 'aws_region';
 process.env['DELETED_ACCOUNT_RETENTION_SECONDS'] = '12345';
 process.env['TXMA_QUEUE_URL'] = 'https://sqs.eu-west-2.amazonaws.com/111122223333/TxMAQueue';
+process.env['HISTORY_RETENTION_SECONDS'] = '63072000';
