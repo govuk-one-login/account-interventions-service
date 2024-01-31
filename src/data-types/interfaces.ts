@@ -69,8 +69,7 @@ export interface TxMAEgressBasicExtensions {
   trigger_event_id: string;
   trigger_event: string;
   intervention_code: string | undefined;
-  [key: string]: unknown;
-  [key: number]: unknown;
+  [key: string | number]: unknown;
 }
 export interface TxMAIngressEvent {
   event_name: TriggerEventsEnum;

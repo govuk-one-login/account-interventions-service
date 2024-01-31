@@ -45,6 +45,25 @@ const ingressInterventionEvent: TxMAIngressEvent = {
   },
 };
 
+const ingressEventWithExtraInterventionData: TxMAIngressEvent = {
+  component_id: '',
+  timestamp: 5,
+  event_timestamp_ms: 5000,
+  user: {
+    user_id: 'testUserId',
+  },
+  event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+  event_id: '123',
+  extensions: {
+    intervention: {
+      intervention_code: '01',
+      intervention_reason: 'reason',
+      123: 'this is an extra field',
+      another_extra_field: 'extra data',
+    },
+  },
+};
+
 const ingressUserActionEvent = {
   event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
   event_id: '123',
@@ -99,6 +118,7 @@ const sqsCommandInputForBlockIntervention = {
       trigger_event: 'TICF_ACCOUNT_INTERVENTION',
       trigger_event_id: '123',
       intervention_code: '01',
+      intervention_reason: 'reason',
       description: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
       allowable_interventions: [],
       state: State.PERMANENTLY_SUSPENDED,
@@ -119,6 +139,7 @@ const sqsCommandInputForDeletedAccount = {
       trigger_event: 'TICF_ACCOUNT_INTERVENTION',
       trigger_event_id: '123',
       intervention_code: '01',
+      intervention_reason: 'reason',
       description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
       allowable_interventions: [],
       state: State.DELETED,
@@ -139,6 +160,7 @@ const sqsCommandInputForSuspendIntervention = {
       trigger_event: 'TICF_ACCOUNT_INTERVENTION',
       trigger_event_id: '123',
       intervention_code: '01',
+      intervention_reason: 'reason',
       description: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
       allowable_interventions: ['01'],
       state: State.SUSPENDED,
@@ -159,6 +181,7 @@ const sqsCommandInputForUnsuspendIntervention = {
       trigger_event: 'TICF_ACCOUNT_INTERVENTION',
       trigger_event_id: '123',
       intervention_code: '01',
+      intervention_reason: 'reason',
       description: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
       allowable_interventions: ['01'],
       state: State.ACTIVE,
@@ -196,6 +219,7 @@ const sqsCommandInputForSuspendUserAction = {
       trigger_event: 'TICF_ACCOUNT_INTERVENTION',
       trigger_event_id: '123',
       intervention_code: '01',
+      intervention_reason: 'reason',
       description: 'AIS_FORCED_USER_IDENTITY_VERIFY',
       allowable_interventions: [],
       state: State.ACTIVE,
@@ -217,6 +241,31 @@ const sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass = {
       trigger_event: 'TICF_ACCOUNT_INTERVENTION',
       trigger_event_id: '123',
       intervention_code: '01',
+      intervention_reason: 'reason',
+      description: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY',
+      allowable_interventions: [],
+      state: State.ACTIVE,
+      action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY,
+    },
+  }),
+};
+
+const sqsInputWithExtraFields = {
+  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  MessageBody: JSON.stringify({
+    timestamp: 1_234_567,
+    event_timestamp_ms: 1_234_567_890,
+    event_timestamp_ms_formatted: 'today',
+    component_id: COMPONENT_ID,
+    event_name: 'AIS_EVENT_TRANSITION_APPLIED',
+    user: { user_id: 'testUserId' },
+    extensions: {
+      trigger_event: 'TICF_ACCOUNT_INTERVENTION',
+      trigger_event_id: '123',
+      intervention_code: '01',
+      intervention_reason: 'reason',
+      123: 'this is an extra field',
+      another_extra_field: 'extra data',
       description: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY',
       allowable_interventions: [],
       state: State.ACTIVE,
@@ -385,6 +434,29 @@ describe('send-audit-events', () => {
     expect(sqsMock).toHaveReceivedCommandWith(
       SendMessageCommand,
       sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass,
+    );
+  });
+
+  it('should successfully send the audit event with any extra fields from the intervention event', async () => {
+    sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
+
+    const response = await sendAuditEvent(
+      'AIS_EVENT_TRANSITION_APPLIED',
+      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+      ingressEventWithExtraInterventionData,
+      {
+        nextAllowableInterventions: [],
+        interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
+        stateResult: { blocked: false, suspended: true, reproveIdentity: true, resetPassword: true },
+      },
+    );
+    expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
+    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(logger.debug).toHaveBeenCalledTimes(2);
+    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
+    expect(sqsMock).toHaveReceivedCommandWith(
+      SendMessageCommand,
+      sqsInputWithExtraFields,
     );
   });
 
