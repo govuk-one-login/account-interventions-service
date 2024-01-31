@@ -55,6 +55,9 @@ const webpackConfig = {
   output: {
     filename: `[name]${JAVASCRIPT_FILE_EXT}`,
     path: resolve(__dirname, 'dist'),
+    library: {
+      type: 'commonjs2',
+    },
   },
   plugins: [new CleanWebpackPlugin()],
 };
