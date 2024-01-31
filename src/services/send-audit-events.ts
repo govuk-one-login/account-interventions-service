@@ -94,7 +94,6 @@ function buildExtensions(
     return {
       trigger_event: txMAIngressEvent.event_name,
       trigger_event_id: txMAIngressEvent.event_id ?? 'UNKNOWN',
-      intervention_code: txMAIngressEvent.extensions?.intervention?.intervention_code,
       ...txMAIngressEvent.extensions?.intervention,
       description: userLedActionList.includes(ingressEventName)
         ? 'USER_LED_ACTION'
@@ -108,7 +107,7 @@ function buildExtensions(
   return {
     trigger_event: txMAIngressEvent.event_name,
     trigger_event_id: txMAIngressEvent.event_id ?? 'UNKNOWN',
-    intervention_code: txMAIngressEvent.extensions?.intervention?.intervention_code,
+    ...txMAIngressEvent.extensions?.intervention,
   };
 }
 

@@ -68,7 +68,7 @@ export interface TxMAEgressExtensions extends TxMAEgressBasicExtensions {
 export interface TxMAEgressBasicExtensions {
   trigger_event_id: string;
   trigger_event: string;
-  intervention_code: string | undefined;
+  intervention_code?: string;
   [key: string | number]: unknown;
 }
 export interface TxMAIngressEvent {

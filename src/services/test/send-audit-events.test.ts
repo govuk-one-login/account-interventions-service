@@ -460,6 +460,42 @@ describe('send-audit-events', () => {
     );
   });
 
+  it('should successfully send the audit event with any extra fields from the intervention event when there is no state engine output', async () => {
+    sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
+    const sqsCommandInput = {
+      QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+      MessageBody: JSON.stringify({
+        timestamp: 1_234_567,
+        event_timestamp_ms: 1_234_567_890,
+        event_timestamp_ms_formatted: 'today',
+        component_id: COMPONENT_ID,
+        event_name: 'AIS_EVENT_TRANSITION_APPLIED',
+        user: { user_id: 'testUserId' },
+        extensions: {
+          trigger_event: 'TICF_ACCOUNT_INTERVENTION',
+          trigger_event_id: '123',
+          intervention_code: '01',
+          intervention_reason: 'reason',
+          123: 'this is an extra field',
+          another_extra_field: 'extra data',
+        },
+      }),
+
+    }
+    const response = await sendAuditEvent(
+      'AIS_EVENT_TRANSITION_APPLIED',
+      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+      ingressEventWithExtraInterventionData
+    );
+    expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
+    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(logger.debug).toHaveBeenCalledTimes(2);
+    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
+    expect(sqsMock).toHaveReceivedCommandWith(
+      SendMessageCommand, sqsCommandInput,
+    );
+  });
+
   it('should successfully send the audit event and return a response when an the account is unsuspended', async () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
     const response = await sendAuditEvent(
