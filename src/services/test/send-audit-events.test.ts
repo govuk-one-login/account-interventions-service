@@ -202,6 +202,7 @@ const sqsCommandInputForFutureInterventions = {
       trigger_event: 'TICF_ACCOUNT_INTERVENTION',
       trigger_event_id: '123',
       intervention_code: '01',
+      intervention_reason: 'reason'
     },
   }),
 };
