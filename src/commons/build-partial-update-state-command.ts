@@ -117,8 +117,7 @@ function buildRemoveExpression(finalState: StateDetails) {
 function extractValidHistoryItems(historyList: string[], currentTimestampMs: number) {
   const historyStringBuilder = new HistoryStringBuilder();
 
-  // eslint-disable-next-line unicorn/no-array-reduce
-  return historyList.reduce<Array<{ S: string }>>((validHistoryItems, historyItem) => {
+  return historyList.reduce((validHistoryItems: { S: string }[], historyItem: string) => {
     const historyObject = historyStringBuilder.getHistoryObject(historyItem);
     const sendAtMs = new Date(historyObject.sentAt).getTime();
     if (sendAtMs + AppConfigService.getInstance().historyRetentionSeconds * 1000 >= currentTimestampMs) {
