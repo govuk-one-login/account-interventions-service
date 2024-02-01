@@ -50,7 +50,7 @@ const webpackConfig = {
     ],
   },
   resolve: { extensions: [TYPESCRIPT_FILE_EXT, JAVASCRIPT_FILE_EXT] },
-  target: ['node', 'es2022'],
+  target: ['node', 'es2023'],
   entry,
   output: {
     filename: `[name]${JAVASCRIPT_FILE_EXT}`,
