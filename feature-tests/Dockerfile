@@ -1,7 +1,7 @@
 # Set the base image.
 FROM amazonlinux:latest
 RUN yum install -y gcc-c++ make
-RUN curl -sL https://rpm.nodesource.com/setup_18.x
+RUN curl -sL https://rpm.nodesource.com/setup_lts.x | bash -
 RUN yum install -y nodejs
 RUN npm install yarn -g
 
