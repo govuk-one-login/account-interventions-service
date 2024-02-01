@@ -99,8 +99,7 @@ interface Intervention {
   originating_component_id?: string;
   originator_reference_id?: string;
   audit_level?: string;
-  [key: string]: unknown;
-  [key: number]: unknown;
+  [key: string | number]: unknown;
 }
 
 export interface DeleteStatusUpdateSNSMessage {
