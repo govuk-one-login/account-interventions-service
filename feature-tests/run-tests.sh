@@ -6,6 +6,7 @@ set -u
 cp /package.json . 2>/dev/null || :
 cp /yarn.lock . 2>/dev/null || :
 cp /tsconfig.json . 2>/dev/null || :
+cp /.nvmrc . 2>/dev/null || :
 cp /jest.config.ts . 2>/dev/null || :
 cp /jest-cucumber-config.js . 2>/dev/null || :
 cp -R /tests . 2>/dev/null || :
