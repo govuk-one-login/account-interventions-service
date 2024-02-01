@@ -90,19 +90,19 @@ Feature: Invoke-APIGateway-HappyPath.feature
         When I invoke the API to retrieve the intervention status of the user's account with history <historyValue>
         Then I expect response with valid fields for <interventionType> with state flags as <blocked>, <suspended>, <resetPassword> and <reproveIdentity>
         Examples:
-            | originalAisEventType  | nonAllowableAisEventType  | historyValue | interventionType                                                 | blocked | suspended | resetPassword | reproveIdentity |
-            | pswResetRequired      | userActionPswResetSuccess | false        | AIS_FORCED_USER_PASSWORD_RESET                                   | false   | false     | false         | false           |
-            | idResetRequired       | userActionIdResetSuccess  | false        | AIS_FORCED_USER_IDENTITY_VERIFY                                  | false   | false     | false         | false           |
-            | pswAndIdResetRequired | userActionIdResetSuccess  | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY               | false   | true      | true          | false           |
-            | pswAndIdResetRequired | userActionPswResetSuccess | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY               | false   | true      | false         | true            |
+            | originalAisEventType  | nonAllowableAisEventType  | historyValue | interventionType                                   | blocked | suspended | resetPassword | reproveIdentity |
+            | pswResetRequired      | userActionPswResetSuccess | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false   | false     | false         | false           |
+            | idResetRequired       | userActionIdResetSuccess  | false        | AIS_FORCED_USER_IDENTITY_VERIFY                    | false   | false     | false         | false           |
+            | pswAndIdResetRequired | userActionIdResetSuccess  | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false   | true      | true          | false           |
+            | pswAndIdResetRequired | userActionPswResetSuccess | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false   | true      | false         | true            |
 
     @regression
     Scenario Outline: Happy Path - Get Request to /ais/userId - allowable Transition from <originalAisEventType> to <allowableAisEventType> - Get Request to /ais/userId - Returns expected data with history values
-        Given I send an updated request to the SQS queue with intervention data of the type <aisEventType> from <originalAisEventType>
+        Given I send an updated request to the SQS queue with intervention data of the type <allowableAisEventType> from <originalAisEventType>
         When I invoke the API to retrieve the allowable intervention status of the user's account with <historyValue>
-        Then I expect the response with history values for the <aisEventType>
+        Then I expect the response with history values for the <allowableAisEventType>
         Examples:
-            | originalAisEventType  | aisEventType          | historyValue |
+            | originalAisEventType  | allowableAisEventType | historyValue |
             # passsword reset account status to new intervention type
             | pswResetRequired      | suspendNoAction       | true         |
             | pswResetRequired      | block                 | true         |
