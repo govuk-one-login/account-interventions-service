@@ -180,12 +180,12 @@ defineFeature(feature, (test) => {
   }) => {
     given(
       /^I send an updated request to the SQS queue with intervention data of the type (.*) from (.*)$/,
-      async (aisEventType, originalAisEventType) => {
+      async (allowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
         await timeDelayForTestEnvironment(1500);
-        console.log('sending second message to put the user in : ' + aisEventType);
-        await sendSQSEvent(testUserId, aisEventType);
+        console.log('sending second message to put the user in : ' + allowableAisEventType);
+        await sendSQSEvent(testUserId, allowableAisEventType);
       },
     );
 
@@ -199,14 +199,14 @@ defineFeature(feature, (test) => {
 
     then(
       /^I expect the response with history values for the (.*)$/,
-      async (aisEventType: keyof typeof aisEventResponse) => {
+      async (allowableAisEventType: keyof typeof aisEventResponse) => {
         console.log(`Received History`, response.history);
-        expect(response.intervention.description).toBe(aisEventResponse[aisEventType].description);
-        expect(response.history.at(-1).component).toBe(aisEventResponse[aisEventType].componentHistory);
-        expect(response.history.at(-1).code).toBe(aisEventResponse[aisEventType].interventionCodeHistory);
-        expect(response.history.at(-1).intervention).toBe(aisEventResponse[aisEventType].interventionHistory);
-        expect(response.history.at(-1).reason).toBe(aisEventResponse[aisEventType].reason);
-        expect(response.auditLevel).toBe(aisEventResponse[aisEventType].auditLevel);
+        expect(response.intervention.description).toBe(aisEventResponse[allowableAisEventType].description);
+        expect(response.history.at(-1).component).toBe(aisEventResponse[allowableAisEventType].componentHistory);
+        expect(response.history.at(-1).code).toBe(aisEventResponse[allowableAisEventType].interventionCodeHistory);
+        expect(response.history.at(-1).intervention).toBe(aisEventResponse[allowableAisEventType].interventionHistory);
+        expect(response.history.at(-1).reason).toBe(aisEventResponse[allowableAisEventType].reason);
+        expect(response.auditLevel).toBe(aisEventResponse[allowableAisEventType].auditLevel);
       },
     );
   });
