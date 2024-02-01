@@ -44,11 +44,11 @@ export const buildPartialUpdateAccountStateCommand = (
   if (eventName === EventsEnum.IPV_IDENTITY_ISSUED) {
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RIdA'] = 'reprovedIdentityAt';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':rida'] = { N: `${eventTimestamp}` };
-    baseUpdateItemCommandInput['UpdateExpression'] += ', #RIdA = :rida';
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
       L: extractValidHistoryItems(historyList, currentTimestamp),
     };
+    baseUpdateItemCommandInput['UpdateExpression'] += ', #RIdA = :rida, #H = :h';
     return baseUpdateItemCommandInput;
   }
   if (
@@ -57,11 +57,11 @@ export const buildPartialUpdateAccountStateCommand = (
   ) {
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RPswdA'] = 'resetPasswordAt';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':rpswda'] = { N: `${eventTimestamp}` };
-    baseUpdateItemCommandInput['UpdateExpression'] += ', #RPswdA = :rpswda';
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
       L: extractValidHistoryItems(historyList, currentTimestamp),
     };
+    baseUpdateItemCommandInput['UpdateExpression'] += ', #RPswdA = :rpswda, #H = :h';
     return baseUpdateItemCommandInput;
   }
   if (!interventionName) {

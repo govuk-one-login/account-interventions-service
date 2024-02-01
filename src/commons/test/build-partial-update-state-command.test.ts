@@ -79,7 +79,7 @@ describe('build-partial-update-state-command', () => {
         ':ua': { N: '4444' },
         ':rpswda': { N: '10000000' },
       },
-      UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda',
+      UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda, #H = :h',
     };
     const command = buildPartialUpdateAccountStateCommand(state, userAction, 4444, resetPasswordEventBody, []);
     expect(command).toEqual(expectedOutput);
@@ -112,7 +112,7 @@ describe('build-partial-update-state-command', () => {
         ':ua': { N: '4444' },
         ':rida': { N: '10000000' },
       },
-      UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida',
+      UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida, #H = :h',
     };
     const command = buildPartialUpdateAccountStateCommand(state, userAction, 4444, resetPasswordEventBody, []);
     expect(command).toEqual(expectedOutput);
