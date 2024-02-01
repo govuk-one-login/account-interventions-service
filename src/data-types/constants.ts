@@ -83,8 +83,6 @@ export const userLedActionList: EventsEnum[] = [
   EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
 ];
 
-export const nonInterventionsCodes = new Set(['90', '91', '92', '93', '94', '95']);
-
 export const COMPONENT_ID = 'ACCOUNT_INTERVENTION_SERVICE';
 
 export enum HistoryStringParts {
