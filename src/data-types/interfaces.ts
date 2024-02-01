@@ -68,7 +68,8 @@ export interface TxMAEgressExtensions extends TxMAEgressBasicExtensions {
 export interface TxMAEgressBasicExtensions {
   trigger_event_id: string;
   trigger_event: string;
-  intervention_code: string | undefined;
+  intervention_code?: string;
+  [key: string | number]: unknown;
 }
 export interface TxMAIngressEvent {
   event_name: TriggerEventsEnum;
@@ -98,6 +99,7 @@ interface Intervention {
   originating_component_id?: string;
   originator_reference_id?: string;
   audit_level?: string;
+  [key: string | number]: unknown;
 }
 
 export interface DeleteStatusUpdateSNSMessage {
