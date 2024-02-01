@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { host, port } from './axios-utils';
 
-export const instance = axios.create({
-  baseURL: 'http://localhost:8080/',
+const instance = axios.create({
+  baseURL: `http://${host}:${port}/`,
   timeout: 1000,
 });
 
@@ -9,6 +10,14 @@ export class apiClient {
   public async getRequest(userId: string) {
     try {
       return await instance.get(userId);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  public async putRequest(userId: string, data: object) {
+    try {
+      return await instance.put(userId, data);
     } catch (error) {
       console.log(error);
     }

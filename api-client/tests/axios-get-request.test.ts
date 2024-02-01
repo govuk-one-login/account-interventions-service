@@ -1,17 +1,23 @@
+import path from "path";
 import { apiClient } from '../axios-config';
-// import axios from 'axios';
+import { PactV3 } from '@pact-foundation/pact';
 
-// const spy = jest.spyOn(axios, 'get')
-// jest.spyOn(axios, 'create');
-// spy.mockImplementation(async (url) => {
-//   return url
-// })
+// const provider = new PactV3({
+//   consumer: "AIS TS Client",
+//   provider: "AIS",
+//   logLevel: "debug",
+//   dir: path.resolve(process.cwd(), "pacts"),
+//   port: 8080,
+//});
 
 jest.mock('axios', () => ({
   create: jest.fn().mockReturnValue({
     get: jest.fn().mockImplementation(() => {
       return 'string'
     }),
+    put: jest.fn().mockImplementation(() => {
+      return {userId: 'user', data: 'data'}
+    })
   }),
 }))
 
@@ -20,8 +26,8 @@ const testUserId = 'urn:fdc:gov.uk:2022:TEST_USER-BB4HZX5Z9j-38nn-f-GXZ7wDPJ2KUG
 
 describe('Api-Client', () => {
   it('will get the users data from the API', async () => {
-
     const response = await client.getRequest(testUserId);
     expect(response).toBe('string');
-  })
+  });
+
 });
