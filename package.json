@@ -20,6 +20,7 @@
     "lint:spec": "yarn lint:spec:oas",
     "audit:fix": "yarn-audit-fix",
     "build": "yarn clean && webpack",
+    "build:esbuild": "yarn clean && tsc --noEmit && ts-node ./esbuild.config.ts",
     "clean": "rimraf dist coverage",
     "package:sam": "sam build -t src/infra/main/template.yaml",
     "package:sam:fix": "run-script-os",
@@ -35,7 +36,8 @@
     "@aws-sdk/client-dynamodb": "3.496.0",
     "@aws-sdk/client-sqs": "3.499.0",
     "@aws-sdk/util-dynamodb": "^3.503.1",
-    "@smithy/node-http-handler": "^2.3.1"
+    "@smithy/node-http-handler": "^2.3.1",
+    "esbuild": "0.19.5"
   },
   "devDependencies": {
     "@pact-foundation/pact": "^12.1.3",
