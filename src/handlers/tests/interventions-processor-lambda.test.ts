@@ -145,9 +145,11 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(logger.error).toHaveBeenCalledWith('Sensitive info - record body could not be parsed to valid JSON.', {"error": new SyntaxError("Unexpected end of JSON input")});
+      expect(logger.error).toHaveBeenCalledWith('Sensitive info - record body could not be parsed to valid JSON.', {
+        error: new SyntaxError('Unexpected end of JSON input'),
+      });
       expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
-    })
+    });
     it('should not retry the record if a StateTransitionError is received', async () => {
       mockRetrieveRecords.mockReturnValue({
         blocked: false,
@@ -228,7 +230,7 @@ describe('intervention processor handler', () => {
     });
 
     it('should succeed when an intervention event is received for a non existing user', async () => {
-      mockRetrieveRecords.mockReturnValue(undefined);
+      mockRetrieveRecords.mockReturnValue();
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
         stateResult: {
           blocked: false,
