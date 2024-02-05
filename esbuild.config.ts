@@ -46,11 +46,14 @@ for (const entry of entries){
       platform: 'node',
       outdir: `dist/${subFolder}`,
       //outbase: 'src/handlers',
-      sourcesContent: false,
-      //sourcemap: true,
-      target: 'es2023'
+      //sourcesContent: false,
+      tsconfig: './tsconfig.json',
+      //target: 'node20.11.0'
     }
-  ).catch(() => process.exit(1))
+  ).catch((error) => {
+    console.log(error);
+    process.exit(1);
+  })
 }
 // esbuild
 //   .build({

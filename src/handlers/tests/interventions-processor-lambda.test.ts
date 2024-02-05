@@ -230,7 +230,7 @@ describe('intervention processor handler', () => {
     });
 
     it('should succeed when an intervention event is received for a non existing user', async () => {
-      mockRetrieveRecords.mockReturnValue();
+      mockRetrieveRecords.mockReturnValue(undefined);
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
         stateResult: {
           blocked: false,
