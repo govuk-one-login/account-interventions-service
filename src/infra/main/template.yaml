@@ -169,7 +169,7 @@ Resources:
     Properties:
       FunctionName: !Sub "${AWS::StackName}-InterventionsProcessorFunction"
       Description: "Processes intervention events and updates account's intervention status."
-      CodeUri: ../../../src/handlers
+#      CodeUri: ../../../.aws-sam/build/InterventionsProcessorFunction
       Timeout: 5
       Handler: interventions-processor-handler.handler
       MemorySize: 512
@@ -201,8 +201,8 @@ Resources:
         Minify: true
         Target: "es2022"
         Sourcemap: false
-#        EntryPoints:
-#          - "./src/handlers/interventions-processor-handler.ts"
+        EntryPoints:
+          - "../../../src/handlers/interventions-processor-handler.ts"
       Tags:
         Product: !Ref ProductTagValue
         System: !Ref SystemTagValue
@@ -379,7 +379,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
       Description: "Updates an account intervention status indicating that the account has been deleted."
-      CodeUri: ../../../src/handlers
+#      CodeUri: ../../../src/handlers
       Timeout: 10
       Handler: account-deletion-processor-handler.handler
       MemorySize: 128
@@ -419,6 +419,8 @@ Resources:
         Minify: true
         Target: "es2022"
         Sourcemap: false
+        EntryPoints:
+          - "../../../src/handlers/account-deletion-processor-handler.ts"
 
   AccountDeletionProcessorResourcePolicy:
     Type: AWS::Lambda::Permission
@@ -932,7 +934,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-StatusRetrieverFunction'
       Description: "Retrieves the account's intervention status."
-      CodeUri: ../../../src/handlers
+#      CodeUri: ../../../src/handlers
       MemorySize: 512
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
@@ -950,6 +952,8 @@ Resources:
         Minify: true
         Target: "es2022"
         Sourcemap: false
+        EntryPoints:
+          - "../../../src/handlers/status-retriever-handler.ts"
 
   StatusRetrieverFunctionRole:
     Type: AWS::IAM::Role
@@ -1043,7 +1047,7 @@ Resources:
       FunctionName: !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunction'
       Description: 'Utility function to invoke the Private REST API (Non-Prod Only)'
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
-      CodeUri: ../../../src/handlers
+#      CodeUri: ../../../src/handlers
       Timeout: 10
       MemorySize: 256
       KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
@@ -1080,6 +1084,8 @@ Resources:
         Minify: true
         Target: "es2022"
         Sourcemap: false
+        EntryPoints:
+          - "../../../src/handlers/invoke-private-api.ts"
 
   InvokePrivateAPIGatewayFunctionRole:
     Condition: IsInternal
