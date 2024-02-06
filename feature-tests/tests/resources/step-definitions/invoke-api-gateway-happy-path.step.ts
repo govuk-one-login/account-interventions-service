@@ -1,6 +1,6 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
-import { sendSQSEvent } from '../../../utils/send-sqs-message';
+import { sendSQSEvent, purgeEgressOueue, receiveMessagesFromEgressOueue } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import { timeDelayForTestEnvironment } from '../../../utils/utility';
 import { aisEventResponse } from '../../../utils/ais-events-responses';
@@ -23,6 +23,7 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     given(/^I send an (.*) intervention message to the TxMA ingress SQS queue$/, async (aisEventType) => {
+      await purgeEgressOueue();
       await sendSQSEvent(testUserId, aisEventType);
     });
 
@@ -38,6 +39,10 @@ defineFeature(feature, (test) => {
       /^I expect the response with all the valid state flags for (.*)$/,
       async (aisEventType: keyof typeof aisEventResponse) => {
         console.log(`Received`, { response });
+        const receivedMessage: any  = await receiveMessagesFromEgressOueue();
+        let body: any = receivedMessage.Messages[0].Body;
+        const extensions = JSON.parse(body).extensions;
+        expect(await extensions.allowable_interventions).toEqual(aisEventResponse[aisEventType].allowable_interventions);
         const eventTypes = ['unSuspendAction', 'unblock'];
         if (eventTypes.includes(aisEventType)) {
           expect(response.intervention.description).toBe('AIS_NO_INTERVENTION');
@@ -61,11 +66,13 @@ defineFeature(feature, (test) => {
     given(
       /^I send an (.*) allowable intervention event message to the TxMA ingress SQS queue for a Account in (.*) state$/,
       async (allowableAisEventType, originalAisEventType) => {
+        await purgeEgressOueue();
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
-        await timeDelayForTestEnvironment(500);
         console.log('sending second message to put the user in : ' + allowableAisEventType);
+        await timeDelayForTestEnvironment(500);
         await sendSQSEvent(testUserId, allowableAisEventType);
+        await timeDelayForTestEnvironment(500);
       },
     );
 
@@ -81,6 +88,13 @@ defineFeature(feature, (test) => {
       /^I expect the response with all the valid state fields for the (.*)$/,
       async (allowableAisEventType: keyof typeof aisEventResponse) => {
         console.log(`Received`, { response });
+
+        const receivedMessage: any  = await receiveMessagesFromEgressOueue();
+        let body: any = receivedMessage.Messages[1].Body;
+        const extensions = JSON.parse(body).extensions;
+        console.log("print Extensions" + extensions.allowable_interventions);
+        expect(await extensions.allowable_interventions).toEqual(aisEventResponse[allowableAisEventType].allowable_interventions);
+      
         expect(response.intervention.description).toBe(aisEventResponse[allowableAisEventType].description);
         expect(response.state.blocked).toBe(aisEventResponse[allowableAisEventType].blocked);
         expect(response.state.suspended).toBe(aisEventResponse[allowableAisEventType].suspended);
@@ -137,6 +151,7 @@ defineFeature(feature, (test) => {
     given(
       /^I send an (.*) non-allowable event type password or id Reset intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
       async (nonAllowableAisEventType, originalAisEventType) => {
+        await purgeEgressOueue();
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
         await timeDelayForTestEnvironment(500);
