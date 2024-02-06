@@ -49,18 +49,18 @@ export async function purgeEgressOueue() {
 
 export async function receiveMessagesFromEgressOueue() {
   const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
-  let data;
+  let response;
   const queueURL = EndPoints.SQS_EGRESS_QUEUE_URL;
   const parameters = {
     QueueUrl: queueURL,
 };
   try {
-    data = (await sqs.receiveMessage(parameters)).Messages;
+    response = await sqs.receiveMessage(parameters);
   } catch (error) {
     console.log('Error', error);
   }
-  console.log('data message', data);
-  return data;
+  console.log('data message', response);
+  return response;
 }
 
 
