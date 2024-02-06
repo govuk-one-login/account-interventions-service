@@ -17,7 +17,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
             | userActionPswResetSuccess | false        |
             | unSuspendAction           | false        |
 
-    @regression
+    @regression @test
     Scenario Outline: Happy Path - Get Request to /ais/userId - allowable Transition from <originalAisEventType> to <allowableAisEventType> - Return expected data
         Given I send an <allowableAisEventType> allowable intervention event message to the TxMA ingress SQS queue for a Account in <originalAisEventType> state
         When I invoke the API to retrieve the allowable intervention status of the user's account. With history <historyValue>

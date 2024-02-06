@@ -32,3 +32,35 @@ function getCurrentTimestamp(date = new Date()): CurrentTimeDescriptor {
     seconds: Math.floor(date.valueOf() / 1000),
   };
 }
+
+export async function purgeEgressOueue() {
+  const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
+  const queueURL = EndPoints.SQS_EGRESS_QUEUE_URL;
+  const parameters = {
+    QueueUrl: queueURL,
+  };
+  try {
+    await sqs.purgeQueue(parameters);
+    console.log('Purge Success');
+  } catch (error) {
+    console.log('Error', error);
+  }
+}
+
+export async function receiveMessagesFromEgressOueue() {
+  const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
+  let data;
+  const queueURL = EndPoints.SQS_EGRESS_QUEUE_URL;
+  const parameters = {
+    QueueUrl: queueURL,
+};
+  try {
+    data = (await sqs.receiveMessage(parameters)).Messages;
+  } catch (error) {
+    console.log('Error', error);
+  }
+  console.log('data message', data);
+  return data;
+}
+
+
