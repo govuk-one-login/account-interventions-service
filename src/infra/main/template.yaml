@@ -195,6 +195,13 @@ Resources:
             Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
           TXMA_QUEUE_URL: !Ref TxMAEgressQueue
           HISTORY_RETENTION_SECONDS: 63072000
+      Tags:
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -203,13 +210,7 @@ Resources:
         Sourcemap: false
         EntryPoints:
           - "../../../src/handlers/interventions-processor-handler.ts"
-      Tags:
-        Product: !Ref ProductTagValue
-        System: !Ref SystemTagValue
-        Environment: !Ref Environment
-        Owner: !Ref OwnerTagValue
-        Source: !Ref SourceTagValue
-        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
+
 
   InterventionsProcessorFunctionInvokePermission:
     Type: 'AWS::Lambda::Permission'
@@ -946,6 +947,13 @@ Resources:
           METRIC_SERVICE_NAME: StatusRetrieverFunction
       Handler: status-retriever-handler.handle
       Role: !GetAtt StatusRetrieverFunctionRole.Arn
+      Tags:
+        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -1047,7 +1055,7 @@ Resources:
       FunctionName: !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunction'
       Description: 'Utility function to invoke the Private REST API (Non-Prod Only)'
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
-#      CodeUri: ../../../src/handlers
+#      CodeUri: ../../../src/handlers/
       Timeout: 10
       MemorySize: 256
       KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
