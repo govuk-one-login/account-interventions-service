@@ -20,7 +20,7 @@
     "lint:spec": "yarn lint:spec:oas",
     "audit:fix": "yarn-audit-fix",
     "clean": "rimraf .aws-sam coverage",
-    "package:sam": "sam build -t src/infra/main/template.yaml",
+    "package:sam": "sam build --base-dir $(pwd)",
     "package:sam:fix": "run-script-os",
     "package:sam:fix:darwin": "sed -i '' -e \"s|\\.+\\/.*[a-zA-Z0-9_-]+\\/\\(.*\\)|\\1|g\" .aws-sam/build/template.yaml",
     "package:sam:fix:linux": "sed -i -e \"s|\\.+\\/.*[a-zA-Z0-9_-]+\\/\\(.*\\)|\\1|g\" .aws-sam/build/template.yaml",
