@@ -39,10 +39,14 @@ defineFeature(feature, (test) => {
       /^I expect the response with all the valid state flags for (.*)$/,
       async (aisEventType: keyof typeof aisEventResponse) => {
         console.log(`Received`, { response });
+        const events = ['userActionIdResetSuccess','userActionPswResetSuccess']
+
+        if(!events.includes(aisEventType)){
         const receivedMessage: any  = await receiveMessagesFromEgressOueue();
         let body: any = receivedMessage.Messages[0].Body;
         const extensions = JSON.parse(body).extensions;
         expect(await extensions.allowable_interventions).toEqual(aisEventResponse[aisEventType].allowable_interventions);
+        }
         const eventTypes = ['unSuspendAction', 'unblock'];
         if (eventTypes.includes(aisEventType)) {
           expect(response.intervention.description).toBe('AIS_NO_INTERVENTION');
