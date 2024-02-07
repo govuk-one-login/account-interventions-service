@@ -1,8 +1,8 @@
 version = 0.1
 [default.deploy.parameters]
-stack_name = "ais-main-ch-2"
+stack_name = "ais-main-ch-1"
 resolve_s3 = true
-s3_prefix = "ais-main-ch-2"
+s3_prefix = "ais-main-ch-1"
 region = "eu-west-2"
 confirm_changeset = true
 capabilities = "CAPABILITY_NAMED_IAM"

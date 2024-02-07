@@ -1174,7 +1174,7 @@ Resources:
         Fn::Transform:
           Name: AWS::Include
           Parameters:
-            Location: "../../specs/api.yaml"
+            Location: "api.yaml"
       Description: "Private REST API that provides method to interact with the Account Interventions Services"
       StageName: !Ref ApiStageName
       Auth:

@@ -16,7 +16,7 @@
     "lint:code": "eslint --ext .ts .",
     "lint:code:fix": "yarn lint:code --fix",
     "lint:iac": "for f in src/infra/**/template.yaml; do (sam validate --lint -t $f) || exit 1; done",
-    "lint:spec:oas": "spectral lint src/specs/api.yaml",
+    "lint:spec:oas": "spectral lint api.yaml",
     "lint:spec": "yarn lint:spec:oas",
     "audit:fix": "yarn-audit-fix",
     "clean": "rimraf .aws-sam coverage",
