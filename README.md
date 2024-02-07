@@ -197,7 +197,7 @@ brew upgrade nodenv node-build
 ```
 
 ### Webpack process
-Webpack is configured to scan the SAM template file [template.yaml](template.yaml) looking for lambda function
+Webpack is configured to scan the SAM template file [template.yaml](src/infra/main/template.yaml) looking for lambda function
 declarations in order to find the handler files, i.e. the webpack entry files, to perform bundling on.
 
 1. Looks for resource where `Type` = `AWS::Serverless::Function`).

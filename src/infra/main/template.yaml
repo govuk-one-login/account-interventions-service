@@ -169,7 +169,7 @@ Resources:
     Properties:
       FunctionName: !Sub "${AWS::StackName}-InterventionsProcessorFunction"
       Description: "Processes intervention events and updates account's intervention status."
-      CodeUri: src/handlers
+      CodeUri: ../../handlers
       Timeout: 5
       Handler: interventions-processor-handler.handler
       MemorySize: 512
@@ -380,7 +380,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
       Description: "Updates an account intervention status indicating that the account has been deleted."
-      CodeUri: src/handlers
+      CodeUri: ../../handlers
       Timeout: 10
       Handler: account-deletion-processor-handler.handler
       MemorySize: 128
@@ -935,7 +935,7 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-StatusRetrieverFunction'
       Description: "Retrieves the account's intervention status."
-      CodeUri: src/handlers
+      CodeUri: ../../handlers
       MemorySize: 512
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
@@ -1055,7 +1055,7 @@ Resources:
       FunctionName: !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunction'
       Description: 'Utility function to invoke the Private REST API (Non-Prod Only)'
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
-      CodeUri: src/handlers/
+      CodeUri: ../../handlers
       Timeout: 10
       MemorySize: 256
       KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
@@ -1174,7 +1174,7 @@ Resources:
         Fn::Transform:
           Name: AWS::Include
           Parameters:
-            Location: "api.yaml"
+            Location: "../../specs/api.yaml"
       Description: "Private REST API that provides method to interact with the Account Interventions Services"
       StageName: !Ref ApiStageName
       Auth:
