@@ -17,11 +17,11 @@ import {
   COMPONENT_ID,
   EventsEnum,
   MetricNames,
-  nonInterventionsCodes,
   State,
   userLedActionList,
 } from '../data-types/constants';
 import { logAndPublishMetric } from '../commons/metrics';
+import { transitionConfiguration } from './account-states/config';
 
 const appConfig = AppConfigService.getInstance();
 
@@ -99,7 +99,7 @@ function buildExtensions(
         ? 'USER_LED_ACTION'
         : stateEngineOutput.interventionName!,
       allowable_interventions: stateEngineOutput.nextAllowableInterventions.filter(
-        (intervention) => !nonInterventionsCodes.has(intervention),
+        (intervention) => transitionConfiguration.edges[intervention]?.interventionName,
       ),
       ...buildAdditionalAttributes(stateEngineOutput, egressEventName),
     };
