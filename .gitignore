@@ -64,7 +64,7 @@ usersList.txt
 govuk_modules/
 public/
 
-build-1/
+.aws-sam/
 .idea/
 dist/
 .DS_Store

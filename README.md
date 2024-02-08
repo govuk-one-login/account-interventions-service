@@ -27,12 +27,19 @@ $ pre-commit install -f
 $ yarn install
 ```
 
-### Build & Test Project
+###  Test Project
 To fully test the application, try the test command below
 ``` bash
-$ yarn build
 $ yarn test
 ```
+
+## Build & Deploy Manually
+To build the application code and deploy to AWS. Ensure you have logged into AWS and obtained credentials
+``` bash
+$ yarn package
+$ sam deploy --guided
+```
+
 
 ### Lints Code, SAM Template & Open API Spec
 ``` bash
@@ -195,16 +202,6 @@ Getting latest releases of Node Version supported by nodenv (this may take a whi
 ```shell
 brew upgrade nodenv node-build
 ```
-
-### Webpack process
-Webpack is configured to scan the SAM template file [template.yaml](src/infra/main/template.yaml) looking for lambda function
-declarations in order to find the handler files, i.e. the webpack entry files, to perform bundling on.
-
-1. Looks for resource where `Type` = `AWS::Serverless::Function`).
-2. Uses the function resource's `CodeUri` value as the folder where it will output the function's webpack'd code.
-3. Uses the function resource's `Handler` value as the file to use as a webpack entry.
-4. Per web pack entry, finds the function's handler file in the `src/handlers` folder.
-5. Runs the webpack process and writes the bundle in to the `dist` folder in the locations expected by the SAM template.
 
 ### Testing the Private Api Gateway endpoint
 The api in this application is a private api, which means testing it can't be done using tools like postman. The lambda `{stack-name}-InvokePrivateAPIGatewayFunction` has been created to allow the api to be tested. Since this lambda is created within the application's VPC, it meets the required security measures so it is able to successfully invoke the endpoint.
