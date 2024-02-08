@@ -19,11 +19,11 @@
     "lint:spec:oas": "spectral lint src/specs/api.yaml",
     "lint:spec": "yarn lint:spec:oas",
     "audit:fix": "yarn-audit-fix",
-    "clean": "rimraf build-1 coverage",
-    "package:sam": "sam build --base-dir $(pwd) -t src/infra/main/template.yaml",
+    "clean": "rimraf .aws-sam coverage",
+    "package:sam": "sam build -t src/infra/main/template.yaml",
     "package:sam:fix": "run-script-os",
-    "package:sam:fix:darwin": "sed -i '' -e \\\"s|\\\\.+\\\\/.*[a-zA-Z0-9_-]+\\\\/p\\\\(.*\\\\)|\\\\1|g\\\" build-1/build/template.yaml",
-    "package:sam:fix:linux": "sed -i -e \\\"s|\\\\.+\\\\/.*[a-zA-Z0-9_-]+\\\\/p\\\\(.*\\\\)|\\\\1|g\\\" build-1/build/template.yaml",
+    "package:sam:fix:darwin": "sed -i '' -e \"s|\\.+\\/.*[a-zA-Z0-9_-]+\\/\\(.*\\)|\\1|g\" .aws-sam/build/template.yaml",
+    "package:sam:fix:linux": "sed -i -e \"s|\\.+\\/.*[a-zA-Z0-9_-]+\\/\\(.*\\)|\\1|g\" .aws-sam/build/template.yaml",
     "package": "yarn clean && yarn package:sam && yarn package:sam:fix"
   },
   "dependencies": {
