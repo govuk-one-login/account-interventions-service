@@ -33,13 +33,29 @@ To fully test the application, try the test command below
 $ yarn test
 ```
 
-## Build & Deploy Manually
-To build the application code and deploy to AWS. Ensure you have logged into AWS and obtained credentials
+### Build & deploy **main** application manually stack for development
+To build the application code and deploy the ais-main stack use the following commands **from project root directory**.
+Make sure NOT to pass a --template / -t flag to the `sam deploy` command. By simply running `sam deploy --guided` SAM will pick up the relevant version of the main template from the default directory `.aws-sam/build` which is created during the build process
+Ensure you have logged into AWS and obtained credentials before attempting to deploy manually
 ``` bash
 $ yarn package
 $ sam deploy --guided
 ```
 
+### Deploy **alarm** stack manually for development
+To manually deploy the ais-alarm stack, use the following commands **from project root directory**.
+Ensure you have logged into AWS and obtained credentials before attempting to deploy manually.
+
+``` bash
+$ sam deploy --guided -t src/infra/alarm/template.yaml
+```
+
+### Deploy **core** stack manually for development
+To manually deploy the ais-core stack, use the following commands **from project root directory**.
+Ensure you have logged into AWS and obtained credentials before attempting to deploy manually.
+``` bash
+$ sam deploy --guided -t src/infra/core/template.yaml
+```
 
 ### Lints Code, SAM Template & Open API Spec
 ``` bash
