@@ -88,7 +88,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
     Scenario Outline: Get Request to /ais/userId - Password and Id non-allowable Transition from <originalAisEventType> to <nonAllowableAisEventType> - Returns expected data
         Given I send an <nonAllowableAisEventType> non-allowable event type password or id Reset intervention message to the TxMA ingress SQS queue for a Account in <originalAisEventType> state
         When I invoke the API to retrieve the intervention status of the user's account with history <historyValue>
-        Then I expect response with valid fields for <interventionType> with state flags as <blocked>, <suspended>, <resetPassword> and <reproveIdentity>
+        Then I expect response with valid fields for <originalAisEventType>, <interventionType> with state flags as <blocked>, <suspended>, <resetPassword> and <reproveIdentity>
         Examples:
             | originalAisEventType  | nonAllowableAisEventType  | historyValue | interventionType                                   | blocked | suspended | resetPassword | reproveIdentity |
             | pswResetRequired      | userActionPswResetSuccess | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false   | false     | false         | false           |

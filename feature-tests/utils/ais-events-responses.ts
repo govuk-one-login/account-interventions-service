@@ -10,7 +10,7 @@ export const aisEventResponse = {
     interventionHistory: 'FRAUD_FORCED_USER_PASSWORD_RESET',
     reason: 'password reset - 04',
     auditLevel: 'standard',
-    allowable_interventions: ['01','02','03','05','06']
+    allowable_interventions: ['01', '02', '03', '05', '06'],
   },
 
   suspendNoAction: {
@@ -24,7 +24,7 @@ export const aisEventResponse = {
     interventionHistory: 'FRAUD_SUSPEND_ACCOUNT',
     reason: 'suspend - 01',
     auditLevel: 'standard',
-    allowable_interventions: ['02','03','04','05','06']
+    allowable_interventions: ['02', '03', '04', '05', '06'],
   },
 
   block: {
@@ -38,7 +38,7 @@ export const aisEventResponse = {
     interventionHistory: 'FRAUD_BLOCK_ACCOUNT',
     reason: 'block - 03',
     auditLevel: 'standard',
-    allowable_interventions: ['07']
+    allowable_interventions: ['07'],
   },
 
   idResetRequired: {
@@ -52,7 +52,7 @@ export const aisEventResponse = {
     interventionHistory: 'FRAUD_FORCED_USER_IDENTITY_REVERIFICATION',
     reason: 'id reset - 05',
     auditLevel: 'standard',
-    allowable_interventions: ['01', '02', '03', '04', '06']
+    allowable_interventions: ['01', '02', '03', '04', '06'],
   },
 
   pswAndIdResetRequired: {
@@ -66,7 +66,7 @@ export const aisEventResponse = {
     interventionHistory: 'FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION',
     reason: 'password and id reset - 06',
     auditLevel: 'standard',
-    allowable_interventions: ['01', '02', '03', '04', '05']
+    allowable_interventions: ['01', '02', '03', '04', '05'],
   },
 
   unblock: {
@@ -80,7 +80,7 @@ export const aisEventResponse = {
     interventionHistory: 'FRAUD_UNBLOCK_ACCOUNT',
     reason: 'unblock - 07',
     auditLevel: 'standard',
-    allowable_interventions: ['01', '03', '04', '05', '06']
+    allowable_interventions: ['01', '03', '04', '05', '06'],
   },
 
   userActionIdResetSuccess: {
@@ -94,7 +94,7 @@ export const aisEventResponse = {
     interventionHistory: '',
     reason: '',
     auditLevel: 'standard',
-    allowable_interventions: ['01', '03', '04', '05', '06']
+    allowable_interventions: ['01', '03', '04', '05', '06'],
   },
 
   userActionPswResetSuccess: {
@@ -108,7 +108,7 @@ export const aisEventResponse = {
     interventionHistory: '',
     reason: '',
     auditLevel: 'standard',
-    allowable_interventions: ['01', '03', '04', '05', '06']
+    allowable_interventions: ['01', '03', '04', '05', '06'],
   },
 
   unSuspendAction: {
@@ -122,6 +122,6 @@ export const aisEventResponse = {
     interventionHistory: 'FRAUD_UNSUSPEND_ACCOUNT',
     reason: 'unsuspend - 02',
     auditLevel: 'standard',
-    allowable_interventions: ['01', '03', '04', '05', '06']
+    allowable_interventions: ['01', '03', '04', '05', '06'],
   },
 };
