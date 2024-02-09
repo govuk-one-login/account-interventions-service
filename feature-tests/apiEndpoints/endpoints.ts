@@ -8,9 +8,9 @@ export default class EndPoints {
       ? `https://sqs.${process.env.AWS_REGION}.amazonaws.com/013758878511/${process.env.SAM_STACK_NAME}-TxMAIngressQueue`
       : process.env.CFN_TxMAIngressSqsQueueUrl;
   public static SQS_EGRESS_QUEUE_URL =
-      process.env.TEST_ENVIRONMENT === 'dev'
-        ? `https://sqs.${process.env.AWS_REGION}.amazonaws.com/013758878511/${process.env.SAM_STACK_NAME}-TxMAEgressQueue`
-        : process.env.CFN_TxMAEgressSqsQueueUrl;    
+    process.env.TEST_ENVIRONMENT === 'dev'
+      ? `https://sqs.${process.env.AWS_REGION}.amazonaws.com/013758878511/${process.env.SAM_STACK_NAME}-TxMAEgressQueue`
+      : process.env.CFN_TxMAEgressSqsQueueUrl;
   public static PATH_AIS = '/ais/';
   public static INVOKE_PRIVATE_API_GATEWAY = `${process.env.SAM_STACK_NAME}-InvokePrivateAPIGatewayFunction`;
   public static TABLE_NAME = 'ais-core-account-status';

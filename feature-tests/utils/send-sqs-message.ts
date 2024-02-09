@@ -1,7 +1,7 @@
 import { SQS } from '@aws-sdk/client-sqs';
 import { aisEvents } from './ais-events';
 import EndPoints from '../apiEndpoints/endpoints';
-import { CurrentTimeDescriptor } from '../utils/utility';
+import { CurrentTimeDescriptor, timeDelayForTestEnvironment } from '../utils/utility';
 
 export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeof aisEvents) {
   const currentTime = getCurrentTimestamp();
@@ -33,7 +33,7 @@ function getCurrentTimestamp(date = new Date()): CurrentTimeDescriptor {
   };
 }
 
-export async function purgeEgressOueue() {
+export async function purgeEgressQueue() {
   const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
   const queueURL = EndPoints.SQS_EGRESS_QUEUE_URL;
   const parameters = {
@@ -41,6 +41,7 @@ export async function purgeEgressOueue() {
   };
   try {
     await sqs.purgeQueue(parameters);
+    await timeDelayForTestEnvironment(6000);
     console.log('Purge Success');
   } catch (error) {
     console.log('Error', error);
@@ -51,16 +52,36 @@ export async function receiveMessagesFromEgressOueue() {
   const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
   let response;
   const queueURL = EndPoints.SQS_EGRESS_QUEUE_URL;
+  const messages = [];
+
   const parameters = {
     QueueUrl: queueURL,
-};
-  try {
-    response = await sqs.receiveMessage(parameters);
-  } catch (error) {
-    console.log('Error', error);
-  }
-  console.log('data message', response);
-  return response;
+    MaxNumberOfMessages: 10,
+  };
+  let count = 0;
+  do {
+    try {
+      response = await sqs.receiveMessage(parameters);
+
+      if (response?.Messages) {
+        for (const message of response.Messages) {
+          messages.push(message);
+        }
+      }
+    } catch (error) {
+      console.log('No messages in Queue', error);
+    }
+    count += 1;
+    if (count > 10) break;
+  } while (response?.Messages && response.Messages.length > 0);
+  return messages;
 }
 
-
+export async function filterUserIdInMessages(testUserId: string) {
+  const messages = await receiveMessagesFromEgressOueue();
+  const filteredMessageByUserId = messages.filter((message) => {
+    const messageBody = message.Body ? JSON.parse(message.Body) : {};
+    return messageBody.user.user_id === testUserId;
+  });
+  return filteredMessageByUserId;
+}
