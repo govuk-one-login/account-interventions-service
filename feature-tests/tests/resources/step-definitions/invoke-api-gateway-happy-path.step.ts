@@ -101,10 +101,10 @@ defineFeature(feature, (test) => {
 
         const message = receivedMessage.find((object) => {
           const objectBody = object.Body ? JSON.parse(object.Body) : {};
-          return objectBody.extensions.description === aisEventResponse[allowableAisEventType].description;
+          return objectBody.extensions?.description === aisEventResponse[allowableAisEventType].description;
         });
         const body = message?.Body ? JSON.parse(message?.Body) : {};
-        expect(body.extensions.allowable_interventions).toEqual(
+        expect(body.extensions?.allowable_interventions).toEqual(
           aisEventResponse[allowableAisEventType].allowable_interventions,
         );
 
