@@ -18,12 +18,4 @@ export class apiClient {
       console.log(error);
     }
   }
-
-  public async putRequest(userId: string, data: object) {
-    try {
-      return await this.instance.put(userId, data);
-    } catch (error) {
-      console.log(error);
-    }
-  }
 }

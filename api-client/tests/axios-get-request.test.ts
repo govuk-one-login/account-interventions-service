@@ -51,11 +51,6 @@ describe('Api-Client', () => {
     expect(response).toBe(exampleRecord);
   });
 
-  it('will update the users information', async () => {
-    const response = await client.putRequest(testUserId, {data: 'data'});
-    expect(response).toEqual({userId: 'user', data: 'data'});
-  });
-
   // it('will accept a get request', async () => {
   //   provider.addInteraction({
   //     states: [{description: 'a user has a record in the database'}],
