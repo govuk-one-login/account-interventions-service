@@ -79,9 +79,11 @@ export async function receiveMessagesFromEgressOueue() {
 
 export async function filterUserIdInMessages(testUserId: string) {
   const messages = await receiveMessagesFromEgressOueue();
+  console.log({messages});
   const filteredMessageByUserId = messages.filter((message) => {
     const messageBody = message.Body ? JSON.parse(message.Body) : {};
     return messageBody.user.user_id === testUserId;
   });
+  console.log({filteredMessageByUserId});
   return filteredMessageByUserId;
 }
