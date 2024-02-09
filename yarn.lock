@@ -6764,11 +6764,6 @@ run-parallel@^1.1.9:
   dependencies:
     queue-microtask "^1.2.2"
 
-run-script-os@^1.1.6:
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/run-script-os/-/run-script-os-1.1.6.tgz#8b0177fb1b54c99a670f95c7fdc54f18b9c72347"
-  integrity sha512-ql6P2LzhBTTDfzKts+Qo4H94VUKpxKDFz6QxxwaUZN0mwvi7L3lpOI7BqPCq7lgDh3XLl0dpeXwfcVIitlrYrw==
-
 safe-array-concat@^1.0.1:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/safe-array-concat/-/safe-array-concat-1.1.0.tgz#8d0cae9cb806d6d1c06e08ab13d847293ebe0692"
@@ -7726,13 +7721,6 @@ yallist@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/yallist/-/yallist-4.0.0.tgz#9bb92790d9c0effec63be73519e11a35019a3a72"
   integrity sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==
-
-yaml-cfn@^0.3.2:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/yaml-cfn/-/yaml-cfn-0.3.2.tgz#f20f5d7a6eec2a9e3775b36360c21a573d679597"
-  integrity sha512-MvrWhv40GKWHFGCliTGGAMwAeqIXf/bzf6WW48+xND9iMp8cTj0R8xkwM0lX/GzNN/EZKr5gP4Hx63Fn+sICoA==
-  dependencies:
-    js-yaml "^4.0.0"
 
 yargs-parser@^21.0.0, yargs-parser@^21.0.1, yargs-parser@^21.1.1:
   version "21.1.1"

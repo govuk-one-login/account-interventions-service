@@ -56,11 +56,9 @@
     "jest-openapi": "^0.14.2",
     "prettier": "^3.2.5",
     "rimraf": "^5.0.5",
-    "run-script-os": "^1.1.6",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
-    "yaml-cfn": "^0.3.2",
     "yarn-audit-fix": "^10.0.7"
   },
   "resolutions": {
