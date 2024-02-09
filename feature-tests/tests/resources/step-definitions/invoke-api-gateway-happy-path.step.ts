@@ -46,9 +46,12 @@ defineFeature(feature, (test) => {
 
         if (!events.includes(aisEventType)) {
           const receivedMessage = await filterUserIdInMessages(testUserId);
-          const body: any = receivedMessage[0].Body;
-          const extensions: any = JSON.parse(body).extensions;
-          expect(await extensions.allowable_interventions).toEqual(
+          expect(receivedMessage).toEqual(aisEventResponse[aisEventType].allowable_interventions);
+          const body = receivedMessage[0].Body;
+          expect(body).toEqual(aisEventResponse[aisEventType].allowable_interventions);
+          const extensions = body ? JSON.parse(body).extensions : {};
+          expect(extensions).toEqual(aisEventResponse[aisEventType].allowable_interventions);
+          expect(extensions.allowable_interventions).toEqual(
             aisEventResponse[aisEventType].allowable_interventions,
           );
         }
