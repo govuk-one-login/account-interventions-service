@@ -15,7 +15,7 @@ cp -R /utils . 2>/dev/null || :
 
 # run tests and save the exit code
 declare test_run_result
-yarn test 1>/dev/null
+yarn test
 test_run_result=$?
 
 # store report to dir where pipeline will export from
