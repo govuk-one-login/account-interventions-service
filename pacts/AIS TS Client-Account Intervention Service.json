@@ -18,7 +18,6 @@
         "body": {
           "auditLevel": "standard",
           "intervention": {
-            "accountDeletedAt": 12345685809,
             "appliedAt": 12345685809,
             "description": "AIS_ACCOUNT_BLOCKED",
             "reprovedIdentityAt": 849473,

@@ -1,9 +1,9 @@
 import axios, { AxiosInstance } from 'axios';
 
 interface Response {
-  status: number,
-  message: string,
-  payload: object
+  status: number;
+  message: string;
+  payload: object;
 }
 
 export class apiClient {
@@ -14,7 +14,7 @@ export class apiClient {
     this.url = endpoint;
     this.instance = axios.create({
       baseURL: this.url + 'ais/',
-    })
+    });
   }
 
   public async getRequest(userId: string): Promise<Response | undefined> {
@@ -23,8 +23,8 @@ export class apiClient {
       return {
         status: response.status,
         message: response.statusText,
-        payload: response.data
-      }
+        payload: response.data,
+      };
     } catch (error) {
       console.log(error);
     }
