@@ -46,14 +46,9 @@ defineFeature(feature, (test) => {
 
         if (!events.includes(aisEventType)) {
           const receivedMessage = await filterUserIdInMessages(testUserId);
-          expect(receivedMessage).toEqual(aisEventResponse[aisEventType].allowable_interventions);
           const body = receivedMessage[0].Body;
-          expect(body).toEqual(aisEventResponse[aisEventType].allowable_interventions);
           const extensions = body ? JSON.parse(body).extensions : {};
-          expect(extensions).toEqual(aisEventResponse[aisEventType].allowable_interventions);
-          expect(extensions.allowable_interventions).toEqual(
-            aisEventResponse[aisEventType].allowable_interventions,
-          );
+          expect(extensions.allowable_interventions).toEqual(aisEventResponse[aisEventType].allowable_interventions);
         }
         const eventTypes = ['unSuspendAction', 'unblock'];
         if (eventTypes.includes(aisEventType)) {
