@@ -1,0 +1,58 @@
+{
+  "consumer": {
+    "name": "AIS TS Client"
+  },
+  "interactions": [
+    {
+      "description": "a request to get the users account information",
+      "providerStates": [
+        {
+          "name": "a user account is in a blocked state"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/ais/testUserId"
+      },
+      "response": {
+        "body": {
+          "auditLevel": "standard",
+          "intervention": {
+            "accountDeletedAt": 12345685809,
+            "appliedAt": 12345685809,
+            "description": "AIS_ACCOUNT_BLOCKED",
+            "reprovedIdentityAt": 849473,
+            "resetPasswordAt": 5847392,
+            "sentAt": 123456789,
+            "updatedAt": 123455
+          },
+          "state": {
+            "blocked": true,
+            "reproveIdentity": false,
+            "resetPassword": false,
+            "suspended": false
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "12.1.2"
+    },
+    "pactRust": {
+      "ffi": "0.4.12",
+      "models": "1.1.14"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "Account Intervention Service"
+  }
+}

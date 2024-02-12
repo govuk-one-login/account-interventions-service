@@ -12,6 +12,7 @@
     "test": "yarn test:unit",
     "test:unit": "jest --group=unit --coverage --runInBand --testPathIgnorePatterns \"src/contract-testing/*\"",
     "test:pact": "jest --group=contract --runInBand --testPathPattern=\"src/contract-testing/*\"",
+    "test:apiClient": "jest --group=contract --runInBand --testPathPattern=\"api-client/tests/axios-get-request.test.ts\"",
     "lint": "yarn lint:code && yarn lint:spec && yarn lint:iac",
     "lint:code": "eslint --ext .ts .",
     "lint:code:fix": "yarn lint:code --fix",

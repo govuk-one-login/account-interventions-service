@@ -1,55 +1,61 @@
-// import path from "path";
-// import { PactV3 } from '@pact-foundation/pact';
-import { apiClient } from '../axios-config';
-import { host, port } from '../axios-utils';
+import path from "path";
+import { PactV3 } from '@pact-foundation/pact';
+import { apiClient } from '../axios-client';
 
-// const provider = new PactV3({
-//   consumer: "AIS TS Client",
-//   provider: "ais",
-//   logLevel: "debug",
-//   dir: path.resolve(process.cwd(), "pacts"),
-//   port: 8080,
-// });
-// const expectedBody = MatchersV3.eachLike(exampleRecord);
-
-const url = `http://${host}:${port}/`
-const exampleRecord = {
+const client = new apiClient(`http://127.0.0.1:8080/`)
+const userId = 'testUserId';
+const accountIsBlocked = {
   intervention: {
     updatedAt: 123455,
     appliedAt: 12345685809,
     sentAt: 123456789,
-    description: 'AIS_ACCOUNT_SUSPENDED',
+    description: 'AIS_ACCOUNT_BLOCKED',
     reprovedIdentityAt: 849473,
     resetPasswordAt: 5847392,
+    accountDeletedAt: 12345685809,
   },
   state: {
-    blocked: false,
-    suspended: true,
+    blocked: true,
+    suspended: false,
     resetPassword: false,
     reproveIdentity: false,
   },
   auditLevel: 'standard',
 };
 
-jest.mock('axios', () => ({
-  create: jest.fn().mockReturnValue({
-    get: jest.fn().mockImplementation(() => {
-      return exampleRecord
-    }),
-    put: jest.fn().mockImplementation(() => {
-      return {userId: 'user', data: 'data'}
+const provider = new PactV3({
+  consumer: "AIS TS Client",
+  provider: "Account Intervention Service",
+  logLevel: "debug",
+  dir: path.resolve(process.cwd(), "pacts"),
+  port: 8080,
+});
+// const expectedBody = MatchersV3.eachLike(exampleRecord);
+
+describe('', () => {
+  it('will accept a GET request and return data for an existing user', async () => {
+    await provider.addInteraction({
+      states: [{description: 'a user account is in a blocked state'}],
+      uponReceiving: 'a request to get the users account information',
+      withRequest: {
+        method: 'GET',
+        path: '/ais/testUserId',
+      },
+      willRespondWith: {
+        status: 200,
+        body: accountIsBlocked
+      }
+    });
+    await provider.executeTest(async () => {
+      const response = await client.getRequest(userId);
+      console.log(response);
+      expect(response).toBeTruthy();
+      expect(response?.message).toBe('OK');
+      expect(response?.status).toBe(200);
+      expect(response?.payload).toEqual(accountIsBlocked);
     })
-  }),
-}))
-
-const client = new apiClient(url); //might be able to pass in mockserver.url here.
-const testUserId = 'testUserId';
-
-describe('Api-Client', () => {
-  it('will get the users data from the API', async () => {
-    const response = await client.getRequest(testUserId);
-    expect(response).toBe(exampleRecord);
-  });
+  })
+})
 
   // it('will accept a get request', async () => {
   //   provider.addInteraction({
@@ -75,5 +81,4 @@ describe('Api-Client', () => {
   //       expect(response.body).toEqual({"responseMetadata":{"statusCode":200,"message":"OK"},"payload": exampleRecord });
   //     }
   //   })
-  // }) 
-});
+  // })
