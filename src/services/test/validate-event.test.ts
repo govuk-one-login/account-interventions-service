@@ -36,7 +36,7 @@ const dynamoDBResult: DynamoDBStateResult = {
   sentAt: timestamp.milliseconds - 5000,
   appliedAt: timestamp.milliseconds - 5000,
   isAccountDeleted: false,
-  history: []
+  history: [],
 };
 describe('event-validation', () => {
   afterEach(() => {

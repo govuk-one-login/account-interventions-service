@@ -27,11 +27,34 @@ $ pre-commit install -f
 $ yarn install
 ```
 
-### Build & Test Project
+###  Test Project
 To fully test the application, try the test command below
 ``` bash
-$ yarn build
 $ yarn test
+```
+
+### Build & deploy **main** application manually stack for development
+To build the application code and deploy the ais-main stack use the following commands **from project root directory**.
+Make sure NOT to pass a --template / -t flag to the `sam deploy` command. By simply running `sam deploy --guided` SAM will pick up the relevant version of the main template from the default directory `.aws-sam/build` which is created during the build process
+Ensure you have logged into AWS and obtained credentials before attempting to deploy manually
+``` bash
+$ yarn package
+$ sam deploy --guided
+```
+
+### Deploy **alarm** stack manually for development
+To manually deploy the ais-alarm stack, use the following commands **from project root directory**.
+Ensure you have logged into AWS and obtained credentials before attempting to deploy manually.
+
+``` bash
+$ sam deploy --guided -t src/infra/alarm/template.yaml
+```
+
+### Deploy **core** stack manually for development
+To manually deploy the ais-core stack, use the following commands **from project root directory**.
+Ensure you have logged into AWS and obtained credentials before attempting to deploy manually.
+``` bash
+$ sam deploy --guided -t src/infra/core/template.yaml
 ```
 
 ### Lints Code, SAM Template & Open API Spec
@@ -195,16 +218,6 @@ Getting latest releases of Node Version supported by nodenv (this may take a whi
 ```shell
 brew upgrade nodenv node-build
 ```
-
-### Webpack process
-Webpack is configured to scan the SAM template file [template.yaml](./src/infra/main/template.yaml) looking for lambda function
-declarations in order to find the handler files, i.e. the webpack entry files, to perform bundling on.
-
-1. Looks for resource where `Type` = `AWS::Serverless::Function`).
-2. Uses the function resource's `CodeUri` value as the folder where it will output the function's webpack'd code.
-3. Uses the function resource's `Handler` value as the file to use as a webpack entry.
-4. Per web pack entry, finds the function's handler file in the `src/handlers` folder.
-5. Runs the webpack process and writes the bundle in to the `dist` folder in the locations expected by the SAM template.
 
 ### Testing the Private Api Gateway endpoint
 The api in this application is a private api, which means testing it can't be done using tools like postman. The lambda `{stack-name}-InvokePrivateAPIGatewayFunction` has been created to allow the api to be tested. Since this lambda is created within the application's VPC, it meets the required security measures so it is able to successfully invoke the endpoint.

@@ -1,5 +1,4 @@
-dist
-webpack.config.ts
 node_modules
 feature-tests/jest-stare
 **/*.test.ts
+.aws-sam

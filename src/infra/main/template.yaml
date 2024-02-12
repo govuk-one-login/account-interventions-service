@@ -128,6 +128,8 @@ Globals:
       - arm64
     Tracing: Active
     AutoPublishAlias: latest
+    CodeUri: ../../handlers
+    KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
     Environment:
       Variables:
         LOG_LEVEL: !FindInMap [ EnvConfig, !Ref Environment, LambdaLogLevel ]
@@ -169,13 +171,11 @@ Resources:
     Properties:
       FunctionName: !Sub "${AWS::StackName}-InterventionsProcessorFunction"
       Description: "Processes intervention events and updates account's intervention status."
-      CodeUri: ../../../dist/interventions-processor-handler
       Timeout: 5
       Handler: interventions-processor-handler.handler
       MemorySize: 512
       Role: !GetAtt InterventionsProcessorFunctionRole.Arn
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
-      KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
       Events:
         SQSEvent:
           Type: SQS
@@ -202,6 +202,15 @@ Resources:
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2022"
+        Sourcemap: false
+        EntryPoints:
+          - interventions-processor-handler.ts
+
 
   InterventionsProcessorFunctionInvokePermission:
     Type: 'AWS::Lambda::Permission'
@@ -371,13 +380,11 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
       Description: "Updates an account intervention status indicating that the account has been deleted."
-      CodeUri: ../../../dist/account-deletion-processor-handler
       Timeout: 10
       Handler: account-deletion-processor-handler.handler
       MemorySize: 128
       Role: !GetAtt AccountDeletionProcessorFunctionRole.Arn
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
-      KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
       Environment:
         Variables:
           TABLE_NAME:
@@ -405,6 +412,14 @@ Resources:
         Environment: !Ref Environment
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2022"
+        Sourcemap: false
+        EntryPoints:
+          - account-deletion-processor-handler.ts
 
   AccountDeletionProcessorResourcePolicy:
     Type: AWS::Lambda::Permission
@@ -918,10 +933,8 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-StatusRetrieverFunction'
       Description: "Retrieves the account's intervention status."
-      CodeUri: ../../../dist/status-retriever-handler
       MemorySize: 512
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
-      KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
       Timeout: 10
       Environment:
         Variables:
@@ -930,6 +943,21 @@ Resources:
           METRIC_SERVICE_NAME: StatusRetrieverFunction
       Handler: status-retriever-handler.handle
       Role: !GetAtt StatusRetrieverFunctionRole.Arn
+      Tags:
+        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2022"
+        Sourcemap: false
+        EntryPoints:
+          - status-retriever-handler.ts
 
   StatusRetrieverFunctionRole:
     Type: AWS::IAM::Role
@@ -1023,10 +1051,8 @@ Resources:
       FunctionName: !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunction'
       Description: 'Utility function to invoke the Private REST API (Non-Prod Only)'
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
-      CodeUri: ../../../dist/invoke-private-api
       Timeout: 10
       MemorySize: 256
-      KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
       Role: !GetAtt InvokePrivateAPIGatewayFunctionRole.Arn
       Environment:
         Variables:
@@ -1054,6 +1080,14 @@ Resources:
         Environment: !Ref Environment
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2022"
+        Sourcemap: false
+        EntryPoints:
+          - invoke-private-api.ts
 
   InvokePrivateAPIGatewayFunctionRole:
     Condition: IsInternal
