@@ -75,10 +75,9 @@ defineFeature(feature, (test) => {
       async (allowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
+        await timeDelayForTestEnvironment(500);
         console.log('sending second message to put the user in : ' + allowableAisEventType);
-        await timeDelayForTestEnvironment(500);
         await sendSQSEvent(testUserId, allowableAisEventType);
-        await timeDelayForTestEnvironment(500);
       },
     );
 

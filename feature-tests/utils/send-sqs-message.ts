@@ -41,7 +41,7 @@ export async function purgeEgressQueue() {
   };
   try {
     await sqs.purgeQueue(parameters);
-    await timeDelayForTestEnvironment(6000);
+    await timeDelayForTestEnvironment(5000);
     console.log('Purge Success');
   } catch (error) {
     console.log('Error', error);
