@@ -3,12 +3,12 @@ export const port = 8080;
 
 export const accountIsBlocked = {
   intervention: {
-    updatedAt: 123455,
-    appliedAt: 12345685809,
-    sentAt: 123456789,
+    updatedAt: 123_455,
+    appliedAt: 12_345_685_809,
+    sentAt: 123_456_789,
     description: 'AIS_ACCOUNT_BLOCKED',
-    reprovedIdentityAt: 849473,
-    resetPasswordAt: 5847392,
+    reprovedIdentityAt: 849_473,
+    resetPasswordAt: 5_847_392,
   },
   state: {
     blocked: true,
@@ -21,9 +21,9 @@ export const accountIsBlocked = {
 
 export const accountNotFound = {
   intervention: {
-    updatedAt: 1685404800000,
-    appliedAt: 1685404800000,
-    sentAt: 1685404800000,
+    updatedAt: 1_685_404_800_000,
+    appliedAt: 1_685_404_800_000,
+    sentAt: 1_685_404_800_000,
     description: 'AIS_NO_INTERVENTION',
   },
   state: {
@@ -35,14 +35,14 @@ export const accountNotFound = {
   auditLevel: 'standard',
 };
 
-export const accountIsNotSuspended = {
+export const accountHasNoIntervention = {
   intervention: {
-    updatedAt: 123455,
-    appliedAt: 12345685809,
-    sentAt: 123456789,
+    updatedAt: 123_455,
+    appliedAt: 12_345_685_809,
+    sentAt: 123_456_789,
     description: 'AIS_NO_INTERVENTION',
-    reprovedIdentityAt: 849473,
-    resetPasswordAt: 5847392,
+    reprovedIdentityAt: 849_473,
+    resetPasswordAt: 5_847_392,
   },
   state: {
     blocked: false,
@@ -52,3 +52,9 @@ export const accountIsNotSuspended = {
   },
   auditLevel: 'standard',
 };
+
+export interface Response {
+  status: number;
+  message: string;
+  payload: object;
+}

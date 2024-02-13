@@ -4,6 +4,39 @@
   },
   "interactions": [
     {
+      "description": "a request to get a non existing account information",
+      "providerStates": [
+        {
+          "name": "a non existing user account"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/ais/testUserId"
+      },
+      "response": {
+        "body": {
+          "auditLevel": "standard",
+          "intervention": {
+            "appliedAt": 1685404800000,
+            "description": "AIS_NO_INTERVENTION",
+            "sentAt": 1685404800000,
+            "updatedAt": 1685404800000
+          },
+          "state": {
+            "blocked": false,
+            "reproveIdentity": false,
+            "resetPassword": false,
+            "suspended": false
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 200
+      }
+    },
+    {
       "description": "a request to get the users account information",
       "providerStates": [
         {
@@ -27,6 +60,41 @@
           },
           "state": {
             "blocked": true,
+            "reproveIdentity": false,
+            "resetPassword": false,
+            "suspended": false
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request to get an existing users information that has no intervention status",
+      "providerStates": [
+        {
+          "name": "an existing user with no intervention status"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/ais/testUserId"
+      },
+      "response": {
+        "body": {
+          "auditLevel": "standard",
+          "intervention": {
+            "appliedAt": 12345685809,
+            "description": "AIS_NO_INTERVENTION",
+            "reprovedIdentityAt": 849473,
+            "resetPasswordAt": 5847392,
+            "sentAt": 123456789,
+            "updatedAt": 123455
+          },
+          "state": {
+            "blocked": false,
             "reproveIdentity": false,
             "resetPassword": false,
             "suspended": false
