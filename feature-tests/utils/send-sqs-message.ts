@@ -48,7 +48,7 @@ export async function purgeEgressQueue() {
   }
 }
 
-export async function receiveMessagesFromEgressOueue() {
+export async function receiveMessagesFromEgressQueue() {
   const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
   let response;
   const queueURL = EndPoints.SQS_EGRESS_QUEUE_URL;
@@ -78,7 +78,7 @@ export async function receiveMessagesFromEgressOueue() {
 }
 
 export async function filterUserIdInMessages(testUserId: string) {
-  const messages = await receiveMessagesFromEgressOueue();
+  const messages = await receiveMessagesFromEgressQueue();
   const filteredMessageByUserId = messages.filter((message) => {
     const messageBody = message.Body ? JSON.parse(message.Body) : {};
     return messageBody.user.user_id === testUserId;
