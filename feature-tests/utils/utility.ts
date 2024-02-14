@@ -40,3 +40,12 @@ export type InformationFromTable = {
   accountDeletedAt?: number;
   pk?: string;
 };
+
+export function attemptParseJSON(jsonString: string) {
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.log('Error parsing JSON', { error });
+    return {};
+  }
+}

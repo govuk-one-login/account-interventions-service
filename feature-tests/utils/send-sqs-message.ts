@@ -1,7 +1,7 @@
 import { SQS } from '@aws-sdk/client-sqs';
 import { aisEvents } from './ais-events';
 import EndPoints from '../apiEndpoints/endpoints';
-import { CurrentTimeDescriptor, timeDelayForTestEnvironment } from '../utils/utility';
+import { CurrentTimeDescriptor, timeDelayForTestEnvironment, attemptParseJSON } from '../utils/utility';
 
 export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeof aisEvents) {
   const currentTime = getCurrentTimestamp();
@@ -80,7 +80,7 @@ export async function receiveMessagesFromEgressQueue() {
 export async function filterUserIdInMessages(testUserId: string) {
   const messages = await receiveMessagesFromEgressQueue();
   const filteredMessageByUserId = messages.filter((message) => {
-    const messageBody = message.Body ? JSON.parse(message.Body) : {};
+    const messageBody = message.Body ? attemptParseJSON(message.Body) : {};
     return messageBody.user.user_id === testUserId;
   });
   return filteredMessageByUserId;

@@ -2,7 +2,7 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
 import { sendSQSEvent, purgeEgressQueue, filterUserIdInMessages } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
-import { timeDelayForTestEnvironment } from '../../../utils/utility';
+import { attemptParseJSON, timeDelayForTestEnvironment } from '../../../utils/utility';
 import { aisEventResponse } from '../../../utils/ais-events-responses';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
@@ -64,7 +64,7 @@ defineFeature(feature, (test) => {
         if (!events.includes(aisEventType)) {
           const receivedMessage = await filterUserIdInMessages(testUserId);
           const body = receivedMessage[0].Body;
-          const extensions = body ? JSON.parse(body).extensions : {};
+          const extensions = body ? attemptParseJSON(body).extensions : {};
           expect(extensions.allowable_interventions).toEqual(aisEventResponse[aisEventType].allowable_interventions);
         }
       },
@@ -115,10 +115,10 @@ defineFeature(feature, (test) => {
         const receivedMessage = await filterUserIdInMessages(testUserId);
 
         const message = receivedMessage.find((object) => {
-          const objectBody = object.Body ? JSON.parse(object.Body) : {};
+          const objectBody = object.Body ? attemptParseJSON(object.Body) : {};
           return objectBody.extensions?.description === aisEventResponse[allowableAisEventType].description;
         });
-        const body = message?.Body ? JSON.parse(message?.Body) : {};
+        const body = message?.Body ? attemptParseJSON(message?.Body) : {};
         expect(body.extensions?.allowable_interventions).toEqual(
           aisEventResponse[allowableAisEventType].allowable_interventions,
         );
@@ -170,10 +170,10 @@ defineFeature(feature, (test) => {
         const receivedMessage = await filterUserIdInMessages(testUserId);
 
         const message = receivedMessage.find((object) => {
-          const objectBody = object.Body ? JSON.parse(object.Body) : {};
+          const objectBody = object.Body ? attemptParseJSON(object.Body) : {};
           return objectBody.extensions.description === aisEventResponse[originalAisEventType].description;
         });
-        const body = message?.Body ? JSON.parse(message.Body) : {};
+        const body = message?.Body ? attemptParseJSON(message.Body) : {};
         expect(body.extensions.allowable_interventions).toEqual(
           aisEventResponse[originalAisEventType].allowable_interventions,
         );
@@ -230,10 +230,10 @@ defineFeature(feature, (test) => {
       async (originalAisEventType: keyof typeof aisEventResponse, interventionType: string) => {
         const receivedMessage = await filterUserIdInMessages(testUserId);
         const message = receivedMessage.find((object) => {
-          const objectBody = object.Body ? JSON.parse(object.Body) : {};
+          const objectBody = object.Body ? attemptParseJSON(object.Body) : {};
           return objectBody.extensions.description === interventionType;
         });
-        const body = message?.Body ? JSON.parse(message.Body) : {};
+        const body = message?.Body ? attemptParseJSON(message.Body) : {};
         expect(body.extensions.allowable_interventions).toEqual(
           aisEventResponse[originalAisEventType].allowable_interventions,
         );
