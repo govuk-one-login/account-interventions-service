@@ -37,6 +37,48 @@
       }
     },
     {
+      "description": "a request to get a users information, but the provider is not healthy",
+      "providerStates": [
+        {
+          "name": "a request to get a users information from an unhealthy provider"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/ais/testUserId"
+      },
+      "response": {
+        "body": {
+          "message": "Invalid Request."
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 500
+      }
+    },
+    {
+      "description": "a request for account information without a user id",
+      "providerStates": [
+        {
+          "name": "a request without userId passed in"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/ais/"
+      },
+      "response": {
+        "body": {
+          "message": "Invalid Request."
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 400
+      }
+    },
+    {
       "description": "a request to get the users account information",
       "providerStates": [
         {
@@ -104,6 +146,69 @@
           "Content-Type": "application/json"
         },
         "status": 200
+      }
+    },
+    {
+      "description": "a request to get a users information, but recieved an invalid response from an upstream server",
+      "providerStates": [
+        {
+          "name": "when a 502 status code is returned from a GET request"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/ais/testUserId"
+      },
+      "response": {
+        "body": {
+          "message": "Bad Gateway."
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 502
+      }
+    },
+    {
+      "description": "a request to get a users information, but the response timed out from the upstream server",
+      "providerStates": [
+        {
+          "name": "when a 504 status code is returned from a GET request"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/ais/testUserId"
+      },
+      "response": {
+        "body": {
+          "message": "Gateway Timeout."
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 504
+      }
+    },
+    {
+      "description": "a request to get a users information, but the status code provided does not match the expected responses",
+      "providerStates": [
+        {
+          "name": "when a status code that is not expected is returned from a GET request"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/ais/testUserId"
+      },
+      "response": {
+        "body": {
+          "message": "Unexpected Error."
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 404
       }
     }
   ],

@@ -1,4 +1,4 @@
-import { Response } from './api-client-utils';
+import { ResponseFromApiClient } from './api-client-utils';
 
 export class apiClient {
   private url: string;
@@ -6,7 +6,7 @@ export class apiClient {
     this.url = endpoint;
   }
 
-  public async getRequest(userId: string): Promise<Response | undefined> {
+  public async getRequest(userId: string): Promise<ResponseFromApiClient | undefined> {
     try {
       const response = await fetch(this.url + 'ais/' + userId);
       if (response.ok) {
@@ -17,8 +17,52 @@ export class apiClient {
           payload: data,
         };
       }
+      return this.validateResponseStatus(response.status, response);
     } catch (error) {
-      console.log(error);
+      if (error instanceof Error) {
+        console.error(error.name);
+        console.error(error.message);
+      }
+    }
+  }
+
+  private validateResponseStatus(statusCode: number, response: globalThis.Response) {
+    switch (statusCode) {
+      case 400: {
+        return {
+          status: response.status,
+          message: response.statusText,
+          payload: { message: 'Invalid Request.' },
+        };
+      }
+      case 500: {
+        return {
+          status: response.status,
+          message: response.statusText,
+          payload: { message: 'Internal Server Error.' },
+        };
+      }
+      case 502: {
+        return {
+          status: response.status,
+          message: response.statusText,
+          payload: { message: 'Bad Gateway.' },
+        };
+      }
+      case 504: {
+        return {
+          status: response.status,
+          message: response.statusText,
+          payload: { message: 'Gateway Timeout.' },
+        };
+      }
+      default: {
+        return {
+          status: response.status,
+          message: response.statusText,
+          payload: { message: 'Unexpected Error.' },
+        };
+      }
     }
   }
 }

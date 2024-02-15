@@ -53,7 +53,7 @@ export const accountHasNoIntervention = {
   auditLevel: 'standard',
 };
 
-export interface Response {
+export interface ResponseFromApiClient {
   status: number;
   message: string;
   payload: object;
