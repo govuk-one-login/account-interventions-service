@@ -1453,10 +1453,10 @@
     underscore "1.12.1"
     unixify "1.0.0"
 
-"@pact-foundation/pact@^12.1.3":
-  version "12.1.3"
-  resolved "https://registry.yarnpkg.com/@pact-foundation/pact/-/pact-12.1.3.tgz#66aba90e4aea61fcc1637921112cf0309b36f53c"
-  integrity sha512-IUGNzLUl3ry/iLTY2oaaFLZMM/LkQZgURT4+w1K5HL0TYAX1T0M5ZNoZ+FEe37XKPD5+EUjSA3QPkdHc94hKPA==
+"@pact-foundation/pact@^12.2.0":
+  version "12.2.0"
+  resolved "https://registry.yarnpkg.com/@pact-foundation/pact/-/pact-12.2.0.tgz#9280bcfc71bbee10d5a723c14407f35e1d74075b"
+  integrity sha512-y097AkvD4/HcHaiH5/V2GrEdbFVwEMI7LlNfOZxB3zya5R13RR4sYwxu3nVsxOGaqqZlST9qq9I9wpqCRFW+jQ==
   dependencies:
     "@pact-foundation/pact-core" "^14.1.1"
     "@types/express" "^4.17.11"
@@ -1473,7 +1473,6 @@
     lodash.isnil "4.0.0"
     lodash.isundefined "3.0.1"
     lodash.omit "^4.5.0"
-    lodash.omitby "4.6.0"
     pkginfo "^0.4.1"
     ramda "^0.28.0"
     randexp "^0.5.3"
@@ -5721,11 +5720,6 @@ lodash.omit@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.omit/-/lodash.omit-4.5.0.tgz#6eb19ae5a1ee1dd9df0b969e66ce0b7fa30b5e60"
   integrity sha512-XeqSp49hNGmlkj2EJlfrQFIzQ6lXdNro9sddtQzcJY8QaoC2GO0DT7xaIokHeyM+mIT0mPMlPvkYzg2xCuHdZg==
-
-lodash.omitby@4.6.0:
-  version "4.6.0"
-  resolved "https://registry.yarnpkg.com/lodash.omitby/-/lodash.omitby-4.6.0.tgz#5c15ff4754ad555016b53c041311e8f079204791"
-  integrity sha512-5OrRcIVR75M288p4nbI2WLAf3ndw2GD9fyNv3Bc15+WCxJDdZ4lYndSxGd7hnG6PVjiJTeJE2dHEGhIuKGicIQ==
 
 lodash.topath@^4.5.2:
   version "4.5.2"
