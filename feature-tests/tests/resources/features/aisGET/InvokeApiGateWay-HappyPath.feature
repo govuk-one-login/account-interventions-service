@@ -88,17 +88,30 @@ Feature: Invoke-APIGateway-HappyPath.feature
             | block                 | unSuspendAction           | false        |
 
     @regression
-    Scenario Outline: Get Request to /ais/userId - Password and Id non-allowable Transition from <originalAisEventType> to <nonAllowableAisEventType> - Returns expected data
-        Given I send an <nonAllowableAisEventType> non-allowable event type password or id Reset intervention message to the TxMA ingress SQS queue for a Account in <originalAisEventType> state
+    Scenario Outline: Get Request to /ais/userId - Password and Id allowable Transition from <originalAisEventType> to <allowableAisEventType> - Returns expected data
+        Given I send an <allowableAisEventType> allowable event type password or id Reset intervention message to the TxMA ingress SQS queue for a Account in <originalAisEventType> state
         When I invoke the API to retrieve the intervention status of the user's account with history <historyValue>
         Then I expect response with valid fields for <interventionType> with state flags as <blocked>, <suspended>, <resetPassword> and <reproveIdentity>
         And  I expect response with next allowable intervention types in TXMA Egress Queue for <originalAisEventType> with <interventionType>
         Examples:
-            | originalAisEventType  | nonAllowableAisEventType  | historyValue | interventionType                                   | blocked | suspended | resetPassword | reproveIdentity |
+            | originalAisEventType  | allowableAisEventType     | historyValue | interventionType                                   | blocked | suspended | resetPassword | reproveIdentity |
             | pswResetRequired      | userActionPswResetSuccess | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false   | false     | false         | false           |
             | idResetRequired       | userActionIdResetSuccess  | false        | AIS_FORCED_USER_IDENTITY_VERIFY                    | false   | false     | false         | false           |
             | pswAndIdResetRequired | userActionIdResetSuccess  | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false   | true      | true          | false           |
             | pswAndIdResetRequired | userActionPswResetSuccess | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false   | true      | false         | true            |
+
+    @regression
+    Scenario Outline: Get Request to /ais/userId - Password and Id allowable Transition from <originalAisEventType> to <allowableAisEventType> - Returns expected values in the response
+        Given I send an <allowableAisEventType> allowable event type password or id Reset intervention message for an Account in <originalAisEventType> state
+        When I invoke API to retrieve the intervention status of the user's account
+        Then I expect the response <values> with the correct time stamp when the event was applied
+        And I send a new intervention event type <originalAisEventType>
+        Then I expect the <values> is no longer present in the response
+        Examples:
+            | originalAisEventType  | allowableAisEventType     | values             |
+            | pswResetRequired      | userActionPswResetSuccess | resetPasswordAt    |
+            | idResetRequired       | userActionIdResetSuccess  | reprovedIdentityAt |
+            | pswAndIdResetRequired | userActionIdResetSuccess  | reprovedIdentityAt |
 
     @regression @historyTests
     Scenario Outline: Happy Path - Get Request to /ais/userId - allowable Transition from <originalAisEventType> to <allowableAisEventType> - Get Request to /ais/userId - Returns expected data with history values

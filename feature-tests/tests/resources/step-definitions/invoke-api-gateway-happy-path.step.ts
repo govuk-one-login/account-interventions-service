@@ -181,20 +181,20 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('Get Request to /ais/userId - Password and Id non-allowable Transition from <originalAisEventType> to <nonAllowableAisEventType> - Returns expected data', ({
+  test('Get Request to /ais/userId - Password and Id allowable Transition from <originalAisEventType> to <allowableAisEventType> - Returns expected data', ({
     given,
     when,
     then,
     and,
   }) => {
     given(
-      /^I send an (.*) non-allowable event type password or id Reset intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
-      async (nonAllowableAisEventType, originalAisEventType) => {
+      /^I send an (.*) allowable event type password or id Reset intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
+      async (allowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
         await timeDelayForTestEnvironment(500);
-        console.log('sending second message to put the user in : ' + nonAllowableAisEventType);
-        await sendSQSEvent(testUserId, nonAllowableAisEventType);
+        console.log('sending second message to put the user in : ' + allowableAisEventType);
+        await sendSQSEvent(testUserId, allowableAisEventType);
       },
     );
 
@@ -239,6 +239,52 @@ defineFeature(feature, (test) => {
         );
       },
     );
+  });
+
+  test('Get Request to /ais/userId - Password and Id allowable Transition from <originalAisEventType> to <allowableAisEventType> - Returns expected values in the response', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    given(
+      /^I send an (.*) allowable event type password or id Reset intervention message for an Account in (.*) state$/,
+      async function (allowableAisEventType, originalAisEventType) {
+        console.log('sending first message to put the user in : ' + originalAisEventType);
+        await sendSQSEvent(testUserId, originalAisEventType);
+        await timeDelayForTestEnvironment(500);
+        console.log('sending second message to put the user in : ' + allowableAisEventType);
+        await sendSQSEvent(testUserId, allowableAisEventType);
+      },
+    );
+
+    when(/^I invoke API to retrieve the intervention status of the user's account$/, async () => {
+      response = await invokeGetAccountState(testUserId, false);
+    });
+
+    then(/^I expect the response (.*) with the correct time stamp when the event was applied$/, async (values) => {
+      console.log(`Received`, { response });
+      if (values === 'resetPasswordAt') {
+        expect(response.intervention.resetPasswordAt).toBeTruthy();
+      } else {
+        expect(response.intervention.reprovedIdentityAt).toBeTruthy();
+      }
+    });
+
+    and(/^I send a new intervention event type (.*)$/, async (aisEventType) => {
+      await sendSQSEvent(testUserId, aisEventType);
+      await timeDelayForTestEnvironment(500);
+      response = await invokeGetAccountState(testUserId, true);
+    });
+
+    then(/^I expect the (.*) is no longer present in the response$/, async (values) => {
+      console.log('second response', response);
+      if (values === 'resetPasswordAt') {
+        expect(response.intervention.resetPasswordAt).toBeFalsy();
+      } else {
+        expect(response.intervention.reprovedIdentityAt).toBeFalsy();
+      }
+    });
   });
 
   test('Happy Path - Get Request to /ais/userId - allowable Transition from <originalAisEventType> to <allowableAisEventType> - Get Request to /ais/userId - Returns expected data with history values', ({
