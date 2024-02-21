@@ -5,7 +5,7 @@ import 'aws-sdk-client-mock-jest';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { ContextExamples } from '@aws-lambda-powertools/commons';
 import { Metrics } from "@aws-lambda-powertools/metrics";
-import {MetricNames} from "../../data-types/constants";
+import { MetricNames } from "../../data-types/constants";
 
 jest.mock('../../services/dynamo-database-service');
 jest.mock('@aws-sdk/util-dynamodb');
