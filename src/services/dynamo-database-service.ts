@@ -13,7 +13,7 @@ import { AppConfigService } from './app-config-service';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import tracer from '../commons/tracer';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
-import { logAndPublishMetric } from '../commons/metrics';
+import { addMetric } from '../commons/metrics';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { DynamoDBStateResult, FullAccountInformation } from '../data-types/interfaces';
 import { TooManyRecordsError } from '../data-types/errors';
@@ -113,12 +113,12 @@ export class DynamoDatabaseService {
         updateAccountStateCountMetricAfterDeletion(responseObject.blocked, responseObject.suspended);
       }
       logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Account marked as deleted.`, { userId });
-      logAndPublishMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
+      addMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
       return response;
     } catch (error: unknown) {
       if (error instanceof Error && (!error.name || error.name !== 'ConditionalCheckFailedException')) {
         logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} Error updating Dynamo DB.`, { error, userId });
-        logAndPublishMetric(MetricNames.DB_UPDATE_ERROR);
+        addMetric(MetricNames.DB_UPDATE_ERROR);
         throw new Error('Error was not a Conditional Check Failed Exception.'); //Therefore re-driving message back to the queue.
       }
       logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} No intervention exists for this account.`, { error, userId });
@@ -148,14 +148,14 @@ export class DynamoDatabaseService {
     if (!response.Items) {
       const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
       logger.error(errorMessage);
-      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
+      addMetric(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
       throw new Error(errorMessage);
     }
 
     if (response.Items.length > 1) {
       const errorMessage = 'DynamoDB returned more than one element.';
       logger.error(errorMessage);
-      logAndPublishMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
+      addMetric(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
       throw new TooManyRecordsError(errorMessage);
     }
     return response.Items[0] ? (unmarshall(response.Items[0]) as T) : undefined;

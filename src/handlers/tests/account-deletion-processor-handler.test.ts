@@ -4,6 +4,8 @@ import logger from '../../commons/logger';
 import 'aws-sdk-client-mock-jest';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { ContextExamples } from '@aws-lambda-powertools/commons';
+import { Metrics } from "@aws-lambda-powertools/metrics";
+import {MetricNames} from "../../data-types/constants";
 
 jest.mock('../../services/dynamo-database-service');
 jest.mock('@aws-sdk/util-dynamodb');
@@ -11,6 +13,10 @@ jest.mock('../../commons/logger');
 jest.mock('@aws-lambda-powertools/metrics');
 
 const mockDynamoDBServiceUpdateDeleteStatus = DynamoDatabaseService.prototype.updateDeleteStatus as jest.Mock;
+const mockPublishStoredMetric = Metrics.prototype.publishStoredMetrics as jest.Mock;
+const mockAddMetric = Metrics.prototype.addMetric as jest.Mock;
+const loggerErrorSpy = jest.spyOn(logger, 'error');
+const loggerWarnSpy = jest.spyOn(logger, 'warn');
 
 describe('Account Deletion Processor', () => {
   let mockEvent: SQSEvent;
@@ -50,8 +56,8 @@ describe('Account Deletion Processor', () => {
   it('does nothing if SQS event contains no record', async () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockReturnValue([]);
     mockEvent = { Records: [] };
-    const loggerErrorSpy = jest.spyOn(logger, 'error');
     await handler(mockEvent, mockContext);
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(0);
     expect(loggerErrorSpy).toHaveBeenCalledWith('The event does not contain any records.');
   });
 
@@ -59,25 +65,22 @@ describe('Account Deletion Processor', () => {
     const mockBody = 'non-JSON mockRecordBody';
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    const loggerWarnSpy = jest.spyOn(logger, 'error');
     await handler(mockEvent, mockContext);
-    expect(loggerWarnSpy).toHaveBeenCalledWith('The SQS message can not be parsed.');
+    expect(loggerErrorSpy).toHaveBeenCalledWith('The SQS message can not be parsed.');
   });
 
-  it('does not process the SQS Record when the message of the message body is not a valid JSON', async () => {
+  it('does not process the SQS Record when the message body is not a valid JSON', async () => {
     const mockBody = JSON.stringify({ Message: 'invalid JSON message in the message body' });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    const loggerWarnSpy = jest.spyOn(logger, 'error');
     await handler(mockEvent, mockContext);
-    expect(loggerWarnSpy).toHaveBeenCalledWith('The SQS message can not be parsed.');
+    expect(loggerErrorSpy).toHaveBeenCalledWith('The SQS message can not be parsed.');
   });
 
   it("does not process the SQS Record when the message doesn't contain user id", async () => {
     const mockBody = JSON.stringify({ Message: JSON.stringify({}) });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    const loggerWarnSpy = jest.spyOn(logger, 'warn');
     await handler(mockEvent, mockContext);
     expect(loggerWarnSpy).toHaveBeenCalledWith('Attribute missing: user_id.');
   });
@@ -86,7 +89,6 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ Message: JSON.stringify({ user_id: '' }) });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    const loggerWarnSpy = jest.spyOn(logger, 'warn');
     await handler(mockEvent, mockContext);
     expect(loggerWarnSpy).toHaveBeenCalledWith('Attribute invalid: user_id is empty.');
   });
@@ -95,7 +97,6 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ Message: JSON.stringify({ user_id: '   ' }) });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    const loggerWarnSpy = jest.spyOn(logger, 'warn');
     await handler(mockEvent, mockContext);
     expect(loggerWarnSpy).toHaveBeenCalledWith('Attribute invalid: user_id is empty.');
   });
@@ -104,17 +105,17 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ Message: JSON.stringify({ user_id: 123 }) });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    const loggerWarnSpy = jest.spyOn(logger, 'warn');
     await handler(mockEvent, mockContext);
     expect(loggerWarnSpy).toHaveBeenCalledWith('Attribute invalid: user_id is not a string.');
   });
 
-  it('tests the trim functionality is being used', async () => {
+  it('it successfully process the message when the user id passed contains trailing spaces', async () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockReturnValueOnce(['1']);
     const mockBody = JSON.stringify({ Message: JSON.stringify({ user_id: 'abcdef ' }) });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
     expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledWith('abcdef');
   });
 
@@ -123,8 +124,37 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ Message: JSON.stringify({ user_id: 'hello' }) });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    const loggerErrorSpy = jest.spyOn(logger, 'error');
     await expect(handler(mockEvent, mockContext)).rejects.toThrowError('Failed to update the account status.');
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
     expect(loggerErrorSpy).toHaveBeenCalledWith(`Sensitive info - Error updating account hello`, { error: 'Error' });
+    expect(mockAddMetric).toHaveBeenCalledTimes(1);
+    expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.MARK_AS_DELETED_FAILED, "Count", 1);
   });
+
+  it('successfully process the message when it contains a single record', async () => {
+    mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
+    await handler(mockEvent, mockContext);
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it('successfully process the message when it contains multiple records', async () => {
+    mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
+    const mockRecord2 = { ... mockRecord, body: JSON.stringify({ Message: JSON.stringify({ user_id: 'other_user_id' }) })}
+    const mockEvent = { Records: [mockRecord, mockRecord2] }
+    await handler(mockEvent, mockContext);
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(2);
+  });
+
+  it('will throw an error if one of multiple records fails to process', async () => {
+    mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValueOnce('');
+    mockDynamoDBServiceUpdateDeleteStatus.mockRejectedValueOnce('Error');
+    const mockRecord2 = { ... mockRecord, body: JSON.stringify({ Message: JSON.stringify({ user_id: 'other_user_id' }) })}
+    const mockEvent = { Records: [mockRecord, mockRecord2] }
+    await expect(handler(mockEvent, mockContext)).rejects.toThrow('Failed to update the account status.');
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockAddMetric).toHaveBeenCalledTimes(1);
+    expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.MARK_AS_DELETED_FAILED, "Count", 1);
+  })
 });

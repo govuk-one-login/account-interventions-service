@@ -7,7 +7,7 @@ import {
   validateLevelOfConfidence,
 } from '../validate-event';
 import logger from '../../commons/logger';
-import { logAndPublishMetric } from '../../commons/metrics';
+import { addMetric } from '../../commons/metrics';
 import { ValidationError } from '../../data-types/errors';
 import { EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { sendAuditEvent } from '../send-audit-events';
@@ -86,7 +86,7 @@ describe('event-validation', () => {
     expect(logger.debug).toHaveBeenCalledWith('Sensitive info - Event has failed schema validation.', {
       validationErrors: expect.anything(),
     });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
+    expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
 
   it('should return an error as event is invalid', () => {
@@ -108,7 +108,7 @@ describe('event-validation', () => {
     expect(logger.debug).toHaveBeenCalledWith('Sensitive info - Event has failed schema validation.', {
       validationErrors: expect.anything(),
     });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
+    expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
 
   it('should return an error as extensions do not contain required fields', () => {
@@ -125,7 +125,7 @@ describe('event-validation', () => {
     expect(logger.debug).toHaveBeenCalledWith('Sensitive info - Event has failed schema validation.', {
       validationErrors: expect.anything(),
     });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
+    expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
 
   it('should return an error as intervention code is NAN', () => {
@@ -148,7 +148,7 @@ describe('event-validation', () => {
     expect(validateEventAgainstSchema(TxMAEvent)).toBeUndefined();
     expect(() => validateInterventionEvent(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
     expect(logger.debug).toHaveBeenCalledWith('Invalid intervention request. Intervention code is NAN');
-    expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
+    expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
 
   it('should throw an error if event is stale', async () => {
@@ -184,7 +184,7 @@ describe('event-validation', () => {
           dynamoDBResult,
         ),
     ).rejects.toThrow(new ValidationError('Event received predates last applied event for this user.'));
-    expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
+    expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
     expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent, {
       stateResult: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
       interventionName: 'AIS_NO_INTERVENTION',
@@ -223,7 +223,7 @@ describe('event-validation', () => {
         dynamoDBResult,
       ),
     ).resolves.toEqual(undefined);
-    expect(logAndPublishMetric).not.toHaveBeenCalled();
+    expect(addMetric).not.toHaveBeenCalled();
     expect(sendAuditEvent).not.toHaveBeenCalled();
   });
 
@@ -247,7 +247,7 @@ describe('event-validation', () => {
     await expect(async () => {
       await validateEventIsNotInFuture(EventsEnum.FRAUD_SUSPEND_ACCOUNT, eventInTheFuture);
     }).rejects.toThrow(new Error('Event is in the future. It will be retried'));
-    expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
+    expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
     expect(sendAuditEvent).toHaveBeenCalledWith(
       'AIS_EVENT_IGNORED_IN_FUTURE',
       'FRAUD_SUSPEND_ACCOUNT',
@@ -276,7 +276,7 @@ describe('event-validation', () => {
     await expect(validateEventIsNotInFuture(EventsEnum.FRAUD_SUSPEND_ACCOUNT, eventNotInTheFuture)).resolves.toEqual(
       undefined,
     );
-    expect(logAndPublishMetric).not.toHaveBeenCalled();
+    expect(addMetric).not.toHaveBeenCalled();
     expect(sendAuditEvent).not.toHaveBeenCalled();
   });
 
@@ -305,7 +305,7 @@ describe('event-validation', () => {
     expect(() => validateLevelOfConfidence(EventsEnum.IPV_IDENTITY_ISSUED, idResetEventLowConfidence)).toThrow(
       new ValidationError('Received intervention has low level of confidence.'),
     );
-    expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
+    expect(addMetric).toHaveBeenCalledWith(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
   });
 
   it('should not throw if level of confidence is high enough for a ID Reset event', () => {
@@ -331,7 +331,7 @@ describe('event-validation', () => {
       },
     };
     expect(() => validateLevelOfConfidence(EventsEnum.IPV_IDENTITY_ISSUED, idResetEvent)).not.toThrow();
-    expect(logAndPublishMetric).not.toHaveBeenCalled();
+    expect(addMetric).not.toHaveBeenCalled();
   });
 
   it('should throw if level of confidence field is not present in an ID Reset event', () => {
@@ -358,6 +358,6 @@ describe('event-validation', () => {
     expect(() => validateLevelOfConfidence(EventsEnum.IPV_IDENTITY_ISSUED, idResetEventLowConfidence)).toThrow(
       new ValidationError('Received intervention has low level of confidence.'),
     );
-    expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
+    expect(addMetric).toHaveBeenCalledWith(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
   });
 });

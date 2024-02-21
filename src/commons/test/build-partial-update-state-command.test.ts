@@ -1,7 +1,7 @@
 import { StateDetails, TxMAIngressEvent } from '../../data-types/interfaces';
 import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { buildPartialUpdateAccountStateCommand } from '../build-partial-update-state-command';
-import { logAndPublishMetric } from '../metrics';
+import { addMetric } from '../metrics';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -319,6 +319,6 @@ describe('build-partial-update-state-command', () => {
     expect(() => buildPartialUpdateAccountStateCommand(state, intervention, 4444, interventionEventBody, [])).toThrow(
       new Error('The intervention received did not have an interventionName field.'),
     );
-    expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
+    expect(addMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
   });
 });

@@ -1,7 +1,7 @@
 import type { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { AppConfigService } from '../services/app-config-service';
 import logger from '../commons/logger';
-import { logAndPublishMetric } from '../commons/metrics';
+import { addMetric, metric } from '../commons/metrics';
 import { MetricNames, AISInterventionTypes } from '../data-types/constants';
 import { AccountStatus, FullAccountInformation, HistoryObject } from '../data-types/interfaces';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
@@ -22,7 +22,8 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
   logger.debug('Status-Retriever-Handler.', { event });
 
   if (!event.pathParameters?.['userId']) {
-    logAndPublishMetric(MetricNames.INVALID_SUBJECT_ID);
+    addMetric(MetricNames.INVALID_SUBJECT_ID);
+    metric.publishStoredMetrics();
     return {
       statusCode: 400,
       body: JSON.stringify({ message: 'Invalid Request.' }),
@@ -36,14 +37,14 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
     const response = await dynamoDatabaseServiceInstance.getFullAccountInformation(userId);
     if (!response) {
       logger.info('Query matched no records in DynamoDB.');
-      logAndPublishMetric(MetricNames.ACCOUNT_NOT_FOUND);
+      addMetric(MetricNames.ACCOUNT_NOT_FOUND);
 
       const undefinedAccount = transformResponseFromDynamoDatabase({});
 
       if (historyQuery && historyQuery === 'true') {
         undefinedAccount.history = [];
       }
-
+      metric.publishStoredMetrics();
       return {
         statusCode: 200,
         body: JSON.stringify(undefinedAccount),
@@ -55,15 +56,16 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
     if (historyQuery && historyQuery === 'true') {
       accountStatus.history = response.history ? constructHistoryObjectField(response.history) : [];
     }
-
+    metric.publishStoredMetrics();
     return {
       statusCode: 200,
       body: JSON.stringify(accountStatus),
     };
   } catch (error) {
     logger.error('A problem occurred with the query.', { error });
-    logAndPublishMetric(MetricNames.DB_QUERY_ERROR);
+    addMetric(MetricNames.DB_QUERY_ERROR);
   }
+  metric.publishStoredMetrics();
   return {
     statusCode: 500,
     body: JSON.stringify({ message: 'Internal Server Error.' }),
@@ -126,7 +128,7 @@ function constructHistoryObjectField(input: string[]): HistoryObject[] {
       arrayOfHistoryStrings.push(historyObject);
     } catch (error) {
       logger.error('History string is malformed.', { error });
-      logAndPublishMetric(MetricNames.INVALID_HISTORY_STRING);
+      addMetric(MetricNames.INVALID_HISTORY_STRING);
     }
   }
   return arrayOfHistoryStrings;

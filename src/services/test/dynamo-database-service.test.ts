@@ -11,7 +11,7 @@ import { mockClient } from 'aws-sdk-client-mock';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import logger from '../../commons/logger';
 import { TooManyRecordsError } from '../../data-types/errors';
-import { logAndPublishMetric } from '../../commons/metrics';
+import { addMetric } from '../../commons/metrics';
 import { MetricNames } from '../../data-types/constants';
 import { updateAccountStateCountMetricAfterDeletion } from '../../commons/metrics-helper';
 
@@ -137,7 +137,7 @@ describe('Dynamo DB Service', () => {
     await expect(async () => await service.getAccountStateInformation('userId')).rejects.toThrow(
       new TooManyRecordsError('DynamoDB returned more than one element.'),
     );
-    expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
+    expect(addMetric).toHaveBeenLastCalledWith(MetricNames.DB_QUERY_ERROR_TOO_MANY_ITEMS);
   });
 
   it('should throw an error if Items field is undefined in response from DynamoDB.', async () => {
@@ -146,7 +146,7 @@ describe('Dynamo DB Service', () => {
     await expect(async () => await service.getAccountStateInformation('userId')).rejects.toThrow(
       new TooManyRecordsError('DynamoDB may have failed to query, returned a null response.'),
     );
-    expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
+    expect(addMetric).toHaveBeenLastCalledWith(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
   });
 
   it('should update the isAccountDeleted status of the userId in DynamoDB and log info.', async () => {
@@ -205,7 +205,7 @@ describe('Dynamo DB Service', () => {
       error: error,
       userId: 'hello',
     });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('DB_UPDATE_ERROR');
+    expect(addMetric).toHaveBeenCalledWith('DB_UPDATE_ERROR');
   });
 
   it('does not throw an error and logs an info when there is a Conditional Check Exception.', async () => {
