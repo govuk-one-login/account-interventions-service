@@ -472,7 +472,7 @@ defineFeature(feature, (test) => {
       await cloudwatchLogs.getLogs();
     });
 
-    when('log events messages contain a user  Id', () => {
+    when('log events messages contain a userId', () => {
       events = cloudwatchLogs.filterLogsBy('userId');
       console.log(events.length);
     });
