@@ -70,9 +70,9 @@ export async function sendAuditEvent(
     const response = await sqsClient.send(new SendMessageCommand(input));
     addMetric(MetricNames.PUBLISHED_EVENT_TO_TXMA);
     return response;
-  } catch {
+  } catch (error) {
     addMetric(MetricNames.ERROR_PUBLISHING_EVENT_TO_TXMA);
-    logger.error('An error happened while trying to send the audit event to the TxMA queue.');
+    logger.error('An error happened while trying to send the audit event to the TxMA queue.', { error: error });
   }
 }
 

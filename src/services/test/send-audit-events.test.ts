@@ -354,7 +354,7 @@ describe('send-audit-events', () => {
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendIntervention);
     expect(logger.error).toHaveBeenCalledWith(
-      'An error happened while trying to send the audit event to the TxMA queue.',
+      'An error happened while trying to send the audit event to the TxMA queue.', { error: new Error('SomeSQSError')}
     );
     expect(addMetric).toHaveBeenCalledWith('ERROR_PUBLISHING_EVENT_TO_TXMA');
   });
