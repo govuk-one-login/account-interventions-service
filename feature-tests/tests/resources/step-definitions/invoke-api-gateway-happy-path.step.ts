@@ -10,8 +10,7 @@ import {
 } from '../../../utils/utility';
 import { aisEventResponse } from '../../../utils/ais-events-responses';
 import { updateItemInTable } from '../../../utils/dynamo-database-methods';
-import { filterCloudWatchLogs } from '../../../utils/cloudwatch-logs';
-import { FilteredLogEvent } from '@aws-sdk/client-cloudwatch-logs';
+import { cloudwatchLogs, LogEvent } from '../../../utils/cloudwatch-logs-service';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
@@ -246,7 +245,7 @@ defineFeature(feature, (test) => {
           return objectBody.extensions.description === interventionType;
         });
         const body = message?.Body ? attemptParseJSON(message.Body) : {};
-        expect(body.extensions.allowable_interventions).toEqual(
+        expect(body.extensions?.allowable_interventions).toEqual(
           aisEventResponse[originalAisEventType].allowable_interventions,
         );
       },
@@ -467,6 +466,8 @@ defineFeature(feature, (test) => {
         expect(response.history.length === 0);
       },
     );
+  });
+  
   test('Happy Path - Logs Validation', ({ given, when, then }) => {
     given('Cloudwatch logs have been created', async () => {
       await cloudwatchLogs.getLogs();
