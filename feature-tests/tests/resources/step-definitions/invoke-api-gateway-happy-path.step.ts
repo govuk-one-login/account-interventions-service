@@ -15,26 +15,15 @@ import { FilteredLogEvent } from '@aws-sdk/client-cloudwatch-logs';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
-interface EventMessage {
-  message?: string;
-  userId?: string;
-}
-
 defineFeature(feature, (test) => {
   beforeAll(async () => {
     await purgeEgressQueue();
   });
   let testUserId: string;
-  let startTime: number;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   let response: any;
-  let events: FilteredLogEvent[];
-  let messages: (string | EventMessage | undefined)[];
-
-  beforeAll(() => {
-    startTime = Date.now();
-  });
+  let events: LogEvent[];
 
   beforeEach(() => {
     testUserId = generateRandomTestUserId();
@@ -480,30 +469,20 @@ defineFeature(feature, (test) => {
     );
   test('Happy Path - Logs Validation', ({ given, when, then }) => {
     given('Cloudwatch logs have been created', async () => {
-      events = await filterCloudWatchLogs(startTime);
+      await cloudwatchLogs.getLogs();
     });
 
-    when('log events messages contain a userId', () => {
-      messages = events.map((event) => {
-        let message;
-        if (event.message) {
-          try {
-            message = JSON.parse(event.message) as EventMessage;
-          } catch {
-            message = event.message;
-          }
-        }
-        return message;
-      });
-
-      messages = messages.filter((message) => message && message.hasOwnProperty('userId'));
+    when('log events messages contain a user  Id', () => {
+      events = cloudwatchLogs.filterLogsBy('userId');
+      console.log(events.length);
     });
 
     then('the log events should also contain the message prefix sensitive info', () => {
-      messages = messages.filter(
-        (message) => message && typeof message !== 'string' && !message.message?.startsWith('Sensitive info'),
+      events = events.filter(
+        (event) =>
+          event.message && typeof event.message !== 'string' && !event.message.message?.startsWith('Sensitive info'),
       );
-      expect(messages).toHaveLength(0);
+      expect(events).toHaveLength(0);
     });
   });
 });
