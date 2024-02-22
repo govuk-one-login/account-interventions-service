@@ -4,85 +4,10 @@
   },
   "interactions": [
     {
-      "description": "a request to get a non existing account information",
-      "providerStates": [
-        {
-          "name": "a non existing user account"
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "path": "/ais/testUserId"
-      },
-      "response": {
-        "body": {
-          "auditLevel": "standard",
-          "intervention": {
-            "appliedAt": 1685404800000,
-            "description": "AIS_NO_INTERVENTION",
-            "sentAt": 1685404800000,
-            "updatedAt": 1685404800000
-          },
-          "state": {
-            "blocked": false,
-            "reproveIdentity": false,
-            "resetPassword": false,
-            "suspended": false
-          }
-        },
-        "headers": {
-          "Content-Type": "application/json"
-        },
-        "status": 200
-      }
-    },
-    {
-      "description": "a request to get a users information, but the provider is not healthy",
-      "providerStates": [
-        {
-          "name": "a request to get a users information from an unhealthy provider"
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "path": "/ais/testUserId"
-      },
-      "response": {
-        "body": {
-          "message": "Invalid Request."
-        },
-        "headers": {
-          "Content-Type": "application/json"
-        },
-        "status": 500
-      }
-    },
-    {
-      "description": "a request for account information without a user id",
-      "providerStates": [
-        {
-          "name": "a request without userId passed in"
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "path": "/ais/"
-      },
-      "response": {
-        "body": {
-          "message": "Invalid Request."
-        },
-        "headers": {
-          "Content-Type": "application/json"
-        },
-        "status": 400
-      }
-    },
-    {
       "description": "a request to get the users account information",
       "providerStates": [
         {
-          "name": "a user account is in a blocked state"
+          "name": "provider is healthy"
         }
       ],
       "request": {
@@ -95,8 +20,6 @@
           "intervention": {
             "appliedAt": 12345685809,
             "description": "AIS_ACCOUNT_BLOCKED",
-            "reprovedIdentityAt": 849473,
-            "resetPasswordAt": 5847392,
             "sentAt": 123456789,
             "updatedAt": 123455
           },
@@ -110,105 +33,83 @@
         "headers": {
           "Content-Type": "application/json"
         },
-        "status": 200
-      }
-    },
-    {
-      "description": "a request to get an existing users information that has no intervention status",
-      "providerStates": [
-        {
-          "name": "an existing user with no intervention status"
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "path": "/ais/testUserId"
-      },
-      "response": {
-        "body": {
-          "auditLevel": "standard",
-          "intervention": {
-            "appliedAt": 12345685809,
-            "description": "AIS_NO_INTERVENTION",
-            "reprovedIdentityAt": 849473,
-            "resetPasswordAt": 5847392,
-            "sentAt": 123456789,
-            "updatedAt": 123455
-          },
-          "state": {
-            "blocked": false,
-            "reproveIdentity": false,
-            "resetPassword": false,
-            "suspended": false
+        "matchingRules": {
+          "body": {
+            "$.auditLevel": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.intervention.appliedAt": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "number"
+                }
+              ]
+            },
+            "$.intervention.description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.intervention.sentAt": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "number"
+                }
+              ]
+            },
+            "$.intervention.updatedAt": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "number"
+                }
+              ]
+            },
+            "$.state.blocked": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.state.reproveIdentity": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.state.resetPassword": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.state.suspended": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
           }
         },
-        "headers": {
-          "Content-Type": "application/json"
-        },
         "status": 200
-      }
-    },
-    {
-      "description": "a request to get a users information, but recieved an invalid response from an upstream server",
-      "providerStates": [
-        {
-          "name": "when a 502 status code is returned from a GET request"
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "path": "/ais/testUserId"
-      },
-      "response": {
-        "body": {
-          "message": "Bad Gateway."
-        },
-        "headers": {
-          "Content-Type": "application/json"
-        },
-        "status": 502
-      }
-    },
-    {
-      "description": "a request to get a users information, but the response timed out from the upstream server",
-      "providerStates": [
-        {
-          "name": "when a 504 status code is returned from a GET request"
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "path": "/ais/testUserId"
-      },
-      "response": {
-        "body": {
-          "message": "Gateway Timeout."
-        },
-        "headers": {
-          "Content-Type": "application/json"
-        },
-        "status": 504
-      }
-    },
-    {
-      "description": "a request to get a users information, but the status code provided does not match the expected responses",
-      "providerStates": [
-        {
-          "name": "when a status code that is not expected is returned from a GET request"
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "path": "/ais/testUserId"
-      },
-      "response": {
-        "body": {
-          "message": "Unexpected Error."
-        },
-        "headers": {
-          "Content-Type": "application/json"
-        },
-        "status": 404
       }
     }
   ],

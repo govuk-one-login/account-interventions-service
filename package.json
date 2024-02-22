@@ -12,6 +12,7 @@
     "test": "yarn test:unit",
     "test:unit": "jest --group=unit --coverage --runInBand --testPathIgnorePatterns \"src/contract-testing/*\"",
     "test:pact": "jest --group=contract --runInBand --testPathPattern=\"src/contract-testing/*\"",
+    "test:localServer": "jest --group=contract --runInBand --testPathPattern=\"src/contract-testing/ais-provider.pact.test.ts\"",
     "test:apiClient": "jest --group=contract --runInBand --testPathPattern=\"api-client/tests/api-client.test.ts\"",
     "lint": "yarn lint:code && yarn lint:spec && yarn lint:iac",
     "lint:code": "eslint --ext .ts .",
