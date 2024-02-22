@@ -2,8 +2,14 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
 import { sendSQSEvent, purgeEgressQueue, filterUserIdInMessages } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
-import { attemptParseJSON, timeDelayForTestEnvironment } from '../../../utils/utility';
+import {
+  InformationFromTable,
+  attemptParseJSON,
+  timeDelayForTestEnvironment,
+  getPastTimestamp,
+} from '../../../utils/utility';
 import { aisEventResponse } from '../../../utils/ais-events-responses';
+import { updateItemInTable } from '../../../utils/dynamo-database-methods';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
@@ -401,5 +407,59 @@ defineFeature(feature, (test) => {
       expect(response.history.at(-1).intervention).toBe(`FRAUD_UNBLOCK_ACCOUNT`);
       expect(response.auditLevel).toBe('standard');
     });
+  });
+
+  test('Happy Path - validate history exceeds 2years - Returns Expected Data for <aisEventType>', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    given(/^I send an (.*) to a TXMA Ingress queue$/, async (aisEventType) => {
+      await sendSQSEvent(testUserId, aisEventType);
+    });
+
+    when(/^I invoke the API to retrieve the intervention status of the user's account$/, async () => {
+      await timeDelayForTestEnvironment(1500);
+      response = await invokeGetAccountState(testUserId, true);
+    });
+
+    then(/^I expect the response with (.*)$/, async (aisEventInterventionType) => {
+      expect(response.intervention.description).toBe(aisEventInterventionType);
+      expect(response.history.length === 0);
+    });
+
+    when(/^I update the current transition history time stamp to past in db$/, async () => {
+      const pastTimeStamp = getPastTimestamp().milliseconds;
+      const separator = `|`;
+      const stringifiedHistory = `${pastTimeStamp}${separator}${response.history[0].component}${separator}${response.history[0].code}${separator}${response.history[0].reason}${separator}${response.history[0].originatingComponent}${separator}${response.history[0].originatorReferenceId}${separator}${response.history[0].requesterId}`;
+      const updateHistoryTimeStampInTable: InformationFromTable = {
+        updatedAt: response.intervention.updatedAt,
+        sentAt: response.intervention.sentAt,
+        appliedAt: response.intervention.appliedAt,
+        intervention: response.intervention.description,
+        suspended: response.state.suspended,
+        reproveIdentity: response.state.reproveIdentity,
+        resetPassword: response.state.resetPassword,
+        blocked: response.state.blocked,
+        history: stringifiedHistory,
+      };
+      await timeDelayForTestEnvironment(500);
+      await updateItemInTable(testUserId, updateHistoryTimeStampInTable);
+    });
+
+    and(/^I send an another (.*) and invoke the API$/, async (allowableEventType) => {
+      await sendSQSEvent(testUserId, allowableEventType);
+      await timeDelayForTestEnvironment(1500);
+      response = await invokeGetAccountState(testUserId, true);
+    });
+
+    then(
+      /^I expect response with (.*) and only the latest transition history$/,
+      async (allowableEventInterventionType) => {
+        expect(response.intervention.description).toBe(allowableEventInterventionType);
+        expect(response.history.length === 0);
+      },
+    );
   });
 });
