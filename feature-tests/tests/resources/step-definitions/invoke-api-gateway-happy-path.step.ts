@@ -202,6 +202,7 @@ defineFeature(feature, (test) => {
       /^I send an (.*) allowable event type password or id Reset intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
       async (allowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
+        cloudwatchLogs.setStartTime();
         await sendSQSEvent(testUserId, originalAisEventType);
         await timeDelayForTestEnvironment(500);
         console.log('sending second message to put the user in : ' + allowableAisEventType);
@@ -214,6 +215,7 @@ defineFeature(feature, (test) => {
       async (historyValue) => {
         await timeDelayForTestEnvironment(500);
         response = await invokeGetAccountState(testUserId, historyValue);
+        await cloudwatchLogs.getTestLogs();
       },
     );
 
@@ -227,6 +229,7 @@ defineFeature(feature, (test) => {
         reproveIdentity: string,
       ) => {
         console.log(`Received`, { response });
+        console.log(`logs length: ${cloudwatchLogs.logs.length}`);
         expect(response.intervention.description).toBe(interventionType);
         expect(response.state.blocked).toBe(JSON.parse(blocked));
         expect(response.state.suspended).toBe(JSON.parse(suspended));
@@ -470,20 +473,19 @@ defineFeature(feature, (test) => {
   
   test('Happy Path - Logs Validation', ({ given, when, then }) => {
     given('Cloudwatch logs have been created', async () => {
-      await cloudwatchLogs.getLogs();
+      await cloudwatchLogs.getAllLogs();
     });
 
     when('log events messages contain a userId', () => {
-      events = cloudwatchLogs.filterLogsBy('userId');
-      console.log(events.length);
+      events = cloudwatchLogs.filterMessagesBy('userId');
     });
 
     then('the log events should also contain the message prefix sensitive info', () => {
-      events = events.filter(
+      const sensitiveInfoEvents = events.filter(
         (event) =>
-          event.message && typeof event.message !== 'string' && !event.message.message?.startsWith('Sensitive info'),
+          event.message && typeof event.message !== 'string' && event.message.message?.startsWith('Sensitive info'),
       );
-      expect(events).toHaveLength(0);
+      expect(events.length).toEqual(sensitiveInfoEvents.length);
     });
   });
 });

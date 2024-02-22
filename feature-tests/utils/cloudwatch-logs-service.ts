@@ -1,9 +1,4 @@
-import {
-  CloudWatchLogsClient,
-  // DescribeLogStreamsCommand,
-  FilterLogEventsCommand,
-  FilteredLogEvent,
-} from '@aws-sdk/client-cloudwatch-logs';
+import { CloudWatchLogsClient, FilterLogEventsCommand, FilteredLogEvent } from '@aws-sdk/client-cloudwatch-logs';
 
 export interface LogEvent extends Omit<FilteredLogEvent, 'message'> {
   message: EventMessage | string;
@@ -24,54 +19,52 @@ class CloudWatchLogsService {
     '/aws/lambda/ais-main-AccountDeletionProcessorFunction',
     '/aws/lambda/ais-main-InvokePrivateAPIGatewayFunction',
   ];
+  initialStartTime = Date.now();
   startTime = Date.now(); // - 100000;
   logs: LogEvent[] = [];
 
   constructor() {}
 
-  async getLogs() {
+  setStartTime() {
+    this.startTime = Date.now();
+  }
+
+  async getTestLogs() {
+    await this.getLogs(this.startTime);
+  }
+
+  async getAllLogs() {
+    await this.getLogs(this.initialStartTime);
+  }
+
+  async getLogs(startTime: number) {
+    this.logs = [];
     for (const logGroupName of this.LOG_GROUPS) {
-      console.log({ logGroupName, startTime: this.startTime });
+      console.log({ logGroupName, startTime });
 
-      let logs = await this.client.send(
-        new FilterLogEventsCommand({
-          logGroupName,
-          startTime: this.startTime,
-        }),
-      );
-      console.log('logs filter');
-      console.log({ logsInService: logs });
-
-      if (logs?.events) {
-        for (const log of logs?.events) {
-          this.logs.push(this.parseMessage(log));
-        }
-      }
-
-      while (logs.nextToken) {
-        logs = await this.client.send(
+      let nextToken: string | undefined;
+      do {
+        const logs = await this.client.send(
           new FilterLogEventsCommand({
             logGroupName,
-            startTime: this.startTime,
-            nextToken: logs.nextToken,
+            startTime,
+            ...(nextToken && { nextToken }),
           }),
         );
-        console.log({ logsInServiceNextToken: logs });
 
         if (logs?.events) {
           for (const log of logs?.events) {
             this.logs.push(this.parseMessage(log));
           }
         }
-      }
-      // TODO: handle missing events from logs
-      // return logs.events ?? [];
+
+        nextToken = logs.nextToken;
+        console.log({ nextToken, numberOfLogs: this.logs.length });
+      } while (nextToken);
     }
-    // this.parseMessages();
   }
 
   parseMessage(log: FilteredLogEvent): LogEvent {
-    // logs = logs.map((log) => {
     let message: EventMessage | string = '';
     if (log.message && typeof log.message === 'string') {
       try {
@@ -82,11 +75,9 @@ class CloudWatchLogsService {
     }
 
     return { ...log, message };
-    // })
-    // console.log({ logs: this.logs });
   }
 
-  filterLogsBy(parameter: string) {
+  filterMessagesBy(parameter: string) {
     return this.logs.filter((log) => log.message && log.message.hasOwnProperty(parameter));
   }
 }
