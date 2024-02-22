@@ -1,6 +1,6 @@
 import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
 import logger from '../commons/logger';
-import { logAndPublishMetric } from '../commons/metrics';
+import { addMetric } from '../commons/metrics';
 import { AISInterventionTypes, EventsEnum, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
 import { ValidationError } from '../data-types/errors';
 import { compileSchema } from '../commons/compile-schema';
@@ -21,7 +21,7 @@ export function validateEventAgainstSchema(interventionRequest: TxMAIngressEvent
     logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Event has failed schema validation.`, {
       validationErrors: validateInterventionDataInput.errors,
     });
-    logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
+    addMetric(MetricNames.INVALID_EVENT_RECEIVED);
     throw new ValidationError('Invalid intervention event.');
   }
 }
@@ -34,7 +34,7 @@ export function validateEventAgainstSchema(interventionRequest: TxMAIngressEvent
 export function validateInterventionEvent(interventionRequest: TxMAIngressEvent): void {
   if (Number.isNaN(Number.parseInt(interventionRequest.extensions!.intervention!.intervention_code))) {
     logger.debug('Invalid intervention request. Intervention code is NAN');
-    logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
+    addMetric(MetricNames.INVALID_EVENT_RECEIVED);
     throw new ValidationError('Invalid intervention event.');
   }
 }
@@ -48,7 +48,7 @@ export function validateInterventionEvent(interventionRequest: TxMAIngressEvent)
 export function validateLevelOfConfidence(intervention: EventsEnum, event: TxMAIngressEvent) {
   if (intervention === EventsEnum.IPV_IDENTITY_ISSUED && event.extensions?.levelOfConfidence !== 'P2') {
     logger.warn(`Received interventions has low level of confidence: ${event.extensions?.levelOfConfidence}`);
-    logAndPublishMetric(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
+    addMetric(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
     throw new ValidationError('Received intervention has low level of confidence.');
   }
 }
@@ -64,7 +64,7 @@ export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: T
   const now = getCurrentTimestamp().milliseconds;
   if (now < eventTimestampInMs) {
     logger.debug(`Timestamp is in the future (sec): ${eventTimestampInMs}.`);
-    logAndPublishMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
+    addMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
     await sendAuditEvent('AIS_EVENT_IGNORED_IN_FUTURE', eventEnum, event);
     throw new Error('Event is in the future. It will be retried');
   }
@@ -87,7 +87,7 @@ export async function validateEventIsNotStale(
   const eventTimestampInMs = event.event_timestamp_ms ?? event.timestamp * 1000;
   if (!isEventAfterLastEvent(eventTimestampInMs, itemFromDB.sentAt, itemFromDB.appliedAt)) {
     logger.warn('Event received predates last applied event for this user.');
-    logAndPublishMetric(MetricNames.INTERVENTION_EVENT_STALE);
+    addMetric(MetricNames.INTERVENTION_EVENT_STALE);
     await sendAuditEvent('AIS_EVENT_IGNORED_STALE', intervention, event, {
       stateResult: initialState,
       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
@@ -120,7 +120,7 @@ export function attemptToParseJson(jsonString: string) {
     return JSON.parse(jsonString) as TxMAIngressEvent;
   } catch (error) {
     logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} record body could not be parsed to valid JSON.`, { error });
-    logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
+    addMetric(MetricNames.INVALID_EVENT_RECEIVED);
     throw new ValidationError('record body could not be parsed to valid JSON.');
   }
 }

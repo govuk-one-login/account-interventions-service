@@ -9,7 +9,7 @@ import {
   State,
   TriggerEventsEnum,
 } from '../../data-types/constants';
-import { logAndPublishMetric } from '../../commons/metrics';
+import { addMetric } from '../../commons/metrics';
 import logger from '../../commons/logger';
 import { AppConfigService } from '../app-config-service';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
@@ -294,7 +294,7 @@ describe('send-audit-events', () => {
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForUserAction);
@@ -313,7 +313,7 @@ describe('send-audit-events', () => {
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendIntervention);
@@ -332,7 +332,7 @@ describe('send-audit-events', () => {
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForBlockIntervention);
@@ -354,9 +354,9 @@ describe('send-audit-events', () => {
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendIntervention);
     expect(logger.error).toHaveBeenCalledWith(
-      'An error happened while trying to send the audit event to the TxMA queue.',
+      'An error happened while trying to send the audit event to the TxMA queue.', { error: new Error('SomeSQSError')}
     );
-    expect(logAndPublishMetric).toHaveBeenCalledWith('ERROR_PUBLISHING_EVENT_TO_TXMA');
+    expect(addMetric).toHaveBeenCalledWith('ERROR_PUBLISHING_EVENT_TO_TXMA');
   });
 
   it('should successfully send the audit event and return a response when an the account is marked as deleted', async () => {
@@ -372,7 +372,7 @@ describe('send-audit-events', () => {
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForDeletedAccount);
@@ -391,7 +391,7 @@ describe('send-audit-events', () => {
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendIntervention);
@@ -410,7 +410,7 @@ describe('send-audit-events', () => {
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendUserAction);
@@ -429,7 +429,7 @@ describe('send-audit-events', () => {
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(
@@ -452,7 +452,7 @@ describe('send-audit-events', () => {
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsInputWithExtraFields);
@@ -485,7 +485,7 @@ describe('send-audit-events', () => {
       ingressEventWithExtraInterventionData,
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInput);
@@ -504,7 +504,7 @@ describe('send-audit-events', () => {
       },
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForUnsuspendIntervention);
@@ -518,7 +518,7 @@ describe('send-audit-events', () => {
       ingressInterventionEvent,
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
-    expect(logAndPublishMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForFutureInterventions);
@@ -541,7 +541,7 @@ describe('send-audit-events', () => {
       },
     );
     expect(response).toBeUndefined();
-    expect(logAndPublishMetric).not.toHaveBeenCalled();
+    expect(addMetric).not.toHaveBeenCalled();
     expect(sqsMock).not.toHaveReceivedCommand(SendMessageCommand);
   });
 });

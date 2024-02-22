@@ -1,6 +1,6 @@
 import { Context, SQSBatchItemFailure, SQSBatchResponse, SQSEvent, SQSRecord } from 'aws-lambda';
 import logger from '../commons/logger';
-import { logAndPublishMetric } from '../commons/metrics';
+import { addMetric, metric } from '../commons/metrics';
 import {
   AISInterventionTypes,
   EventsEnum,
@@ -43,7 +43,8 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
 
   if (event.Records.length === 0) {
     logger.warn('Received no records.');
-    logAndPublishMetric(MetricNames.INVALID_EVENT_RECEIVED);
+    addMetric(MetricNames.INVALID_EVENT_RECEIVED);
+    metric.publishStoredMetrics();
     return {
       batchItemFailures: [],
     };
@@ -58,6 +59,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
     });
   });
   await Promise.allSettled(promiseArray);
+  metric.publishStoredMetrics();
   logger.debug('returning items that failed processing: ' + JSON.stringify(itemFailures));
   return {
     batchItemFailures: itemFailures,
@@ -82,11 +84,7 @@ async function processSQSRecord(record: SQSRecord) {
   const userId = recordBody.user.user_id;
   const eventTimestampInMs = recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000;
 
-  logAndPublishMetric(
-    MetricNames.EVENT_DELIVERY_LATENCY,
-    noMetadata,
-    currentTimestamp.milliseconds - eventTimestampInMs,
-  );
+  addMetric(MetricNames.EVENT_DELIVERY_LATENCY, noMetadata, currentTimestamp.milliseconds - eventTimestampInMs);
 
   const itemFromDB = await service.getAccountStateInformation(userId);
 
@@ -117,7 +115,7 @@ async function processSQSRecord(record: SQSRecord) {
   );
 
   updateAccountStateCountMetric(currentAccountState, statusResult.stateResult);
-  logAndPublishMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
+  addMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
   await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, recordBody, statusResult);
 }
 
@@ -181,7 +179,7 @@ async function validateAccountIsNotDeleted(
 ) {
   if (itemFromDB?.isAccountDeleted === true) {
     logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
-    logAndPublishMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
+    addMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
     await sendAuditEvent('AIS_EVENT_IGNORED_ACCOUNT_DELETED', intervention, record, {
       stateResult: initialState,
       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,

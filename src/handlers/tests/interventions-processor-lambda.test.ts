@@ -2,7 +2,7 @@ import { handler } from '../interventions-processor-handler';
 import { ContextExamples } from '@aws-lambda-powertools/commons';
 import logger from '../../commons/logger';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
-import { logAndPublishMetric } from '../../commons/metrics';
+import { addMetric } from '../../commons/metrics';
 import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import * as validationModule from '../../services/validate-event';
 import { AccountStateEngine } from '../../services/account-states/account-state-engine';
@@ -136,7 +136,7 @@ describe('intervention processor handler', () => {
       const loggerWarnSpy = jest.spyOn(logger, 'warn');
       await handler({ Records: [] }, mockContext);
       expect(loggerWarnSpy).toHaveBeenCalledWith('Received no records.');
-      expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
+      expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
@@ -148,7 +148,7 @@ describe('intervention processor handler', () => {
       expect(logger.error).toHaveBeenCalledWith('Sensitive info - record body could not be parsed to valid JSON.', {
         error: new SyntaxError('Unexpected end of JSON input'),
       });
-      expect(logAndPublishMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
+      expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
     });
     it('should not retry the record if a StateTransitionError is received', async () => {
       mockRetrieveRecords.mockReturnValue({
@@ -222,8 +222,8 @@ describe('intervention processor handler', () => {
           nextAllowableInterventions: [],
         },
       );
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
+      expect(addMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
+      expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
         eventName: 'FRAUD_BLOCK_ACCOUNT',
       });
       expect(publishTimeToResolveMetrics).toHaveBeenCalledTimes(1);
@@ -259,8 +259,8 @@ describe('intervention processor handler', () => {
           nextAllowableInterventions: [],
         },
       );
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
+      expect(addMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
+      expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
         eventName: 'FRAUD_BLOCK_ACCOUNT',
       });
       expect(publishTimeToResolveMetrics).toHaveBeenCalledTimes(1);
@@ -298,8 +298,8 @@ describe('intervention processor handler', () => {
         },
       );
 
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
+      expect(addMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
+      expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
         eventName: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
       });
       expect(publishTimeToResolveMetrics).toHaveBeenCalledTimes(1);
@@ -316,7 +316,7 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(logAndPublishMetric).toHaveBeenLastCalledWith(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
+      expect(addMetric).toHaveBeenLastCalledWith(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
       expect(logger.warn).toHaveBeenCalledTimes(2);
       expect((logger.warn as jest.Mock).mock.calls).toEqual([
         ['Sensitive info - user abc account has been deleted.'],
@@ -349,7 +349,7 @@ describe('intervention processor handler', () => {
           },
         ],
       });
-      expect(logAndPublishMetric).toHaveBeenCalledWith('INTERVENTION_IGNORED_IN_FUTURE');
+      expect(addMetric).toHaveBeenCalledWith('INTERVENTION_IGNORED_IN_FUTURE');
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
         'AIS_EVENT_IGNORED_IN_FUTURE',
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
@@ -394,7 +394,7 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
       expect(logger.warn).toHaveBeenCalledWith('Event received predates last applied event for this user.');
-      expect(logAndPublishMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
+      expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
       expect(sendAuditEvent).toHaveBeenCalledWith(
         'AIS_EVENT_IGNORED_STALE',
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
@@ -508,7 +508,7 @@ describe('intervention processor handler', () => {
       expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(logAndPublishMetric).toHaveBeenCalledWith('CONFIDENCE_LEVEL_TOO_LOW');
+      expect(addMetric).toHaveBeenCalledWith('CONFIDENCE_LEVEL_TOO_LOW');
       expect(logger.warn).toHaveBeenCalledWith('Received interventions has low level of confidence: P1');
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });

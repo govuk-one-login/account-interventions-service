@@ -1,6 +1,6 @@
 import logger from './logger';
 import Ajv from 'ajv';
-import { logAndPublishMetric } from './metrics';
+import { addMetric } from './metrics';
 import { MetricNames } from '../data-types/constants';
 
 const ajv = new Ajv({ allErrors: true });
@@ -15,7 +15,7 @@ export function compileSchema(schema: object) {
     return ajv.compile(schema);
   } catch (error) {
     logger.error('Schema is invalid, failed to compile', { reasons: ajv.errors, error });
-    logAndPublishMetric(MetricNames.INVALID_SCHEMA);
+    addMetric(MetricNames.INVALID_SCHEMA);
     throw new Error('Schema is invalid');
   }
 }

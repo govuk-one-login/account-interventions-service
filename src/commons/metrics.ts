@@ -1,6 +1,5 @@
 import { AppConfigService } from '../services/app-config-service';
 import { Metrics, MetricUnits } from '@aws-lambda-powertools/metrics';
-import logger from './logger';
 
 const namespace = AppConfigService.getInstance().cloudWatchMetricsWorkSpace;
 const service = AppConfigService.getInstance().metricServiceName;
@@ -13,7 +12,7 @@ export const metric: Metrics = new Metrics({ namespace: namespace, serviceName: 
 /**
  * wrapper function that flushes stored metrics and logs a JSON formatted logging line in related lambda's log group with the serialised metric object
  */
-export function logAndPublishMetric(
+export function addMetric(
   metricName: string,
   metadata: { key: string; value: string }[] = [],
   value = 1,
@@ -24,6 +23,4 @@ export function logAndPublishMetric(
   }
   metric.addMetric(metricName, MetricUnits.Count, value);
   if (dimensions) metric.addDimensions(dimensions);
-  logger.info('logging metric', { metric: metric.serializeMetrics() });
-  metric.publishStoredMetrics();
 }

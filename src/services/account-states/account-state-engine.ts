@@ -3,7 +3,7 @@ import { AccountStateEngineOutput, StateDetails } from '../../data-types/interfa
 import { AISInterventionTypes, EventsEnum, MetricNames } from '../../data-types/constants';
 import { StateEngineConfigurationError, StateTransitionError } from '../../data-types/errors';
 import logger from '../../commons/logger';
-import { logAndPublishMetric } from '../../commons/metrics';
+import { addMetric } from '../../commons/metrics';
 
 export class AccountStateEngine {
   private static readonly configuration = transitionConfiguration;
@@ -169,7 +169,7 @@ function buildStateTransitionError(
   transition: EventsEnum,
   initialState: StateDetails,
 ) {
-  logAndPublishMetric(metricName);
+  addMetric(metricName);
   logger.error({ message: errorMessage });
   return new StateTransitionError(errorMessage, transition, {
     stateResult: initialState,
@@ -184,7 +184,7 @@ function buildStateTransitionError(
  * @param errorMessage - error message to be logged
  */
 function buildConfigurationError(metricName: MetricNames, errorMessage: string) {
-  logAndPublishMetric(metricName);
+  addMetric(metricName);
   logger.error({ message: errorMessage });
   return new StateEngineConfigurationError(errorMessage);
 }

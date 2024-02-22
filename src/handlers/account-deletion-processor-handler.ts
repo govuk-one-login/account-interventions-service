@@ -4,7 +4,7 @@ import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants
 import { AppConfigService } from '../services/app-config-service';
 import type { Context, SNSMessage, SQSEvent, SQSRecord } from 'aws-lambda';
 import { DeleteStatusUpdateSNSMessage } from '../data-types/interfaces';
-import { logAndPublishMetric } from '../commons/metrics';
+import { addMetric, metric } from '../commons/metrics';
 
 const appConfig = AppConfigService.getInstance();
 const ddbService = new DynamoDatabaseService(appConfig.tableName);
@@ -27,6 +27,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
     return userId ? updateDeleteStatusId(userId) : undefined;
   }).filter((prom) => prom !== undefined);
   await Promise.all(updateRecordsByIdPromises);
+  metric.publishStoredMetrics();
 };
 
 /**
@@ -73,7 +74,8 @@ async function updateDeleteStatusId(userId: string) {
     await ddbService.updateDeleteStatus(userId);
   } catch (error) {
     logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} Error updating account ${userId}`, { error });
-    logAndPublishMetric(MetricNames.MARK_AS_DELETED_FAILED);
+    addMetric(MetricNames.MARK_AS_DELETED_FAILED);
+    metric.publishStoredMetrics();
     throw new Error('Failed to update the account status.');
   }
 }

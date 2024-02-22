@@ -1,5 +1,5 @@
 import { StateDetails } from '../data-types/interfaces';
-import { logAndPublishMetric } from './metrics';
+import { addMetric } from './metrics';
 import { EventsEnum, MetricNames, noMetadata } from '../data-types/constants';
 
 /**
@@ -9,9 +9,9 @@ import { EventsEnum, MetricNames, noMetadata } from '../data-types/constants';
  */
 export function updateAccountStateCountMetric(oldState: StateDetails, newState: StateDetails) {
   const blockedChange = (Number(oldState.blocked) - Number(newState.blocked)) * -1;
-  if (blockedChange !== 0) logAndPublishMetric(MetricNames.ACCOUNTS_BLOCKED, noMetadata, blockedChange);
+  if (blockedChange !== 0) addMetric(MetricNames.ACCOUNTS_BLOCKED, noMetadata, blockedChange);
   const suspendChange = (Number(oldState.suspended) - Number(newState.suspended)) * -1;
-  if (suspendChange !== 0) logAndPublishMetric(MetricNames.ACCOUNTS_SUSPENDED, noMetadata, suspendChange);
+  if (suspendChange !== 0) addMetric(MetricNames.ACCOUNTS_SUSPENDED, noMetadata, suspendChange);
 }
 
 /**
@@ -20,8 +20,8 @@ export function updateAccountStateCountMetric(oldState: StateDetails, newState: 
  * @param suspended - boolean flag tracking if account is suspended
  */
 export function updateAccountStateCountMetricAfterDeletion(blocked: boolean, suspended: boolean) {
-  if (blocked) logAndPublishMetric(MetricNames.ACCOUNTS_BLOCKED, noMetadata, -1);
-  else if (suspended) logAndPublishMetric(MetricNames.ACCOUNTS_SUSPENDED, noMetadata, -1);
+  if (blocked) addMetric(MetricNames.ACCOUNTS_BLOCKED, noMetadata, -1);
+  else if (suspended) addMetric(MetricNames.ACCOUNTS_SUSPENDED, noMetadata, -1);
 }
 
 /**
@@ -43,7 +43,7 @@ export function publishTimeToResolveMetrics(
   const timeDifferenceAsSeconds = Math.floor((currentAppliedAt - oldAppliedAt) / 1000);
 
   if (oldState.suspended && !currentState.suspended) {
-    logAndPublishMetric(MetricNames.TIME_TO_RESOLVE, noMetadata, timeDifferenceAsSeconds, { type: 'suspension' });
+    addMetric(MetricNames.TIME_TO_RESOLVE, noMetadata, timeDifferenceAsSeconds, { type: 'suspension' });
   }
 
   if (
@@ -52,10 +52,10 @@ export function publishTimeToResolveMetrics(
     oldState.resetPassword &&
     !currentState.resetPassword
   ) {
-    logAndPublishMetric(MetricNames.TIME_TO_RESOLVE, noMetadata, timeDifferenceAsSeconds, { type: 'resetPassword' });
+    addMetric(MetricNames.TIME_TO_RESOLVE, noMetadata, timeDifferenceAsSeconds, { type: 'resetPassword' });
   }
 
   if (eventName === EventsEnum.IPV_IDENTITY_ISSUED && oldState.reproveIdentity && !currentState.reproveIdentity) {
-    logAndPublishMetric(MetricNames.TIME_TO_RESOLVE, noMetadata, timeDifferenceAsSeconds, { type: 'reproveIdentity' });
+    addMetric(MetricNames.TIME_TO_RESOLVE, noMetadata, timeDifferenceAsSeconds, { type: 'reproveIdentity' });
   }
 }

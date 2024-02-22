@@ -20,7 +20,7 @@ import {
   State,
   userLedActionList,
 } from '../data-types/constants';
-import { logAndPublishMetric } from '../commons/metrics';
+import { addMetric } from '../commons/metrics';
 import { transitionConfiguration } from './account-states/config';
 
 const appConfig = AppConfigService.getInstance();
@@ -68,11 +68,11 @@ export async function sendAuditEvent(
   try {
     logger.debug('Attempting to send TxMA event to the queue.');
     const response = await sqsClient.send(new SendMessageCommand(input));
-    logAndPublishMetric(MetricNames.PUBLISHED_EVENT_TO_TXMA);
+    addMetric(MetricNames.PUBLISHED_EVENT_TO_TXMA);
     return response;
-  } catch {
-    logAndPublishMetric(MetricNames.ERROR_PUBLISHING_EVENT_TO_TXMA);
-    logger.error('An error happened while trying to send the audit event to the TxMA queue.');
+  } catch (error) {
+    addMetric(MetricNames.ERROR_PUBLISHING_EVENT_TO_TXMA);
+    logger.error('An error happened while trying to send the audit event to the TxMA queue.', { error: error });
   }
 }
 

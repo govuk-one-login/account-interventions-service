@@ -4,7 +4,7 @@ import { ContextExamples } from '@aws-lambda-powertools/commons';
 import { handle } from '../status-retriever-handler';
 import logger from '../../commons/logger';
 import { DynamoDatabaseService } from '../../services/dynamo-database-service';
-import { logAndPublishMetric } from '../../commons/metrics';
+import { addMetric } from '../../commons/metrics';
 import jestOpenAPI from 'jest-openapi';
 jestOpenAPI(`${__dirname}/../../specs/api.yaml`);
 
@@ -545,6 +545,6 @@ describe('status-retriever-handler', () => {
     expect(payload).toEqual(accountIsNotSuspended);
     expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
     expect(logger.error).toBeCalledWith('History string is malformed.', { error });
-    expect(logAndPublishMetric).toBeCalled();
+    expect(addMetric).toBeCalled();
   });
 });
