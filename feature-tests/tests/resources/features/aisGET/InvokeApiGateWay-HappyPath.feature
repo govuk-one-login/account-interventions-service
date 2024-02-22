@@ -164,12 +164,12 @@ Feature: Invoke-APIGateway-HappyPath.feature
 
 
     @regression
-    Scenario Outline: Happy Path - validate history exceeds 2years - Returns Expected Data for <aisEventType>
+    Scenario Outline: Happy Path - validate history does not contain entries older than 2 years - Returns Expected Data for <aisEventType>
         Given I send an <aisEventType> to a TXMA Ingress queue
         When I invoke the API to retrieve the intervention status of the user's account
         Then I expect the response with <aisEventInterventionType>
         When I update the current transition history time stamp to past in db
-        And I send an another <allowableEventType> and invoke the API
+        And I send an another <allowableEventType> event and then invoke the API
         Then I expect response with <allowableEventInterventionType> and only the latest transition history
         Examples:
             | aisEventType     | aisEventInterventionType       | allowableEventType | historyValue | allowableEventInterventionType |

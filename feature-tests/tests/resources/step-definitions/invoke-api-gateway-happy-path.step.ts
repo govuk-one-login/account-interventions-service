@@ -409,7 +409,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('Happy Path - validate history exceeds 2years - Returns Expected Data for <aisEventType>', ({
+  test('Happy Path - validate history does not contain entries older than 2 years - Returns Expected Data for <aisEventType>', ({
     given,
     when,
     then,
@@ -448,7 +448,7 @@ defineFeature(feature, (test) => {
       await updateItemInTable(testUserId, updateHistoryTimeStampInTable);
     });
 
-    and(/^I send an another (.*) and invoke the API$/, async (allowableEventType) => {
+    and(/^I send an another (.*) event and then invoke the API$/, async (allowableEventType) => {
       await sendSQSEvent(testUserId, allowableEventType);
       await timeDelayForTestEnvironment(1500);
       response = await invokeGetAccountState(testUserId, true);
