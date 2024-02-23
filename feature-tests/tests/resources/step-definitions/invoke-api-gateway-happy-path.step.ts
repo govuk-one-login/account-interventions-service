@@ -475,7 +475,7 @@ defineFeature(feature, (test) => {
     });
 
     when('log events messages contain a userId', () => {
-      events = cloudwatchLogs.filterMessagessBy('userId');
+      events = cloudwatchLogs.filterMessagesBy('userId');
     });
 
     then('the log events should also contain the message prefix sensitive info', () => {
