@@ -202,7 +202,6 @@ defineFeature(feature, (test) => {
       /^I send an (.*) allowable event type password or id Reset intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
       async (allowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
-        cloudwatchLogs.setStartTime();
         await sendSQSEvent(testUserId, originalAisEventType);
         await timeDelayForTestEnvironment(500);
         console.log('sending second message to put the user in : ' + allowableAisEventType);
@@ -215,7 +214,6 @@ defineFeature(feature, (test) => {
       async (historyValue) => {
         await timeDelayForTestEnvironment(500);
         response = await invokeGetAccountState(testUserId, historyValue);
-        await cloudwatchLogs.getTestLogs();
       },
     );
 
@@ -477,7 +475,7 @@ defineFeature(feature, (test) => {
     });
 
     when('log events messages contain a userId', () => {
-      events = cloudwatchLogs.filterMessagesBy('userId');
+      events = cloudwatchLogs.filterMessagessBy('userId');
     });
 
     then('the log events should also contain the message prefix sensitive info', () => {
