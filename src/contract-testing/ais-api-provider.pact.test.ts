@@ -20,6 +20,9 @@ const config: VerifierOptions = {
       //we use mocks here to set up the different states
       //if we need to have any more states we can simply set the mock to behave accordingly
       queryCommandMock.resolves({ Items: []});
+    },
+    'provider is not healthy': async () => {
+      queryCommandMock.rejects('Internal Server Error.');
     }
   }
 }

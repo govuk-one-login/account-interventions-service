@@ -1,17 +1,32 @@
 import express from 'express';
 import { handle } from '../../handlers/status-retriever-handler';
 import { ContextExamples } from '@aws-lambda-powertools/commons';
-import { APIGatewayProxyEvent } from 'aws-lambda';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
+let result: APIGatewayProxyResult;
 let server: any;
 export function setupServer(port: number) {
   const app = express();
 
   app.get('/ais/:userId', async (request, response) => {
     const apiGatewayEvent = createDefaultApiRequest(request.params['userId']);
-    const result = await handle(apiGatewayEvent, ContextExamples.helloworldContext);
-    //may be good to implement some error handling here, if handle returns non 200 code
-    response.send(JSON.parse(result.body));
+    try {
+      // if (!request.params['userId']) {
+      //   return (new ApiException(400, 'Invalid Request.'));
+      // }
+      result = await handle(apiGatewayEvent, ContextExamples.helloworldContext);
+      if (result.statusCode === 200) {
+        response.send(JSON.parse(result.body));
+      }
+      if (result.statusCode === 500) {
+        return response.status(500).json({ success: false, message: 'Internal Server Error.' });
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.name);
+        console.error(error.message);
+      }
+    }
   });
 
   server = app.listen(port, () => {
@@ -77,3 +92,13 @@ const createDefaultApiRequest = (userIdPathParameter: string): APIGatewayProxyEv
   resource: '',
   stageVariables: {},
 });
+
+export class ApiException extends Error {
+  public status: number;
+  public override message: string;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+    this.message = message;
+  }
+}

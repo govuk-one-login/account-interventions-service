@@ -4,6 +4,27 @@
   },
   "interactions": [
     {
+      "description": "a request to get a users information, but the provider is not healthy",
+      "providerStates": [
+        {
+          "name": "a request to get a users information from an unhealthy provider"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/ais/testUserId"
+      },
+      "response": {
+        "body": {
+          "message": "Internal Server Error."
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 500
+      }
+    },
+    {
       "description": "a request to get the users account information",
       "providerStates": [
         {
