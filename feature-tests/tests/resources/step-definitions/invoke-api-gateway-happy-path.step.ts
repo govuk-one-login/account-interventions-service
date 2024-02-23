@@ -227,7 +227,6 @@ defineFeature(feature, (test) => {
         reproveIdentity: string,
       ) => {
         console.log(`Received`, { response });
-        console.log(`logs length: ${cloudwatchLogs.logs.length}`);
         expect(response.intervention.description).toBe(interventionType);
         expect(response.state.blocked).toBe(JSON.parse(blocked));
         expect(response.state.suspended).toBe(JSON.parse(suspended));

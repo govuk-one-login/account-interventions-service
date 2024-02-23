@@ -40,8 +40,6 @@ class CloudWatchLogsService {
   async getLogs(startTime: number) {
     this.logs = [];
     for (const logGroupName of this.LOG_GROUPS) {
-      console.log({ logGroupName, startTime });
-
       let nextToken: string | undefined;
       do {
         const logs = await this.client.send(
@@ -59,7 +57,6 @@ class CloudWatchLogsService {
         }
 
         nextToken = logs.nextToken;
-        console.log({ nextToken, numberOfLogs: this.logs.length });
       } while (nextToken);
     }
   }
@@ -77,8 +74,8 @@ class CloudWatchLogsService {
     return { ...log, message };
   }
 
-  filterMessagesBy(parameter: string) {
-    return this.logs.filter((log) => log.message && log.message.hasOwnProperty(parameter));
+  filterMessagesBy(key: string) {
+    return this.logs.filter((log) => log.message && log.message.hasOwnProperty(key));
   }
 }
 
