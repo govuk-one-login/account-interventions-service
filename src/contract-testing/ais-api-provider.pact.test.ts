@@ -1,5 +1,5 @@
 import { mockClient } from "aws-sdk-client-mock";
-import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, InternalServerError, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { closeServer, setupServer } from "./test-helpers/mock-server";
 import { Verifier, VerifierOptions } from "@pact-foundation/pact";
 
@@ -22,7 +22,8 @@ const config: VerifierOptions = {
       queryCommandMock.resolves({ Items: []});
     },
     'provider is not healthy': async () => {
-      queryCommandMock.rejects('Internal Server Error.');
+      const error = new InternalServerError({message: 'Internal Server Error.', $metadata: { httpStatusCode: 500 }})
+      queryCommandMock.rejects(error);
     }
   }
 }

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Response } from 'express';
 import { handle } from '../../handlers/status-retriever-handler';
 import { ContextExamples } from '@aws-lambda-powertools/commons';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
@@ -11,27 +11,38 @@ export function setupServer(port: number) {
   app.get('/ais/:userId', async (request, response) => {
     const apiGatewayEvent = createDefaultApiRequest(request.params['userId']);
     try {
-      // if (!request.params['userId']) {
-      //   return (new ApiException(400, 'Invalid Request.'));
-      // }
       result = await handle(apiGatewayEvent, ContextExamples.helloworldContext);
-      if (result.statusCode === 200) {
-        response.send(JSON.parse(result.body));
-      }
-      if (result.statusCode === 500) {
-        return response.status(500).json({ success: false, message: 'Internal Server Error.' });
-      }
+      inspectStatus(result.statusCode, response);
     } catch (error) {
-      if (error instanceof Error) {
-        console.error(error.name);
-        console.error(error.message);
-      }
+      determineError(error);
     }
   });
 
   server = app.listen(port, () => {
     console.log(`mock server listening on port ${port}`);
   });
+}
+
+function inspectStatus(statusCode: number, response: Response) {
+  switch (statusCode) {
+    case 500: {
+      return response.status(500).json({ success: false, message: 'Internal Server Error.' });
+    }
+    default: {
+      response.send(JSON.parse(result.body));
+    }
+  }
+}
+
+function determineError(error: unknown) {
+  if (error instanceof SyntaxError) {
+    console.error(`An error occured whilst parsing JSON response: ${error.name} \n-- ${error.message}`);
+  } else if (error instanceof Error) {
+    console.error(error.name);
+    console.error(error.message);
+  } else {
+    console.log(`The operation had an unexpected outcome: ${error}`);
+  }
 }
 
 export function closeServer() {
@@ -92,13 +103,3 @@ const createDefaultApiRequest = (userIdPathParameter: string): APIGatewayProxyEv
   resource: '',
   stageVariables: {},
 });
-
-export class ApiException extends Error {
-  public status: number;
-  public override message: string;
-  constructor(status: number, message: string) {
-    super(message);
-    this.status = status;
-    this.message = message;
-  }
-}
