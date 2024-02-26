@@ -49,3 +49,13 @@ export function attemptParseJSON(jsonString: string) {
     return {};
   }
 }
+
+export function getPastTimestamp(date = new Date()): CurrentTimeDescriptor {
+  date.setFullYear(date.getFullYear() - 2);
+  date.setMonth(date.getMonth() - 2);
+  return {
+    milliseconds: date.valueOf(),
+    isoString: date.toISOString(),
+    seconds: Math.floor(date.valueOf() / 1000),
+  };
+}
