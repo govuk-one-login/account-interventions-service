@@ -2,7 +2,7 @@ import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
-import { updateItemInTable } from '../../../utils/dynamo-database-methods';
+import { updateItemInTable, getRecordFromTable } from '../../../utils/dynamo-database-methods';
 import { InformationFromTable, timeDelayForTestEnvironment } from '../../../utils/utility';
 import * as fs from 'node:fs';
 
@@ -49,12 +49,12 @@ defineFeature(feature, (test) => {
       for (const user of listOfUsers) {
         await timeDelayForTestEnvironment(500);
         await updateItemInTable(user, updateResetPasswordItemInTable);
-        // const getItem = await getRecordFromTable(user);
-        // if (getItem) {
-        //   console.log(getItem);
-        //   expect(getItem.resetPassword).toBe(true);
-        //   console.log("getItem", getItem.resetPassword);
-        // }
+        const getItem = await getRecordFromTable(user);
+        if (getItem) {
+          console.log(getItem);
+          expect(getItem.resetPassword).toBe(true);
+          console.log("getItem", getItem.resetPassword);
+        }
       }
     });
 
@@ -70,7 +70,7 @@ defineFeature(feature, (test) => {
         expect(response.intervention.description).toBe(interventionType);
         expect(response.state.blocked).toBe(false);
         expect(response.state.suspended).toBe(true);
-        console.log('resetPassword', response.state.resetPassword);
+        console.log("resetPassword", response.state.resetPassword);
         expect(response.state.resetPassword).toBe(true);
         expect(response.state.reproveIdentity).toBe(false);
       }
