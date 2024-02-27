@@ -15,6 +15,7 @@ export function setupServer(port: number) {
       response.status(result.statusCode).json(JSON.parse(result.body));
     } catch (error) {
       console.log(`The operation had an unexpected outcome: ${error}`);
+      response.status(500).json(`The call to the handler was unsuccessful: ${error}`);
     }
   });
 
