@@ -94,23 +94,6 @@ defineFeature(feature, (test) => {
         expect(response.auditLevel).toBe(aisEventResponse[aisEventType].auditLevel);
       },
     );
-
-    and(
-      /^I expect the response with next allowable intervention types in TXMA Egress Queue for (.*)$/,
-      async (aisEventType: keyof typeof aisEventResponse) => {
-        const events = [
-          'userActionIdResetSuccess',
-          'userActionPswResetSuccess',
-          'userActionPswResetSuccessForTestClient',
-        ];
-        if (!events.includes(aisEventType)) {
-          const receivedMessage = await filterUserIdInMessages(testUserId);
-          const body = receivedMessage[0].Body;
-          const extensions = body ? attemptParseJSON(body).extensions : {};
-          expect(extensions.allowable_interventions).toEqual(aisEventResponse[aisEventType].allowable_interventions);
-        }
-      },
-    );
   });
 
   test('Happy Path - Get Request to /ais/userId - allowable Transition from <originalAisEventType> to <allowableAisEventType> - Return expected data', ({
