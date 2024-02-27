@@ -1,4 +1,4 @@
-import express, { Response } from 'express';
+import express from 'express';
 import { handle } from '../../handlers/status-retriever-handler';
 import { ContextExamples } from '@aws-lambda-powertools/commons';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
@@ -12,37 +12,15 @@ export function setupServer(port: number) {
     const apiGatewayEvent = createDefaultApiRequest(request.params['userId']);
     try {
       result = await handle(apiGatewayEvent, ContextExamples.helloworldContext);
-      inspectStatus(result.statusCode, response);
+      response.status(result.statusCode).json(JSON.parse(result.body));
     } catch (error) {
-      determineError(error);
+      console.log(`The operation had an unexpected outcome: ${error}`);
     }
   });
 
   server = app.listen(port, () => {
     console.log(`mock server listening on port ${port}`);
   });
-}
-
-function inspectStatus(statusCode: number, response: Response) {
-  switch (statusCode) {
-    case 500: {
-      return response.status(500).json({ success: false, message: 'Internal Server Error.' });
-    }
-    default: {
-      response.send(JSON.parse(result.body));
-    }
-  }
-}
-
-function determineError(error: unknown) {
-  if (error instanceof SyntaxError) {
-    console.error(`An error occured whilst parsing JSON response: ${error.name} \n-- ${error.message}`);
-  } else if (error instanceof Error) {
-    console.error(error.name);
-    console.error(error.message);
-  } else {
-    console.log(`The operation had an unexpected outcome: ${error}`);
-  }
 }
 
 export function closeServer() {
