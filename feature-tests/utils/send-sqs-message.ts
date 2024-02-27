@@ -61,8 +61,9 @@ export async function receiveMessagesFromEgressQueue() {
   let count = 0;
   do {
     try {
+      await timeDelayForTestEnvironment(200);
       response = await sqs.receiveMessage(parameters);
-
+      await timeDelayForTestEnvironment(500);
       if (response?.Messages) {
         for (const message of response.Messages) {
           messages.push(message);
