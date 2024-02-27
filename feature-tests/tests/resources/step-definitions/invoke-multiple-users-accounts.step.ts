@@ -70,7 +70,7 @@ defineFeature(feature, (test) => {
         expect(response.intervention.description).toBe(interventionType);
         expect(response.state.blocked).toBe(false);
         expect(response.state.suspended).toBe(true);
-        console.log("resetPassword", response.state.resetPassword);
+        console.log('resetPassword', response.state.resetPassword);
         expect(response.state.resetPassword).toBe(true);
         expect(response.state.reproveIdentity).toBe(false);
       }
