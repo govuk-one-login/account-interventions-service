@@ -7,7 +7,8 @@ import { AccountStatus, FullAccountInformation, HistoryObject } from '../data-ty
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { HistoryStringBuilder } from '../commons/history-string-builder';
-
+const a = 'aa';
+console.log('husky pre-commit test', a);
 const appConfig = AppConfigService.getInstance();
 const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableName);
 
