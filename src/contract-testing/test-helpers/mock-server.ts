@@ -4,6 +4,7 @@ import { ContextExamples } from '@aws-lambda-powertools/commons';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 let result: APIGatewayProxyResult;
+// eslint-disable-next-line  @typescript-eslint/no-explicit-any
 let server: any;
 export function setupServer(port: number) {
   const app = express();
