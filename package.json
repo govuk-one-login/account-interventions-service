@@ -21,7 +21,8 @@
     "audit:fix": "yarn-audit-fix",
     "clean": "rimraf .aws-sam coverage",
     "build": "sam build -t src/infra/main/template.yaml",
-    "package": "yarn clean && yarn build"
+    "package": "yarn clean && yarn build",
+    "prepare": "husky"
   },
   "dependencies": {
     "@aws-lambda-powertools/commons": "^1.18.0",
@@ -65,5 +66,9 @@
   },
   "resolutions": {
     "axios": "^1.6.5"
+  },
+  "lint-staged": {
+    "*": "prettier --write",
+    "*.{js,ts}": "eslint --fix"
   }
 }
