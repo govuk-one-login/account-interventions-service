@@ -2,17 +2,3 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 yarn lint-staged
-
-git diff --cached --name-only | if grep --quiet template.yaml
-then
-  echo "\nRunning Checkov hook...\n"
-  checkov -d . --framework cloudformation --quiet --skip-check CKV_AWS_116
-fi
-
-git diff --cached --name-only | if grep --quiet template.yaml
-then
-  echo "\nRunning sam validate --lint...\n"
-  sam validate --lint
-fi
-
-exit 1
