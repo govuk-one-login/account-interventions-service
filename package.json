@@ -69,6 +69,6 @@
   },
   "lint-staged": {
     "*": "prettier --write",
-    "*.{js,ts}": "yarn lint:code --fix"
+    "*.{ts}": "yarn lint:code --fix"
   }
 }
