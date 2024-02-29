@@ -39,6 +39,6 @@
     "@aws-sdk/util-dynamodb": "^3.501.0"
   },
   "resolutions": {
-    "es5-ext": "^0.10.63"
+    "es5-ext": "^0.10.64"
   }
 }
