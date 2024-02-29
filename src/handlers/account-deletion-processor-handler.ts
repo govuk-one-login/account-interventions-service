@@ -5,8 +5,7 @@ import { AppConfigService } from '../services/app-config-service';
 import type { Context, SNSMessage, SQSEvent, SQSRecord } from 'aws-lambda';
 import { DeleteStatusUpdateSNSMessage } from '../data-types/interfaces';
 import { addMetric, metric } from '../commons/metrics';
-let a = 'a';
-console.log(a);
+
 const appConfig = AppConfigService.getInstance();
 const ddbService = new DynamoDatabaseService(appConfig.tableName);
 
