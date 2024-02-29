@@ -254,3 +254,10 @@ END_POINT
 ```
 
 Note: that at the moment the lambda is not set up to work for a post request, so changes to the lambda will need to be made if post requests become a requirement.
+
+## Splunk Queries
+
+| Purpose                                        | Query                                                                                                                                                              |
+|------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| List TICF_ACCOUNT_INTERVENTION by Requester ID | `index="gds_di_development" TICF_ACCOUNT_INTERVENTION spath "extensions.intervention.requester_id" search "extensions.intervention.requester_id"="<emailAddress>"` |
+|                                                |                                                                                                                                                                    |
