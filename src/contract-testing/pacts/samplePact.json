@@ -1,0 +1,152 @@
+{
+  "consumer": {
+    "name": "AIS TS Client"
+  },
+  "interactions": [
+    {
+      "description": "a request to get a users information, but the provider is not healthy",
+      "providerStates": [
+        {
+          "name": "a request to get a users information from an unhealthy provider"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/ais/testUserId"
+      },
+      "response": {
+        "body": {
+          "message": "Internal Server Error."
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "status": 500
+      }
+    },
+    {
+      "description": "a request to get the users account information",
+      "providerStates": [
+        {
+          "name": "provider is healthy"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/ais/testUserId"
+      },
+      "response": {
+        "body": {
+          "intervention": {
+            "appliedAt": 12345685809,
+            "description": "AIS_ACCOUNT_BLOCKED",
+            "sentAt": 123456789,
+            "updatedAt": 123455
+          },
+          "state": {
+            "blocked": true,
+            "reproveIdentity": false,
+            "resetPassword": false,
+            "suspended": false
+          },
+          "auditLevel": "standard"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.auditLevel": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.intervention.appliedAt": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "number"
+                }
+              ]
+            },
+            "$.intervention.description": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.intervention.sentAt": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "number"
+                }
+              ]
+            },
+            "$.intervention.updatedAt": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "number"
+                }
+              ]
+            },
+            "$.state.blocked": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.state.reproveIdentity": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.state.resetPassword": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.state.suspended": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "12.1.2"
+    },
+    "pactRust": {
+      "ffi": "0.4.12",
+      "models": "1.1.14"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "Account Intervention Service"
+  }
+}
