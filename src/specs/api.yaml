@@ -15,7 +15,7 @@ info:
   version: 0.0.1
   contact:
     name: Government Digital Service - Accounts Bravo Team
-    email: todo@digital.cabinet-office.gov.uk # TODO
+    email: interventions@digital.cabinet-office.gov.uk
   license:
     name: "MIT"
     url: "https://github.com/govuk-one-login/account-interventions-service/blob/main/LICENCE.md"
