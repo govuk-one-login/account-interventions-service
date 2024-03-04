@@ -7,16 +7,17 @@ Feature: Invoke-APIGateway-HappyPath.feature
         Then I expect the response with all the valid state flags for <aisEventType>
         And I expect the response with next allowable intervention types in TXMA Egress Queue for <aisEventType>
         Examples:
-            | aisEventType              | historyValue |
-            | pswResetRequired          | false        |
-            | suspendNoAction           | false        |
-            | block                     | false        |
-            | idResetRequired           | false        |
-            | pswAndIdResetRequired     | false        |
-            | unblock                   | false        |
-            | userActionIdResetSuccess  | false        |
-            | userActionPswResetSuccess | false        |
-            | unSuspendAction           | false        |
+            | aisEventType                           | historyValue |
+            | pswResetRequired                       | false        |
+            | suspendNoAction                        | false        |
+            | block                                  | false        |
+            | idResetRequired                        | false        |
+            | pswAndIdResetRequired                  | false        |
+            | unblock                                | false        |
+            | userActionIdResetSuccess               | false        |
+            | userActionPswResetSuccess              | false        |
+            | unSuspendAction                        | false        |
+            | userActionPswResetSuccessForTestClient | false        |
 
     @regression
     Scenario Outline: Happy Path - Get Request to /ais/userId - allowable Transition from <originalAisEventType> to <allowableAisEventType> - Return expected data
@@ -64,28 +65,30 @@ Feature: Invoke-APIGateway-HappyPath.feature
         Then I expect the response with all the state fields for the <originalAisEventType>
         And I expect next allowable intervention types in TXMA Egress Queue response for the <originalAisEventType>
         Examples:
-            | originalAisEventType  | nonAllowableAisEventType  | historyValue |
+            | originalAisEventType  | nonAllowableAisEventType               | historyValue |
             # password reset required account status to new intervention type
-            | pswResetRequired      | unblock                   | false        |
-            | pswResetRequired      | userActionIdResetSuccess  | false        |
-            | pswResetRequired      | userActionIdResetSuccess  | false        |
+            | pswResetRequired      | unblock                                | false        |
+            | pswResetRequired      | userActionIdResetSuccess               | false        |
             # suspend no action account status to new intervention type
-            | suspendNoAction       | unblock                   | false        |
-            | suspendNoAction       | userActionIdResetSuccess  | false        |
-            | suspendNoAction       | userActionPswResetSuccess | false        |
+            | suspendNoAction       | unblock                                | false        |
+            | suspendNoAction       | userActionIdResetSuccess               | false        |
+            | suspendNoAction       | userActionPswResetSuccess              | false        |
+            | suspendNoAction       | userActionPswResetSuccessForTestClient | false        |
             # Id reset account status to new intervention type
-            | idResetRequired       | unblock                   | false        |
-            | idResetRequired       | userActionPswResetSuccess | false        |
+            | idResetRequired       | unblock                                | false        |
+            | idResetRequired       | userActionPswResetSuccess              | false        |
+            | idResetRequired       | userActionPswResetSuccessForTestClient | false        |
             # password and id reset required account status to new intervention type
-            | pswAndIdResetRequired | unblock                   | false        |
+            | pswAndIdResetRequired | unblock                                | false        |
             # blocked account status to new intervention type
-            | block                 | pswResetRequired          | false        |
-            | block                 | suspendNoAction           | false        |
-            | block                 | idResetRequired           | false        |
-            | block                 | pswAndIdResetRequired     | false        |
-            | block                 | userActionIdResetSuccess  | false        |
-            | block                 | userActionPswResetSuccess | false        |
-            | block                 | unSuspendAction           | false        |
+            | block                 | pswResetRequired                       | false        |
+            | block                 | suspendNoAction                        | false        |
+            | block                 | idResetRequired                        | false        |
+            | block                 | pswAndIdResetRequired                  | false        |
+            | block                 | userActionIdResetSuccess               | false        |
+            | block                 | userActionPswResetSuccess              | false        |
+            | block                 | userActionPswResetSuccessForTestClient | false        |
+            | block                 | unSuspendAction                        | false        |
 
     @regression
     Scenario Outline: Get Request to /ais/userId - Password and Id allowable Transition from <originalAisEventType> to <allowableAisEventType> - Returns expected data
@@ -94,11 +97,13 @@ Feature: Invoke-APIGateway-HappyPath.feature
         Then I expect response with valid fields for <interventionType> with state flags as <blocked>, <suspended>, <resetPassword> and <reproveIdentity>
         And  I expect response with next allowable intervention types in TXMA Egress Queue for <originalAisEventType> with <interventionType>
         Examples:
-            | originalAisEventType  | allowableAisEventType     | historyValue | interventionType                                   | blocked | suspended | resetPassword | reproveIdentity |
-            | pswResetRequired      | userActionPswResetSuccess | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false   | false     | false         | false           |
-            | idResetRequired       | userActionIdResetSuccess  | false        | AIS_FORCED_USER_IDENTITY_VERIFY                    | false   | false     | false         | false           |
-            | pswAndIdResetRequired | userActionIdResetSuccess  | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false   | true      | true          | false           |
-            | pswAndIdResetRequired | userActionPswResetSuccess | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false   | true      | false         | true            |
+            | originalAisEventType  | allowableAisEventType                  | historyValue | interventionType                                   | blocked | suspended | resetPassword | reproveIdentity |
+            | pswResetRequired      | userActionPswResetSuccess              | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false   | false     | false         | false           |
+            | pswResetRequired      | userActionPswResetSuccessForTestClient | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false   | false     | false         | false           |
+            | idResetRequired       | userActionIdResetSuccess               | false        | AIS_FORCED_USER_IDENTITY_VERIFY                    | false   | false     | false         | false           |
+            | pswAndIdResetRequired | userActionIdResetSuccess               | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false   | true      | true          | false           |
+            | pswAndIdResetRequired | userActionPswResetSuccess              | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false   | true      | false         | true            |
+            | pswAndIdResetRequired | userActionPswResetSuccessForTestClient | false        | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | false   | true      | false         | true            |
 
     @regression
     Scenario Outline: Get Request to /ais/userId - Password and Id allowable Transition from <originalAisEventType> to <allowableAisEventType> - Returns expected values in the response
@@ -108,10 +113,11 @@ Feature: Invoke-APIGateway-HappyPath.feature
         And I send a new intervention event type <originalAisEventType>
         Then I expect the <values> is no longer present in the response
         Examples:
-            | originalAisEventType  | allowableAisEventType     | values             |
-            | pswResetRequired      | userActionPswResetSuccess | resetPasswordAt    |
-            | idResetRequired       | userActionIdResetSuccess  | reprovedIdentityAt |
-            | pswAndIdResetRequired | userActionIdResetSuccess  | reprovedIdentityAt |
+            | originalAisEventType  | allowableAisEventType                  | values             |
+            | pswResetRequired      | userActionPswResetSuccess              | resetPasswordAt    |
+            | pswResetRequired      | userActionPswResetSuccessForTestClient | resetPasswordAt    |
+            | idResetRequired       | userActionIdResetSuccess               | reprovedIdentityAt |
+            | pswAndIdResetRequired | userActionIdResetSuccess               | reprovedIdentityAt |
 
     @regression @historyTests
     Scenario Outline: Happy Path - Get Request to /ais/userId - allowable Transition from <originalAisEventType> to <allowableAisEventType> - Get Request to /ais/userId - Returns expected data with history values
