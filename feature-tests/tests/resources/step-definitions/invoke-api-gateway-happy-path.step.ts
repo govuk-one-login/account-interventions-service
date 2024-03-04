@@ -15,24 +15,55 @@ import { cloudwatchLogs, LogEvent } from '../../../utils/cloudwatch-logs-service
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
 defineFeature(feature, (test) => {
-  beforeAll(async () => {
-    await purgeEgressQueue();
-  });
   let testUserId: string;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   let response: any;
   let events: LogEvent[];
 
+  beforeAll(async () => {
+    await purgeEgressQueue();
+  });
+
   beforeEach(() => {
     testUserId = generateRandomTestUserId();
+  });
+
+  test('Happy Path - Get Request to /ais/userId - Returns Expected allowable intervention codes from Egress Queue <aisEventType>', ({
+    given,
+    when,
+    then,
+  }) => {
+    given(/^I send an (.*) intervention to the TxMA ingress SQS queue$/, async (aisEventType) => {
+      await sendSQSEvent(testUserId, aisEventType);
+    });
+
+    when(
+      /^I invoke an API to retrieve the intervention status of the user's account. With history (.*)$/,
+      async (historyValue) => {
+        await timeDelayForTestEnvironment(1500);
+        response = await invokeGetAccountState(testUserId, historyValue);
+      },
+    );
+
+    then(
+      /^I expect the response with next allowable intervention types in TXMA Egress Queue for (.*)$/,
+      async (aisEventType: keyof typeof aisEventResponse) => {
+        const events = ['userActionIdResetSuccess', 'userActionPswResetSuccess'];
+        if (!events.includes(aisEventType)) {
+          const receivedMessage = await filterUserIdInMessages(testUserId);
+          const body = receivedMessage[0].Body;
+          const extensions = body ? attemptParseJSON(body).extensions : {};
+          expect(extensions.allowable_interventions).toEqual(aisEventResponse[aisEventType].allowable_interventions);
+        }
+      },
+    );
   });
 
   test('Happy Path - Get Request to /ais/userId - Returns Expected Data for <aisEventType>', ({
     given,
     when,
     then,
-    and,
   }) => {
     given(/^I send an (.*) intervention message to the TxMA ingress SQS queue$/, async (aisEventType) => {
       await sendSQSEvent(testUserId, aisEventType);
@@ -86,7 +117,6 @@ defineFeature(feature, (test) => {
     given,
     when,
     then,
-    and,
   }) => {
     given(
       /^I send an (.*) allowable intervention event message to the TxMA ingress SQS queue for a Account in (.*) state$/,
@@ -119,29 +149,12 @@ defineFeature(feature, (test) => {
         expect(response.auditLevel).toBe(aisEventResponse[allowableAisEventType].auditLevel);
       },
     );
-
-    and(
-      /^I expect response with next allowable intervention types in TXMA Egress Queue for the (.*)$/,
-      async (allowableAisEventType: keyof typeof aisEventResponse) => {
-        const receivedMessage = await filterUserIdInMessages(testUserId);
-
-        const message = receivedMessage.find((object) => {
-          const objectBody = object.Body ? attemptParseJSON(object.Body) : {};
-          return objectBody.extensions?.description === aisEventResponse[allowableAisEventType].description;
-        });
-        const body = message?.Body ? attemptParseJSON(message?.Body) : {};
-        expect(body.extensions?.allowable_interventions).toEqual(
-          aisEventResponse[allowableAisEventType].allowable_interventions,
-        );
-      },
-    );
   });
 
   test('Happy Path - Get Request to /ais/userId - non-allowable Transition from <originalAisEventType> to <nonAllowableAisEventType> - Returns expected data', ({
     given,
     when,
     then,
-    and,
   }) => {
     given(
       /^I send an (.*) non-allowable intervention event message to the TxMA ingress SQS queue for a Account in (.*) state$/,
@@ -174,29 +187,12 @@ defineFeature(feature, (test) => {
         expect(response.auditLevel).toBe(aisEventResponse[originalAisEventType].auditLevel);
       },
     );
-
-    and(
-      /^I expect next allowable intervention types in TXMA Egress Queue response for the (.*)$/,
-      async (originalAisEventType: keyof typeof aisEventResponse) => {
-        const receivedMessage = await filterUserIdInMessages(testUserId);
-
-        const message = receivedMessage.find((object) => {
-          const objectBody = object.Body ? attemptParseJSON(object.Body) : {};
-          return objectBody.extensions.description === aisEventResponse[originalAisEventType].description;
-        });
-        const body = message?.Body ? attemptParseJSON(message.Body) : {};
-        expect(body.extensions.allowable_interventions).toEqual(
-          aisEventResponse[originalAisEventType].allowable_interventions,
-        );
-      },
-    );
   });
 
   test('Get Request to /ais/userId - Password and Id allowable Transition from <originalAisEventType> to <allowableAisEventType> - Returns expected data', ({
     given,
     when,
     then,
-    and,
   }) => {
     given(
       /^I send an (.*) allowable event type password or id Reset intervention message to the TxMA ingress SQS queue for a Account in (.*) state$/,
