@@ -25,6 +25,10 @@ defineFeature(feature, (test) => {
     await purgeEgressQueue();
   });
 
+  beforeAll(async () => {
+    await purgeEgressQueue();
+  });
+
   beforeEach(() => {
     testUserId = generateRandomTestUserId();
   });
