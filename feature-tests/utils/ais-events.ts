@@ -189,4 +189,22 @@ export const aisEvents: {
       govuk_signin_journey_id: '',
     },
   },
+
+  userActionPswResetSuccessForTestClient: {
+    event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT',
+    event_id: '123',
+    timestamp: seconds,
+    event_timestamp_ms: ms,
+    client_id: 'UNKNOWN',
+    component_id: 'UNKNOWN',
+    user: {
+      user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
+      email: '',
+      phone: 'UNKNOWN',
+      ip_address: '',
+      session_id: '',
+      persistent_session_id: '',
+      govuk_signin_journey_id: '',
+    },
+  },
 };

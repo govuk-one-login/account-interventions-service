@@ -111,6 +111,20 @@ export const aisEventResponse = {
     allowable_interventions: ['01', '03', '04', '05', '06'],
   },
 
+  userActionPswResetSuccessForTestClient: {
+    description: 'AIS_NO_INTERVENTION',
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
+    interventionCodeHistory: '',
+    componentHistory: 'TICF_CRI',
+    interventionHistory: '',
+    reason: '',
+    auditLevel: 'standard',
+    allowable_interventions: ['01', '03', '04', '05', '06'],
+  },
+
   unSuspendAction: {
     description: 'AIS_ACCOUNT_UNSUSPENDED',
     blocked: false,

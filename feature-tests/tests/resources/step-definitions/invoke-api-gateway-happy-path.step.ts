@@ -66,7 +66,11 @@ defineFeature(feature, (test) => {
     and(
       /^I expect the response with next allowable intervention types in TXMA Egress Queue for (.*)$/,
       async (aisEventType: keyof typeof aisEventResponse) => {
-        const events = ['userActionIdResetSuccess', 'userActionPswResetSuccess'];
+        const events = [
+          'userActionIdResetSuccess',
+          'userActionPswResetSuccess',
+          'userActionPswResetSuccessForTestClient',
+        ];
         if (!events.includes(aisEventType)) {
           const receivedMessage = await filterUserIdInMessages(testUserId);
           const body = receivedMessage[0].Body;
