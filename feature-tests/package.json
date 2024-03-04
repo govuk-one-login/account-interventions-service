@@ -30,13 +30,13 @@
   "dependencies": {
     "@aws-lambda-powertools/commons": "^1.18.1",
     "@aws-lambda-powertools/parameters": "^1.18.1",
-    "@aws-sdk/client-secrets-manager": "^3.523.0",
-    "@aws-sdk/client-sns": "^3.523.0",
-    "@aws-sdk/client-sqs": "^3.523.0",
-    "@aws-sdk/credential-providers": "^3.523.0",
-    "@aws-sdk/client-lambda": "^3.523.0",
-    "@aws-sdk/client-dynamodb": "^3.523.0",
-    "@aws-sdk/util-dynamodb": "^3.523.0"
+    "@aws-sdk/client-secrets-manager": "^3.525.0",
+    "@aws-sdk/client-sns": "^3.525.0",
+    "@aws-sdk/client-sqs": "^3.525.0",
+    "@aws-sdk/credential-providers": "^3.525.0",
+    "@aws-sdk/client-lambda": "^3.525.0",
+    "@aws-sdk/client-dynamodb": "^3.525.0",
+    "@aws-sdk/util-dynamodb": "^3.525.0"
   },
   "resolutions": {
     "es5-ext": "^0.10.64"
