@@ -20,6 +20,7 @@ cd account-interventions-service
 ### Setup Pre-Commit
 ```shell
 $ pre-commit install -f
+yarn husky install
 ```
 
 ### Install Project Dependencies
