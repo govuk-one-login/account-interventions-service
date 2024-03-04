@@ -8,6 +8,7 @@ let result: APIGatewayProxyResult;
 let server: any;
 export function setupServer(port: number) {
   const app = express();
+  app.disable("x-powered-by");
 
   app.get('/ais/:userId', async (request, response) => {
     const apiGatewayEvent = createDefaultApiRequest(request.params['userId']);
