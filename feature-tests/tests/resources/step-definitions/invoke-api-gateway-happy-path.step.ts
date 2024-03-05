@@ -10,6 +10,7 @@ import {
 } from '../../../utils/utility';
 import { aisEventResponse } from '../../../utils/ais-events-responses';
 import { updateItemInTable } from '../../../utils/dynamo-database-methods';
+import { cloudwatchLogs, LogEvent } from '../../../utils/cloudwatch-logs-service';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
@@ -18,10 +19,10 @@ defineFeature(feature, (test) => {
     await purgeEgressQueue();
   });
   let testUserId: string;
-
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   let response: any;
+  let events: LogEvent[];
 
   beforeEach(() => {
     testUserId = generateRandomTestUserId();
@@ -244,7 +245,7 @@ defineFeature(feature, (test) => {
           return objectBody.extensions.description === interventionType;
         });
         const body = message?.Body ? attemptParseJSON(message.Body) : {};
-        expect(body.extensions.allowable_interventions).toEqual(
+        expect(body.extensions?.allowable_interventions).toEqual(
           aisEventResponse[originalAisEventType].allowable_interventions,
         );
       },
@@ -465,5 +466,23 @@ defineFeature(feature, (test) => {
         expect(response.history.length === 0);
       },
     );
+  });
+  
+  test('Happy Path - Logs Validation', ({ given, when, then }) => {
+    given('Cloudwatch logs have been created', async () => {
+      await cloudwatchLogs.getAllLogs();
+    });
+
+    when('log events messages contain a userId', () => {
+      events = cloudwatchLogs.filterMessagesBy('userId');
+    });
+
+    then('the log events should also contain the message prefix sensitive info', () => {
+      const sensitiveInfoEvents = events.filter(
+        (event) =>
+          event.message && typeof event.message !== 'string' && event.message.message?.startsWith('Sensitive info'),
+      );
+      expect(events.length).toEqual(sensitiveInfoEvents.length);
+    });
   });
 });
