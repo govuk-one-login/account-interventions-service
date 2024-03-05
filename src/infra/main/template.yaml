@@ -132,7 +132,7 @@ Globals:
     KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
     Environment:
       Variables:
-        LOG_LEVEL: !FindInMap [ EnvConfig, !Ref Environment, LambdaLogLevel ]
+        POWERTOOLS_LOG_LEVEL: !FindInMap [ EnvConfig, !Ref Environment, LambdaLogLevel ]
         POWERTOOLS_SERVICE_NAME: !Ref AWS::StackName
         CLOUDWATCH_METRICS_NAMESPACE: !Ref SystemTagValue
         AWS_LAMBDA_EXEC_WRAPPER: /opt/dynatrace
