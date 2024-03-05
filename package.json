@@ -23,8 +23,7 @@
     "build": "sam build -t src/infra/main/template.yaml",
     "package": "yarn clean && yarn build",
     "precommit": "pre-commit run",
-    "postinstall": "husky",
-    "prepare": "husky"
+    "postinstall": "husky"
   },
   "dependencies": {
     "@aws-lambda-powertools/commons": "^1.18.0",

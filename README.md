@@ -17,10 +17,10 @@ git clone git@github.com:govuk-one-login/account-interventions-service.git
 cd account-interventions-service
 ```
 
-### Setup Pre-Commit
+### Setup Pre-Commit with Husky
 ```shell
 $ pre-commit install -f
-$ yarn husky install
+$ yarn postinstall
 ```
 
 ### Install Project Dependencies
