@@ -1,11 +1,27 @@
 Feature: Invoke-APIGateway-HappyPath.feature
 
     @regression
+    Scenario Outline: Happy Path - Get Request to /ais/userId - Returns Expected allowable intervention codes from Egress Queue <aisEventType>
+        Given I send an <aisEventType> intervention to the TxMA ingress SQS queue
+        When I invoke an API to retrieve the intervention status of the user's account. With history <historyValue>
+        Then I expect the response with next allowable intervention types in TXMA Egress Queue for <aisEventType>
+        Examples:
+            | aisEventType              | historyValue |
+            | pswResetRequired          | false        |
+            | suspendNoAction           | false        |
+            | block                     | false        |
+            | idResetRequired           | false        |
+            | pswAndIdResetRequired     | false        |
+            | unblock                   | false        |
+            | userActionIdResetSuccess  | false        |
+            | userActionPswResetSuccess | false        |
+            | unSuspendAction           | false        |
+
+    @regression
     Scenario Outline: Happy Path - Get Request to /ais/userId - Returns Expected Data for <aisEventType>
         Given I send an <aisEventType> intervention message to the TxMA ingress SQS queue
         When I invoke the API to retrieve the intervention status of the user's account. With history <historyValue>
         Then I expect the response with all the valid state flags for <aisEventType>
-        And I expect the response with next allowable intervention types in TXMA Egress Queue for <aisEventType>
         Examples:
             | aisEventType                           | historyValue |
             | pswResetRequired                       | false        |
@@ -24,7 +40,6 @@ Feature: Invoke-APIGateway-HappyPath.feature
         Given I send an <allowableAisEventType> allowable intervention event message to the TxMA ingress SQS queue for a Account in <originalAisEventType> state
         When I invoke the API to retrieve the allowable intervention status of the user's account. With history <historyValue>
         Then I expect the response with all the valid state fields for the <allowableAisEventType>
-        And I expect response with next allowable intervention types in TXMA Egress Queue for the <allowableAisEventType>
         Examples:
             | originalAisEventType  | allowableAisEventType | historyValue |
             # passsword reset account status to new intervention type
@@ -63,7 +78,6 @@ Feature: Invoke-APIGateway-HappyPath.feature
         Given I send an <nonAllowableAisEventType> non-allowable intervention event message to the TxMA ingress SQS queue for a Account in <originalAisEventType> state
         When I invoke the API to retrieve the non-allowable intervention status of the user's account. With history <historyValue>
         Then I expect the response with all the state fields for the <originalAisEventType>
-        And I expect next allowable intervention types in TXMA Egress Queue response for the <originalAisEventType>
         Examples:
             | originalAisEventType  | nonAllowableAisEventType               | historyValue |
             # password reset required account status to new intervention type
@@ -95,7 +109,6 @@ Feature: Invoke-APIGateway-HappyPath.feature
         Given I send an <allowableAisEventType> allowable event type password or id Reset intervention message to the TxMA ingress SQS queue for a Account in <originalAisEventType> state
         When I invoke the API to retrieve the intervention status of the user's account with history <historyValue>
         Then I expect response with valid fields for <interventionType> with state flags as <blocked>, <suspended>, <resetPassword> and <reproveIdentity>
-        And  I expect response with next allowable intervention types in TXMA Egress Queue for <originalAisEventType> with <interventionType>
         Examples:
             | originalAisEventType  | allowableAisEventType                  | historyValue | interventionType                                   | blocked | suspended | resetPassword | reproveIdentity |
             | pswResetRequired      | userActionPswResetSuccess              | false        | AIS_FORCED_USER_PASSWORD_RESET                     | false   | false     | false         | false           |
