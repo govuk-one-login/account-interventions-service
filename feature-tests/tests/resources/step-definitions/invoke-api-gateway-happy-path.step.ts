@@ -431,7 +431,7 @@ defineFeature(feature, (test) => {
       },
     );
   });
-  
+
   test('Happy Path - Logs Validation', ({ given, when, then }) => {
     given('Cloudwatch logs have been created', async () => {
       await cloudwatchLogs.getAllLogs();
