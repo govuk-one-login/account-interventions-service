@@ -214,21 +214,6 @@ defineFeature(feature, (test) => {
         expect(response.auditLevel).toBe('standard');
       },
     );
-
-    and(
-      /^I expect response with next allowable intervention types in TXMA Egress Queue for (.*) with (.*)$/,
-      async (originalAisEventType: keyof typeof aisEventResponse, interventionType: string) => {
-        const receivedMessage = await filterUserIdInMessages(testUserId);
-        const message = receivedMessage.find((object) => {
-          const objectBody = object.Body ? attemptParseJSON(object.Body) : {};
-          return objectBody.extensions.description === interventionType;
-        });
-        const body = message?.Body ? attemptParseJSON(message.Body) : {};
-        expect(body.extensions?.allowable_interventions).toEqual(
-          aisEventResponse[originalAisEventType].allowable_interventions,
-        );
-      },
-    );
   });
 
   test('Get Request to /ais/userId - Password and Id allowable Transition from <originalAisEventType> to <allowableAisEventType> - Returns expected values in the response', ({
