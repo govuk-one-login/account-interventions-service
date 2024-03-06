@@ -67,7 +67,7 @@ jobs:
           aws-region: eu-west-2
 
       - name: "Deploy SAM app"
-        uses: govuk-one-login/devplatform-upload-action@32daf3e2158e7c9aa15cba6e17f927dc4b0250c5 # pin@v3.3
+        uses: govuk-one-login/devplatform-upload-action@1bf704ccba8eaebea0bd43318321d806b29f9fe4 # pin@v3.5
         with:
           artifact-bucket-name: ${{ secrets.DEV_MAIN_ARTIFACT_BUCKET_NAME }}
           signing-profile-name: ${{ secrets.DEV_SIGNING_PROFILE_NAME }}
