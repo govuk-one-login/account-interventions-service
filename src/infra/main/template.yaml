@@ -44,6 +44,16 @@ Parameters:
     Description: "The ARN of the Alerting SNS High Alert Notification topic"
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/ais-infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
+  LambdaDeploymentPreference:
+    Description: "Specifies the configuration to enable gradual Lambda deployments"
+    Type: String
+    Default: "Canary10Percent5Minutes"
+    AllowedValues:
+      - AllAtOnce
+      - Canary10Percent5Minutes
+      - Canary10Percent10Minutes
+      - Canary10Percent15Minutes
+      - Canary10Percent30Minutes
   ProductTagValue:
     Description: Value for the Product Tag
     Type: String
@@ -66,6 +76,7 @@ Conditions:
   IsNotInternal: !Not [ Condition: IsInternal ]
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
+  IsBuild: !Equals [!Ref Environment, build]
 
 Mappings:
   EnvConfig:
@@ -175,9 +186,11 @@ Resources:
     Properties:
       FunctionName: !Sub "${AWS::StackName}-InterventionsProcessorFunction"
       Description: "Processes intervention events and updates account's intervention status."
-      AutoPublishAlias: live
       DeploymentPreference:
-        Type: Canary10Percent5Minutes
+        Type: !If
+            - IsBuild
+            - AllAtOnce
+            - !Ref LambdaDeploymentPreference
         Alarms:
           - !Ref InterventionsProcessorFunctionErrorsAlarm
       Timeout: 5
@@ -399,9 +412,11 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
       Description: "Updates an account intervention status indicating that the account has been deleted."
-      AutoPublishAlias: live
       DeploymentPreference:
-        Type: Canary10Percent5Minutes
+        Type: !If
+          - IsBuild
+          - AllAtOnce
+          - !Ref LambdaDeploymentPreference
         Alarms:
           - !Ref AccountDeletionProcessorFunctionErrorsAlarm
       Timeout: 10
@@ -989,9 +1004,11 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-StatusRetrieverFunction'
       Description: "Retrieves the account's intervention status."
-      AutoPublishAlias: live
       DeploymentPreference:
-        Type: Canary10Percent5Minutes
+        Type: !If
+          - IsBuild
+          - AllAtOnce
+          - !Ref LambdaDeploymentPreference
         Alarms:
           - !Ref StatusRetrieverFunctionErrorsAlarm
       MemorySize: 512
