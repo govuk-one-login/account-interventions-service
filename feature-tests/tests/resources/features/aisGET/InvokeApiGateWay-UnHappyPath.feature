@@ -25,18 +25,27 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Invalid Base URL - Returns Expected Data for <aisEventType>
         Given I send a valid request to sqs queue with userId and <aisEventType> 
         When I invoke apiGateway with invalid base url to retreive the status of the userId
-        Then I should receive the response for the ais endpoint
+        Then I should receive the response for the invalid base url
         Examples:
             | aisEventType    | 
             | suspendNoAction |
 
 
     @regression @test
-    Scenario Outline: UnHappy Path - Get Request to /ais/userId - Invalid Path Parameters - Returns Expected Data for <aisEventType>
+    Scenario Outline: UnHappy Path - Get Request to /ais/userId - Invalid Endpoint - Returns Expected Data for <aisEventType>
         Given I send a valid request to sqs queue with <aisEventType> 
-        When I invoke apiGateway with invalid path parameters to retreive the status of the userId
-        Then I should receive the response for the ais endpoint
+        When I invoke apiGateway with invalid endpoint to retreive the status of the userId
+        Then I should receive the response for the invalid endpoint
         Examples:
             | aisEventType    | 
-            | suspendNoAction |       
+            | suspendNoAction |    
+
+    @regression @test
+    Scenario Outline: UnHappy Path - Get Request to /ais/userId - Invalid Content-Type & Accept - Returns Expected Data for <aisEventType>
+        Given I send an valid request to sqs queue with <aisEventType> 
+        When I invoke apiGateway with invalid <contentType> and <accept> to retreive the status of the userId
+        Then I should receive the response for the invalid fields
+        Examples:
+            | aisEventType    |contentType |accept|
+            | suspendNoAction | text/html  |      |         
                                                                       
