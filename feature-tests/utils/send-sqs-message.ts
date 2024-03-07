@@ -46,7 +46,6 @@ export async function sendInvalidSQSEvent(testUserId: string, invalidAisEventTyp
   }
 }
 
-
 function getCurrentTimestamp(date = new Date()): CurrentTimeDescriptor {
   return {
     milliseconds: date.valueOf(),
