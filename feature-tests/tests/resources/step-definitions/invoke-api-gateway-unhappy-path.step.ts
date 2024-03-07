@@ -65,90 +65,93 @@ defineFeature(feature, (test) => {
     });
   });
 
-
   test('UnHappy Path - Get Request to /ais/userId - Invalid Base URL - Returns Expected Data for <aisEventType>', ({
     given,
     when,
     then,
   }) => {
-    given(
-      /^I send a valid request to sqs queue with userId and (.*)$/,
-      async function (aisEventType) {
+    given(/^I send a valid request to sqs queue with userId and (.*)$/, async function (aisEventType) {
+      if (process.platform === 'linux') {
         await sendSQSEvent(testUserId, aisEventType);
-      },
-    );
+      }
+    });
 
     when(/^I invoke apiGateway with invalid base url to retreive the status of the userId$/, async () => {
-        if (process.platform === 'linux') {
-        const resultFromAPI = await request(EndPoints.AIS_BASE_URL+'/' as unknown as App)
+      if (process.platform === 'linux') {
+        const resultFromAPI = await request((EndPoints.AIS_BASE_URL + '/') as unknown as App)
           .get(EndPoints.PATH_AIS + testUserId)
           .query({ history: false })
           .set('Content-Type', 'application/json')
           .set('Accept', '*/*');
-         response = JSON.parse(resultFromAPI.text);
+        response = JSON.parse(resultFromAPI.text);
       }
     });
 
-    then(/^I should receive the response for the invalid base url$/, async () => {
-      console.log(`Received response for Invalid Base URL`, response);
+    then(/^I should receive the response with (.*) for the invalid base url$/, async (description) => {
+      if (process.platform === 'linux') {
+        expect(response.intervention.description).toBe(description);
+      }
     });
   });
-
 
   test('UnHappy Path - Get Request to /ais/userId - Invalid Endpoint - Returns Expected Data for <aisEventType>', ({
     given,
     when,
     then,
   }) => {
-    given(
-      /^I send a valid request to sqs queue with (.*)$/,
-      async function (aisEventType) {
+    given(/^I send a valid request to sqs queue with (.*)$/, async function (aisEventType) {
+      if (process.platform === 'linux') {
         await sendSQSEvent(testUserId, aisEventType);
-      },
-    );
-
-    when(/^I invoke apiGateway with invalid endpoint to retreive the status of the userId$/, async () => {
-        if (process.platform === 'linux') {
-        const resultFromAPI = await request(EndPoints.AIS_BASE_URL as unknown as App)
-          .get(EndPoints.PATH_AIS+'/' + testUserId)
-          .query({ history: false })
-          .set('Content-Type', 'application/json')
-          .set('Accept', '*/*');
-         response = JSON.parse(resultFromAPI.text);
       }
     });
 
-    then(/^I should receive the response for the invalid endpoint$/, async () => {
-      console.log(`Received response for invalid endpoint`,  response );
+    when(/^I invoke apiGateway with invalid endpoint to retreive the status of the userId$/, async () => {
+      if (process.platform === 'linux') {
+        const resultFromAPI = await request(EndPoints.AIS_BASE_URL as unknown as App)
+          .get(EndPoints.PATH_AIS + '/' + testUserId)
+          .query({ history: false })
+          .set('Content-Type', 'application/json')
+          .set('Accept', '*/*');
+        response = JSON.parse(resultFromAPI.text);
+      }
+    });
+
+    then(/^I should receive response with (.*) for the ais endpoint$/, async (message) => {
+      if (process.platform === 'linux') {
+        expect(response.message).toBe(message);
+      }
     });
   });
-
 
   test('UnHappy Path - Get Request to /ais/userId - Invalid Content-Type & Accept - Returns Expected Data for <aisEventType>', ({
     given,
     when,
     then,
   }) => {
-    given(
-      /^I send an valid request to sqs queue with (.*)$/,
-      async function (aisEventType) {
+    given(/^I send an valid request to sqs queue with (.*)$/, async function (aisEventType) {
+      if (process.platform === 'linux') {
         await sendSQSEvent(testUserId, aisEventType);
-      },
-    );
-
-    when(/^I invoke apiGateway with invalid (.*) and (.*) to retreive the status of the userId$/, async (contentType, accept) => {
-        if (process.platform === 'linux') {
-        const resultFromAPI = await request(EndPoints.AIS_BASE_URL as unknown as App)
-          .get(EndPoints.PATH_AIS+'/' + testUserId)
-          .query({ history: false })
-          .set('Content-Type', contentType)
-          .set('Accept', contentType);
-         response = JSON.parse(resultFromAPI.text);
       }
     });
 
-    then(/^I should receive the response for the invalid fields$/, async () => {
-      console.log(`Received response field validation`,  response );
+    when(
+      /^I invoke apiGateway with invalid (.*) and (.*) to retreive the status of the userId$/,
+      async (contentType, accept) => {
+        if (process.platform === 'linux') {
+          const resultFromAPI = await request(EndPoints.AIS_BASE_URL as unknown as App)
+            .get(EndPoints.PATH_AIS + '/' + testUserId)
+            .query({ history: false })
+            .set('Content-Type', contentType)
+            .set('Accept', accept);
+          response = JSON.parse(resultFromAPI.text);
+        }
+      },
+    );
+
+    then(/^I should receive the response with (.*)$/, async (message) => {
+      if (process.platform === 'linux') {
+        expect(response.message).toBe(message);
+      }
     });
   });
 });
