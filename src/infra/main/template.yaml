@@ -193,6 +193,7 @@ Resources:
             - AllAtOnce
         Alarms:
           - !Ref InterventionsProcessorFunctionErrorsAlarm
+        Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 5
       Handler: interventions-processor-handler.handler
       MemorySize: 512
@@ -419,6 +420,7 @@ Resources:
           - AllAtOnce
         Alarms:
           - !Ref AccountDeletionProcessorFunctionErrorsAlarm
+        Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 10
       Handler: account-deletion-processor-handler.handler
       MemorySize: 128
@@ -1011,6 +1013,7 @@ Resources:
           - AllAtOnce
         Alarms:
           - !Ref StatusRetrieverFunctionErrorsAlarm
+        Role: !GetAtt CodeDeployServiceRole.Arn
       MemorySize: 512
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       Timeout: 10
