@@ -89,13 +89,13 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then(/^I should receive the response for the ais endpoint$/, async () => {
-      console.log(`Received`, response);
+    then(/^I should receive the response for the invalid base url$/, async () => {
+      console.log(`Received response for Invalid Base URL`, response);
     });
   });
 
 
-  test('UnHappy Path - Get Request to /ais/userId - Invalid Path Parameters - Returns Expected Data for <aisEventType>', ({
+  test('UnHappy Path - Get Request to /ais/userId - Invalid Endpoint - Returns Expected Data for <aisEventType>', ({
     given,
     when,
     then,
@@ -107,7 +107,7 @@ defineFeature(feature, (test) => {
       },
     );
 
-    when(/^I invoke apiGateway with invalid path parameters to retreive the status of the userId$/, async () => {
+    when(/^I invoke apiGateway with invalid endpoint to retreive the status of the userId$/, async () => {
         if (process.platform === 'linux') {
         const resultFromAPI = await request(EndPoints.AIS_BASE_URL as unknown as App)
           .get(EndPoints.PATH_AIS+'/' + testUserId)
@@ -118,8 +118,37 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then(/^I should receive the response for the ais endpoint$/, async () => {
-      console.log(`Received`,  response );
+    then(/^I should receive the response for the invalid endpoint$/, async () => {
+      console.log(`Received response for invalid endpoint`,  response );
+    });
+  });
+
+
+  test('UnHappy Path - Get Request to /ais/userId - Invalid Content-Type & Accept - Returns Expected Data for <aisEventType>', ({
+    given,
+    when,
+    then,
+  }) => {
+    given(
+      /^I send an valid request to sqs queue with (.*)$/,
+      async function (aisEventType) {
+        await sendSQSEvent(testUserId, aisEventType);
+      },
+    );
+
+    when(/^I invoke apiGateway with invalid (.*) and (.*) to retreive the status of the userId$/, async (contentType, accept) => {
+        if (process.platform === 'linux') {
+        const resultFromAPI = await request(EndPoints.AIS_BASE_URL as unknown as App)
+          .get(EndPoints.PATH_AIS+'/' + testUserId)
+          .query({ history: false })
+          .set('Content-Type', contentType)
+          .set('Accept', contentType);
+         response = JSON.parse(resultFromAPI.text);
+      }
+    });
+
+    then(/^I should receive the response for the invalid fields$/, async () => {
+      console.log(`Received response field validation`,  response );
     });
   });
 });
