@@ -47,7 +47,7 @@ Parameters:
   LambdaDeploymentPreference:
     Description: "Specifies the configuration to enable gradual Lambda deployments"
     Type: String
-    Default: "Canary10Percent5Minutes"
+    Default: "Canary10Percent10Minutes"
     AllowedValues:
       - AllAtOnce
       - Canary10Percent5Minutes
@@ -76,7 +76,7 @@ Conditions:
   IsNotInternal: !Not [ Condition: IsInternal ]
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
-  IsProd: !Or [!Equals [!Ref Environment, integration], !Equals [!Ref Environment, production]]
+#  IsProd: !Or [!Equals [!Ref Environment, integration], !Equals [!Ref Environment, production]]
 
 Mappings:
   EnvConfig:
@@ -188,7 +188,7 @@ Resources:
       Description: "Processes intervention events and updates account's intervention status."
       DeploymentPreference:
         Type: !If
-            - IsProd
+            - IsInternal
             - !Ref LambdaDeploymentPreference
             - AllAtOnce
         Alarms:
@@ -414,7 +414,7 @@ Resources:
       Description: "Updates an account intervention status indicating that the account has been deleted."
       DeploymentPreference:
         Type: !If
-          - IsProd
+          - IsInternal
           - !Ref LambdaDeploymentPreference
           - AllAtOnce
         Alarms:
@@ -1006,7 +1006,7 @@ Resources:
       Description: "Retrieves the account's intervention status."
       DeploymentPreference:
         Type: !If
-          - IsProd
+          - IsInternal
           - !Ref LambdaDeploymentPreference
           - AllAtOnce
         Alarms:
@@ -1418,9 +1418,9 @@ Resources:
           Value: !Ref StatusRetrieverFunction
       Namespace: AWS/Lambda
       Statistic: Sum
-      Period: 300
+      Period: 60
       EvaluationPeriods: 1
-      Threshold: 5
+      Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
@@ -1439,9 +1439,9 @@ Resources:
           Value: !Ref InterventionsProcessorFunction
       Namespace: AWS/Lambda
       Statistic: Sum
-      Period: 300
+      Period: 60
       EvaluationPeriods: 1
-      Threshold: 5
+      Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
@@ -1460,9 +1460,9 @@ Resources:
           Value: !Ref AccountDeletionProcessorFunction
       Namespace: AWS/Lambda
       Statistic: Sum
-      Period: 300
+      Period: 60
       EvaluationPeriods: 1
-      Threshold: 5
+      Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
