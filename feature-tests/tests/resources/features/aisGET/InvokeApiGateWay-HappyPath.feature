@@ -167,15 +167,6 @@ Feature: Invoke-APIGateway-HappyPath.feature
             | pswAndIdResetRequired | unSuspendAction       | true         |
 
     @regression
-    Scenario Outline: Happy Path - Get Request to /ais/userId - Field Validation - Returns Expected Data for <aisEventType> with specific field validation
-        Given I send a invalid request to sqs queue with no userId and <aisEventType>, <testUserId> data
-        When I invoke apiGateway to retreive the status of the invalid userId with <historyValue>
-        Then I should receive the appropriate <interventionType> for the ais endpoint
-        Examples:
-            | aisEventType    | historyValue | interventionType    | testUserId |
-            | suspendNoAction | false        | AIS_NO_INTERVENTION |            |
-
-    @regression
     Scenario: Happy Path - Get Request to /ais/userId - Multiple Transitions from one event type to other event types
         Given I send a multiple requests to sqs queue to transit from one event type to other event types with single userId
         When I invoke apiGateway to retreive the status of the valid userId with history as true

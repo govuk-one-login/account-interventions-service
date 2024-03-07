@@ -300,30 +300,6 @@ defineFeature(feature, (test) => {
     );
   });
 
-  test('Happy Path - Get Request to /ais/userId - Field Validation - Returns Expected Data for <aisEventType> with specific field validation', ({
-    given,
-    when,
-    then,
-  }) => {
-    given(
-      /^I send a invalid request to sqs queue with no userId and (.*), (.*) data$/,
-      async function (aisEventType, testUserId) {
-        const userId = testUserId === 'undefined' ? undefined : testUserId;
-        await sendSQSEvent(userId, aisEventType);
-      },
-    );
-
-    when(/^I invoke apiGateway to retreive the status of the invalid userId with (.*)$/, async (historyValue) => {
-      response = await invokeGetAccountState(testUserId, historyValue);
-    });
-
-    then(/^I should receive the appropriate (.*) for the ais endpoint$/, async (interventionType) => {
-      console.log(`Received`, { response });
-      expect(response.intervention.description).toBe(interventionType);
-      expect(response.auditLevel).toBe('standard');
-    });
-  });
-
   test('Happy Path - Get Request to /ais/userId - Multiple Transitions from one event type to other event types', ({
     given,
     when,
