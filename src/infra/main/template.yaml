@@ -313,7 +313,7 @@ Resources:
           - Effect: Allow
             Action:
               - "dynamodb:UpdateItem"
-#              - "dynamodb:Query"
+              - "dynamodb:Query"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
           - Effect: "Allow"
@@ -1391,7 +1391,7 @@ Resources:
           Value: !Sub "${AWS::StackName}-InterventionsProcessorFunction:live"
         - Name: FunctionName
           Value: !Ref InterventionsProcessorFunction
-      Namespace: AWS/Lambda
+      Namespace: Lambda
       Statistic: Sum
       Period: 60
       EvaluationPeriods: 1
