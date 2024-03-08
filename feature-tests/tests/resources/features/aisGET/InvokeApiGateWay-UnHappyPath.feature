@@ -21,7 +21,6 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
             | suspendNoAction | false        | AIS_NO_INTERVENTION |            |
 
 
-    @regression
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Invalid Base URL - Returns Expected Data for <aisEventType>
         Given I send a valid request to sqs queue with userId and <aisEventType>
         When I invoke apiGateway with invalid base url to retreive the status of the userId
