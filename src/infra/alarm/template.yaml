@@ -55,7 +55,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "TxMA Egress queue processing too slow"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 600
@@ -93,7 +93,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "TxMA Egress queue has too many messages"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 50
@@ -131,7 +131,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "TxMA Egress DLQ has too many messages"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 10
@@ -195,7 +195,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "There is a configuration issue with the Account State Engine."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -304,7 +304,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "Too many Interventions received were not allowed on current account state."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 5
@@ -346,7 +346,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "Too many received intervention events are invalid."
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_EVENT_RECEIVED
@@ -422,7 +422,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
       AlarmDescription: "Intervention event messages are out of order."
       Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_EVENT_STALE
@@ -441,7 +441,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "Too many intervention event messages are out of order."
       Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_EVENT_STALE
@@ -480,7 +480,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "The query to DynamoDB has provided the no response error five times within a minute."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       DatapointsToAlarm: 1
@@ -521,7 +521,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "DynamoDB query too many items error five times within a minute."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       DatapointsToAlarm: 1
@@ -562,7 +562,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "Publishing to TxMA failed once every minute for 10 minutes"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -582,7 +582,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "Schema is invalid"
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_SCHEMA
@@ -643,7 +643,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "Messages from TxMA have an average latency above 5s."
       Namespace: !Ref SystemTagValue
       MetricName: EVENT_DELIVERY_LATENCY
@@ -662,7 +662,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "Messages from TxMA have a maximum latency above 10s."
       Namespace: !Ref SystemTagValue
       MetricName: EVENT_DELIVERY_LATENCY
@@ -685,7 +685,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "An error occured with the query to DynamoDB"
       Namespace: !Ref SystemTagValue
       MetricName: DB_QUERY_ERROR
@@ -704,7 +704,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "User ID was not found in the event"
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_SUBJECT_ID
@@ -723,7 +723,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "History string may be missing required components"
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_HISTORY_STRING
