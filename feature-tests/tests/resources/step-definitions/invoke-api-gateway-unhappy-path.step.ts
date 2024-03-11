@@ -84,8 +84,6 @@ defineFeature(feature, (test) => {
           .set('Content-Type', 'application/json')
           .set('Accept', '*/*');
         response = JSON.parse(resultFromAPI.text);
-        console.log("print request", request((EndPoints.AIS_BASE_URL + '/k') as unknown as App))
-        console.log("print response", response)
       }
     });
 

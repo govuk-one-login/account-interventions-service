@@ -21,14 +21,14 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
             | suspendNoAction | false        | AIS_NO_INTERVENTION |            |
 
 
-@test
+    @regression
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Invalid Base URL - Returns Expected Data for <aisEventType>
         Given I send a valid request to sqs queue with userId and <aisEventType>
         When I invoke apiGateway with invalid base url to retreive the status of the userId
         Then I should receive the response with <description> for the invalid base url
         Examples:
-            | aisEventType    | description         |
-            | suspendNoAction | AIS_NO_INTERVENTION |
+            | aisEventType    | description                  |
+            | suspendNoAction | Missing Authentication Token |
 
 
     @regression
