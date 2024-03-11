@@ -78,7 +78,7 @@ defineFeature(feature, (test) => {
 
     when(/^I invoke apiGateway with invalid base url to retreive the status of the userId$/, async () => {
       if (process.platform === 'linux') {
-        const resultFromAPI = await request((EndPoints.AIS_BASE_URL + '/') as unknown as App)
+        const resultFromAPI = await request((EndPoints.AIS_BASE_URL + '/k') as unknown as App)
           .get(EndPoints.PATH_AIS + testUserId)
           .query({ history: false })
           .set('Content-Type', 'application/json')
