@@ -82,6 +82,11 @@ export const transitionConfiguration: TransitionConfigurationInterface = {
       name: EventsEnum.FRAUD_UNBLOCK_ACCOUNT,
       interventionName: AISInterventionTypes.AIS_ACCOUNT_UNBLOCKED,
     },
+    '25': {
+      to: 'AccountNeedsIdReset',
+      name: EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION,
+      interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
+    },
     '90': {
       to: 'AccountIsOkay',
       name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
@@ -108,10 +113,10 @@ export const transitionConfiguration: TransitionConfigurationInterface = {
     },
   },
   adjacency: {
-    AccountIsOkay: ['01', '03', '04', '05', '06'],
+    AccountIsOkay: ['01', '03', '04', '05', '06', '25'],
     AccountIsBlocked: ['07'],
     AccountIsSuspended: ['02', '03', '04', '05', '06'],
-    AccountNeedsPasswordReset: ['01', '02', '03', '05', '06', '90', '94'],
+    AccountNeedsPasswordReset: ['01', '02', '03', '05', '06', '25', '90', '94'],
     AccountNeedsIdReset: ['01', '02', '03', '04', '06', '91'],
     AccountNeedsPswAndIdReset: ['01', '02', '03', '04', '05', '92', '93', '95'],
   },

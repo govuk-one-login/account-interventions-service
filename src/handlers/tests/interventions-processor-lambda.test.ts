@@ -334,7 +334,7 @@ describe('intervention processor handler', () => {
             suspended: false,
           },
           interventionName: 'AIS_NO_INTERVENTION',
-          nextAllowableInterventions: ['01', '03', '04', '05', '06'],
+          nextAllowableInterventions: ['01', '03', '04', '05', '06', '25'],
         },
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
@@ -407,7 +407,7 @@ describe('intervention processor handler', () => {
             suspended: false,
           },
           interventionName: 'AIS_NO_INTERVENTION',
-          nextAllowableInterventions: ['01', '03', '04', '05', '06'],
+          nextAllowableInterventions: ['01', '03', '04', '05', '06', '25'],
         },
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
