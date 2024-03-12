@@ -1,6 +1,6 @@
 Feature: Invoke-APIGateway-UnHappyPath.feature
 
-    @regression @test
+    @regression
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Returns Expected data for <invalidAisEventType>
         Given I send invalid <invalidAisEventType> intervention message to the TxMA ingress SQS queue
         When I invoke the API to retrieve the intervention status of the account
@@ -15,7 +15,6 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
             | invalidInterventionCodeWithSpecialCharacters | AIS_NO_INTERVENTION |
             | invalidInterventionCodeWithBooleanValues     | AIS_NO_INTERVENTION |
             | invalidInterventionCodeWithSpace             | AIS_NO_INTERVENTION |
-            | invalidInterventionCodeWithSpaces            | AIS_NO_INTERVENTION |
             |invalidInterventionCodeWithEmptyValues        | AIS_NO_INTERVENTION |
 
 

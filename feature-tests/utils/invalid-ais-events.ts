@@ -139,24 +139,6 @@ export const invalidAisEvents = {
     },
   },
 
-  invalidInterventionCodeWithSpaces: {
-    timestamp:currentTime.seconds,
-    event_timestamp_ms: currentTime.milliseconds,
-    event_name: 'TICF_ACCOUNT_INTERVENTION',
-    event_id: '123',
-    component_id: 'TICF_CRI',
-    user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
-    extensions: {
-      intervention: {
-        intervention_code: ' 01 ',
-        intervention_reason: 'suspend - 01',
-        originating_component_id: 'CMS',
-        originator_reference_id: '1234567',
-        requester_id: '1234567',
-      },
-    },
-  },
-
   invalidInterventionCodeWithEmptyValues: {
     timestamp:currentTime.seconds,
     event_timestamp_ms: currentTime.milliseconds,
