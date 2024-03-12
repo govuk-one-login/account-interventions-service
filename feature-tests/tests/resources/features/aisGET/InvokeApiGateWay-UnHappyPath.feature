@@ -1,15 +1,23 @@
 Feature: Invoke-APIGateway-UnHappyPath.feature
 
-    @regression
+    @regression @test
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Returns Expected data for <invalidAisEventType>
         Given I send invalid <invalidAisEventType> intervention message to the TxMA ingress SQS queue
         When I invoke the API to retrieve the intervention status of the account
         Then I expect response with no intervention <description>
         Examples:
-            | invalidAisEventType   | description         |
-            | missingEventNameAndId | AIS_NO_INTERVENTION |
-            | missingTimeStamps     | AIS_NO_INTERVENTION |
-            | missingExtensions     | AIS_NO_INTERVENTION |
+            | invalidAisEventType                          | description         |
+            | missingEventNameAndId                        | AIS_NO_INTERVENTION |
+            | missingTimeStamps                            | AIS_NO_INTERVENTION |
+            | missingExtensions                            | AIS_NO_INTERVENTION |
+            | invalidInterventionCodeType                  | AIS_NO_INTERVENTION |
+            | invalidInterventionCode                      | AIS_NO_INTERVENTION |
+            | invalidInterventionCodeWithSpecialCharacters | AIS_NO_INTERVENTION |
+            | invalidInterventionCodeWithBooleanValues     | AIS_NO_INTERVENTION |
+            | invalidInterventionCodeWithSpace             | AIS_NO_INTERVENTION |
+            | invalidInterventionCodeWithSpaces            | AIS_NO_INTERVENTION |
+            |invalidInterventionCodeWithEmptyValues        | AIS_NO_INTERVENTION |
+
 
     @regression
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Field Validation - Returns Expected Data for <aisEventType> with specific field validation
@@ -46,5 +54,7 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
         When I invoke apiGateway with invalid <contentType> and <accept> to retreive the status of the userId
         Then I should receive the response with <message>
         Examples:
-            | aisEventType    | contentType | accept | message                      |
-            | suspendNoAction | text/html   |        | Missing Authentication Token |
+            | aisEventType    | contentType      | accept | message                      |
+            | suspendNoAction | text/html        | */*    | Missing Authentication Token |
+            | suspendNoAction | application/json |        | Missing Authentication Token |
+            | suspendNoAction |                  | */*    | Missing Authentication Token |
