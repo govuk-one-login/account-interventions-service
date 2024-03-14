@@ -57,3 +57,17 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
             | suspendNoAction | text/html        | */*    | Missing Authentication Token |
             | suspendNoAction | application/json |        | Missing Authentication Token |
             | suspendNoAction |                  | */*    | Missing Authentication Token |
+
+    @regression
+    Scenario Outline: UnHappy Path - Get Request to /ais/userId - Mixed Case History values - Returns Expected Data for <aisEventType>
+        Given I send an valid <aisEventType> request to sqs queue
+        When I invoke apiGateway to retreive the status userId with <historyValue>
+        Then I should receive the response with no history items for the ais endpoint
+        Examples:
+            | aisEventType    | historyValue |
+            | suspendNoAction | FALSE        |
+            | suspendNoAction | tRuE         |
+            | suspendNoAction | TrueFalse    |
+            | suspendNoAction | Truee        |
+            | suspendNoAction | *&           |
+            | suspendNoAction | TRUE         |
