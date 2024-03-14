@@ -6,6 +6,7 @@ import { timeDelayForTestEnvironment } from '../../../utils/utility';
 import EndPoints from '../../../apiEndpoints/endpoints';
 import request from 'supertest';
 import { App } from 'supertest/types';
+import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-UnHappyPath.feature');
 
@@ -154,4 +155,26 @@ defineFeature(feature, (test) => {
       }
     });
   });
+
+  test('UnHappy Path - Get Request to /ais/userId - Mixed Case History values - Returns Expected Data for <aisEventType>', ({
+    given,
+    when,
+    then,
+  }) => {
+    given(/^I send an valid (.*) request to sqs queue$/, async function (aisEventType) {
+          await sendSQSEvent(testUserId, aisEventType);
+    });
+
+    when(
+      /^I invoke apiGateway to retreive the status userId with (.*)$/,
+      async (historyValue) => {
+        await timeDelayForTestEnvironment(1500);
+        response = await invokeGetAccountState(testUserId, historyValue);
+      }
+    );
+
+    then(/^I should receive the response with no history items for the ais endpoint$/, async () => {
+        expect(response.history).toBeFalsy();
+      });
+    });
 });
