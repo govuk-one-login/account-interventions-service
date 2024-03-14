@@ -1,11 +1,10 @@
-import { CurrentTimeDescriptor } from "./utility";
-
+import { CurrentTimeDescriptor } from './utility';
 
 const currentTime = getCurrentTimestamp();
 
 export const invalidAisEvents = {
   missingEventNameAndId: {
-    timestamp:currentTime.seconds,
+    timestamp: currentTime.seconds,
     event_timestamp_ms: currentTime.milliseconds,
     component_id: 'TICF_CRI',
     user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
@@ -37,7 +36,7 @@ export const invalidAisEvents = {
   },
 
   missingExtensions: {
-    timestamp:currentTime.seconds,
+    timestamp: currentTime.seconds,
     event_timestamp_ms: currentTime.milliseconds,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
     event_id: '123',
@@ -50,7 +49,7 @@ export const invalidAisEvents = {
   },
 
   invalidInterventionCodeType: {
-    timestamp:currentTime.seconds,
+    timestamp: currentTime.seconds,
     event_timestamp_ms: currentTime.milliseconds,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
     event_id: '123',
@@ -68,7 +67,7 @@ export const invalidAisEvents = {
   },
 
   invalidInterventionCode: {
-    timestamp:currentTime.seconds,
+    timestamp: currentTime.seconds,
     event_timestamp_ms: currentTime.milliseconds,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
     event_id: '123',
@@ -86,7 +85,7 @@ export const invalidAisEvents = {
   },
 
   invalidInterventionCodeWithSpecialCharacters: {
-    timestamp:currentTime.seconds,
+    timestamp: currentTime.seconds,
     event_timestamp_ms: currentTime.milliseconds,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
     event_id: '123',
@@ -104,7 +103,7 @@ export const invalidAisEvents = {
   },
 
   invalidInterventionCodeWithBooleanValues: {
-    timestamp:currentTime.seconds,
+    timestamp: currentTime.seconds,
     event_timestamp_ms: currentTime.milliseconds,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
     event_id: '123',
@@ -122,7 +121,7 @@ export const invalidAisEvents = {
   },
 
   invalidInterventionCodeWithSpace: {
-    timestamp:currentTime.seconds,
+    timestamp: currentTime.seconds,
     event_timestamp_ms: currentTime.milliseconds,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
     event_id: '123',
@@ -140,7 +139,7 @@ export const invalidAisEvents = {
   },
 
   invalidInterventionCodeWithEmptyValues: {
-    timestamp:currentTime.seconds,
+    timestamp: currentTime.seconds,
     event_timestamp_ms: currentTime.milliseconds,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
     event_id: '123',
@@ -158,7 +157,7 @@ export const invalidAisEvents = {
   },
 };
 
-function getCurrentTimestamp(date = new Date()) :CurrentTimeDescriptor  {
+function getCurrentTimestamp(date = new Date()): CurrentTimeDescriptor {
   return {
     milliseconds: date.valueOf(),
     isoString: date.toISOString(),
