@@ -27,7 +27,6 @@ export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeo
 }
 
 export async function sendInvalidSQSEvent(testUserId: string, invalidAisEventTypes: keyof typeof invalidAisEvents) {
-  //const currentTime = getCurrentTimestamp();
   const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
   const queueURL = EndPoints.SQS_QUEUE_URL;
   const event = { ...invalidAisEvents[invalidAisEventTypes] };
