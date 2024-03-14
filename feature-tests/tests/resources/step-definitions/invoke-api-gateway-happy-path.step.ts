@@ -11,6 +11,7 @@ import {
 import { aisEventResponse } from '../../../utils/ais-events-responses';
 import { updateItemInTable } from '../../../utils/dynamo-database-methods';
 import { cloudwatchLogs, LogEvent } from '../../../utils/cloudwatch-logs-service';
+import { sendSNSDeleteMessage } from '../../../utils/send-sns-message';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
@@ -424,5 +425,41 @@ defineFeature(feature, (test) => {
       );
       expect(events.length).toEqual(sensitiveInfoEvents.length);
     });
+  });
+
+  test('Happy Path - Send Delete Request to SNS Topic - Flag Record as deleted for userId with AIS Event Type <aisEventType>', ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    given(/^I send an (.*) intervention to the TxMA ingress SQS queue which will be deleted$/, async (aisEventType) => {
+      await sendSQSEvent(testUserId, aisEventType);
+      await timeDelayForTestEnvironment(2500);
+    });
+
+    when(/^I send a message with the userId to the Delete SNS Topic$/, async () => {
+      await timeDelayForTestEnvironment(1500);
+      const messageKey = 'user_id';
+      response = await sendSNSDeleteMessage(messageKey, testUserId);
+      console.log(`AIS Record Deleted via SNS Message Sent`);
+    });
+
+    and(/^I invoke an API to retrieve the deleted intervention status of the user's account$/, async () => {
+      await timeDelayForTestEnvironment(1500);
+      response = await invokeGetAccountState(testUserId, true);
+    });
+
+    then(
+      /^I expect response with valid deleted marker fields for (.*) with state flags as (.*)$/,
+      async (interventionType: string, values) => {
+        console.log(`Received`, { response });
+        if (values === 'resetPasswordAt') {
+          expect(response.intervention.description).toBe(interventionType);
+          expect(response.state.accountDeletedAt).toBeTruthy();
+          expect(response.auditLevel).toBe('standard');
+        }
+      },
+    );
   });
 });
