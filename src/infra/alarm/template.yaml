@@ -624,7 +624,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "Messages from TxMA have an average latency above 5s."
       Namespace: !Ref SystemTagValue
       MetricName: EVENT_DELIVERY_LATENCY
@@ -643,7 +643,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "Messages from TxMA have a maximum latency above 10s."
       Namespace: !Ref SystemTagValue
       MetricName: EVENT_DELIVERY_LATENCY
