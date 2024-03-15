@@ -244,6 +244,20 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionRolePolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sqs:ReceiveMessage"
+                  - "sqs:DeleteMessage"
+                  - "sqs:GetQueueAttributes"
+                Resource: !If
+                  - IsInternal
+                  - !GetAtt TxMAIngressQueue.Arn
+                  - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -269,15 +283,6 @@ Resources:
               - "logs:PutLogEvents"
             Resource:
               - !GetAtt InterventionsProcessorFunctionLogGroup.Arn
-          - Effect: Allow
-            Action:
-              - "sqs:ReceiveMessage"
-              - "sqs:DeleteMessage"
-              - "sqs:GetQueueAttributes"
-            Resource: !If
-              - IsInternal
-              - !GetAtt TxMAIngressQueue.Arn
-              - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
           - Effect: Allow
             Action:
               - "sqs:SendMessage"
@@ -1328,3 +1333,8 @@ Outputs:
     Condition: IsInternal
     Description: "Endpoint URL for TxMA Ingress Queue"
     Value: !Ref TxMAIngressQueue
+
+  AccountDeletionProcessorSNSTopicARN:
+    Condition: IsInternal
+    Description: "ARN for the AccountDeletionProcessorSNSTopic SNS Topic"
+    Value: !Ref AccountDeletionProcessorSNSTopic

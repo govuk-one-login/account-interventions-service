@@ -78,7 +78,7 @@ defineFeature(feature, (test) => {
 
     when(/^I invoke apiGateway with invalid base url to retreive the status of the userId$/, async () => {
       if (process.platform === 'linux') {
-        const resultFromAPI = await request((EndPoints.AIS_BASE_URL + '/') as unknown as App)
+        const resultFromAPI = await request((EndPoints.AIS_BASE_URL + '/k') as unknown as App)
           .get(EndPoints.PATH_AIS + testUserId)
           .query({ history: false })
           .set('Content-Type', 'application/json')
@@ -87,9 +87,9 @@ defineFeature(feature, (test) => {
       }
     });
 
-    then(/^I should receive the response with (.*) for the invalid base url$/, async (description) => {
+    then(/^I should receive the response with (.*) for the invalid base url$/, async (message) => {
       if (process.platform === 'linux') {
-        expect(response.intervention.description).toBe(description);
+        expect(response.message).toBe(message);
       }
     });
   });
@@ -152,6 +152,25 @@ defineFeature(feature, (test) => {
       if (process.platform === 'linux') {
         expect(response.message).toBe(message);
       }
+    });
+  });
+
+  test('UnHappy Path - Get Request to /ais/userId - Mixed Case History values - Returns Expected Data for <aisEventType>', ({
+    given,
+    when,
+    then,
+  }) => {
+    given(/^I send an valid (.*) request to sqs queue$/, async function (aisEventType) {
+      await sendSQSEvent(testUserId, aisEventType);
+    });
+
+    when(/^I invoke apiGateway to retreive the status userId with (.*)$/, async (historyValue) => {
+      await timeDelayForTestEnvironment(1500);
+      response = await invokeGetAccountState(testUserId, historyValue);
+    });
+
+    then(/^I should receive the response with no history items for the ais endpoint$/, async () => {
+      expect(response.history).toBeFalsy();
     });
   });
 });

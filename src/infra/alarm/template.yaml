@@ -55,7 +55,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "TxMA Egress queue processing too slow"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 600
@@ -93,7 +93,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "TxMA Egress queue has too many messages"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 50
@@ -131,7 +131,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "TxMA Egress DLQ has too many messages"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 10
@@ -304,7 +304,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "Too many Interventions received were not allowed on current account state."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 5
@@ -346,7 +346,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "Too many received intervention events are invalid."
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_EVENT_RECEIVED
@@ -441,7 +441,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "Too many intervention event messages are out of order."
       Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_EVENT_STALE
@@ -600,25 +600,6 @@ Resources:
 # Cloudwatch alarms for TxMA Latency
 #
 
-  AverageTxMALatencyOver1Sec:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Messages from TxMA have an average latency of 1s."
-      Namespace: !Ref SystemTagValue
-      MetricName: EVENT_DELIVERY_LATENCY
-      ComparisonOperator: GreaterThanThreshold
-      Statistic: Average
-      Threshold: 1000
-      EvaluationPeriods: 1
-      Period: 60
-      TreatMissingData: notBreaching
-      Dimensions:
-        - Name: service
-          Value: InterventionsProcessorFunction
-
   AverageTxMALatencyOver2Sec:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -643,7 +624,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "Messages from TxMA have an average latency above 5s."
       Namespace: !Ref SystemTagValue
       MetricName: EVENT_DELIVERY_LATENCY
@@ -662,7 +643,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "Messages from TxMA have a maximum latency above 10s."
       Namespace: !Ref SystemTagValue
       MetricName: EVENT_DELIVERY_LATENCY
@@ -723,7 +704,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
       AlarmDescription: "History string may be missing required components"
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_HISTORY_STRING
