@@ -589,7 +589,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
       Threshold: 1
-      EvaluationPeriods: 5
+      EvaluationPeriods: 1
       Period: 60
       TreatMissingData: notBreaching
       Dimensions:
