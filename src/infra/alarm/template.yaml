@@ -455,13 +455,13 @@ Resources:
         - Name: service
           Value: InterventionsProcessorFunction
 
-  DBQueryNoResponseError:
+  DBQueryNoResponseErrorIPF:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "DynamoDB query no response error"
+      AlarmDescription: "DynamoDB query no response error relating to InterventionsProcessorFunction"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 1
@@ -471,6 +471,26 @@ Resources:
       Dimensions:
         - Name: service
           Value: InterventionsProcessorFunction
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  DBQueryNoResponseErrorSRF:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "DynamoDB query no response error relating to StatusRetrieverFunction"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: DB_QUERY_ERROR_NO_RESPONSE
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: StatusRetrieverFunction
       Period: 60
       Statistic: Sum
       Unit: Count
