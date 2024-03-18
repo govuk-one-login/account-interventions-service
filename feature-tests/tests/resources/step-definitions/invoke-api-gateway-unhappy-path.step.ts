@@ -41,15 +41,15 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('UnHappy Path - Check Egress Queue Error messages - Returns Expected data for <invalidAisEventType>', ({
+  test('UnHappy Path - Check Egress Queue Error messages for future time stamp - Returns Expected data for <invalidAisEventType>', ({
     given,
     when,
     then,
   }) => {
     given(
-      /^I send an invalid (.*) intervention event message to the TxMA ingress SQS queue$/,
-      async (invalidAisEventType) => {
-        await sendInvalidSQSEvent(testUserId, invalidAisEventType);
+      /^I send an invalid (.*) intervention with future time stamp event message to the TxMA ingress SQS queue$/,
+      async (eventType) => {
+        await sendInvalidSQSEvent(testUserId, eventType);
       },
     );
 
@@ -59,15 +59,47 @@ defineFeature(feature, (test) => {
       console.log(`Received`, { response });
     });
 
-    then(/^I expect Egress Queue response with no intervention (.*)$/, async (description) => {
-      console.log(`Received`, { response });
-      //expect(response.intervention.description).toBe(description);
+    then(/^I expect Egress Queue response with (.*)$/, async (eventName) => {
       const receivedMessage = await filterUserIdInMessages(testUserId);
       const body = receivedMessage[0].Body;
-      const extensions = body ? attemptParseJSON(body).extensions : {};
-      console.log('print extensions', extensions);
-      expect(extensions.description).toEqual(description);
-      //expect(extensions.allowable_interventions).toEqual(aisEventResponse[aisEventType].allowable_interventions);
+      const event_name = body ? attemptParseJSON(body).event_name : {};
+      expect(event_name).toEqual(eventName);
+    });
+  });
+
+  test('UnHappy Path - Check Egress Queue Error messages for Ignored event - Returns Expected data for <invalidAisEventType>', ({
+    given,
+    when,
+    and,
+    then,
+  }) => {
+    given(/^I send an valid (.*) intervention event message to the TxMA ingress SQS queue$/, async (aisEventType) => {
+      await sendSQSEvent(testUserId, aisEventType);
+    });
+
+    when(/^I invoke an API to retrieve the intervention status of the account$/, async () => {
+      await timeDelayForTestEnvironment(1500);
+      response = await invokeGetAccountState(testUserId, true);
+      console.log(`Received`, { response });
+    });
+
+    and(
+      /^I send an other (.*) intervention with past time stamp to the TxMA ingress SQS queue$/,
+      async (secondAisEventType) => {
+        await timeDelayForTestEnvironment(1500);
+        await sendInvalidSQSEvent(testUserId, secondAisEventType);
+        console.log(`Received`, { response });
+      },
+    );
+
+    then(/^I expect the Egress Queue response with (.*)$/, async (eventName) => {
+      const receivedMessage = await filterUserIdInMessages(testUserId);
+      const message = receivedMessage.find((object) => {
+        const objectBody = object.Body ? attemptParseJSON(object.Body) : {};
+        return objectBody.extensions?.description === 'AIS_NO_INTERVENTION';
+      });
+      const body = message?.Body ? attemptParseJSON(message?.Body) : {};
+      expect(body.event_name).toEqual(eventName);
     });
   });
 
