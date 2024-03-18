@@ -158,7 +158,7 @@ export const invalidAisEvents = {
     },
   },
 
-  futureTimeStamp: {
+  suspendedEventWithFutureTimeStamp: {
     event_name: 'TICF_ACCOUNT_INTERVENTION',
     event_id: '123',
     timestamp: futureTime.seconds,
@@ -176,7 +176,7 @@ export const invalidAisEvents = {
     },
   },
 
-  pastTimeStamp: {
+  blockEventWithPastTimeStamp: {
     event_name: 'TICF_ACCOUNT_INTERVENTION',
     event_id: '123',
     timestamp: pastTime.seconds,

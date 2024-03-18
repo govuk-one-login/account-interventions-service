@@ -24,8 +24,8 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
         When I invoke an API to retrieve the intervention status of the account
         Then I expect Egress Queue response with <eventName>
         Examples:
-            | eventType       | eventName                   |
-            | futureTimeStamp | AIS_EVENT_IGNORED_IN_FUTURE |
+            | eventType                         | eventName                   |
+            | suspendedEventWithFutureTimeStamp | AIS_EVENT_IGNORED_IN_FUTURE |
 
     @regression @test
     Scenario Outline: UnHappy Path - Check Egress Queue Error messages for Ignored event - Returns Expected data for <invalidAisEventType>
@@ -34,8 +34,8 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
         And I send an other <secondAisEventType> intervention with past time stamp to the TxMA ingress SQS queue
         Then I expect the Egress Queue response with <eventName>
         Examples:
-            | aisEventType    | secondAisEventType | eventName               |
-            | suspendNoAction | pastTimeStamp      | AIS_EVENT_IGNORED_STALE |
+            | aisEventType    | secondAisEventType          | eventName               |
+            | suspendNoAction | blockEventWithPastTimeStamp | AIS_EVENT_IGNORED_STALE |
 
     @regression
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Field Validation - Returns Expected Data for <aisEventType> with specific field validation
