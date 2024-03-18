@@ -34,7 +34,7 @@ const now = getCurrentTimestamp();
 const t0ms = now.milliseconds;
 const t0s = now.seconds;
 
-const interventionEventBody: TxMAIngressEvent = {
+const interventionEventBodyFromFraud: TxMAIngressEvent = {
   component_id: '',
   timestamp: t0s - 5,
   event_timestamp_ms: t0ms - 5000,
@@ -42,6 +42,23 @@ const interventionEventBody: TxMAIngressEvent = {
     user_id: 'abc',
   },
   event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+  event_id: '123',
+  extensions: {
+    intervention: {
+      intervention_code: '01',
+      intervention_reason: 'reason',
+    },
+  },
+};
+
+const interventionEventBodyFromTsd: TxMAIngressEvent = {
+  component_id: '',
+  timestamp: t0s - 5,
+  event_timestamp_ms: t0ms - 5000,
+  user: {
+    user_id: 'abc',
+  },
+  event_name: TriggerEventsEnum.OPERATIONAL_ACCOUNT_INTERVENTION,
   event_id: '123',
   extensions: {
     intervention: {
@@ -104,7 +121,7 @@ describe('intervention processor handler', () => {
     mockRecord = {
       messageId: '123',
       receiptHandle: '',
-      body: JSON.stringify(interventionEventBody),
+      body: JSON.stringify(interventionEventBodyFromFraud),
       attributes: {
         ApproximateReceiveCount: '',
         SentTimestamp: '',
@@ -150,6 +167,7 @@ describe('intervention processor handler', () => {
       });
       expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
     });
+
     it('should not retry the record if a StateTransitionError is received', async () => {
       mockRetrieveRecords.mockReturnValue({
         blocked: false,
@@ -178,7 +196,7 @@ describe('intervention processor handler', () => {
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
         'AIS_EVENT_TRANSITION_IGNORED',
         EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
-        interventionEventBody,
+        interventionEventBodyFromFraud,
         {
           stateResult: {
             blocked: false,
@@ -210,7 +228,7 @@ describe('intervention processor handler', () => {
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
         'AIS_EVENT_TRANSITION_APPLIED',
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
-        interventionEventBody,
+        interventionEventBodyFromFraud,
         {
           stateResult: {
             blocked: false,
@@ -247,7 +265,7 @@ describe('intervention processor handler', () => {
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
         'AIS_EVENT_TRANSITION_APPLIED',
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
-        interventionEventBody,
+        interventionEventBodyFromFraud,
         {
           stateResult: {
             blocked: false,
@@ -325,7 +343,7 @@ describe('intervention processor handler', () => {
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
         'AIS_EVENT_IGNORED_ACCOUNT_DELETED',
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
-        interventionEventBody,
+        interventionEventBodyFromFraud,
         {
           stateResult: {
             blocked: false,
@@ -398,7 +416,7 @@ describe('intervention processor handler', () => {
       expect(sendAuditEvent).toHaveBeenCalledWith(
         'AIS_EVENT_IGNORED_STALE',
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
-        interventionEventBody,
+        interventionEventBodyFromFraud,
         {
           stateResult: {
             blocked: false,
@@ -449,6 +467,48 @@ describe('intervention processor handler', () => {
         eventSourceARN: '',
         awsRegion: '',
       };
+      accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
+        stateResult: {
+          blocked: false,
+          suspended: false,
+          resetPassword: false,
+          reproveIdentity: false,
+        },
+        interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
+        nextAllowableInterventions: [],
+      });
+      expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
+        batchItemFailures: [],
+      });
+      expect(publishTimeToResolveMetrics).toHaveBeenCalledTimes(1);
+    });
+
+    it('should successfully process valid event from service operations', async () => {
+      mockRetrieveRecords.mockReturnValue({
+        blocked: false,
+        reproveIdentity: false,
+        resetPassword: false,
+        suspended: false,
+        isAccountDeleted: false,
+      });
+
+      mockRecord = {
+        messageId: '123',
+        receiptHandle: '',
+        body: JSON.stringify(interventionEventBodyFromTsd),
+        attributes: {
+          ApproximateReceiveCount: '',
+          SentTimestamp: '',
+          SenderId: '',
+          ApproximateFirstReceiveTimestamp: '',
+        },
+        messageAttributes: {},
+        md5OfBody: '',
+        eventSource: '',
+        eventSourceARN: '',
+        awsRegion: '',
+      }
+
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
         stateResult: {
           blocked: false,
