@@ -481,10 +481,10 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "The query to DynamoDB has provided the no response error five times within a minute."
+      AlarmDescription: "The query to DynamoDB has provided the no response error twice within a minute."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       DatapointsToAlarm: 1
-      Threshold: 5
+      Threshold: 2
       EvaluationPeriods: 1
       TreatMissingData: notBreaching
       MetricName: DB_QUERY_ERROR_NO_RESPONSE
@@ -522,10 +522,10 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "DynamoDB query too many items error five times within a minute."
+      AlarmDescription: "DynamoDB query too many items error once within a minute."
       ComparisonOperator: GreaterThanOrEqualToThreshold
       DatapointsToAlarm: 1
-      Threshold: 5
+      Threshold: 1
       EvaluationPeriods: 1
       TreatMissingData: notBreaching
       MetricName: DB_QUERY_ERROR_TOO_MANY_ITEMS
@@ -563,10 +563,11 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Publishing to TxMA failed once every minute for 10 minutes"
+      AlarmDescription: "Publishing to TxMA failed once every minute for two consecutive periods over a span of 10 minutes"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 10
+      DatapointsToAlarm: 2
       TreatMissingData: notBreaching
       MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
       Namespace: !Ref SystemTagValue
@@ -667,13 +668,13 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "An error occured with the query to DynamoDB"
+      AlarmDescription: "An error occurred with the query to DynamoDB once every minutes for two consecutive periods"
       Namespace: !Ref SystemTagValue
       MetricName: DB_QUERY_ERROR
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
       Threshold: 1
-      EvaluationPeriods: 5
+      EvaluationPeriods: 2
       Period: 60
       TreatMissingData: notBreaching
       Dimensions:
@@ -685,14 +686,15 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "User ID was not found in the event"
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "User ID was not found in the event once every minute for three consecutive periods over 10 minutes "
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_SUBJECT_ID
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
       Threshold: 1
-      EvaluationPeriods: 5
+      EvaluationPeriods: 10
+      DatapointsToAlarm: 3
       Period: 60
       TreatMissingData: notBreaching
       Dimensions:
