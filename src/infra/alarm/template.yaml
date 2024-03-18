@@ -524,7 +524,6 @@ Resources:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
       AlarmDescription: "DynamoDB query too many items error once within a minute."
       ComparisonOperator: GreaterThanOrEqualToThreshold
-      DatapointsToAlarm: 1
       Threshold: 1
       EvaluationPeriods: 1
       TreatMissingData: notBreaching
@@ -563,7 +562,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Publishing to TxMA failed once every minute for two consecutive periods over a span of 10 minutes"
+      AlarmDescription: "Publishing to TxMA failed once every minute for two periods over a span of 10 minutes"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 10
@@ -687,7 +686,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "User ID was not found in the event once every minute for three consecutive periods over 10 minutes "
+      AlarmDescription: "User ID was not found in the event once every minute for three periods over 10 minutes "
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_SUBJECT_ID
       ComparisonOperator: GreaterThanOrEqualToThreshold
