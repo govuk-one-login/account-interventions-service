@@ -1435,10 +1435,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@pact-foundation/pact-core@^14.1.1":
-  version "14.1.1"
-  resolved "https://registry.yarnpkg.com/@pact-foundation/pact-core/-/pact-core-14.1.1.tgz#bff6158599bd0420b73d0eb8d595594115ced782"
-  integrity sha512-hblC2FrwOOX3lfTcYPXFlNfbX+yyafOeeBI2TR7BcaCn1DRAj40OGvw1UAS7f8uf21IHZlA7H39Gs18ik6FY8A==
+"@pact-foundation/pact-core@^14.3.0":
+  version "14.3.2"
+  resolved "https://registry.yarnpkg.com/@pact-foundation/pact-core/-/pact-core-14.3.2.tgz#c00e1b32f06286cbebb8e3eb9bf33d15e755fba4"
+  integrity sha512-NUYMjv83U8RA4SCT1oXsktGVRsP+EnULZp/F0sTfx/cgUcILdV00yxVXMYtpqu2+bHj0tZot3w35cnyl88U8fg==
   dependencies:
     chalk "4.1.2"
     check-types "7.3.0"
@@ -1454,11 +1454,11 @@
     unixify "1.0.0"
 
 "@pact-foundation/pact@^12.2.0":
-  version "12.2.0"
-  resolved "https://registry.yarnpkg.com/@pact-foundation/pact/-/pact-12.2.0.tgz#9280bcfc71bbee10d5a723c14407f35e1d74075b"
-  integrity sha512-y097AkvD4/HcHaiH5/V2GrEdbFVwEMI7LlNfOZxB3zya5R13RR4sYwxu3nVsxOGaqqZlST9qq9I9wpqCRFW+jQ==
+  version "12.3.0"
+  resolved "https://registry.yarnpkg.com/@pact-foundation/pact/-/pact-12.3.0.tgz#11214c158bd0671c3bdc1a2f2bddd9ed3459641e"
+  integrity sha512-qc2leEpvQ+41gTD9/3JQ3hUk8OyP2pfh57ITd2RkWYkYE8DZ+yXaUp43G6Oj1mBkTe12tZzvPipfYaO1K446qQ==
   dependencies:
-    "@pact-foundation/pact-core" "^14.1.1"
+    "@pact-foundation/pact-core" "^14.3.0"
     "@types/express" "^4.17.11"
     axios "^1.6.1"
     body-parser "^1.20.0"
@@ -4337,9 +4337,9 @@ flatted@^3.2.9:
   integrity sha512-36yxDn5H7OFZQla0/jFJmbIKTdZAQHngCedGxiMmpNfEZM0sdEeT+WczLQrjK6D7o2aiyLYDnkw0R3JK0Qv1RQ==
 
 follow-redirects@^1.0.0, follow-redirects@^1.15.4:
-  version "1.15.5"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.5.tgz#54d4d6d062c0fa7d9d17feb008461550e3ba8020"
-  integrity sha512-vSFWUON1B+yAw1VN4xMfxgn5fTUiaOzAJCKBwIIgT/+7CuGy9+r+5gITvP62j3RmaD5Ph65UaERdOSRGUzZtgw==
+  version "1.15.6"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.6.tgz#7f815c0cda4249c74ff09e95ef97c23b5fd0399b"
+  integrity sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==
 
 for-each@^0.3.3:
   version "0.3.3"

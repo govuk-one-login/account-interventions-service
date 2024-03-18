@@ -9,7 +9,7 @@ import {
   noMetadata,
   TriggerEventsEnum,
 } from '../data-types/constants';
-import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
+import { DynamoDBStateResult, StateDetails, TxMAEgressEventName, TxMAIngressEvent } from '../data-types/interfaces';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
 import {
   attemptToParseJson,
@@ -116,7 +116,9 @@ async function processSQSRecord(record: SQSRecord) {
 
   updateAccountStateCountMetric(currentAccountState, statusResult.stateResult);
   addMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
-  await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, recordBody, statusResult);
+  await (eventName === EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION
+    ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT, eventName, recordBody, statusResult)
+    : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED, eventName, recordBody, statusResult));
 }
 
 /**
@@ -135,12 +137,10 @@ async function handleError(error: unknown, record: SQSRecord) {
     });
   else if (error instanceof StateTransitionError) {
     logger.warn('StateTransitionError caught, message will not be retried.', { errorMessage: error.message });
-    await sendAuditEvent(
-      'AIS_EVENT_TRANSITION_IGNORED',
-      error.transition,
-      JSON.parse(record.body) as TxMAIngressEvent,
-      error.output,
-    );
+    const recordBody = JSON.parse(record.body) as TxMAIngressEvent;
+    await (recordBody.event_name === TriggerEventsEnum.OPERATIONAL_ACCOUNT_INTERVENTION
+      ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT, error.transition, recordBody, error.output)
+      : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_TRANSITION_IGNORED, error.transition, recordBody, error.output));
   } else {
     logger.error('Error caught, message will be retried.', { errorMessage: (error as Error).message });
     return record.messageId;
@@ -154,7 +154,10 @@ async function handleError(error: unknown, record: SQSRecord) {
  */
 function getEventName(recordBody: TxMAIngressEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
-  if (recordBody.event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION) {
+  if (
+    recordBody.event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION ||
+    recordBody.event_name === TriggerEventsEnum.OPERATIONAL_ACCOUNT_INTERVENTION
+  ) {
     validateInterventionEvent(recordBody);
     const interventionCode = recordBody.extensions!.intervention!.intervention_code;
     return accountStateEngine.getInterventionEnumFromCode(interventionCode);
@@ -180,11 +183,19 @@ async function validateAccountIsNotDeleted(
   if (itemFromDB?.isAccountDeleted === true) {
     logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
     addMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-    await sendAuditEvent('AIS_EVENT_IGNORED_ACCOUNT_DELETED', intervention, record, {
-      stateResult: initialState,
-      interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-      nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
-    });
+    await (intervention === EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION
+      ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT, intervention, record, {
+          stateResult: initialState,
+          interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+          nextAllowableInterventions:
+            AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+        })
+      : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_IGNORED_ACCOUNT_DELETED, intervention, record, {
+          stateResult: initialState,
+          interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+          nextAllowableInterventions:
+            AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+        }));
     throw new ValidationError('Account is marked as deleted.');
   }
 }

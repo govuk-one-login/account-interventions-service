@@ -10,7 +10,7 @@ import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
 import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { sendAuditEvent } from '../../services/send-audit-events';
-import { TxMAIngressEvent } from '../../data-types/interfaces';
+import {TxMAEgressEventName, TxMAIngressEvent} from '../../data-types/interfaces';
 import { publishTimeToResolveMetrics } from '../../commons/metrics-helper';
 
 jest.mock('@aws-lambda-powertools/logger');
@@ -176,7 +176,7 @@ describe('intervention processor handler', () => {
         errorMessage: 'State transition Error',
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        'AIS_EVENT_TRANSITION_IGNORED',
+        TxMAEgressEventName.AIS_EVENT_TRANSITION_IGNORED,
         EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
         interventionEventBody,
         {
@@ -208,7 +208,7 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        'AIS_EVENT_TRANSITION_APPLIED',
+        TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
@@ -245,7 +245,7 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        'AIS_EVENT_TRANSITION_APPLIED',
+        TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
@@ -283,7 +283,7 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        'AIS_EVENT_TRANSITION_APPLIED',
+        TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
         EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
         resetPasswordEventBody,
         {
@@ -323,7 +323,7 @@ describe('intervention processor handler', () => {
         ['ValidationError caught, message will not be retried.', { errorMessage: 'Account is marked as deleted.' }],
       ]);
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        'AIS_EVENT_IGNORED_ACCOUNT_DELETED',
+        TxMAEgressEventName.AIS_EVENT_IGNORED_ACCOUNT_DELETED,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
@@ -351,7 +351,7 @@ describe('intervention processor handler', () => {
       });
       expect(addMetric).toHaveBeenCalledWith('INTERVENTION_IGNORED_IN_FUTURE');
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        'AIS_EVENT_IGNORED_IN_FUTURE',
+        TxMAEgressEventName.AIS_EVENT_IGNORED_IN_FUTURE,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBodyInTheFuture,
       );
@@ -396,7 +396,7 @@ describe('intervention processor handler', () => {
       expect(logger.warn).toHaveBeenCalledWith('Event received predates last applied event for this user.');
       expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
       expect(sendAuditEvent).toHaveBeenCalledWith(
-        'AIS_EVENT_IGNORED_STALE',
+        TxMAEgressEventName.AIS_EVENT_IGNORED_STALE,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {

@@ -14,7 +14,7 @@ import logger from '../../commons/logger';
 import { AppConfigService } from '../app-config-service';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import 'aws-sdk-client-mock-jest';
-import { TxMAIngressEvent } from '../../data-types/interfaces';
+import {TxMAEgressEventName, TxMAIngressEvent} from '../../data-types/interfaces';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -284,7 +284,7 @@ describe('send-audit-events', () => {
   it('should successfully send the audit event and return a response when a user action event is received', async () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
     const response = await sendAuditEvent(
-      'AIS_EVENT_TRANSITION_APPLIED',
+      TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
       EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
       ingressUserActionEvent,
       {
@@ -303,7 +303,7 @@ describe('send-audit-events', () => {
   it('should successfully send the audit event and return a response when a suspend event is received', async () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
     const response = await sendAuditEvent(
-      'AIS_EVENT_TRANSITION_APPLIED',
+      TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
       {
@@ -322,7 +322,7 @@ describe('send-audit-events', () => {
   it('should successfully send the audit event and return a response when an block event is received', async () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
     const response = await sendAuditEvent(
-      'AIS_EVENT_TRANSITION_APPLIED',
+      TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
       EventsEnum.FRAUD_BLOCK_ACCOUNT,
       ingressInterventionEvent,
       {
@@ -341,7 +341,7 @@ describe('send-audit-events', () => {
   it('if SQS call fails, it should log the error and return', async () => {
     sqsMock.on(SendMessageCommand).rejects('SomeSQSError');
     const response = await sendAuditEvent(
-      'AIS_EVENT_TRANSITION_APPLIED',
+      TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
       {
@@ -362,7 +362,7 @@ describe('send-audit-events', () => {
   it('should successfully send the audit event and return a response when an the account is marked as deleted', async () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
     const response = await sendAuditEvent(
-      'AIS_EVENT_IGNORED_ACCOUNT_DELETED',
+      TxMAEgressEventName.AIS_EVENT_IGNORED_ACCOUNT_DELETED,
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
       {
@@ -381,7 +381,7 @@ describe('send-audit-events', () => {
   it('should successfully send the audit event and return a response when an the account is suspended without a user action', async () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
     const response = await sendAuditEvent(
-      'AIS_EVENT_TRANSITION_APPLIED',
+      TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
       {
@@ -400,7 +400,7 @@ describe('send-audit-events', () => {
   it('should successfully send the audit event and return a response when an the account is suspended with a user action', async () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
     const response = await sendAuditEvent(
-      'AIS_EVENT_TRANSITION_APPLIED',
+      TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
       EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
       ingressInterventionEvent,
       {
@@ -419,7 +419,7 @@ describe('send-audit-events', () => {
   it('should successfully send the audit event and return a response when an the account is suspended with a user action (reprove identity and reset pass)', async () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
     const response = await sendAuditEvent(
-      'AIS_EVENT_TRANSITION_APPLIED',
+      TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
       EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
       ingressInterventionEvent,
       {
@@ -442,7 +442,7 @@ describe('send-audit-events', () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
 
     const response = await sendAuditEvent(
-      'AIS_EVENT_TRANSITION_APPLIED',
+      TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
       EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
       ingressEventWithExtraInterventionData,
       {
@@ -480,7 +480,7 @@ describe('send-audit-events', () => {
       }),
     };
     const response = await sendAuditEvent(
-      'AIS_EVENT_TRANSITION_APPLIED',
+      TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
       EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
       ingressEventWithExtraInterventionData,
     );
@@ -494,7 +494,7 @@ describe('send-audit-events', () => {
   it('should successfully send the audit event and return a response when an the account is unsuspended', async () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
     const response = await sendAuditEvent(
-      'AIS_EVENT_TRANSITION_APPLIED',
+      TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
       EventsEnum.FRAUD_UNSUSPEND_ACCOUNT,
       ingressInterventionEvent,
       {
@@ -513,7 +513,7 @@ describe('send-audit-events', () => {
   it('should successfully send the audit event and return a response when the event is in the future', async () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
     const response = await sendAuditEvent(
-      'AIS_EVENT_IGNORED_IN_FUTURE',
+      TxMAEgressEventName.AIS_EVENT_IGNORED_IN_FUTURE,
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
     );
@@ -527,7 +527,7 @@ describe('send-audit-events', () => {
   it('should not send an audit event when the outgoing message is notifying that a user led action was ignored on a non-intervention account', async () => {
     //sqsMock.reset();
     const response = await sendAuditEvent(
-      'AIS_EVENT_TRANSITION_IGNORED',
+      TxMAEgressEventName.AIS_EVENT_TRANSITION_IGNORED,
       EventsEnum.IPV_IDENTITY_ISSUED,
       ingressUserActionEvent,
       {

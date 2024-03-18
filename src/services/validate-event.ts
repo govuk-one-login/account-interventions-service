@@ -1,4 +1,4 @@
-import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
+import { DynamoDBStateResult, StateDetails, TxMAEgressEventName, TxMAIngressEvent } from '../data-types/interfaces';
 import logger from '../commons/logger';
 import { addMetric } from '../commons/metrics';
 import { AISInterventionTypes, EventsEnum, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
@@ -65,7 +65,9 @@ export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: T
   if (now < eventTimestampInMs) {
     logger.debug(`Timestamp is in the future (sec): ${eventTimestampInMs}.`);
     addMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
-    await sendAuditEvent('AIS_EVENT_IGNORED_IN_FUTURE', eventEnum, event);
+    await (eventEnum === EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION
+      ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT, eventEnum, event)
+      : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_IGNORED_IN_FUTURE, eventEnum, event));
     throw new Error('Event is in the future. It will be retried');
   }
 }
@@ -88,11 +90,19 @@ export async function validateEventIsNotStale(
   if (!isEventAfterLastEvent(eventTimestampInMs, itemFromDB.sentAt, itemFromDB.appliedAt)) {
     logger.warn('Event received predates last applied event for this user.');
     addMetric(MetricNames.INTERVENTION_EVENT_STALE);
-    await sendAuditEvent('AIS_EVENT_IGNORED_STALE', intervention, event, {
-      stateResult: initialState,
-      interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-      nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
-    });
+    await (intervention === EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION
+      ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT, intervention, event, {
+          stateResult: initialState,
+          interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+          nextAllowableInterventions:
+            AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+        })
+      : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_IGNORED_STALE, intervention, event, {
+          stateResult: initialState,
+          interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+          nextAllowableInterventions:
+            AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+        }));
     throw new ValidationError('Event received predates last applied event for this user.');
   }
 }
