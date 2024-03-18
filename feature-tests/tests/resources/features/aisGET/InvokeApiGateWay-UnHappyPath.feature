@@ -18,23 +18,24 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
             | invalidInterventionCodeWithEmptyValues       | AIS_NO_INTERVENTION |
 
 
-    @test
-    Scenario Outline: UnHappy Path - Check Egress Queue Error messages - Returns Expected data for <invalidAisEventType>
-        Given I send an invalid <invalidAisEventType> intervention event message to the TxMA ingress SQS queue
+    @regression
+    Scenario Outline: UnHappy Path - Check Egress Queue Error messages for future time stamp - Returns Expected data for <invalidAisEventType>
+        Given I send an invalid <eventType> intervention with future time stamp event message to the TxMA ingress SQS queue
         When I invoke an API to retrieve the intervention status of the account
-        Then I expect Egress Queue response with no intervention <description>
+        Then I expect Egress Queue response with <eventName>
         Examples:
-            | invalidAisEventType                          | description         |
-            | missingEventNameAndId                        | AIS_NO_INTERVENTION |
-            # | missingTimeStamps                            | AIS_NO_INTERVENTION |
-            # | missingExtensions                            | AIS_NO_INTERVENTION |
-            # | invalidInterventionCodeType                  | AIS_NO_INTERVENTION |
-            # | invalidInterventionCode                      | AIS_NO_INTERVENTION |
-            # | invalidInterventionCodeWithSpecialCharacters | AIS_NO_INTERVENTION |
-            # | invalidInterventionCodeWithBooleanValues     | AIS_NO_INTERVENTION |
-            # | invalidInterventionCodeWithSpace             | AIS_NO_INTERVENTION |
-            # |invalidInterventionCodeWithEmptyValues        | AIS_NO_INTERVENTION |
+            | eventType       | eventName                   |
+            | futureTimeStamp | AIS_EVENT_IGNORED_IN_FUTURE |
 
+    @regression @test
+    Scenario Outline: UnHappy Path - Check Egress Queue Error messages for Ignored event - Returns Expected data for <invalidAisEventType>
+        Given I send an valid <aisEventType> intervention event message to the TxMA ingress SQS queue
+        When I invoke an API to retrieve the intervention status of the account
+        And I send an other <secondAisEventType> intervention with past time stamp to the TxMA ingress SQS queue
+        Then I expect the Egress Queue response with <eventName>
+        Examples:
+            | aisEventType    | secondAisEventType | eventName               |
+            | suspendNoAction | pastTimeStamp      | AIS_EVENT_IGNORED_STALE |
 
     @regression
     Scenario Outline: UnHappy Path - Check Egress Queue Error messages for future time stamp - Returns Expected data for <invalidAisEventType>
