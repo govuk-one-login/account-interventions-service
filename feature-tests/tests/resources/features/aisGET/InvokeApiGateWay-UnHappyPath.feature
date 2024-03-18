@@ -37,7 +37,6 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
             | aisEventType    | secondAisEventType          | eventName               |
             | suspendNoAction | blockEventWithPastTimeStamp | AIS_EVENT_IGNORED_STALE |
 
-
     @regression
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Field Validation - Returns Expected Data for <aisEventType> with specific field validation
         Given I send a invalid request to sqs queue with no userId and <aisEventType>, <testUserId> data
