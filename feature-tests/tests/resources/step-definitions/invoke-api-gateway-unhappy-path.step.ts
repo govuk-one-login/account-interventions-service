@@ -1,8 +1,8 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
-import { sendInvalidSQSEvent, sendSQSEvent } from '../../../utils/send-sqs-message';
+import { sendInvalidSQSEvent, sendSQSEvent, filterUserIdInMessages } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
-import { timeDelayForTestEnvironment } from '../../../utils/utility';
+import { attemptParseJSON, timeDelayForTestEnvironment } from '../../../utils/utility';
 import EndPoints from '../../../apiEndpoints/endpoints';
 import request from 'supertest';
 import { App } from 'supertest/types';
@@ -38,6 +38,36 @@ defineFeature(feature, (test) => {
     then(/^I expect response with no intervention (.*)$/, async (description) => {
       console.log(`Received`, { response });
       expect(response.intervention.description).toBe(description);
+    });
+  });
+
+  test('UnHappy Path - Check Egress Queue Error messages - Returns Expected data for <invalidAisEventType>', ({
+    given,
+    when,
+    then,
+  }) => {
+    given(
+      /^I send an invalid (.*) intervention event message to the TxMA ingress SQS queue$/,
+      async (invalidAisEventType) => {
+        await sendInvalidSQSEvent(testUserId, invalidAisEventType);
+      },
+    );
+
+    when(/^I invoke an API to retrieve the intervention status of the account$/, async () => {
+      await timeDelayForTestEnvironment(1500);
+      response = await invokeGetAccountState(testUserId, true);
+      console.log(`Received`, { response });
+    });
+
+    then(/^I expect Egress Queue response with no intervention (.*)$/, async (description) => {
+      console.log(`Received`, { response });
+      //expect(response.intervention.description).toBe(description);
+      const receivedMessage = await filterUserIdInMessages(testUserId);
+      const body = receivedMessage[0].Body;
+      const extensions = body ? attemptParseJSON(body).extensions : {};
+      console.log('print extensions', extensions);
+      expect(extensions.description).toEqual(description);
+      //expect(extensions.allowable_interventions).toEqual(aisEventResponse[aisEventType].allowable_interventions);
     });
   });
 
