@@ -154,12 +154,16 @@ async function handleError(error: unknown, record: SQSRecord) {
  */
 function getEventName(recordBody: TxMAIngressEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
-  if (recordBody.event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION) {
+  const { event_name } = recordBody;
+  if (
+    event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION ||
+    event_name === TriggerEventsEnum.OPERATIONAL_ACCOUNT_INTERVENTION
+  ) {
     validateInterventionEvent(recordBody);
     const interventionCode = recordBody.extensions!.intervention!.intervention_code;
     return accountStateEngine.getInterventionEnumFromCode(interventionCode);
   }
-  return recordBody.event_name as unknown as EventsEnum;
+  return event_name.toString() as EventsEnum;
 }
 
 /**
