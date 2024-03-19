@@ -89,7 +89,7 @@ const pswAndIdResetRequiredUpdate = {
     reproveIdentity: true,
   },
   interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
-  nextAllowableInterventions: ['01', '02', '03', '04', '05', '92', '93', '95'],
+  nextAllowableInterventions: ['01', '02', '03', '04', '05', '25', '92', '93', '95'],
 };
 const unsuspendAccountUpdate = {
   stateResult: {
@@ -338,7 +338,6 @@ describe('account-state-service', () => {
         [EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION, accountNeedsIDReset],
 
         [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsIDResetAndPswReset],
-        [EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION, accountNeedsIDResetAndPswReset],
 
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsBlocked],
         [EventsEnum.IPV_IDENTITY_ISSUED, accountIsBlocked],
