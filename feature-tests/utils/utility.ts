@@ -37,7 +37,8 @@ export type InformationFromTable = {
   isAccountDeleted?: boolean;
   reprovedIdentityAt?: number;
   resetPasswordAt?: number;
-  accountDeletedAt?: number;
+  deletedAt?: number;
+  ttl?: number;
   pk?: string;
 };
 

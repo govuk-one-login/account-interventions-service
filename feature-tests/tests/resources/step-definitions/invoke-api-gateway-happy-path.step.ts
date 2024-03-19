@@ -9,7 +9,7 @@ import {
   getPastTimestamp,
 } from '../../../utils/utility';
 import { aisEventResponse } from '../../../utils/ais-events-responses';
-import { updateItemInTable } from '../../../utils/dynamo-database-methods';
+import { updateItemInTable, getRecordFromTable } from '../../../utils/dynamo-database-methods';
 import { cloudwatchLogs, LogEvent } from '../../../utils/cloudwatch-logs-service';
 import { sendSNSDeleteMessage } from '../../../utils/send-sns-message';
 
@@ -467,6 +467,14 @@ defineFeature(feature, (test) => {
         } else {
           expect(response.intervention.description).toBe(aisEventResponse[aisEventType].description);
           expect(response.intervention.accountDeletedAt).toBeTruthy();
+        }
+        await timeDelayForTestEnvironment(500);
+        const getItem = await getRecordFromTable(testUserId);
+        if (getItem) {
+          console.log(getItem);
+          expect(getItem.isAccountDeleted).toBe(true);
+          expect(getItem.deletedAt).toBeTruthy;
+          expect(getItem.ttl).toBeTruthy;
         }
       },
     );

@@ -195,7 +195,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
         Then the log events should also contain the message prefix sensitive info
 
 
-    @regression @test
+    @regression
     Scenario Outline: Happy Path - Send Delete Request to SNS Topic - Flag Record as deleted for userId with AIS Event Type <aisEventType>
         Given I send an <aisEventType> intervention to the TxMA ingress SQS queue which will be deleted
         When I send a message with the userId to the Delete SNS Topic
