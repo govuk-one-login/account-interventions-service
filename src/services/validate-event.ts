@@ -32,7 +32,7 @@ export function validateEventAgainstSchema(interventionRequest: TxMAIngressEvent
  * @param interventionRequest - the TxMA event
  */
 export function validateInterventionEvent(interventionRequest: TxMAIngressEvent): void {
-  if (Number.isNaN(Number.parseInt(interventionRequest.extensions!.intervention!.intervention_code))) {
+  if (Number.isNaN(Number.parseInt(interventionRequest.extensions?.intervention?.intervention_code ?? ''))) {
     logger.debug('Invalid intervention request. Intervention code is NAN');
     addMetric(MetricNames.INVALID_EVENT_RECEIVED);
     throw new ValidationError('Invalid intervention event.');

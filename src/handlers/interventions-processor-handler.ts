@@ -162,7 +162,7 @@ function getEventName(recordBody: TxMAIngressEvent): EventsEnum {
     const interventionCode = recordBody.extensions!.intervention!.intervention_code;
     return accountStateEngine.getInterventionEnumFromCode(interventionCode);
   }
-  return recordBody.event_name as unknown as EventsEnum;
+  return recordBody.event_name.toString() as EventsEnum;
 }
 
 /**
