@@ -188,7 +188,7 @@ describe('event-validation', () => {
     expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent, {
       stateResult: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
       interventionName: 'AIS_NO_INTERVENTION',
-      nextAllowableInterventions: ['01', '03', '04', '05', '06'],
+      nextAllowableInterventions: ['01', '03', '04', '05', '06', '25'],
     });
   });
 

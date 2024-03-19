@@ -10,7 +10,7 @@ export const aisEventResponse = {
     interventionHistory: 'FRAUD_FORCED_USER_PASSWORD_RESET',
     reason: 'password reset - 04',
     auditLevel: 'standard',
-    allowable_interventions: ['01', '02', '03', '05', '06'],
+    allowable_interventions: ['01', '02', '03', '05', '06', '25'],
   },
 
   suspendNoAction: {
@@ -80,7 +80,7 @@ export const aisEventResponse = {
     interventionHistory: 'FRAUD_UNBLOCK_ACCOUNT',
     reason: 'unblock - 07',
     auditLevel: 'standard',
-    allowable_interventions: ['01', '03', '04', '05', '06'],
+    allowable_interventions: ['01', '03', '04', '05', '06', '25'],
   },
 
   userActionIdResetSuccess: {
@@ -136,6 +136,6 @@ export const aisEventResponse = {
     interventionHistory: 'FRAUD_UNSUSPEND_ACCOUNT',
     reason: 'unsuspend - 02',
     auditLevel: 'standard',
-    allowable_interventions: ['01', '03', '04', '05', '06'],
+    allowable_interventions: ['01', '03', '04', '05', '06', '25'],
   },
 };
