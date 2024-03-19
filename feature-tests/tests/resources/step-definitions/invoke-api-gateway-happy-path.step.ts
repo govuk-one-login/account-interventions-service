@@ -451,13 +451,22 @@ defineFeature(feature, (test) => {
     });
 
     then(
-      /^I expect response with valid deleted marker fields for (.*) with state flags as (.*)$/,
-      async (interventionType: string, values) => {
+      /^I expect response for (.*) with valid deleted marker fields for the userId$/,
+      async (aisEventType: keyof typeof aisEventResponse) => {
         console.log(`Received`, { response });
-        if (values === 'resetPasswordAt') {
-          expect(response.intervention.description).toBe(interventionType);
-          expect(response.state.accountDeletedAt).toBeTruthy();
-          expect(response.auditLevel).toBe('standard');
+        const eventTypes = [
+          'unSuspendAction',
+          'unblock',
+          'userActionIdResetSuccess',
+          'userActionPswResetSuccess',
+          'userActionPswResetSuccessForTestClient',
+        ];
+        if (eventTypes.includes(aisEventType)) {
+          expect(response.intervention.description).toBe('AIS_NO_INTERVENTION');
+          expect(response.intervention.accountDeletedAt).toBeFalsy;
+        } else {
+          expect(response.intervention.description).toBe(aisEventResponse[aisEventType].description);
+          expect(response.intervention.accountDeletedAt).toBeTruthy();
         }
       },
     );

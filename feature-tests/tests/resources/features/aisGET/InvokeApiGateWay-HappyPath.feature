@@ -200,16 +200,16 @@ Feature: Invoke-APIGateway-HappyPath.feature
         Given I send an <aisEventType> intervention to the TxMA ingress SQS queue which will be deleted
         When I send a message with the userId to the Delete SNS Topic
         And I invoke an API to retrieve the deleted intervention status of the user's account
-        Then I expect response with valid deleted marker fields for <interventionType> with state flags as <values>
+        Then I expect response for <aisEventType> with valid deleted marker fields for the userId
         Examples:
-            | aisEventType                           | interventionType                                   | values           |
-            | pswResetRequired                       | AIS_FORCED_USER_PASSWORD_RESET                     | accountDeletedAt |
-            | suspendNoAction                        | AIS_ACCOUNT_SUSPENDED                              | accountDeletedAt |
-            | block                                  | AIS_ACCOUNT_BLOCKED                                | accountDeletedAt |
-            | idResetRequired                        | AIS_FORCED_USER_IDENTITY_VERIFY                    | accountDeletedAt |
-            | pswAndIdResetRequired                  | AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY | accountDeletedAt |
-            | unblock                                | AIS_ACCOUNT_UNBLOCKED                              | accountDeletedAt |
-            | userActionIdResetSuccess               | AIS_NO_INTERVENTION                                | accountDeletedAt |
-            | userActionPswResetSuccess              | AIS_NO_INTERVENTION                                | accountDeletedAt |
-            | userActionPswResetSuccessForTestClient | AIS_NO_INTERVENTION                                | accountDeletedAt |
-            | unSuspendAction                        | AIS_ACCOUNT_UNSUSPENDED                            | accountDeletedAt |
+            | aisEventType                           |
+            | pswResetRequired                       |
+            | suspendNoAction                        |
+            | block                                  |
+            | idResetRequired                        |
+            | pswAndIdResetRequired                  |
+            | unblock                                |
+            | userActionIdResetSuccess               |
+            | userActionPswResetSuccess              |
+            | userActionPswResetSuccessForTestClient |
+            | unSuspendAction                        |
