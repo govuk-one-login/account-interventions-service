@@ -192,6 +192,47 @@ describe('event-validation', () => {
     });
   });
 
+  it('should throw an error if event is stale when operational event is received', async () => {
+    const staleEvent = {
+      timestamp: timestamp.seconds - 10,
+      event_timestamp_ms: timestamp.milliseconds - 10_000,
+      event_name: TriggerEventsEnum.OPERATIONAL_ACCOUNT_INTERVENTION,
+      event_id: '123',
+      component_id: 'TICF_CRI',
+      user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
+      extensions: {
+        intervention: {
+          intervention_code: '25',
+          intervention_reason: 'something',
+          originating_component_id: 'CMS',
+          originator_reference_id: '1234567',
+          requester_id: '1234567',
+        },
+      },
+    };
+
+    await expect(
+      async () =>
+        await validateEventIsNotStale(
+          EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION,
+          staleEvent,
+          {
+            blocked: false,
+            suspended: false,
+            resetPassword: false,
+            reproveIdentity: false,
+          },
+          dynamoDBResult,
+        ),
+    ).rejects.toThrow(new ValidationError('Event received predates last applied event for this user.'));
+    expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
+    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_NON_FRAUD_EVENT', 'OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION', staleEvent, {
+      stateResult: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
+      interventionName: 'AIS_NO_INTERVENTION',
+      nextAllowableInterventions: ['01', '03', '04', '05', '06', '25'],
+    });
+  });
+
   it('should not throw if event is not stale', async () => {
     const nonStaleEvent = {
       timestamp: timestamp.seconds,
@@ -274,6 +315,31 @@ describe('event-validation', () => {
       },
     };
     await expect(validateEventIsNotInFuture(EventsEnum.FRAUD_SUSPEND_ACCOUNT, eventNotInTheFuture)).resolves.toEqual(
+      undefined,
+    );
+    expect(addMetric).not.toHaveBeenCalled();
+    expect(sendAuditEvent).not.toHaveBeenCalled();
+  });
+
+  it('should not throw an error if the event is not in the future when operational event is received', async () => {
+    const eventNotInTheFuture = {
+      timestamp: timestamp.seconds - 10,
+      event_timestamp_ms: timestamp.milliseconds - 10_000,
+      event_name: TriggerEventsEnum.OPERATIONAL_ACCOUNT_INTERVENTION,
+      event_id: '123',
+      component_id: 'TICF_CRI',
+      user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
+      extensions: {
+        intervention: {
+          intervention_code: '25',
+          intervention_reason: 'something',
+          originating_component_id: 'CMS',
+          originator_reference_id: '1234567',
+          requester_id: '1234567',
+        },
+      },
+    };
+    await expect(validateEventIsNotInFuture(EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION, eventNotInTheFuture)).resolves.toEqual(
       undefined,
     );
     expect(addMetric).not.toHaveBeenCalled();
