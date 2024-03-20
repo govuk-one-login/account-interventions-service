@@ -29,6 +29,14 @@ Parameters:
     Description: "The name of the Private API Gateway"
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/ais-main/PrivateRestApi/Name"
+  AccountDeletionProcessorQueueName:
+    Description: "The name of the Account Deletion Processor queue"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/ais-main/SQS/AccountDeletionProcessorQueue/Name" #pragma: allowlist secret
+  AccountDeletionProcessorDLQName:
+    Description: "The name of the Account Deletion Processor DLQ"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/ais-main/SQS/AccountDeletionProcessorDLQ/Name" #pragma: allowlist secret
   RunBookURL:
     Description: "A Link to the AIS Runbook"
     Type: String
@@ -149,6 +157,82 @@ Resources:
         - Name: QueueName
           Value: !Ref TxMAEgressDLQName
       MetricName: ApproximateNumberOfMessagesVisible
+      Namespace: AWS/SQS
+      Period: 60
+      Statistic: Maximum
+
+  AccountDeletionProcessorQueueProcessingSlowly:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Account Deletion Processor Queue processing slowly"
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 60
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref AccountDeletionProcessorQueueName
+      MetricName: ApproximateAgeOfOldestMessage
+      Namespace: AWS/SQS
+      Period: 60
+      Statistic: Maximum
+
+  AccountDeletionProcessorQueueProcessingTooSlow:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Account Deletion Processor Queue processing too slow"
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 600
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref AccountDeletionProcessorDLQName
+      MetricName: ApproximateAgeOfOldestMessage
+      Namespace: AWS/SQS
+      Period: 60
+      Statistic: Maximum
+
+  AccountDeletionProcessorDLQProcessingSlowly:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Account Deletion Processor DLQ processing slowly"
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 60
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref AccountDeletionProcessorDLQName
+      MetricName: ApproximateAgeOfOldestMessage
+      Namespace: AWS/SQS
+      Period: 60
+      Statistic: Maximum
+
+  AccountDeletionProcessorDLQProcessingTooSlow:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: "Account Deletion Processor Queue DLQ processing too slow"
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 600
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref AccountDeletionProcessorDLQName
+      MetricName: ApproximateAgeOfOldestMessage
       Namespace: AWS/SQS
       Period: 60
       Statistic: Maximum
