@@ -1,4 +1,4 @@
-import { AccountStateEngine } from '../account-states/account-state-engine';
+import {AccountStateEngine, areAccountStatesTheSame, compareStrings} from '../account-states/account-state-engine';
 import { AISInterventionTypes, EventsEnum, MetricNames } from '../../data-types/constants';
 import { StateEngineConfigurationError, StateTransitionError } from '../../data-types/errors';
 import { addMetric } from '../../commons/metrics';
@@ -285,7 +285,7 @@ describe('account-state-service', () => {
     });
   });
 
-  describe('get intervention enum from code', () => {
+  describe('Get intervention enum from code', () => {
     it('should return the expected account state given a valid code', () => {
       const expectedState = EventsEnum.FRAUD_BLOCK_ACCOUNT;
       expect(accountStateEngine.getInterventionEnumFromCode('03')).toEqual(expectedState);
@@ -558,4 +558,36 @@ describe('account-state-service', () => {
     });
   });
 
+  describe('Helper functions', () => {
+    it('should return true if two states are the same, false otherwise', () => {
+      const aState = {
+        blocked: false,
+        suspended: true,
+        resetPassword: true,
+        reproveIdentity: true,
+      }
+      const theSameState = {
+        blocked: false,
+        suspended: true,
+        resetPassword: true,
+        reproveIdentity: true,
+      }
+      const aDifferentState = {
+        blocked: true,
+        suspended: true,
+        resetPassword: true,
+        reproveIdentity: true,
+      }
+      expect(areAccountStatesTheSame(aState, theSameState)).toEqual(true);
+      expect(areAccountStatesTheSame(aState, aDifferentState)).toEqual(false);
+    });
+    it('should return -1 if a string comes before another alphabetically, 1 if opposite is true, 0 if they are equal', () => {
+      const strOne = 'aString';
+      const strTwo = 'bString';
+      const strThree = 'bString';
+      expect(compareStrings(strOne, strTwo)).toEqual(-1);
+      expect(compareStrings(strTwo, strOne)).toEqual(1);
+      expect(compareStrings(strTwo, strThree)).toEqual(0);
+    })
+  })
 });
