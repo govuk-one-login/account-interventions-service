@@ -32,6 +32,11 @@ export function addMetric(
   }
 }
 
+/**
+ * Function to check if any metrics are currently stored in the buffer
+ * it serialises the data stored in the buffer and checks if the Metrics array has any elements
+ * If so it returns true, false otherwise
+ */
 function checkIfAnyMetricToPublish() {
   const emfOutput: EmfOutput = metric.serializeMetrics();
   return emfOutput._aws.CloudWatchMetrics[0] ? emfOutput._aws.CloudWatchMetrics[0].Metrics.length > 0 : false;
