@@ -68,11 +68,9 @@ export class AccountStateEngine {
     const transition = this.getTransition(allowedTransitions, event, initialState);
     const newStateObject = this.getNewStateObject(transition);
     if (areAccountStatesTheSame(newStateObject, initialState))
-      throw buildStateTransitionError(
+      throw buildConfigurationError(
         MetricNames.TRANSITION_SAME_AS_CURRENT_STATE,
         'Computed new state is the same as the current state.',
-        event,
-        initialState,
       );
     return {
       stateResult: newStateObject,
@@ -195,7 +193,7 @@ function buildConfigurationError(metricName: MetricNames, errorMessage: string) 
  * @param aState - first account state
  * @param anotherState - second account state
  */
-function areAccountStatesTheSame(aState: StateDetails, anotherState: StateDetails) {
+export function areAccountStatesTheSame(aState: StateDetails, anotherState: StateDetails) {
   return (
     aState.resetPassword === anotherState.resetPassword &&
     aState.reproveIdentity === anotherState.reproveIdentity &&
@@ -209,7 +207,7 @@ function areAccountStatesTheSame(aState: StateDetails, anotherState: StateDetail
  * @param aString - first string
  * @param anotherString - second string
  */
-function compareStrings(aString: string, anotherString: string) {
+export function compareStrings(aString: string, anotherString: string) {
   if (aString === anotherString) return 0;
   else if (aString < anotherString) return -1;
   else return 1;

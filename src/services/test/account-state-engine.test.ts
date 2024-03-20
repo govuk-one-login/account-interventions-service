@@ -392,17 +392,9 @@ describe('account-state-service', () => {
         value: invalidConfig,
       });
 
-      expect(() => accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay)).toThrow(
-        new StateTransitionError(
-          'Computed new state is the same as the current state.',
-          EventsEnum.FRAUD_BLOCK_ACCOUNT,
-          {
-            nextAllowableInterventions: [],
-            interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-            stateResult: accountIsOkay,
-          },
-        ),
-      );
+      const expectedError = new StateEngineConfigurationError('Computed new state is the same as the current state.')
+
+      expect(() => accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay)).toThrow(expectedError);
       expect(addMetric).toHaveBeenLastCalledWith(MetricNames.TRANSITION_SAME_AS_CURRENT_STATE);
     });
     it('should throw when there are no configured transition for a given state', () => {
@@ -565,4 +557,5 @@ describe('account-state-service', () => {
       expect(addMetric).toHaveBeenLastCalledWith(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION);
     });
   });
+
 });
