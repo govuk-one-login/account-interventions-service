@@ -1,6 +1,11 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
-import { sendInvalidSQSEvent, sendSQSEvent, filterUserIdInMessages } from '../../../utils/send-sqs-message';
+import {
+  sendInvalidSQSEvent,
+  sendSQSEvent,
+  filterUserIdInMessages,
+  purgeEgressQueue,
+} from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import { attemptParseJSON, timeDelayForTestEnvironment } from '../../../utils/utility';
 import EndPoints from '../../../apiEndpoints/endpoints';
@@ -15,6 +20,10 @@ defineFeature(feature, (test) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   let response: any;
+
+  beforeAll(async () => {
+    await purgeEgressQueue();
+  });
 
   beforeEach(() => {
     testUserId = generateRandomTestUserId();
