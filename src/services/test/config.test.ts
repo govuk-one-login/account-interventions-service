@@ -1,5 +1,5 @@
-import {transitionConfiguration} from "../account-states/config";
-import {compareStrings} from "../account-states/account-state-engine";
+import { transitionConfiguration } from "../account-states/config";
+import { compareStrings } from "../account-states/account-state-engine";
 
 const nodesValuesList = Object.values(transitionConfiguration.nodes);
 const nodesKeysList = Object.keys(transitionConfiguration.nodes);
