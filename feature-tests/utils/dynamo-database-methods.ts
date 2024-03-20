@@ -81,9 +81,9 @@ export async function updateItemInTable(userId: string, input: InformationFromTa
         dynamoConfig['ExpressionAttributeValues'][':rpa'] = { N: `${input.resetPasswordAt}` };
         dynamoConfig['UpdateExpression'] += ', #RPA = :rpa';
       }
-      if (input.accountDeletedAt) {
+      if (input.deletedAt) {
         dynamoConfig['ExpressionAttributeNames']['#ADA'] = 'accountDeletedAt';
-        dynamoConfig['ExpressionAttributeValues'][':ada'] = { N: `${input.accountDeletedAt}` };
+        dynamoConfig['ExpressionAttributeValues'][':ada'] = { N: `${input.deletedAt}` };
         dynamoConfig['UpdateExpression'] += ', #ADA = :ada';
       }
       if (input.auditLevel) {
