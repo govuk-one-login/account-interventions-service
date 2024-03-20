@@ -7,6 +7,10 @@ export default class EndPoints {
     process.env.TEST_ENVIRONMENT === 'dev'
       ? `https://sqs.${process.env.AWS_REGION}.amazonaws.com/013758878511/${process.env.SAM_STACK_NAME}-TxMAIngressQueue`
       : process.env.CFN_TxMAIngressSqsQueueUrl;
+  public static SNS_DELETE_ACCOUNT_TOPIC_ARN =
+    process.env.TEST_ENVIRONMENT === 'dev'
+      ? `arn:aws:sns:${process.env.AWS_REGION}:013758878511:${process.env.SAM_STACK_NAME}-AccountDeletionProcessorSNSTopic`
+      : process.env.CFN_AccountDeletionProcessorSNSTopicARN;
   public static SQS_EGRESS_QUEUE_URL =
     process.env.TEST_ENVIRONMENT === 'dev'
       ? `https://sqs.${process.env.AWS_REGION}.amazonaws.com/013758878511/${process.env.SAM_STACK_NAME}-TxMAEgressQueue`

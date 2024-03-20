@@ -20,9 +20,8 @@ yarn test 1>/dev/null
 test_run_result=$?
 
 # store report to dir where pipeline will export from
-reportDir=${TEST_REPORT_ABSOLUTE_DIR:-./results}
-cp -rf results/ "$reportDir" 2>/dev/null || :
-
+# reportDir=${TEST_REPORT_ABSOLUTE_DIR:-./results}
+# cp -rf results/ "$reportDir" 2>/dev/null || :
 # exit with the exit code return yarn test
 # shellcheck disable=SC2086
 exit $test_run_result

@@ -83,7 +83,7 @@
     "@aws-lambda-powertools/commons" "^1.18.1"
     "@aws-sdk/util-base64-node" "^3.209.0"
 
-"@aws-sdk/client-cloudwatch-logs@3.537.0":
+"@aws-sdk/client-cloudwatch-logs@^3.537.0":
   version "3.537.0"
   resolved "https://registry.yarnpkg.com/@aws-sdk/client-cloudwatch-logs/-/client-cloudwatch-logs-3.537.0.tgz#f2ab36a797ccd24cf04d1ed904a5462f58367dff"
   integrity sha512-Nv7VbAjLIhCY1Q/GFFPa3kYqXT1r+JDdcvaQkNXTr5dBVU6uHuA+LhSsyjcY+K5NXpQg/ec/CBJUYeIrtMVcNQ==

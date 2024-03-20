@@ -187,9 +187,29 @@ Feature: Invoke-APIGateway-HappyPath.feature
             | suspendNoAction  | AIS_ACCOUNT_SUSPENDED          | unSuspendAction    | true         | AIS_ACCOUNT_UNSUSPENDED        |
             | block            | AIS_ACCOUNT_BLOCKED            | unblock            | true         | AIS_ACCOUNT_UNBLOCKED          |
             | pswResetRequired | AIS_FORCED_USER_PASSWORD_RESET | suspendNoAction    | true         | AIS_ACCOUNT_SUSPENDED          |
-    
+
     @regression
     Scenario: Happy Path - Logs Validation
         Given Cloudwatch logs have been created
         When log events messages contain a userId
         Then the log events should also contain the message prefix sensitive info
+
+
+    @regression
+    Scenario Outline: Happy Path - Send Delete Request to SNS Topic - Flag Record as deleted for userId with AIS Event Type <aisEventType>
+        Given I send an <aisEventType> intervention to the TxMA ingress SQS queue which will be deleted
+        When I send a message with the userId to the Delete SNS Topic
+        And I invoke an API to retrieve the deleted intervention status of the user's account
+        Then I expect response for <aisEventType> with valid deleted marker fields for the userId
+        Examples:
+            | aisEventType                           |
+            | pswResetRequired                       |
+            | suspendNoAction                        |
+            | block                                  |
+            | idResetRequired                        |
+            | pswAndIdResetRequired                  |
+            | unblock                                |
+            | userActionIdResetSuccess               |
+            | userActionPswResetSuccess              |
+            | userActionPswResetSuccessForTestClient |
+            | unSuspendAction                        |
