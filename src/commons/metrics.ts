@@ -21,6 +21,12 @@ export function addMetric(
   for (const data of metadata) {
     metric.addMetadata(data.key, data.value);
   }
-  metric.addMetric(metricName, MetricUnits.Count, value);
-  if (dimensions) metric.addDimensions(dimensions);
+  if (dimensions) {
+    metric.publishStoredMetrics();
+    metric.addDimensions(dimensions);
+    metric.addMetric(metricName, MetricUnits.Count, value);
+    metric.publishStoredMetrics();
+  } else {
+    metric.addMetric(metricName, MetricUnits.Count, value);
+  }
 }

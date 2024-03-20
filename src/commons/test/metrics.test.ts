@@ -41,6 +41,6 @@ describe('metrics', () => {
     expect(mockAddMetric).toHaveBeenCalledTimes(1);
     expect(mockAddMetric).toHaveBeenCalledWith('testMetricName', 'Count', 1);
     expect(mockAddDimensions).toHaveBeenCalledWith({ dimensionKey : 'dimensionValue' })
-    expect(mockPublishStoredMetrics).not.toHaveBeenCalled()
+    expect(mockPublishStoredMetrics).toHaveBeenCalledTimes(2)
   })
 });
