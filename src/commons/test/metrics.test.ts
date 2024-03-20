@@ -9,7 +9,7 @@ const mockPublishStoredMetrics = Metrics.prototype.publishStoredMetrics as jest.
 const mockAddMetadata = Metrics.prototype.addMetadata as jest.Mock;
 const mockAddMetric = Metrics.prototype.addMetric as jest.Mock;
 const mockAddDimensions = Metrics.prototype.addDimensions as jest.Mock;
-mockSerialiseMetrics.mockReturnValue({ _aws: 'this is the serialised data' });
+mockSerialiseMetrics.mockReturnValue({ _aws: { CloudWatchMetrics : [ { Metrics : [ "some metrics "] } ] } } );
 
 describe('metrics', () => {
   beforeEach(() => {
