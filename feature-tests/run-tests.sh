@@ -16,12 +16,13 @@ cp -R /utils . 2>/dev/null || :
 # run tests and save the exit code
 declare test_run_result
 export tagFilter=@regression
-yarn test 1>/dev/null
+yarn test
+# 1>/dev/null
 test_run_result=$?
 
 # store report to dir where pipeline will export from
-reportDir=${TEST_REPORT_ABSOLUTE_DIR:-./results}
-cp -rf results/ "$reportDir" 2>/dev/null || :
+# reportDir=${TEST_REPORT_ABSOLUTE_DIR:-./results}
+# cp -rf results/ "$reportDir" 2>/dev/null || :
 
 # exit with the exit code return yarn test
 # shellcheck disable=SC2086
