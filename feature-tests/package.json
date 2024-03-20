@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.11.24",
+    "@types/node": "^20.11.30",
     "@types/supertest": "^6.0.2",
     "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
@@ -25,18 +25,18 @@
     "supertest": "^6.3.4",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.2"
   },
   "dependencies": {
     "@aws-lambda-powertools/commons": "^1.18.1",
     "@aws-lambda-powertools/parameters": "^1.18.1",
-    "@aws-sdk/client-secrets-manager": "^3.525.0",
-    "@aws-sdk/client-sns": "^3.525.0",
-    "@aws-sdk/client-sqs": "^3.525.0",
-    "@aws-sdk/credential-providers": "^3.525.0",
-    "@aws-sdk/client-lambda": "^3.525.0",
-    "@aws-sdk/client-dynamodb": "^3.525.0",
-    "@aws-sdk/util-dynamodb": "^3.525.0"
+    "@aws-sdk/client-secrets-manager": "^3.535.0",
+    "@aws-sdk/client-sns": "^3.535.0",
+    "@aws-sdk/client-sqs": "^3.536.0",
+    "@aws-sdk/credential-providers": "^3.535.0",
+    "@aws-sdk/client-lambda": "^3.536.0",
+    "@aws-sdk/client-dynamodb": "^3.535.0",
+    "@aws-sdk/util-dynamodb": "^3.535.0"
   },
   "resolutions": {
     "es5-ext": "^0.10.64"
