@@ -25,6 +25,10 @@ Parameters:
     Description: "The name of the TxMA Egress DLQ"
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/ais-main/SQS/TxMAEgressDLQ/Name" #pragma: allowlist secret
+  RunBookURL:
+    Description: "A Link to the AIS Runbook"
+    Type: String
+    Default: "https://govukverify.atlassian.net/wiki/spaces/AB/pages/3892215824/Alarms+Metrics+Monitoring"
 
 Resources:
 #
@@ -37,7 +41,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "TxMA Egress queue processing slowly"
+      AlarmDescription: !Sub "TxMA Egress queue processing slowly. ${RunBookURL}"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 60
       EvaluationPeriods: 1
@@ -56,7 +60,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "TxMA Egress queue processing too slow"
+      AlarmDescription: !Sub "TxMA Egress queue processing too slow. ${RunBookURL}"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 600
       EvaluationPeriods: 1
@@ -75,7 +79,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "TxMA Egress queue has backlog"
+      AlarmDescription: !Sub "TxMA Egress queue has backlog. ${RunBookURL}"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 10
       EvaluationPeriods: 1
@@ -94,7 +98,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "TxMA Egress queue has too many messages"
+      AlarmDescription: !Sub "TxMA Egress queue has too many messages. ${RunBookURL}"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 50
       EvaluationPeriods: 1
@@ -113,7 +117,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "TxMA Egress DLQ has messages"
+      AlarmDescription: !Sub "TxMA Egress DLQ has messages. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 1
@@ -132,7 +136,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "TxMA Egress DLQ has too many messages"
+      AlarmDescription: !Sub "TxMA Egress DLQ has too many messages. ${RunBookURL}"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 10
       EvaluationPeriods: 1
@@ -153,7 +157,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "User's deletion status failed to be updated."
+      AlarmDescription: !Sub "User's deletion status failed to be updated. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 1
@@ -173,7 +177,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "User's deletion status failed to be updated due to DynamoDB."
+      AlarmDescription: !Sub "User's deletion status failed to be updated due to DynamoDB. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 1
@@ -196,7 +200,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "There is a configuration issue with the Account State Engine."
+      AlarmDescription: !Sub "There is a configuration issue with the Account State Engine. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 1
@@ -273,7 +277,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Intervention Event was received with unknown Intervention code."
+      AlarmDescription: !Sub "Intervention Event was received with unknown Intervention code. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 1
@@ -293,7 +297,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Intervention received was not allowed on current account state."
+      AlarmDescription: !Sub "Intervention received was not allowed on current account state. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 5
       EvaluationPeriods: 1
@@ -313,7 +317,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Too many Interventions received were not allowed on current account state."
+      AlarmDescription: !Sub "Too many Interventions received were not allowed on current account state. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 5
       EvaluationPeriods: 5
@@ -336,7 +340,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Received intervention event is invalid."
+      AlarmDescription: !Sub "Received intervention event is invalid. ${RunBookURL}"
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_EVENT_RECEIVED
       ComparisonOperator: GreaterThanOrEqualToThreshold
@@ -355,7 +359,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Too many received intervention events are invalid."
+      AlarmDescription: !Sub "Too many received intervention events are invalid. ${RunBookURL}"
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_EVENT_RECEIVED
       ComparisonOperator: GreaterThanOrEqualToThreshold
@@ -374,7 +378,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Intervention event failed validation."
+      AlarmDescription: !Sub "Intervention event failed validation. ${RunBookURL}"
       Namespace: !Ref SystemTagValue
       MetricName: ACCOUNT_IS_MARKED_AS_DELETED
       ComparisonOperator: GreaterThanOrEqualToThreshold
@@ -393,7 +397,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Intervention event has timestamp in future."
+      AlarmDescription: !Sub "Intervention event has timestamp in future. ${RunBookURL}"
       Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_IGNORED_IN_FUTURE
       ComparisonOperator: GreaterThanOrEqualToThreshold
@@ -412,7 +416,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Level of confidence is too low."
+      AlarmDescription: !Sub "Level of confidence is too low. ${RunBookURL}"
       Namespace: !Ref SystemTagValue
       MetricName: CONFIDENCE_LEVEL_TOO_LOW
       ComparisonOperator: GreaterThanOrEqualToThreshold
@@ -431,7 +435,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Intervention event messages are out of order."
+      AlarmDescription: !Sub "Intervention event messages are out of order. ${RunBookURL}"
       Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_EVENT_STALE
       ComparisonOperator: GreaterThanOrEqualToThreshold
@@ -450,7 +454,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Too many intervention event messages are out of order."
+      AlarmDescription: !Sub "Too many intervention event messages are out of order. ${RunBookURL}"
       Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_EVENT_STALE
       ComparisonOperator: GreaterThanOrEqualToThreshold
@@ -469,7 +473,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "DynamoDB query no response error relating to InterventionsProcessorFunction"
+      AlarmDescription: !Sub "DynamoDB query no response error relating to InterventionsProcessorFunction. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 1
@@ -489,7 +493,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "DynamoDB query no response error relating to StatusRetrieverFunction"
+      AlarmDescription: !Sub "DynamoDB query no response error relating to StatusRetrieverFunction. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 1
@@ -509,7 +513,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "The query to DynamoDB has provided the no response error twice within a minute."
+      AlarmDescription: !Sub "The query to DynamoDB has provided the no response error twice within a minute. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       DatapointsToAlarm: 1
       Threshold: 2
@@ -530,7 +534,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "DynamoDB query returned too many items"
+      AlarmDescription: !Sub "DynamoDB query returned too many items. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 1
@@ -550,7 +554,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "DynamoDB query too many items error once within a minute."
+      AlarmDescription: !Sub "DynamoDB query too many items error once within a minute. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 1
@@ -570,7 +574,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Publishing to TxMA failed"
+      AlarmDescription: !Sub "Publishing to TxMA failed. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 1
@@ -590,7 +594,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Publishing to TxMA failed once every minute for two periods over a span of 10 minutes"
+      AlarmDescription: !Sub "Publishing to TxMA failed once every minute for two periods over a span of 10 minutes. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 10
@@ -611,7 +615,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Schema is invalid"
+      AlarmDescription: !Sub "Schema is invalid. ${RunBookURL}"
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_SCHEMA
       ComparisonOperator: GreaterThanOrEqualToThreshold
@@ -634,7 +638,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Messages from TxMA have an average latency above 2s."
+      AlarmDescription: !Sub "Messages from TxMA have an average latency above 2s.${RunBookURL}"
       Namespace: !Ref SystemTagValue
       MetricName: EVENT_DELIVERY_LATENCY
       ComparisonOperator: GreaterThanThreshold
@@ -653,7 +657,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Messages from TxMA have an average latency above 5s."
+      AlarmDescription: !Sub "Messages from TxMA have an average latency above 5s. ${RunBookURL}"
       Namespace: !Ref SystemTagValue
       MetricName: EVENT_DELIVERY_LATENCY
       ComparisonOperator: GreaterThanThreshold
@@ -672,7 +676,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Messages from TxMA have a maximum latency above 10s."
+      AlarmDescription: !Sub "Messages from TxMA have a maximum latency above 10s. ${RunBookURL}"
       Namespace: !Ref SystemTagValue
       MetricName: EVENT_DELIVERY_LATENCY
       ComparisonOperator: GreaterThanThreshold
@@ -695,7 +699,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "An error occurred with the query to DynamoDB once every minutes for two consecutive periods"
+      AlarmDescription: !Sub "An error occurred with the query to DynamoDB once every minutes for two consecutive periods. ${RunBookURL}"
       Namespace: !Ref SystemTagValue
       MetricName: DB_QUERY_ERROR
       ComparisonOperator: GreaterThanOrEqualToThreshold
@@ -714,7 +718,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "User ID was not found in the event once every minute for three periods over 10 minutes "
+      AlarmDescription: !Sub "User ID was not found in the event once every minute for three periods over 10 minutes. ${RunBookURL}"
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_SUBJECT_ID
       ComparisonOperator: GreaterThanOrEqualToThreshold
@@ -734,7 +738,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "History string may be missing required components"
+      AlarmDescription: !Sub "History string may be missing required components. ${RunBookURL}"
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_HISTORY_STRING
       ComparisonOperator: GreaterThanOrEqualToThreshold
