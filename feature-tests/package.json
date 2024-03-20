@@ -30,13 +30,13 @@
   "dependencies": {
     "@aws-lambda-powertools/commons": "^1.18.1",
     "@aws-lambda-powertools/parameters": "^1.18.1",
-    "@aws-sdk/client-cloudwatch-logs": "3.537.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.537.0",
+    "@aws-sdk/client-dynamodb": "^3.535.0",
+    "@aws-sdk/client-lambda": "^3.536.0",
     "@aws-sdk/client-secrets-manager": "^3.535.0",
     "@aws-sdk/client-sns": "^3.535.0",
     "@aws-sdk/client-sqs": "^3.536.0",
     "@aws-sdk/credential-providers": "^3.535.0",
-    "@aws-sdk/client-lambda": "^3.536.0",
-    "@aws-sdk/client-dynamodb": "^3.535.0",
     "@aws-sdk/util-dynamodb": "^3.535.0"
   },
   "resolutions": {
