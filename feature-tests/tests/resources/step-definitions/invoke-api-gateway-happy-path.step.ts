@@ -231,11 +231,13 @@ defineFeature(feature, (test) => {
         await timeDelayForTestEnvironment(500);
         console.log('sending second message to put the user in : ' + allowableAisEventType);
         await sendSQSEvent(testUserId, allowableAisEventType);
+        await timeDelayForTestEnvironment(500);
       },
     );
 
     when(/^I invoke API to retrieve the intervention status of the user's account$/, async () => {
       response = await invokeGetAccountState(testUserId, false);
+      await timeDelayForTestEnvironment(500);
     });
 
     then(/^I expect the response (.*) with the correct time stamp when the event was applied$/, async (values) => {
