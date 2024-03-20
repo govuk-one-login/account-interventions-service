@@ -1,4 +1,4 @@
-import {AccountStateEngine, areAccountStatesTheSame, compareStrings} from '../account-states/account-state-engine';
+import { AccountStateEngine, areAccountStatesTheSame, compareStrings } from '../account-states/account-state-engine';
 import { AISInterventionTypes, EventsEnum, MetricNames } from '../../data-types/constants';
 import { StateEngineConfigurationError, StateTransitionError } from '../../data-types/errors';
 import { addMetric } from '../../commons/metrics';
