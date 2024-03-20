@@ -54,6 +54,10 @@ Parameters:
       - Canary10Percent10Minutes
       - Canary10Percent15Minutes
       - Canary10Percent30Minutes
+  MainAPIName:
+    Description: "The name of the Main API Gateway"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/ais-main/PrivateRestApi/Name" #pragma: allowlist secret
   ProductTagValue:
     Description: Value for the Product Tag
     Type: String
@@ -193,6 +197,7 @@ Resources:
             - AllAtOnce
         Alarms:
           - !Ref InterventionsProcessorFunctionErrorsAlarm
+          - !Ref ErrorPublishingEventToTxMAAlarm
         Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 5
       Handler: interventions-processor-handler.handler
@@ -1013,6 +1018,7 @@ Resources:
           - AllAtOnce
         Alarms:
           - !Ref StatusRetrieverFunctionErrorsAlarm
+          - !Ref 5xxErrorsStatusRetrieverAlarm
         Role: !GetAtt CodeDeployServiceRole.Arn
       MemorySize: 512
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
@@ -1412,7 +1418,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Errors returned from the StatusRetrieverFunction Lambda"
+      AlarmDescription: "Canary Deployment: Errors returned from the StatusRetrieverFunction Lambda"
       MetricName: Errors
       Dimensions:
         - Name: Resource
@@ -1427,20 +1433,58 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
+  5xxErrorsStatusRetrieverAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Canary Deployment: Lambda returning 5xx response"
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Ref MainAPIName
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
   InterventionsProcessorFunctionErrorsAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Errors returned from the InterventionsProcessorFunction Lambda"
+      AlarmDescription: "Canary Deployment: Errors returned from the InterventionsProcessorFunction Lambda"
       MetricName: Errors
       Dimensions:
         - Name: Resource
           Value: !Sub "${AWS::StackName}-InterventionsProcessorFunction:live"
         - Name: FunctionName
           Value: !Ref InterventionsProcessorFunction
-      Namespace: Lambda
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  ErrorPublishingEventToTxMAAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Canary Deployment: Publishing to TxMA has failed due to incorrect Lambda permissions"
+      MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${AWS::StackName}-InterventionsProcessorFunction:live"
+      Namespace: !Ref SystemTagValue
       Statistic: Sum
       Period: 60
       EvaluationPeriods: 1
@@ -1454,7 +1498,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Errors returned from the AccountDeletionProcessorFunction Lambda"
+      AlarmDescription: "Canary Deployment: Errors returned from the AccountDeletionProcessorFunction Lambda"
       MetricName: Errors
       Dimensions:
         - Name: Resource
