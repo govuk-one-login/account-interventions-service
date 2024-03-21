@@ -59,19 +59,23 @@ defineFeature(feature, (test) => {
     given(
       /^I send an invalid (.*) intervention with future time stamp event message to the TxMA ingress SQS queue$/,
       async (eventType) => {
+        console.log('userForFutureTimeStamp', testUserId);
         await sendInvalidSQSEvent(testUserId, eventType);
       },
     );
 
     when(/^I invoke an API to retrieve the intervention status of the account$/, async () => {
       await timeDelayForTestEnvironment(1500);
+      console.log('userForFutureTimeStampWhen', testUserId);
       response = await invokeGetAccountState(testUserId, true);
-      console.log(`Received`, { response });
+      console.log(`Received response for future time stamp`, { response });
     });
 
     then(/^I expect Egress Queue response with (.*)$/, async (eventName) => {
+      console.log('userForFutureTimeStampThen', testUserId);
       const receivedMessage = await filterUserIdInMessages(testUserId);
       const body = receivedMessage[0].Body;
+      console.log('Received Body for future time stamp in Egress Queue', body);
       const event_name = body ? attemptParseJSON(body).event_name : {};
       expect(event_name).toEqual(eventName);
     });
@@ -84,13 +88,15 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     given(/^I send an valid (.*) intervention event message to the TxMA ingress SQS queue$/, async (aisEventType) => {
+      console.log('userForIgnored', testUserId);
       await sendSQSEvent(testUserId, aisEventType);
     });
 
     when(/^I invoke an API to retrieve the intervention status of the account$/, async () => {
+      console.log('userForIgnoredStampWhen', testUserId);
       await timeDelayForTestEnvironment(1500);
       response = await invokeGetAccountState(testUserId, true);
-      console.log(`Received`, { response });
+      console.log(`Received response for Ignored Event`, { response });
     });
 
     and(
@@ -103,12 +109,14 @@ defineFeature(feature, (test) => {
     );
 
     then(/^I expect the Egress Queue response with (.*)$/, async (eventName) => {
+      console.log('userForIgnoredEventThen', testUserId);
       const receivedMessage = await filterUserIdInMessages(testUserId);
       const message = receivedMessage.find((object) => {
         const objectBody = object.Body ? attemptParseJSON(object.Body) : {};
         return objectBody.extensions?.description === 'AIS_NO_INTERVENTION';
       });
       const body = message?.Body ? attemptParseJSON(message?.Body) : {};
+      console.log('Received Body for Ignored Event in Egress Queue', body);
       expect(body.event_name).toEqual(eventName);
     });
   });
@@ -120,6 +128,7 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     given(/^I send an valid (.*) intervention event to the TxMA ingress SQS queue$/, async (aisEventType) => {
+      console.log('userForDelete', testUserId);
       await sendSQSEvent(testUserId, aisEventType);
     });
 
@@ -132,6 +141,7 @@ defineFeature(feature, (test) => {
 
     and(/^I invoke an API to retrieve the deleted intervention status of the user account$/, async () => {
       await timeDelayForTestEnvironment(1500);
+      console.log('userForDeletedWhen', testUserId);
       response = await invokeGetAccountState(testUserId, true);
     });
 
@@ -139,18 +149,21 @@ defineFeature(feature, (test) => {
       /^I send an valid (.*) intervention event to the TxMA ingress SQS queue for the deleted user$/,
       async (aisEventType) => {
         await sendSQSEvent(testUserId, aisEventType);
+        console.log('response for deleted user', response);
       },
     );
 
     then(
       /^I expect response with valid deleted marker fields (.*) for the userId in the Egrees Queue$/,
       async (eventName) => {
+        console.log('userForDeletedUserThen', testUserId);
         const receivedMessage = await filterUserIdInMessages(testUserId);
         const message = receivedMessage.find((object) => {
           const objectBody = object.Body ? attemptParseJSON(object.Body) : {};
           return objectBody.extensions?.description === 'AIS_NO_INTERVENTION';
         });
         const body = message?.Body ? attemptParseJSON(message?.Body) : {};
+        console.log('Received Body for Deleted user in Egress Queue', body);
         expect(body.event_name).toEqual(eventName);
       },
     );
