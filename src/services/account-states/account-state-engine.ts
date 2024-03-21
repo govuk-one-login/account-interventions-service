@@ -1,6 +1,6 @@
 import { transitionConfiguration } from './config';
 import { AccountStateEngineOutput, StateDetails } from '../../data-types/interfaces';
-import { AISInterventionTypes, EventsEnum, MetricNames } from '../../data-types/constants';
+import { AISInterventionTypes, EventsEnum, MetricNames, userLedActionList } from '../../data-types/constants';
 import { StateEngineConfigurationError, StateTransitionError } from '../../data-types/errors';
 import logger from '../../commons/logger';
 import { addMetric } from '../../commons/metrics';
@@ -167,8 +167,16 @@ function buildStateTransitionError(
   transition: EventsEnum,
   initialState: StateDetails,
 ) {
-  addMetric(metricName);
-  logger.error({ message: errorMessage });
+  if (
+    !(
+      areAccountStatesTheSame(initialState, transitionConfiguration.nodes['AccountIsOkay']!) &&
+      userLedActionList.includes(transition)
+    )
+  ) {
+    addMetric(metricName);
+    logger.error({ message: errorMessage });
+  }
+
   return new StateTransitionError(errorMessage, transition, {
     stateResult: initialState,
     nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),

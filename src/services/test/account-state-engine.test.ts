@@ -3,6 +3,7 @@ import { AISInterventionTypes, EventsEnum, MetricNames } from '../../data-types/
 import { StateEngineConfigurationError, StateTransitionError } from '../../data-types/errors';
 import { addMetric } from '../../commons/metrics';
 import { TransitionConfigurationInterface } from '../../data-types/interfaces';
+import logger from "../../commons/logger";
 
 const accountStateEngine = AccountStateEngine.getInstance();
 const accountIsSuspended = {
@@ -299,12 +300,28 @@ describe('account-state-service', () => {
 
   describe('Unsuccessful state transitions', () => {
     describe('received intervention is not allowed on current account state', () => {
+      beforeEach(() => {
+        jest.resetAllMocks();
+      })
       it.each([
-        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsOkay],
-        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsOkay],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsOkay],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT, accountIsOkay],
         [EventsEnum.IPV_IDENTITY_ISSUED, accountIsOkay],
+      ])('when is %p applied on account state: %p it should throw a StateTransitionError', (intervention, retrievedAccountState) => {
+        expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(
+          new StateTransitionError(`${intervention} is not allowed from current state`, intervention, {
+            nextAllowableInterventions: [],
+            stateResult: retrievedAccountState,
+            interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+          }),
+        );
+        expect(logger.error).not.toHaveBeenCalled();
+        expect(addMetric).not.toHaveBeenCalled();
+      });
+
+      it.each([
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsOkay],
+        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsOkay],
 
         [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsSuspended],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsSuspended],
@@ -327,7 +344,7 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsBlocked],
         [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsBlocked],
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountIsBlocked],
-      ])('%p applied on account state: %p', (intervention, retrievedAccountState) => {
+      ])('when is %p applied on account state: %p it should throw StateTransitionError and add a STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED metric', (intervention, retrievedAccountState) => {
         expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(
           new StateTransitionError(`${intervention} is not allowed from current state`, intervention, {
             nextAllowableInterventions: [],
@@ -335,6 +352,9 @@ describe('account-state-service', () => {
             interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
           }),
         );
+        expect(logger.error).toHaveBeenCalledWith({ message : `${intervention} is not allowed from current state` })
+        expect(addMetric).toHaveBeenLastCalledWith(MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED);
+
       });
     });
     describe('current state account could not be found in current config', () => {
