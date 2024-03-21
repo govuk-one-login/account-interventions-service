@@ -23,7 +23,7 @@ Feature: Invoke-APIGateway-EgressQueue-UnHappyPath.feature
             | suspendNoAction | AIS_EVENT_IGNORED_ACCOUNT_DELETED |
 
 
-    @failingRegression @test
+    @failingRegression
     ###- Due to egress retreies on this scenario, we need to implement in a different way
     Scenario Outline: UnHappy Path - Check Egress Queue Error messages for future time stamp - Returns Expected data for <invalidAisEventType>
         Given I send an invalid <eventType> intervention with future time stamp event message to the TxMA ingress SQS queue
