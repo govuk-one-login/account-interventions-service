@@ -99,8 +99,10 @@ export async function receiveMessagesFromEgressQueue() {
 
 export async function filterUserIdInMessages(testUserId: string) {
   const messages = await receiveMessagesFromEgressQueue();
+  console.log('messages', messages);
   const filteredMessageByUserId = messages.filter((message) => {
     const messageBody = message.Body ? attemptParseJSON(message.Body) : {};
+    console.log('body', message.Body);
     return messageBody.user.user_id === testUserId;
   });
   return filteredMessageByUserId;
