@@ -37,6 +37,10 @@ Parameters:
     Description: "The name of the Account Deletion Processor DLQ"
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/ais-main/SQS/AccountDeletionProcessorDLQ/Name" #pragma: allowlist secret
+  MainStackName:
+    Description: The name of the Main AIS stack
+    Type: String
+    Default: ais-main
   RunBookURL:
     Description: "A Link to the AIS Runbook"
     Type: String
@@ -167,7 +171,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Account Deletion Processor Queue processing slowly"
+      AlarmDescription: !Sub "Account Deletion Processor Queue processing slowly. ${RunBookURL}"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 60
       EvaluationPeriods: 1
@@ -186,7 +190,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Account Deletion Processor Queue processing too slow"
+      AlarmDescription: !Sub "Account Deletion Processor Queue processing too slow. ${RunBookURL}"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 600
       EvaluationPeriods: 1
@@ -205,7 +209,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Account Deletion Processor DLQ processing slowly"
+      AlarmDescription: !Sub "Account Deletion Processor DLQ processing slowly. ${RunBookURL}"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 60
       EvaluationPeriods: 1
@@ -224,7 +228,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Account Deletion Processor Queue DLQ processing too slow"
+      AlarmDescription: !Sub "Account Deletion Processor Queue DLQ processing too slow. ${RunBookURL}"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 600
       EvaluationPeriods: 1
@@ -240,6 +244,86 @@ Resources:
 #
 # CloudWatch Alarms for Updating Deletion Status
 #
+
+  AccountDeletionProcessorErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Deletion Processor Function Lambda Errors. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-AccountDeletionProcessorFunction"
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  AccountDeletionProcessorErrorsOver5Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Deletion Processor Function Lambda errors over 5 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 5
+      TreatMissingData: notBreaching
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-AccountDeletionProcessorFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  AccountDeletionProcessorErrorsOver10Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Deletion Processor Function Lambda errors over 10 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 10
+      TreatMissingData: notBreaching
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-AccountDeletionProcessorFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  AccountDeletionProcessorErrorsOver15Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Deletion Processor Function Lambda errors over 15 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 15
+      TreatMissingData: notBreaching
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-AccountDeletionProcessorFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
 
   AISUpdateDeleteFailed:
     Type: AWS::CloudWatch::Alarm
@@ -425,6 +509,86 @@ Resources:
 #
 # CloudWatch alarms for Account Interventions Processor
 #
+
+  AccountInterventionsProcessorErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Interventions Processor Function Lambda Errors. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-AccountInterventionsProcessorFunction"
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  AccountInterventionsProcessorErrorsOver5Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Interventions Processor Function Lambda errors over 5 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 5
+      TreatMissingData: notBreaching
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-AccountInterventionsProcessorFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  AccountInterventionsProcessorErrorsOver10Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Interventions Processor Function Lambda errors over 10 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 10
+      TreatMissingData: notBreaching
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-AccountInterventionsProcessorFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  AccountInterventionsProcessorOver15Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Interventions Processor Function Lambda errors over 15 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 15
+      TreatMissingData: notBreaching
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-AccountInterventionsProcessorFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
 
   InvalidEventReceived:
     Type: AWS::CloudWatch::Alarm
@@ -784,6 +948,86 @@ Resources:
 #
 # CloudWatch alarms for Status Retriever
 #
+
+  StatusRetrieverFunctionErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Status Retriever Function Lambda Errors.${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-StatusRetrieverFunction"
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  StatusRetrieverFunctionErrorsOver5Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Status Retriever Function Lambda errors over 5 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 5
+      TreatMissingData: notBreaching
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-StatusRetrieverFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  StatusRetrieverFunctionErrorsOver10Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Status Retriever Function Lambda errors over 10 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 10
+      TreatMissingData: notBreaching
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-StatusRetrieverFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  StatusRetrieverFunctionOver15Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Status Retriever Function Lambda errors over 15 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 15
+      TreatMissingData: notBreaching
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-StatusRetrieverFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
 
   DbQueryError:
     Type: AWS::CloudWatch::Alarm
