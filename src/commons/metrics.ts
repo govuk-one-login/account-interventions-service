@@ -1,5 +1,6 @@
 import { AppConfigService } from '../services/app-config-service';
 import { Metrics, MetricUnits } from '@aws-lambda-powertools/metrics';
+import { EmfOutput } from '@aws-lambda-powertools/metrics/lib/types';
 
 const namespace = AppConfigService.getInstance().cloudWatchMetricsWorkSpace;
 const service = AppConfigService.getInstance().metricServiceName;
@@ -21,6 +22,22 @@ export function addMetric(
   for (const data of metadata) {
     metric.addMetadata(data.key, data.value);
   }
-  metric.addMetric(metricName, MetricUnits.Count, value);
-  if (dimensions) metric.addDimensions(dimensions);
+  if (dimensions) {
+    if (checkIfAnyMetricToPublish()) metric.publishStoredMetrics();
+    metric.addDimensions(dimensions);
+    metric.addMetric(metricName, MetricUnits.Count, value);
+    metric.publishStoredMetrics();
+  } else {
+    metric.addMetric(metricName, MetricUnits.Count, value);
+  }
+}
+
+/**
+ * Function to check if any metrics are currently stored in the buffer
+ * it serialises the data stored in the buffer and checks if the Metrics array has any elements
+ * If so it returns true, false otherwise
+ */
+function checkIfAnyMetricToPublish() {
+  const emfOutput: EmfOutput = metric.serializeMetrics();
+  return emfOutput._aws.CloudWatchMetrics[0] ? emfOutput._aws.CloudWatchMetrics[0].Metrics.length > 0 : false;
 }
