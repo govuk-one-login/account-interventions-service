@@ -1,8 +1,13 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
-import { sendInvalidSQSEvent, sendSQSEvent } from '../../../utils/send-sqs-message';
+import {
+  sendInvalidSQSEvent,
+  sendSQSEvent,
+  filterUserIdInMessages,
+  purgeEgressQueue,
+} from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
-import { timeDelayForTestEnvironment } from '../../../utils/utility';
+import { attemptParseJSON, timeDelayForTestEnvironment } from '../../../utils/utility';
 import EndPoints from '../../../apiEndpoints/endpoints';
 import request from 'supertest';
 import { App } from 'supertest/types';
@@ -15,6 +20,10 @@ defineFeature(feature, (test) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   let response: any;
+
+  beforeAll(async () => {
+    await purgeEgressQueue();
+  });
 
   beforeEach(() => {
     testUserId = generateRandomTestUserId();
@@ -38,6 +47,68 @@ defineFeature(feature, (test) => {
     then(/^I expect response with no intervention (.*)$/, async (description) => {
       console.log(`Received`, { response });
       expect(response.intervention.description).toBe(description);
+    });
+  });
+
+  test('UnHappy Path - Check Egress Queue Error messages for future time stamp - Returns Expected data for <invalidAisEventType>', ({
+    given,
+    when,
+    then,
+  }) => {
+    given(
+      /^I send an invalid (.*) intervention with future time stamp event message to the TxMA ingress SQS queue$/,
+      async (eventType) => {
+        await sendInvalidSQSEvent(testUserId, eventType);
+      },
+    );
+
+    when(/^I invoke an API to retrieve the intervention status of the account$/, async () => {
+      await timeDelayForTestEnvironment(1500);
+      response = await invokeGetAccountState(testUserId, true);
+      console.log(`Received`, { response });
+    });
+
+    then(/^I expect Egress Queue response with (.*)$/, async (eventName) => {
+      const receivedMessage = await filterUserIdInMessages(testUserId);
+      const body = receivedMessage[0].Body;
+      const event_name = body ? attemptParseJSON(body).event_name : {};
+      expect(event_name).toEqual(eventName);
+    });
+  });
+
+  test('UnHappy Path - Check Egress Queue Error messages for Ignored event - Returns Expected data for <invalidAisEventType>', ({
+    given,
+    when,
+    and,
+    then,
+  }) => {
+    given(/^I send an valid (.*) intervention event message to the TxMA ingress SQS queue$/, async (aisEventType) => {
+      await sendSQSEvent(testUserId, aisEventType);
+    });
+
+    when(/^I invoke an API to retrieve the intervention status of the account$/, async () => {
+      await timeDelayForTestEnvironment(1500);
+      response = await invokeGetAccountState(testUserId, true);
+      console.log(`Received`, { response });
+    });
+
+    and(
+      /^I send an other (.*) intervention with past time stamp to the TxMA ingress SQS queue$/,
+      async (secondAisEventType) => {
+        await timeDelayForTestEnvironment(1500);
+        await sendInvalidSQSEvent(testUserId, secondAisEventType);
+        console.log(`Received`, { response });
+      },
+    );
+
+    then(/^I expect the Egress Queue response with (.*)$/, async (eventName) => {
+      const receivedMessage = await filterUserIdInMessages(testUserId);
+      const message = receivedMessage.find((object) => {
+        const objectBody = object.Body ? attemptParseJSON(object.Body) : {};
+        return objectBody.extensions?.description === 'AIS_NO_INTERVENTION';
+      });
+      const body = message?.Body ? attemptParseJSON(message?.Body) : {};
+      expect(body.event_name).toEqual(eventName);
     });
   });
 

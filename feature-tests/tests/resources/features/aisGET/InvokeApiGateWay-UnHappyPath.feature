@@ -15,7 +15,27 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
             | invalidInterventionCodeWithSpecialCharacters | AIS_NO_INTERVENTION |
             | invalidInterventionCodeWithBooleanValues     | AIS_NO_INTERVENTION |
             | invalidInterventionCodeWithSpace             | AIS_NO_INTERVENTION |
-            |invalidInterventionCodeWithEmptyValues        | AIS_NO_INTERVENTION |
+            | invalidInterventionCodeWithEmptyValues       | AIS_NO_INTERVENTION |
+
+
+    @regression
+    Scenario Outline: UnHappy Path - Check Egress Queue Error messages for future time stamp - Returns Expected data for <invalidAisEventType>
+        Given I send an invalid <eventType> intervention with future time stamp event message to the TxMA ingress SQS queue
+        When I invoke an API to retrieve the intervention status of the account
+        Then I expect Egress Queue response with <eventName>
+        Examples:
+            | eventType                         | eventName                   |
+            | suspendedEventWithFutureTimeStamp | AIS_EVENT_IGNORED_IN_FUTURE |
+
+    @regression
+    Scenario Outline: UnHappy Path - Check Egress Queue Error messages for Ignored event - Returns Expected data for <invalidAisEventType>
+        Given I send an valid <aisEventType> intervention event message to the TxMA ingress SQS queue
+        When I invoke an API to retrieve the intervention status of the account
+        And I send an other <secondAisEventType> intervention with past time stamp to the TxMA ingress SQS queue
+        Then I expect the Egress Queue response with <eventName>
+        Examples:
+            | aisEventType    | secondAisEventType          | eventName               |
+            | suspendNoAction | blockEventWithPastTimeStamp | AIS_EVENT_IGNORED_STALE |
 
 
     @regression

@@ -1,6 +1,8 @@
 import { CurrentTimeDescriptor } from './utility';
 
 const currentTime = getCurrentTimestamp();
+const futureTime = getFutureTimestamp();
+const pastTime = getPastTimestamp();
 
 export const invalidAisEvents = {
   missingEventNameAndId: {
@@ -155,9 +157,65 @@ export const invalidAisEvents = {
       },
     },
   },
+
+  suspendedEventWithFutureTimeStamp: {
+    event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
+    timestamp: futureTime.seconds,
+    event_timestamp_ms: futureTime.milliseconds,
+    component_id: 'TICF_CRI',
+    user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
+    extensions: {
+      intervention: {
+        intervention_code: '01',
+        intervention_reason: 'suspend - 01',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
+      },
+    },
+  },
+
+  blockEventWithPastTimeStamp: {
+    event_name: 'TICF_ACCOUNT_INTERVENTION',
+    event_id: '123',
+    timestamp: pastTime.seconds,
+    event_timestamp_ms: pastTime.milliseconds,
+    component_id: 'TICF_CRI',
+    user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
+    extensions: {
+      intervention: {
+        intervention_code: '03',
+        intervention_reason: 'block - 03',
+        originating_component_id: 'CMS',
+        originator_reference_id: '1234567',
+        requester_id: '1234567',
+      },
+    },
+  },
 };
 
 function getCurrentTimestamp(date = new Date()): CurrentTimeDescriptor {
+  return {
+    milliseconds: date.valueOf(),
+    isoString: date.toISOString(),
+    seconds: Math.floor(date.valueOf() / 1000),
+  };
+}
+
+export function getFutureTimestamp(date = new Date()): CurrentTimeDescriptor {
+  date.setFullYear(date.getFullYear() + 2);
+  date.setMonth(date.getMonth() + 2);
+  return {
+    milliseconds: date.valueOf(),
+    isoString: date.toISOString(),
+    seconds: Math.floor(date.valueOf() / 1000),
+  };
+}
+
+export function getPastTimestamp(date = new Date()): CurrentTimeDescriptor {
+  const min = 5;
+  date.setMinutes(date.getMinutes() - min);
   return {
     milliseconds: date.valueOf(),
     isoString: date.toISOString(),
