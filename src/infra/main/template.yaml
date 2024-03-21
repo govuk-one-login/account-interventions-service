@@ -606,6 +606,33 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
+  AccountDeletionProcessorQueueNameSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: The Name of the Account Deletion Processor Queue
+      Name: !Sub "/${AWS::StackName}/SQS/AccountDeletionProcessorQueue/Name"
+      Type: String
+      Value: !GetAtt AccountDeletionProcessorQueue.QueueName
+      Tags:
+        Environment: !Ref Environment
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
+  AccountDeletionProcessorDLQNameSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: The Name of the Account Deletion Processor DLQ
+      Name: !Sub "/${AWS::StackName}/SQS/AccountDeletionProcessorDLQ/Name"
+      Type: String
+      Value: !GetAtt AccountDeletionProcessorDLQ.QueueName
+      Tags:
+        Environment: !Ref Environment
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
 
  #### TxMA Queues ####
   TxMAIngressQueue:
