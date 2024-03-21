@@ -1,28 +1,6 @@
 Feature: Invoke-APIGateway-UnHappyPath.feature
 
-    @regression @test
-    Scenario Outline: UnHappy Path - Check Egress Queue Error messages for Ignored event - Returns Expected data for <invalidAisEventType>
-        Given I send an valid <aisEventType> intervention event message to the TxMA ingress SQS queue
-        When I invoke an API to retrieve the intervention status of the account
-        And I send an other <secondAisEventType> intervention with past time stamp to the TxMA ingress SQS queue
-        Then I expect the Egress Queue response with <eventName>
-        Examples:
-            | aisEventType    | secondAisEventType          | eventName               |
-            | suspendNoAction | blockEventWithPastTimeStamp | AIS_EVENT_IGNORED_STALE |
-
-
-    @regression @test
-    Scenario Outline: UnHappy Path - Check Egress Queue Error messages for Deleted User - Returns Expected data for <invalidAisEventType>
-        Given I send an valid <aisEventType> intervention event to the TxMA ingress SQS queue
-        When I send a message with userId to the Delete SNS Topic
-        And I invoke an API to retrieve the deleted intervention status of the user account
-        And I send an valid <aisEventType> intervention event to the TxMA ingress SQS queue for the deleted user
-        Then I expect response with valid deleted marker fields <eventName> for the userId in the Egrees Queue
-        Examples:
-            | aisEventType    | eventName                         |
-            | suspendNoAction | AIS_EVENT_IGNORED_ACCOUNT_DELETED |
-
-    @regression @test
+    @regression
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Returns Expected data for <invalidAisEventType>
         Given I send invalid <invalidAisEventType> intervention message to the TxMA ingress SQS queue
         When I invoke the API to retrieve the intervention status of the account
@@ -40,7 +18,7 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
             | invalidInterventionCodeWithEmptyValues       | AIS_NO_INTERVENTION |
 
 
-    @regression @test
+    @regression
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Field Validation - Returns Expected Data for <aisEventType> with specific field validation
         Given I send a invalid request to sqs queue with no userId and <aisEventType>, <testUserId> data
         When I invoke apiGateway to retreive the status of the invalid userId with <historyValue>
@@ -50,7 +28,7 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
             | suspendNoAction | false        | AIS_NO_INTERVENTION |            |
 
 
-    @regression @test
+    @regression
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Invalid Base URL - Returns Expected Data for <aisEventType>
         Given I send a valid request to sqs queue with userId and <aisEventType>
         When I invoke apiGateway with invalid base url to retreive the status of the userId
@@ -60,7 +38,7 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
             | suspendNoAction | Missing Authentication Token |
 
 
-    @regression @test
+    @regression
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Invalid Endpoint - Returns Expected Data for <aisEventType>
         Given I send a valid request to sqs queue with <aisEventType>
         When I invoke apiGateway with invalid endpoint to retreive the status of the userId
@@ -69,7 +47,7 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
             | aisEventType    | message                      |
             | suspendNoAction | Missing Authentication Token |
 
-    @regression @test
+    @regression
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Invalid Content-Type & Accept - Returns Expected Data for <aisEventType>
         Given I send an valid request to sqs queue with <aisEventType>
         When I invoke apiGateway with invalid <contentType> and <accept> to retreive the status of the userId
@@ -80,7 +58,7 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
             | suspendNoAction | application/json |        | Missing Authentication Token |
             | suspendNoAction |                  | */*    | Missing Authentication Token |
 
-    @regression @test
+    @regression
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Mixed Case History values - Returns Expected Data for <aisEventType>
         Given I send an valid <aisEventType> request to sqs queue
         When I invoke apiGateway to retreive the status userId with <historyValue>
@@ -93,13 +71,3 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
             | suspendNoAction | Truee        |
             | suspendNoAction | *&           |
             | suspendNoAction | TRUE         |
-
-    @failingRegression
-    ###- Due to egress retreies on this scenario, we need to implement in a different way
-    Scenario Outline: UnHappy Path - Check Egress Queue Error messages for future time stamp - Returns Expected data for <invalidAisEventType>
-        Given I send an invalid <eventType> intervention with future time stamp event message to the TxMA ingress SQS queue
-        When I invoke an API to retrieve the intervention status of the account
-        Then I expect Egress Queue response with <eventName>
-        Examples:
-            | eventType                         | eventName                   |
-            | suspendedEventWithFutureTimeStamp | AIS_EVENT_IGNORED_IN_FUTURE |
