@@ -1,8 +1,9 @@
-import { AccountStateEngine } from '../account-states/account-state-engine';
+import { AccountStateEngine, areAccountStatesTheSame, compareStrings } from '../account-states/account-state-engine';
 import { AISInterventionTypes, EventsEnum, MetricNames } from '../../data-types/constants';
 import { StateEngineConfigurationError, StateTransitionError } from '../../data-types/errors';
 import { addMetric } from '../../commons/metrics';
 import { TransitionConfigurationInterface } from '../../data-types/interfaces';
+import logger from "../../commons/logger";
 
 const accountStateEngine = AccountStateEngine.getInstance();
 const accountIsSuspended = {
@@ -285,7 +286,7 @@ describe('account-state-service', () => {
     });
   });
 
-  describe('get intervention enum from code', () => {
+  describe('Get intervention enum from code', () => {
     it('should return the expected account state given a valid code', () => {
       const expectedState = EventsEnum.FRAUD_BLOCK_ACCOUNT;
       expect(accountStateEngine.getInterventionEnumFromCode('03')).toEqual(expectedState);
@@ -299,12 +300,28 @@ describe('account-state-service', () => {
 
   describe('Unsuccessful state transitions', () => {
     describe('received intervention is not allowed on current account state', () => {
+      beforeEach(() => {
+        jest.resetAllMocks();
+      })
       it.each([
-        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsOkay],
-        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsOkay],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsOkay],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT, accountIsOkay],
         [EventsEnum.IPV_IDENTITY_ISSUED, accountIsOkay],
+      ])('when is %p applied on account state: %p it should throw a StateTransitionError', (intervention, retrievedAccountState) => {
+        expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(
+          new StateTransitionError(`${intervention} is not allowed from current state`, intervention, {
+            nextAllowableInterventions: [],
+            stateResult: retrievedAccountState,
+            interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+          }),
+        );
+        expect(logger.error).not.toHaveBeenCalled();
+        expect(addMetric).not.toHaveBeenCalled();
+      });
+
+      it.each([
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsOkay],
+        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsOkay],
 
         [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsSuspended],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsSuspended],
@@ -327,7 +344,7 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsBlocked],
         [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsBlocked],
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountIsBlocked],
-      ])('%p applied on account state: %p', (intervention, retrievedAccountState) => {
+      ])('when is %p applied on account state: %p it should throw StateTransitionError and add a STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED metric', (intervention, retrievedAccountState) => {
         expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(
           new StateTransitionError(`${intervention} is not allowed from current state`, intervention, {
             nextAllowableInterventions: [],
@@ -335,6 +352,9 @@ describe('account-state-service', () => {
             interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
           }),
         );
+        expect(logger.error).toHaveBeenCalledWith({ message : `${intervention} is not allowed from current state` })
+        expect(addMetric).toHaveBeenLastCalledWith(MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED);
+
       });
     });
     describe('current state account could not be found in current config', () => {
@@ -392,17 +412,9 @@ describe('account-state-service', () => {
         value: invalidConfig,
       });
 
-      expect(() => accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay)).toThrow(
-        new StateTransitionError(
-          'Computed new state is the same as the current state.',
-          EventsEnum.FRAUD_BLOCK_ACCOUNT,
-          {
-            nextAllowableInterventions: [],
-            interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-            stateResult: accountIsOkay,
-          },
-        ),
-      );
+      const expectedError = new StateEngineConfigurationError('Computed new state is the same as the current state.')
+
+      expect(() => accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay)).toThrow(expectedError);
       expect(addMetric).toHaveBeenLastCalledWith(MetricNames.TRANSITION_SAME_AS_CURRENT_STATE);
     });
     it('should throw when there are no configured transition for a given state', () => {
@@ -565,4 +577,37 @@ describe('account-state-service', () => {
       expect(addMetric).toHaveBeenLastCalledWith(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION);
     });
   });
+
+  describe('Helper functions', () => {
+    it('should return true if two states are the same, false otherwise', () => {
+      const aState = {
+        blocked: false,
+        suspended: true,
+        resetPassword: true,
+        reproveIdentity: true,
+      }
+      const theSameState = {
+        blocked: false,
+        suspended: true,
+        resetPassword: true,
+        reproveIdentity: true,
+      }
+      const aDifferentState = {
+        blocked: true,
+        suspended: true,
+        resetPassword: true,
+        reproveIdentity: true,
+      }
+      expect(areAccountStatesTheSame(aState, theSameState)).toEqual(true);
+      expect(areAccountStatesTheSame(aState, aDifferentState)).toEqual(false);
+    });
+    it('should return -1 if a string comes before another alphabetically, 1 if opposite is true, 0 if they are equal', () => {
+      const strOne = 'aString';
+      const strTwo = 'bString';
+      const strThree = 'bString';
+      expect(compareStrings(strOne, strTwo)).toEqual(-1);
+      expect(compareStrings(strTwo, strOne)).toEqual(1);
+      expect(compareStrings(strTwo, strThree)).toEqual(0);
+    })
+  })
 });
