@@ -325,6 +325,86 @@ Resources:
       Statistic: SampleCount
       Unit: Count
 
+  AccountDeletionProcessorThottled:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Deletion Processor Function Lambda Throttled. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-AccountDeletionProcessorFunction"
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  AccountDeletionProcessorThottledOver5Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Deletion Processor Function Lambda  throttled over 5 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 5
+      TreatMissingData: notBreaching
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-AccountDeletionProcessorFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  AccountDeletionProcessorThrottledOver10Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Deletion Processor Function Lambda throttled over 10 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 10
+      TreatMissingData: notBreaching
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-AccountDeletionProcessorFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  AccountDeletionProcessorThottledOver15Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Deletion Processor Function Lambda throttled over 15 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 15
+      TreatMissingData: notBreaching
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-AccountDeletionProcessorFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
   AISUpdateDeleteFailed:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -510,13 +590,13 @@ Resources:
 # CloudWatch alarms for Account Interventions Processor
 #
 
-  AccountInterventionsProcessorErrors:
+  InterventionsProcessorErrors:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Account Interventions Processor Function Lambda Errors. ${RunBookURL}"
+      AlarmDescription: !Sub "Interventions Processor Function Lambda Errors. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 1
@@ -525,18 +605,18 @@ Resources:
       Namespace: AWS/Lambda
       Dimensions:
         - Name: FunctionName
-          Value: !Sub "${MainStackName}-AccountInterventionsProcessorFunction"
+          Value: !Sub "${MainStackName}-InterventionsProcessorFunction"
       Period: 60
       Statistic: Sum
       Unit: Count
 
-  AccountInterventionsProcessorErrorsOver5Mins:
+  InterventionsProcessorErrorsOver5Mins:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Account Interventions Processor Function Lambda errors over 5 minutes. ${RunBookURL}"
+      AlarmDescription: !Sub "Interventions Processor Function Lambda errors over 5 minutes. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 5
@@ -545,18 +625,18 @@ Resources:
       Namespace: AWS/Lambda
       Dimensions:
         - Name: FunctionName
-          Value: !Sub "${MainStackName}-AccountInterventionsProcessorFunction"
+          Value: !Sub "${MainStackName}-InterventionsProcessorFunction"
       Period: 60
       Statistic: SampleCount
       Unit: Count
 
-  AccountInterventionsProcessorErrorsOver10Mins:
+  InterventionsProcessorErrorsOver10Mins:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Account Interventions Processor Function Lambda errors over 10 minutes. ${RunBookURL}"
+      AlarmDescription: !Sub "Interventions Processor Function Lambda errors over 10 minutes. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 10
@@ -565,18 +645,18 @@ Resources:
       Namespace: AWS/Lambda
       Dimensions:
         - Name: FunctionName
-          Value: !Sub "${MainStackName}-AccountInterventionsProcessorFunction"
+          Value: !Sub "${MainStackName}-InterventionsProcessorFunction"
       Period: 60
       Statistic: SampleCount
       Unit: Count
 
-  AccountInterventionsProcessorOver15Mins:
+  InterventionsProcessorErrorsOver15Mins:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Account Interventions Processor Function Lambda errors over 15 minutes. ${RunBookURL}"
+      AlarmDescription: !Sub "Interventions Processor Function Lambda errors over 15 minutes. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 15
@@ -585,7 +665,87 @@ Resources:
       Namespace: AWS/Lambda
       Dimensions:
         - Name: FunctionName
-          Value: !Sub "${MainStackName}-AccountInterventionsProcessorFunction"
+          Value: !Sub "${MainStackName}-InterventionsProcessorFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  InterventionsProcessorThottled:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub " Interventions Processor Function Lambda Throttled. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-InterventionsProcessorFunction"
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  InterventionsProcessorThottledOver5Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub " Interventions Processor Function Lambda throttled over 5 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 5
+      TreatMissingData: notBreaching
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-InterventionsProcessorFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  InterventionsProcessorThrottledOver10Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Interventions Processor Function Lambda throttled over 10 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 10
+      TreatMissingData: notBreaching
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-InterventionsProcessorFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  InterventionsProcessorThottledOver15Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: !Sub "Interventions Processor Function Lambda throttled over 15 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 15
+      TreatMissingData: notBreaching
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-InterventionsProcessorFunction"
       Period: 60
       Statistic: SampleCount
       Unit: Count
@@ -949,7 +1109,7 @@ Resources:
 # CloudWatch alarms for Status Retriever
 #
 
-  StatusRetrieverFunctionErrors:
+  StatusRetrieverErrors:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -969,7 +1129,7 @@ Resources:
       Statistic: Sum
       Unit: Count
 
-  StatusRetrieverFunctionErrorsOver5Mins:
+  StatusRetrieverErrorsOver5Mins:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -989,7 +1149,7 @@ Resources:
       Statistic: SampleCount
       Unit: Count
 
-  StatusRetrieverFunctionErrorsOver10Mins:
+  StatusRetrieverErrorsOver10Mins:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -1009,7 +1169,7 @@ Resources:
       Statistic: SampleCount
       Unit: Count
 
-  StatusRetrieverFunctionOver15Mins:
+  StatusRetrieverOver15Mins:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -1021,6 +1181,86 @@ Resources:
       EvaluationPeriods: 15
       TreatMissingData: notBreaching
       MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-StatusRetrieverFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  StatusRetrieverThottled:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub " Status Retriever Function Lambda Throttled. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-StatusRetrieverFunction"
+      Period: 60
+      Statistic: Sum
+      Unit: Count
+
+  StatusRetrieverThottledOver5Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub " Status Retriever Function Lambda throttled over 5 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 5
+      TreatMissingData: notBreaching
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-StatusRetrieverFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  StatusRetrieverThrottledOver10Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Status Retriever Function Lambda throttled over 10 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 10
+      TreatMissingData: notBreaching
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${MainStackName}-StatusRetrieverFunction"
+      Period: 60
+      Statistic: SampleCount
+      Unit: Count
+
+  StatusRetrieverThottledOver15Mins:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: !Sub "Status Retriever Function Lambda throttled over 15 minutes. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 15
+      TreatMissingData: notBreaching
+      MetricName: Throttles
       Namespace: AWS/Lambda
       Dimensions:
         - Name: FunctionName
