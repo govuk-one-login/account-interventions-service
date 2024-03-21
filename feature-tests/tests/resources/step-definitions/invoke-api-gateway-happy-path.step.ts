@@ -20,6 +20,7 @@ defineFeature(feature, (test) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   let response: any;
+  let getItem: any;
   let events: LogEvent[];
 
   beforeAll(async () => {
@@ -441,14 +442,14 @@ defineFeature(feature, (test) => {
     });
 
     when(/^I send a message with the userId to the Delete SNS Topic$/, async () => {
-      await timeDelayForTestEnvironment(1500);
       const messageKey = 'user_id';
       response = await sendSNSDeleteMessage(messageKey, testUserId);
       console.log(`AIS Record Deleted via SNS Message Sent`);
     });
 
     and(/^I invoke an API to retrieve the deleted intervention status of the user's account$/, async () => {
-      await timeDelayForTestEnvironment(1500);
+      await timeDelayForTestEnvironment(2500);
+      getItem = await getRecordFromTable(testUserId);
       response = await invokeGetAccountState(testUserId, true);
     });
 
@@ -470,8 +471,6 @@ defineFeature(feature, (test) => {
           expect(response.intervention.description).toBe(aisEventResponse[aisEventType].description);
           expect(response.intervention.accountDeletedAt).toBeTruthy();
         }
-        await timeDelayForTestEnvironment(500);
-        const getItem = await getRecordFromTable(testUserId);
         if (getItem) {
           console.log(getItem);
           expect(getItem.isAccountDeleted).toBe(true);
