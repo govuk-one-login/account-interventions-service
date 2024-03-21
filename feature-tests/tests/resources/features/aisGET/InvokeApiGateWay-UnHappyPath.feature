@@ -1,24 +1,6 @@
 Feature: Invoke-APIGateway-UnHappyPath.feature
 
     @regression
-    Scenario Outline: UnHappy Path - Get Request to /ais/userId - Returns Expected data for <invalidAisEventType>
-        Given I send invalid <invalidAisEventType> intervention message to the TxMA ingress SQS queue
-        When I invoke the API to retrieve the intervention status of the account
-        Then I expect response with no intervention <description>
-        Examples:
-            | invalidAisEventType                          | description         |
-            | missingEventNameAndId                        | AIS_NO_INTERVENTION |
-            | missingTimeStamps                            | AIS_NO_INTERVENTION |
-            | missingExtensions                            | AIS_NO_INTERVENTION |
-            | invalidInterventionCodeType                  | AIS_NO_INTERVENTION |
-            | invalidInterventionCode                      | AIS_NO_INTERVENTION |
-            | invalidInterventionCodeWithSpecialCharacters | AIS_NO_INTERVENTION |
-            | invalidInterventionCodeWithBooleanValues     | AIS_NO_INTERVENTION |
-            | invalidInterventionCodeWithSpace             | AIS_NO_INTERVENTION |
-            | invalidInterventionCodeWithEmptyValues       | AIS_NO_INTERVENTION |
-
-
-    @regression
     Scenario Outline: UnHappy Path - Check Egress Queue Error messages for future time stamp - Returns Expected data for <invalidAisEventType>
         Given I send an invalid <eventType> intervention with future time stamp event message to the TxMA ingress SQS queue
         When I invoke an API to retrieve the intervention status of the account
@@ -36,6 +18,35 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
         Examples:
             | aisEventType    | secondAisEventType          | eventName               |
             | suspendNoAction | blockEventWithPastTimeStamp | AIS_EVENT_IGNORED_STALE |
+
+
+    @regression
+    Scenario Outline: UnHappy Path - Check Egress Queue Error messages for Deleted User - Returns Expected data for <invalidAisEventType>
+        Given I send an valid <aisEventType> intervention event to the TxMA ingress SQS queue
+        When I send a message with userId to the Delete SNS Topic
+        And I invoke an API to retrieve the deleted intervention status of the user account
+        And I send an valid <aisEventType> intervention event to the TxMA ingress SQS queue for the deleted user
+        Then I expect response with valid deleted marker fields <eventName> for the userId in the Egrees Queue
+        Examples:
+            | aisEventType     | eventName                         |
+            | suspendNoAction  | AIS_EVENT_IGNORED_ACCOUNT_DELETED |
+
+    @regression
+    Scenario Outline: UnHappy Path - Get Request to /ais/userId - Returns Expected data for <invalidAisEventType>
+        Given I send invalid <invalidAisEventType> intervention message to the TxMA ingress SQS queue
+        When I invoke the API to retrieve the intervention status of the account
+        Then I expect response with no intervention <description>
+        Examples:
+            | invalidAisEventType                          | description         |
+            | missingEventNameAndId                        | AIS_NO_INTERVENTION |
+            | missingTimeStamps                            | AIS_NO_INTERVENTION |
+            | missingExtensions                            | AIS_NO_INTERVENTION |
+            | invalidInterventionCodeType                  | AIS_NO_INTERVENTION |
+            | invalidInterventionCode                      | AIS_NO_INTERVENTION |
+            | invalidInterventionCodeWithSpecialCharacters | AIS_NO_INTERVENTION |
+            | invalidInterventionCodeWithBooleanValues     | AIS_NO_INTERVENTION |
+            | invalidInterventionCodeWithSpace             | AIS_NO_INTERVENTION |
+            | invalidInterventionCodeWithEmptyValues       | AIS_NO_INTERVENTION |
 
 
     @regression
