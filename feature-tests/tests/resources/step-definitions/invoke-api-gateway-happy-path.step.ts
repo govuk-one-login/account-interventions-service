@@ -23,7 +23,7 @@ defineFeature(feature, (test) => {
   let getItem: any;
   let events: LogEvent[];
 
-  beforeAll(async () => {
+  afterAll(async () => {
     await purgeEgressQueue();
   });
 

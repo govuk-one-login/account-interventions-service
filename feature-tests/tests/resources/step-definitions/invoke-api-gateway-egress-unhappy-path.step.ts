@@ -19,37 +19,12 @@ defineFeature(feature, (test) => {
   // @ts-ignore
   let response: any;
 
-  beforeAll(async () => {
+  afterAll(async () => {
     await purgeEgressQueue();
   });
 
   beforeEach(() => {
     testUserId = generateRandomTestUserId();
-  });
-
-  test('UnHappy Path - Check Egress Queue Error messages for future time stamp - Returns Expected data for <invalidAisEventType>', ({
-    given,
-    when,
-    then,
-  }) => {
-    given(
-      /^I send an invalid (.*) intervention with future time stamp event message to the TxMA ingress SQS queue$/,
-      async (eventType) => {
-        await sendInvalidSQSEvent(testUserId, eventType);
-      },
-    );
-
-    when(/^I invoke an API to retrieve the intervention status of the account$/, async () => {
-      await timeDelayForTestEnvironment(1500);
-      response = await invokeGetAccountState(testUserId, true);
-    });
-
-    then(/^I expect Egress Queue response with (.*)$/, async (eventName) => {
-      const receivedMessage = await filterUserIdInMessages(testUserId);
-      const body = receivedMessage[0].Body;
-      const event_name = body ? attemptParseJSON(body).event_name : {};
-      expect(event_name).toEqual(eventName);
-    });
   });
 
   test('UnHappy Path - Check Egress Queue Error messages for Ignored event - Returns Expected data for <invalidAisEventType>', ({
@@ -127,5 +102,31 @@ defineFeature(feature, (test) => {
         expect(body.event_name).toEqual(eventName);
       },
     );
+  });
+
+  test('UnHappy Path - Check Egress Queue Error messages for future time stamp - Returns Expected data for <invalidAisEventType>', ({
+    given,
+    when,
+    then,
+  }) => {
+    given(
+      /^I send an invalid (.*) intervention with future time stamp event message to the TxMA ingress SQS queue$/,
+      async (eventType) => {
+        await sendInvalidSQSEvent(testUserId, eventType);
+      },
+    );
+
+    when(/^I invoke an API to retrieve the intervention status of the account$/, async () => {
+      await timeDelayForTestEnvironment(1500);
+      response = await invokeGetAccountState(testUserId, true);
+    });
+
+    then(/^I expect Egress Queue response with (.*)$/, async (eventName) => {
+      const receivedMessage = await filterUserIdInMessages(testUserId);
+      const body = receivedMessage[0].Body;
+      const event_name = body ? attemptParseJSON(body).event_name : {};
+      expect(event_name).toEqual(eventName);
+      await purgeEgressQueue();
+    });
   });
 });

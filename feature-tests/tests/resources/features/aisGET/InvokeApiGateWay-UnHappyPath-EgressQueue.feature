@@ -2,7 +2,7 @@ Feature: Invoke-APIGateway-EgressQueue-UnHappyPath.feature
 
     ###- Due to egress retreies on this scenario, we need to implement in a different way
 
-    @failingRegression
+    @failingRegression @test
     Scenario Outline: UnHappy Path - Check Egress Queue Error messages for Ignored event - Returns Expected data for <invalidAisEventType>
         Given I send an valid <aisEventType> intervention event message to the TxMA ingress SQS queue
         When I invoke an API to retrieve the intervention status of the account
@@ -13,7 +13,7 @@ Feature: Invoke-APIGateway-EgressQueue-UnHappyPath.feature
             | suspendNoAction | blockEventWithPastTimeStamp | AIS_EVENT_IGNORED_STALE |
 
 
-    @failingRegression
+    @failingRegression @test
     Scenario Outline: UnHappy Path - Check Egress Queue Error messages for Deleted User - Returns Expected data for <invalidAisEventType>
         Given I send an valid <aisEventType> intervention event to the TxMA ingress SQS queue
         When I send a message with userId to the Delete SNS Topic
@@ -25,7 +25,7 @@ Feature: Invoke-APIGateway-EgressQueue-UnHappyPath.feature
             | suspendNoAction | AIS_EVENT_IGNORED_ACCOUNT_DELETED |
 
 
-    @failingRegression
+    @failingRegression @test
     Scenario Outline: UnHappy Path - Check Egress Queue Error messages for future time stamp - Returns Expected data for <invalidAisEventType>
         Given I send an invalid <eventType> intervention with future time stamp event message to the TxMA ingress SQS queue
         When I invoke an API to retrieve the intervention status of the account
