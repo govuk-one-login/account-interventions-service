@@ -193,6 +193,29 @@ export const invalidAisEvents = {
       },
     },
   },
+
+  userActionIdResetSuccess: {
+    event_name: 'IPV_IDENTITY_ISSUED',
+    event_id: '123',
+    timestamp: currentTime.seconds,
+    event_timestamp_ms: currentTime.milliseconds,
+    client_id: 'UNKNOWN',
+    component_id: 'UNKNOWN',
+    user: {
+      user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
+      email: '',
+      phone: 'UNKNOWN',
+      ip_address: '',
+      session_id: '',
+      persistent_session_id: '',
+      govuk_signin_journey_id: '',
+    },
+    extensions: {
+      levelOfConfidence: 'P1',
+      ciFail: false,
+      hasMitigations: false,
+    },
+  },
 };
 
 function getCurrentTimestamp(date = new Date()): CurrentTimeDescriptor {

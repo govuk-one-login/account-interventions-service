@@ -71,3 +71,13 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
             | suspendNoAction | Truee        |
             | suspendNoAction | *&           |
             | suspendNoAction | TRUE         |
+
+    @regression
+    Scenario Outline: UnHappy Path - Get Request to /ais/userId - Level of Confidence for userActionIdResetSuccess - Returns Expected Data for <aisEventType>
+        Given I send a valid request with event <aisEventType> to the sqs queue
+        And I send an other invalid event with invalid level of confidence <invalidAisEventType> to the txma sqs queue
+        When I invoke an apiGateway to retreive the status of the userId
+        Then I should receive the response without the reprovedIdentityAt value
+        Examples:
+            | aisEventType    | invalidAisEventType      |
+            | idResetRequired | userActionIdResetSuccess |
