@@ -133,40 +133,35 @@ function buildAdditionalAttributes(
       action: undefined,
     };
 
-  if (!stateEngineOutput.stateResult.suspended) {
+  if (!stateEngineOutput.stateResult.suspended)
     return {
       state: State.ACTIVE,
       action: undefined,
     };
-  }
 
-  if (stateEngineOutput.stateResult.resetPassword && !stateEngineOutput.stateResult.reproveIdentity) {
+  if (stateEngineOutput.stateResult.resetPassword && !stateEngineOutput.stateResult.reproveIdentity)
     return {
       state: State.ACTIVE,
       action: ActiveStateActions.RESET_PASSWORD,
     };
-  }
 
-  if (!stateEngineOutput.stateResult.resetPassword && stateEngineOutput.stateResult.reproveIdentity) {
+  if (!stateEngineOutput.stateResult.resetPassword && stateEngineOutput.stateResult.reproveIdentity)
     return {
       state: State.ACTIVE,
       action: ActiveStateActions.REPROVE_IDENTITY,
     };
-  }
 
-  if (stateEngineOutput.stateResult.resetPassword && stateEngineOutput.stateResult.reproveIdentity) {
+  if (stateEngineOutput.stateResult.resetPassword && stateEngineOutput.stateResult.reproveIdentity)
     return {
       state: State.ACTIVE,
       action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY,
     };
-  }
 
-  if (stateEngineOutput.stateResult.suspended) {
+  if (stateEngineOutput.stateResult.suspended)
     return {
       state: State.SUSPENDED,
       action: undefined,
     };
-  }
 
   return {
     state: undefined,

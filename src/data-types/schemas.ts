@@ -32,7 +32,13 @@ export const TxMAIngress = {
           },
         },
         {
-          if: { properties: { event_name: { enum: [TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION] } } },
+          if: {
+            properties: {
+              event_name: {
+                enum: [TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION, TriggerEventsEnum.OPERATIONAL_ACCOUNT_INTERVENTION],
+              },
+            },
+          },
           // eslint-disable-next-line unicorn/no-thenable
           then: {
             required: ['extensions'],

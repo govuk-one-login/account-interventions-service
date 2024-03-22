@@ -10,7 +10,7 @@ import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
 import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { sendAuditEvent } from '../../services/send-audit-events';
-import { TxMAIngressEvent } from '../../data-types/interfaces';
+import { TxMAEgressEventName, TxMAIngressEvent } from '../../data-types/interfaces';
 import { publishTimeToResolveMetrics } from '../../commons/metrics-helper';
 
 jest.mock('@aws-lambda-powertools/logger');
@@ -46,6 +46,23 @@ const interventionEventBody: TxMAIngressEvent = {
   extensions: {
     intervention: {
       intervention_code: '01',
+      intervention_reason: 'reason',
+    },
+  },
+};
+
+const operationalEventBody: TxMAIngressEvent = {
+  component_id: '',
+  timestamp: t0s - 5,
+  event_timestamp_ms: t0ms - 5000,
+  user: {
+    user_id: 'abc',
+  },
+  event_name: TriggerEventsEnum.OPERATIONAL_ACCOUNT_INTERVENTION,
+  event_id: '123',
+  extensions: {
+    intervention: {
+      intervention_code: '25',
       intervention_reason: 'reason',
     },
   },
@@ -176,7 +193,7 @@ describe('intervention processor handler', () => {
         errorMessage: 'State transition Error',
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        'AIS_EVENT_TRANSITION_IGNORED',
+        TxMAEgressEventName.AIS_EVENT_TRANSITION_IGNORED,
         EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
         interventionEventBody,
         {
@@ -208,7 +225,7 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        'AIS_EVENT_TRANSITION_APPLIED',
+        TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
@@ -245,7 +262,7 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        'AIS_EVENT_TRANSITION_APPLIED',
+        TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
@@ -283,7 +300,7 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        'AIS_EVENT_TRANSITION_APPLIED',
+        TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
         EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
         resetPasswordEventBody,
         {
@@ -323,7 +340,7 @@ describe('intervention processor handler', () => {
         ['ValidationError caught, message will not be retried.', { errorMessage: 'Account is marked as deleted.' }],
       ]);
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        'AIS_EVENT_IGNORED_ACCOUNT_DELETED',
+        TxMAEgressEventName.AIS_EVENT_IGNORED_ACCOUNT_DELETED,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
@@ -351,7 +368,7 @@ describe('intervention processor handler', () => {
       });
       expect(addMetric).toHaveBeenCalledWith('INTERVENTION_IGNORED_IN_FUTURE');
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        'AIS_EVENT_IGNORED_IN_FUTURE',
+        TxMAEgressEventName.AIS_EVENT_IGNORED_IN_FUTURE,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBodyInTheFuture,
       );
@@ -396,7 +413,7 @@ describe('intervention processor handler', () => {
       expect(logger.warn).toHaveBeenCalledWith('Event received predates last applied event for this user.');
       expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
       expect(sendAuditEvent).toHaveBeenCalledWith(
-        'AIS_EVENT_IGNORED_STALE',
+        TxMAEgressEventName.AIS_EVENT_IGNORED_STALE,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
@@ -510,6 +527,129 @@ describe('intervention processor handler', () => {
       });
       expect(addMetric).toHaveBeenCalledWith('CONFIDENCE_LEVEL_TOO_LOW');
       expect(logger.warn).toHaveBeenCalledWith('Received interventions has low level of confidence: P1');
+      expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
+    });
+
+    it('should succeed when a valid operational event is received', async () => {
+      mockRecord.body = JSON.stringify(operationalEventBody);
+      accountStateEngine.getInterventionEnumFromCode = jest.fn().mockImplementationOnce(() => {
+        return EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION;
+      });
+      accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
+        stateResult: {
+          blocked: false,
+          suspended: true,
+          resetPassword: false,
+          reproveIdentity: true,
+        },
+        interventionName: EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION,
+        nextAllowableInterventions: ['01', '02', '03', '04', '06', '91'],
+      });
+      expect(await handler(mockEvent, mockContext)).toEqual({
+        batchItemFailures: [],
+      });
+      expect(sendAuditEvent).toHaveBeenLastCalledWith(
+        TxMAEgressEventName.AIS_NON_FRAUD_EVENT,
+        EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION,
+        operationalEventBody,
+        {
+          stateResult: {
+            blocked: false,
+            reproveIdentity: true,
+            resetPassword: false,
+            suspended: true,
+          },
+          interventionName: 'OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION',
+          nextAllowableInterventions: ['01', '02', '03', '04', '06', '91'],
+        },
+      );
+      expect(addMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
+      expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
+        eventName: 'OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION',
+      });
+      expect(publishTimeToResolveMetrics).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not retry the record if a StateTransitionError is received when operational event is received', async () => {
+      mockRecord.body = JSON.stringify(operationalEventBody);
+      mockRetrieveRecords.mockReturnValue({
+        blocked: false,
+        reproveIdentity: false,
+        resetPassword: false,
+        suspended: false,
+      });
+      accountStateEngine.applyEventTransition = jest.fn().mockImplementationOnce(() => {
+        throw new StateTransitionError('State transition Error', EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION, {
+          nextAllowableInterventions: [],
+          stateResult: {
+            blocked: false,
+            suspended: false,
+            resetPassword: false,
+            reproveIdentity: false,
+          },
+          interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+        });
+      });
+      expect(await handler(mockEvent, mockContext)).toEqual({
+        batchItemFailures: [],
+      });
+      expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried.', {
+        errorMessage: 'State transition Error',
+      });
+      expect(sendAuditEvent).toHaveBeenLastCalledWith(
+        TxMAEgressEventName.AIS_NON_FRAUD_EVENT,
+        EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION,
+        operationalEventBody,
+        {
+          stateResult: {
+            blocked: false,
+            reproveIdentity: false,
+            resetPassword: false,
+            suspended: false,
+          },
+          interventionName: 'AIS_NO_INTERVENTION',
+          nextAllowableInterventions: [],
+        },
+      );
+      expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
+    });
+
+    it('should not process the event if the user account is marked as deleted when operational event is received', async () => {
+      mockRecord.body = JSON.stringify(operationalEventBody);
+      accountStateEngine.getInterventionEnumFromCode = jest.fn().mockImplementationOnce(() => {
+        return EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION;
+      });
+      mockRetrieveRecords.mockReturnValue({
+        blocked: false,
+        reproveIdentity: false,
+        resetPassword: false,
+        suspended: false,
+        isAccountDeleted: true,
+      });
+      expect(await handler(mockEvent, mockContext)).toEqual({
+        batchItemFailures: [],
+      });
+      expect(addMetric).toHaveBeenLastCalledWith(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
+      expect(logger.warn).toHaveBeenCalledTimes(2);
+      expect((logger.warn as jest.Mock).mock.calls).toEqual([
+        ['Sensitive info - user abc account has been deleted.'],
+        ['ValidationError caught, message will not be retried.', { errorMessage: 'Account is marked as deleted.' }],
+      ]);
+      expect(sendAuditEvent).toHaveBeenLastCalledWith(
+        TxMAEgressEventName.AIS_NON_FRAUD_EVENT,
+        EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION,
+        operationalEventBody,
+        {
+          stateResult: {
+            blocked: false,
+            reproveIdentity: false,
+            resetPassword: false,
+            suspended: false,
+          },
+          interventionName: 'AIS_NO_INTERVENTION',
+          nextAllowableInterventions: ['01', '03', '04', '05', '06', '25'],
+        },
+      );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
   });
