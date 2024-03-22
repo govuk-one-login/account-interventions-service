@@ -7,6 +7,7 @@ Feature: Invoke-APIGateway-EgressQueue-UnHappyPath.feature
         Given I send an valid <aisEventType> intervention event message to the TxMA ingress SQS queue
         When I invoke an API to retrieve the intervention status of the account
         And I send an other <secondAisEventType> intervention with past time stamp to the TxMA ingress SQS queue
+        And I filtered the userid in the received messages from the egress queue for ignored event
         Then I expect the Egress Queue response with <eventName>
         Examples:
             | aisEventType    | secondAisEventType          | eventName               |
@@ -19,6 +20,7 @@ Feature: Invoke-APIGateway-EgressQueue-UnHappyPath.feature
         When I send a message with userId to the Delete SNS Topic
         And I invoke an API to retrieve the deleted intervention status of the user account
         And I send an valid <aisEventType> intervention event to the TxMA ingress SQS queue for the deleted user
+        And I filtered the userid in the received messages from the egress queue for deleted user
         Then I expect response with valid deleted marker fields <eventName> for the userId in the Egrees Queue
         Examples:
             | aisEventType    | eventName                         |
@@ -29,6 +31,7 @@ Feature: Invoke-APIGateway-EgressQueue-UnHappyPath.feature
     Scenario Outline: UnHappy Path - Check Egress Queue Error messages for future time stamp - Returns Expected data for <invalidAisEventType>
         Given I send an invalid <eventType> intervention with future time stamp event message to the TxMA ingress SQS queue
         When I invoke an API to retrieve the intervention status of the account
+        And I filtered the userid in the received messages from the egress queue for future stamp
         Then I expect Egress Queue response with <eventName>
         Examples:
             | eventType                         | eventName                   |

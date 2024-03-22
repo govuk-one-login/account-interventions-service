@@ -9,6 +9,7 @@ import {
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import { attemptParseJSON, timeDelayForTestEnvironment } from '../../../utils/utility';
 import { sendSNSDeleteMessage } from '../../../utils/send-sns-message';
+import { Message } from '@aws-sdk/client-sqs';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-UnHappyPath-EgressQueue.feature');
 
@@ -17,7 +18,6 @@ defineFeature(feature, (test) => {
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  let response: any;
 
   afterAll(async () => {
     await purgeEgressQueue();
@@ -33,14 +33,15 @@ defineFeature(feature, (test) => {
     and,
     then,
   }) => {
+    let receivedMessage: Message[];
+
     given(/^I send an valid (.*) intervention event message to the TxMA ingress SQS queue$/, async (aisEventType) => {
       await sendSQSEvent(testUserId, aisEventType);
     });
 
     when(/^I invoke an API to retrieve the intervention status of the account$/, async () => {
       await timeDelayForTestEnvironment(1500);
-      response = await invokeGetAccountState(testUserId, true);
-      console.log('Response', { response });
+      await invokeGetAccountState(testUserId, true);
     });
 
     and(
@@ -51,8 +52,11 @@ defineFeature(feature, (test) => {
       },
     );
 
+    and(/^I filtered the userid in the received messages from the egress queue for ignored event$/, async () => {
+      receivedMessage = await filterUserIdInMessages(testUserId);
+    });
+
     then(/^I expect the Egress Queue response with (.*)$/, async (eventName) => {
-      const receivedMessage = await filterUserIdInMessages(testUserId);
       const message = receivedMessage.find((object) => {
         const objectBody = object.Body ? attemptParseJSON(object.Body) : {};
         return objectBody.extensions?.description === 'AIS_NO_INTERVENTION';
@@ -68,6 +72,8 @@ defineFeature(feature, (test) => {
     and,
     then,
   }) => {
+    let receivedMessage: Message[];
+
     given(/^I send an valid (.*) intervention event to the TxMA ingress SQS queue$/, async (aisEventType) => {
       await sendSQSEvent(testUserId, aisEventType);
     });
@@ -75,12 +81,12 @@ defineFeature(feature, (test) => {
     when(/^I send a message with userId to the Delete SNS Topic$/, async () => {
       await timeDelayForTestEnvironment(1500);
       const messageKey = 'user_id';
-      response = await sendSNSDeleteMessage(messageKey, testUserId);
+      await sendSNSDeleteMessage(messageKey, testUserId);
     });
 
     and(/^I invoke an API to retrieve the deleted intervention status of the user account$/, async () => {
       await timeDelayForTestEnvironment(1500);
-      response = await invokeGetAccountState(testUserId, true);
+      await invokeGetAccountState(testUserId, true);
     });
 
     and(
@@ -90,10 +96,12 @@ defineFeature(feature, (test) => {
       },
     );
 
+    and(/^I filtered the userid in the received messages from the egress queue for deleted user$/, async () => {
+      receivedMessage = await filterUserIdInMessages(testUserId);
+    });
     then(
       /^I expect response with valid deleted marker fields (.*) for the userId in the Egrees Queue$/,
       async (eventName) => {
-        const receivedMessage = await filterUserIdInMessages(testUserId);
         const message = receivedMessage.find((object) => {
           const objectBody = object.Body ? attemptParseJSON(object.Body) : {};
           return objectBody.extensions?.description === 'AIS_NO_INTERVENTION';
@@ -108,7 +116,10 @@ defineFeature(feature, (test) => {
     given,
     when,
     then,
+    and,
   }) => {
+    let receivedMessage: Message[];
+
     given(
       /^I send an invalid (.*) intervention with future time stamp event message to the TxMA ingress SQS queue$/,
       async (eventType) => {
@@ -118,15 +129,17 @@ defineFeature(feature, (test) => {
 
     when(/^I invoke an API to retrieve the intervention status of the account$/, async () => {
       await timeDelayForTestEnvironment(1500);
-      response = await invokeGetAccountState(testUserId, true);
+      await invokeGetAccountState(testUserId, true);
+    });
+
+    and(/^I filtered the userid in the received messages from the egress queue for future stamp$/, async () => {
+      receivedMessage = await filterUserIdInMessages(testUserId);
     });
 
     then(/^I expect Egress Queue response with (.*)$/, async (eventName) => {
-      const receivedMessage = await filterUserIdInMessages(testUserId);
       const body = receivedMessage[0].Body;
       const event_name = body ? attemptParseJSON(body).event_name : {};
       expect(event_name).toEqual(eventName);
-      await purgeEgressQueue();
     });
   });
 });
