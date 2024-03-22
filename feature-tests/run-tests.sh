@@ -15,7 +15,7 @@ cp -R /utils . 2>/dev/null || :
 
 # run tests and save the exit code
 declare test_run_result
-export tagFilter=@regression
+export tagFilter=@test
 yarn test 1>/dev/null
 test_run_result=$?
 
