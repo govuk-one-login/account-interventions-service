@@ -10,7 +10,7 @@ import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
 import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { sendAuditEvent } from '../../services/send-audit-events';
-import {TxMAEgressEventName, TxMAIngressEvent} from '../../data-types/interfaces';
+import { TxMAEgressEventName, TxMAIngressEvent } from '../../data-types/interfaces';
 import { publishTimeToResolveMetrics } from '../../commons/metrics-helper';
 
 jest.mock('@aws-lambda-powertools/logger');
