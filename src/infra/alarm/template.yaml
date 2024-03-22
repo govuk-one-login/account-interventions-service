@@ -782,7 +782,7 @@ Resources:
         - Name: ApiName
           Value: !Ref PrivateRestApiName
 
-  ApiLatencyP99Taking2SecsOrLonger:
+  ApiLatencyP80Taking2SecsOrLonger:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
