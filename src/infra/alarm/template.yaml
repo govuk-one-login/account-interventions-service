@@ -788,7 +788,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: "Over 20% of API Gateway requests are exceeding 2 seconds in a 10 minute period. ${RunBookURL}"
+      AlarmDescription: !Sub "Over 20% of API Gateway requests are exceeding 2 seconds in a 10 minute period. ${RunBookURL}"
       Namespace: AWS/ApiGateway
       MetricName: Latency
       ComparisonOperator: GreaterThanThreshold
