@@ -1248,13 +1248,13 @@ Resources:
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
 
-  PrivateRestApiIDSSM:
+  PrivateRestApiNameSSM:
     Type: AWS::SSM::Parameter
     Properties:
-      Description: PrivateRestApi ID
-      Name: !Sub /${AWS::StackName}/PrivateRestApi/ID
+      Description: PrivateRestApi Name
+      Name: !Sub /${AWS::StackName}/PrivateRestApi/Name
       Type: String
-      Value: !Ref PrivateRestApi
+      Value: !Sub "${AWS::StackName}-PrivateRestApi" # No return value for Rest API name so please keep manual value same as the PrivateRestApi resource Name property
       Tags:
         Environment: !Ref Environment
         Product: !Ref ProductTagValue
