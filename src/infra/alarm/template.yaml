@@ -25,6 +25,10 @@ Parameters:
     Description: "The name of the TxMA Egress DLQ"
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/ais-main/SQS/TxMAEgressDLQ/Name" #pragma: allowlist secret
+  PrivateRestApiName:
+    Description: "The name of the Private API Gateway"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/ais-main/PrivateRestApi/Name"
   RunBookURL:
     Description: "A Link to the AIS Runbook"
     Type: String
@@ -148,9 +152,11 @@ Resources:
       Namespace: AWS/SQS
       Period: 60
       Statistic: Maximum
+
 #
 # CloudWatch Alarms for Updating Deletion Status
 #
+
   AISUpdateDeleteFailed:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -192,8 +198,9 @@ Resources:
       Unit: Count
 
 #
-# Cloudwatch alarms for State Engine
+# CloudWatch alarms for State Engine
 #
+
   AccountStateEngineConfigurationIssue:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -332,8 +339,9 @@ Resources:
       Unit: Count
 
 #
-# Cloudwatch alarms for Account Interventions Processor
+# CloudWatch alarms for Account Interventions Processor
 #
+
   InvalidEventReceived:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -629,7 +637,7 @@ Resources:
           Value: InterventionsProcessorFunction
 
 #
-# Cloudwatch alarms for TxMA Latency
+# CloudWatch alarms for TxMA Latency
 #
 
   AverageTxMALatencyOver2Sec:
@@ -690,7 +698,7 @@ Resources:
           Value: InterventionsProcessorFunction
 
 #
-# Cloudwatch alarms for Status Retriever
+# CloudWatch alarms for Status Retriever
 #
 
   DbQueryError:
@@ -750,3 +758,177 @@ Resources:
       Dimensions:
         - Name: service
           Value: StatusRetrieverFunction
+
+#
+# CloudWatch alarms for API Gateway
+#
+
+  ApiLatencyP95Taking2SecsOrLonger:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Over 5% of API Gateway requests are exceeding 2 seconds in a 10 minute period. ${RunBookURL}"
+      Namespace: AWS/ApiGateway
+      MetricName: Latency
+      ComparisonOperator: GreaterThanThreshold
+      ExtendedStatistic: p95
+      Threshold: 2000
+      EvaluationPeriods: 1
+      Period: 600
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: ApiName
+          Value: !Ref PrivateRestApiName
+
+  ApiLatencyP80Taking2SecsOrLonger:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Over 20% of API Gateway requests are exceeding 2 seconds in a 10 minute period. ${RunBookURL}"
+      Namespace: AWS/ApiGateway
+      MetricName: Latency
+      ComparisonOperator: GreaterThanThreshold
+      ExtendedStatistic: p80
+      Threshold: 2000
+      EvaluationPeriods: 1
+      Period: 600
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: ApiName
+          Value: !Ref PrivateRestApiName
+
+  ApiHttp5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Small proportion of 5XX errors on the API Gateway. ${RunBookURL}"
+      Threshold: 1
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 2
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: errorThreshold
+          Label: errorThreshold
+          ReturnData: true
+          Expression: IF(invocations<1,0,errorPercentage)
+        - Id: invocations
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: ApiName
+                  Value: !Ref PrivateRestApiName
+            Period: 60
+            Stat: Sum
+        - Id: errorPercentage
+          Label: errorPercentage
+          ReturnData: false
+          Expression: (error/invocations)*100
+        - Id: error
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Ref PrivateRestApiName
+            Period: 60
+            Stat: Sum
+
+  ApiHttp5xxCriticalErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: !Sub "Significant proportion of 5XX errors on the API Gateway. ${RunBookURL}"
+      Threshold: 80
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 2
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: errorThreshold
+          Label: errorThreshold
+          ReturnData: true
+          Expression: IF(invocations<1,0,errorPercentage)
+        - Id: invocations
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: ApiName
+                  Value: !Ref PrivateRestApiName
+            Period: 60
+            Stat: Sum
+        - Id: errorPercentage
+          Label: errorPercentage
+          ReturnData: false
+          Expression: (error/invocations)*100
+        - Id: error
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Ref PrivateRestApiName
+            Period: 60
+            Stat: Sum
+
+  ApiHttp4xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Small proportion of 4XX errors on the API Gateway. ${RunBookURL}"
+      Threshold: 1
+      EvaluationPeriods: 5
+      DatapointsToAlarm: 2
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: errorThreshold
+          Label: errorThreshold
+          ReturnData: true
+          Expression: IF(invocations<1,0,errorPercentage)
+        - Id: invocations
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: ApiName
+                  Value: !Ref PrivateRestApiName
+            Period: 60
+            Stat: Sum
+        - Id: errorPercentage
+          Label: errorPercentage
+          ReturnData: false
+          Expression: (error/invocations)*100
+        - Id: error
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 4XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Ref PrivateRestApiName
+            Period: 60
+            Stat: Sum
