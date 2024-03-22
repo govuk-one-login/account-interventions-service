@@ -204,7 +204,7 @@ Resources:
       TreatMissingData: notBreaching
       Dimensions:
         - Name: QueueName
-          Value: !Ref AccountDeletionProcessorDLQName
+          Value: !Ref AccountDeletionProcessorQueueName
       MetricName: ApproximateAgeOfOldestMessage
       Namespace: AWS/SQS
       Period: 60
