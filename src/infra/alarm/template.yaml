@@ -788,11 +788,11 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Over 50% of API Gateway requests are exceeding 2 seconds in a 10 minute period. ${RunBookURL}"
+      AlarmDescription: "Over 80% of API Gateway requests are exceeding 2 seconds in a 10 minute period."
       Namespace: AWS/ApiGateway
       MetricName: Latency
       ComparisonOperator: GreaterThanThreshold
-      ExtendedStatistic: p50
+      ExtendedStatistic: p80
       Threshold: 2000
       EvaluationPeriods: 1
       Period: 600
