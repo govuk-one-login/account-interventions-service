@@ -312,7 +312,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Account Deletion Processor Function Lambda  throttled over 5 minutes. ${RunBookURL}"
+      AlarmDescription: !Sub "Account Deletion Processor Function Lambda throttled over 5 minutes. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 5
@@ -1055,7 +1055,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
       AlarmDescription: !Sub "Status Retriever Function Lambda errors over 10 minutes. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -1116,7 +1116,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
       AlarmDescription: !Sub "Status Retriever Function Lambda throttled over 10 minutes. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
