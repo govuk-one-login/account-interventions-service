@@ -69,6 +69,7 @@ Resources:
       Namespace: AWS/SQS
       Period: 60
       Statistic: Maximum
+      Unit: Count
 
   TxMAEgressQueueProcessingTooSlow:
     Type: AWS::CloudWatch::Alarm
@@ -88,6 +89,7 @@ Resources:
       Namespace: AWS/SQS
       Period: 60
       Statistic: Maximum
+      Unit: Count
 
   TxMAEgressQueueHasBacklog:
     Type: AWS::CloudWatch::Alarm
@@ -107,6 +109,7 @@ Resources:
       Namespace: AWS/SQS
       Period: 60
       Statistic: Maximum
+      Unit: Count
 
   TxMAEgressQueueTooManyMessages:
     Type: AWS::CloudWatch::Alarm
@@ -126,6 +129,7 @@ Resources:
       Namespace: AWS/SQS
       Period: 60
       Statistic: Maximum
+      Unit: Count
 
   TxMAEgressDLQHasMessages:
     Type: AWS::CloudWatch::Alarm
@@ -145,6 +149,7 @@ Resources:
       Namespace: AWS/SQS
       Period: 60
       Statistic: Maximum
+      Unit: Count
 
   TxMAEgressDLQTooManyMessages:
     Type: AWS::CloudWatch::Alarm
@@ -164,6 +169,7 @@ Resources:
       Namespace: AWS/SQS
       Period: 60
       Statistic: Maximum
+      Unit: Count
 
   AccountDeletionProcessorQueueProcessingSlowly:
     Type: AWS::CloudWatch::Alarm
@@ -183,6 +189,7 @@ Resources:
       Namespace: AWS/SQS
       Period: 60
       Statistic: Maximum
+      Unit: Count
 
   AccountDeletionProcessorQueueProcessingTooSlow:
     Type: AWS::CloudWatch::Alarm
@@ -202,6 +209,7 @@ Resources:
       Namespace: AWS/SQS
       Period: 60
       Statistic: Maximum
+      Unit: Count
 
   AccountDeletionProcessorDLQHasBacklog:
     Type: AWS::CloudWatch::Alarm
@@ -221,6 +229,7 @@ Resources:
       Namespace: AWS/SQS
       Period: 60
       Statistic: Maximum
+      Unit: Count
 
 #
 # CloudWatch Alarms for Updating Deletion Status
@@ -263,7 +272,7 @@ Resources:
         - Name: FunctionName
           Value: !Sub "${MainStackName}-AccountDeletionProcessorFunction"
       Period: 60
-      Statistic: SampleCount
+      Statistic: Sum
       Unit: Count
 
   AccountDeletionProcessorErrorsOver10Mins:
@@ -283,10 +292,10 @@ Resources:
         - Name: FunctionName
           Value: !Sub "${MainStackName}-AccountDeletionProcessorFunction"
       Period: 60
-      Statistic: SampleCount
+      Statistic: Sum
       Unit: Count
 
-  AccountDeletionProcessorThottled:
+  AccountDeletionProcessorThrottled:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -306,7 +315,7 @@ Resources:
       Statistic: Sum
       Unit: Count
 
-  AccountDeletionProcessorThottledOver5Mins:
+  AccountDeletionProcessorThrottledOver5Mins:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -323,7 +332,7 @@ Resources:
         - Name: FunctionName
           Value: !Sub "${MainStackName}-AccountDeletionProcessorFunction"
       Period: 60
-      Statistic: SampleCount
+      Statistic: Sum
       Unit: Count
 
   AccountDeletionProcessorThrottledOver10Mins:
@@ -343,7 +352,7 @@ Resources:
         - Name: FunctionName
           Value: !Sub "${MainStackName}-AccountDeletionProcessorFunction"
       Period: 60
-      Statistic: SampleCount
+      Statistic: Sum
       Unit: Count
 
   AISUpdateDeleteFailed:
@@ -568,7 +577,7 @@ Resources:
         - Name: FunctionName
           Value: !Sub "${MainStackName}-InterventionsProcessorFunction"
       Period: 60
-      Statistic: SampleCount
+      Statistic: Sum
       Unit: Count
 
   InterventionsProcessorErrorsOver10Mins:
@@ -588,10 +597,10 @@ Resources:
         - Name: FunctionName
           Value: !Sub "${MainStackName}-InterventionsProcessorFunction"
       Period: 60
-      Statistic: SampleCount
+      Statistic: Sum
       Unit: Count
 
-  InterventionsProcessorThottled:
+  InterventionsProcessorThrottled:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -611,7 +620,7 @@ Resources:
       Statistic: Sum
       Unit: Count
 
-  InterventionsProcessorThottledOver5Mins:
+  InterventionsProcessorThrottledOver5Mins:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -628,7 +637,7 @@ Resources:
         - Name: FunctionName
           Value: !Sub "${MainStackName}-InterventionsProcessorFunction"
       Period: 60
-      Statistic: SampleCount
+      Statistic: Sum
       Unit: Count
 
   InterventionsProcessorThrottledOver10Mins:
@@ -648,7 +657,7 @@ Resources:
         - Name: FunctionName
           Value: !Sub "${MainStackName}-InterventionsProcessorFunction"
       Period: 60
-      Statistic: SampleCount
+      Statistic: Sum
       Unit: Count
 
   InvalidEventReceived:
@@ -662,6 +671,7 @@ Resources:
       MetricName: INVALID_EVENT_RECEIVED
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
+      Unit: Count
       Threshold: 5
       EvaluationPeriods: 1
       Period: 60
@@ -681,6 +691,7 @@ Resources:
       MetricName: INVALID_EVENT_RECEIVED
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
+      Unit: Count
       Threshold: 5
       EvaluationPeriods: 5
       Period: 60
@@ -700,6 +711,7 @@ Resources:
       MetricName: ACCOUNT_IS_MARKED_AS_DELETED
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
+      Unit: Count
       Threshold: 5
       EvaluationPeriods: 1
       Period: 60
@@ -719,6 +731,7 @@ Resources:
       MetricName: INTERVENTION_IGNORED_IN_FUTURE
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
+      Unit: Count
       Threshold: 5
       EvaluationPeriods: 1
       Period: 60
@@ -738,6 +751,7 @@ Resources:
       MetricName: CONFIDENCE_LEVEL_TOO_LOW
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
+      Unit: Count
       Threshold: 5
       EvaluationPeriods: 1
       Period: 60
@@ -757,6 +771,7 @@ Resources:
       MetricName: INTERVENTION_EVENT_STALE
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
+      Unit: Count
       Threshold: 5
       EvaluationPeriods: 1
       Period: 60
@@ -776,6 +791,7 @@ Resources:
       MetricName: INTERVENTION_EVENT_STALE
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
+      Unit: Count
       Threshold: 5
       EvaluationPeriods: 5
       Period: 60
@@ -902,7 +918,7 @@ Resources:
         - Name: service
           Value: InterventionsProcessorFunction
       Period: 60
-      Statistic: SampleCount
+      Statistic: Sum
       Unit: Count
 
   TxMAPublishFailures:
@@ -923,7 +939,7 @@ Resources:
         - Name: service
           Value: InterventionsProcessorFunction
       Period: 60
-      Statistic: SampleCount
+      Statistic: Sum
       Unit: Count
 
   InvalidSchema:
@@ -937,6 +953,7 @@ Resources:
       MetricName: INVALID_SCHEMA
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
+      Unit: Count
       Threshold: 1
       EvaluationPeriods: 1
       Period: 60
@@ -960,6 +977,7 @@ Resources:
       MetricName: EVENT_DELIVERY_LATENCY
       ComparisonOperator: GreaterThanThreshold
       Statistic: Average
+      Unit: Count
       Threshold: 2000
       EvaluationPeriods: 1
       Period: 60
@@ -979,6 +997,7 @@ Resources:
       MetricName: EVENT_DELIVERY_LATENCY
       ComparisonOperator: GreaterThanThreshold
       Statistic: Average
+      Unit: Count
       Threshold: 5000
       EvaluationPeriods: 1
       Period: 60
@@ -998,6 +1017,7 @@ Resources:
       MetricName: EVENT_DELIVERY_LATENCY
       ComparisonOperator: GreaterThanThreshold
       Statistic: Average
+      Unit: Count
       Threshold: 10000
       EvaluationPeriods: 1
       Period: 60
@@ -1047,7 +1067,7 @@ Resources:
         - Name: FunctionName
           Value: !Sub "${MainStackName}-StatusRetrieverFunction"
       Period: 60
-      Statistic: SampleCount
+      Statistic: Sum
       Unit: Count
 
   StatusRetrieverErrorsOver10Mins:
@@ -1067,11 +1087,11 @@ Resources:
         - Name: FunctionName
           Value: !Sub "${MainStackName}-StatusRetrieverFunction"
       Period: 60
-      Statistic: SampleCount
+      Statistic: Sum
       Unit: Count
 
 
-  StatusRetrieverThottled:
+  StatusRetrieverThrottled:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -1091,7 +1111,7 @@ Resources:
       Statistic: Sum
       Unit: Count
 
-  StatusRetrieverThottledOver5Mins:
+  StatusRetrieverThrottledOver5Mins:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -1108,7 +1128,7 @@ Resources:
         - Name: FunctionName
           Value: !Sub "${MainStackName}-StatusRetrieverFunction"
       Period: 60
-      Statistic: SampleCount
+      Statistic: Sum
       Unit: Count
 
   StatusRetrieverThrottledOver10Mins:
@@ -1128,7 +1148,7 @@ Resources:
         - Name: FunctionName
           Value: !Sub "${MainStackName}-StatusRetrieverFunction"
       Period: 60
-      Statistic: SampleCount
+      Statistic: Sum
       Unit: Count
 
   DbQueryError:
@@ -1142,6 +1162,7 @@ Resources:
       MetricName: DB_QUERY_ERROR
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
+      Unit: Count
       Threshold: 1
       EvaluationPeriods: 2
       Period: 60
@@ -1161,6 +1182,7 @@ Resources:
       MetricName: INVALID_SUBJECT_ID
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
+      Unit: Count
       Threshold: 1
       EvaluationPeriods: 10
       DatapointsToAlarm: 3
@@ -1181,6 +1203,7 @@ Resources:
       MetricName: INVALID_HISTORY_STRING
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Statistic: Sum
+      Unit: Count
       Threshold: 1
       EvaluationPeriods: 5
       Period: 60
