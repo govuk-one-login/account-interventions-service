@@ -209,7 +209,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Account Deletion Processor DLQ has a message. ${RunBookURL}"
+      AlarmDescription: !Sub "Account Deletion Processor DLQ has at least one message. ${RunBookURL}"
       ComparisonOperator: GreaterThanThreshold
       Threshold: 1
       EvaluationPeriods: 1
