@@ -94,14 +94,12 @@ export async function validateEventIsNotStale(
       ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT, intervention, event, {
           stateResult: initialState,
           interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-          nextAllowableInterventions:
-            AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+          nextAllowableInterventions: AccountStateEngine.getInstance().getNextAllowableInterventions(initialState),
         })
       : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_IGNORED_STALE, intervention, event, {
           stateResult: initialState,
           interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-          nextAllowableInterventions:
-            AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+          nextAllowableInterventions: AccountStateEngine.getInstance().getNextAllowableInterventions(initialState),
         }));
     throw new ValidationError('Event received predates last applied event for this user.');
   }

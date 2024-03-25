@@ -64,8 +64,8 @@ export class AccountStateEngine {
    * @param initialState - optional state object representation the current state of the account, it defaults to account unsuspended if nothing is passed
    */
   applyEventTransition(event: EventsEnum, initialState: StateDetails): AccountStateEngineOutput {
-    const allowedTransitions = this.determineNextAllowableInterventions(initialState);
-    const transition = this.getTransition(allowedTransitions, event, initialState);
+    const transition = this.getTransition(event, initialState);
+    console.log({ transition });
     const newStateObject = this.getNewStateObject(transition);
     if (areAccountStatesTheSame(newStateObject, initialState))
       throw buildStateTransitionError(
@@ -85,7 +85,7 @@ export class AccountStateEngine {
    *
    * @param state - state based on which the next interventions are allowed
    */
-  determineNextAllowableInterventions(state: StateDetails) {
+  getNextAllowableInterventions(state: StateDetails) {
     const stateName = this.findAccountStateName(state);
     return this.findPossibleTransitions(stateName);
   }
@@ -95,7 +95,7 @@ export class AccountStateEngine {
    * It returns the name if found, throws an error otherwise
    * @param state - StateDetail object representing the state of the account
    */
-  private findAccountStateName(state: StateDetails) {
+  findAccountStateName(state: StateDetails) {
     for (const key of Object.keys(transitionConfiguration.nodes))
       if (areAccountStatesTheSame(transitionConfiguration.nodes[key]!, state)) return key;
     throw buildConfigurationError(
@@ -128,8 +128,9 @@ export class AccountStateEngine {
    * @param transition - EventsEnum representation of the proposed transition
    * @param initialState - initial state of the account
    */
-  private getTransition(allowedTransition: string[], transition: EventsEnum, initialState: StateDetails) {
-    for (const edge of allowedTransition) {
+  private getTransition(transition: EventsEnum, initialState: StateDetails) {
+    const allowedTransitions = this.getNextAllowableInterventions(initialState);
+    for (const edge of allowedTransitions) {
       if (AccountStateEngine.configuration.edges[edge]?.name === transition.toString()) return edge;
     }
     throw buildStateTransitionError(
@@ -173,7 +174,7 @@ function buildStateTransitionError(
   logger.error({ message: errorMessage });
   return new StateTransitionError(errorMessage, transition, {
     stateResult: initialState,
-    nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+    nextAllowableInterventions: AccountStateEngine.getInstance().getNextAllowableInterventions(initialState),
     interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
   });
 }
