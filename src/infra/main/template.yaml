@@ -40,6 +40,20 @@ Parameters:
     Description: The name of the Core VC Storage stack
     Type: String
     Default: ais-core
+  AlertingSNSHighAlertNotificationTopicARN:
+    Description: "The ARN of the Alerting SNS High Alert Notification topic"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/ais-infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
+  LambdaDeploymentPreference:
+    Description: "Specifies the configuration to enable gradual Lambda deployments. It can be used to set deployment type and also allows skipping canary deployment by setting to 'AllAtOnce'"
+    Type: String
+    Default: "Canary10Percent10Minutes"
+    AllowedValues:
+      - AllAtOnce
+      - Canary10Percent5Minutes
+      - Canary10Percent10Minutes
+      - Canary10Percent15Minutes
+      - Canary10Percent30Minutes
   ProductTagValue:
     Description: Value for the Product Tag
     Type: String
@@ -62,6 +76,7 @@ Conditions:
   IsNotInternal: !Not [ Condition: IsInternal ]
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
+#  IsProd: !Or [!Equals [!Ref Environment, integration], !Equals [!Ref Environment, production]]
 
 Mappings:
   EnvConfig:
@@ -127,7 +142,7 @@ Globals:
     Architectures:
       - arm64
     Tracing: Active
-    AutoPublishAlias: latest
+    AutoPublishAlias: live
     CodeUri: ../../handlers
     KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
     Environment:
@@ -171,6 +186,14 @@ Resources:
     Properties:
       FunctionName: !Sub "${AWS::StackName}-InterventionsProcessorFunction"
       Description: "Processes intervention events and updates account's intervention status."
+      DeploymentPreference:
+        Type: !If
+            - IsInternal
+            - !Ref LambdaDeploymentPreference
+            - AllAtOnce
+        Alarms:
+          - !Ref InterventionsProcessorFunctionErrorsAlarm
+        Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 5
       Handler: interventions-processor-handler.handler
       MemorySize: 512
@@ -385,6 +408,14 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
       Description: "Updates an account intervention status indicating that the account has been deleted."
+      DeploymentPreference:
+        Type: !If
+          - IsInternal
+          - !Ref LambdaDeploymentPreference
+          - AllAtOnce
+        Alarms:
+          - !Ref AccountDeletionProcessorFunctionErrorsAlarm
+        Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 10
       Handler: account-deletion-processor-handler.handler
       MemorySize: 128
@@ -965,6 +996,14 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-StatusRetrieverFunction'
       Description: "Retrieves the account's intervention status."
+      DeploymentPreference:
+        Type: !If
+          - IsInternal
+          - !Ref LambdaDeploymentPreference
+          - AllAtOnce
+        Alarms:
+          - !Ref StatusRetrieverFunctionErrorsAlarm
+        Role: !GetAtt CodeDeployServiceRole.Arn
       MemorySize: 512
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       Timeout: 10
@@ -1346,6 +1385,92 @@ Resources:
       AliasName: !Sub "alias/${AWS::StackName}-CloudWatchEncryptionKey"
       TargetKeyId: !GetAtt CloudWatchEncryptionKey.Arn
 
+  #
+  #  Canary Deployment CloudWatch Alarms
+  #
+
+  StatusRetrieverFunctionErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Canary Deployment: Errors returned from the StatusRetrieverFunction Lambda"
+      MetricName: Errors
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-StatusRetrieverFunction:live"
+        - Name: FunctionName
+          Value: !Ref StatusRetrieverFunction
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  InterventionsProcessorFunctionErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Canary Deployment: Errors returned from the InterventionsProcessorFunction Lambda"
+      MetricName: Errors
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-InterventionsProcessorFunction:live"
+        - Name: FunctionName
+          Value: !Ref InterventionsProcessorFunction
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  AccountDeletionProcessorFunctionErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Canary Deployment: Errors returned from the AccountDeletionProcessorFunction Lambda"
+      MetricName: Errors
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-AccountDeletionProcessorFunction:live"
+        - Name: FunctionName
+          Value: !Ref AccountDeletionProcessorFunction
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  #
+  #  Code Deploy Service Role
+  #
+
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - codedeploy.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
 
 Outputs:
   PrivateApiEndpoint:
