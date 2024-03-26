@@ -45,7 +45,7 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/ais-infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
   LambdaDeploymentPreference:
-    Description: "Specifies the configuration to enable gradual Lambda deployments"
+    Description: "Specifies the configuration to enable gradual Lambda deployments. It can be used to set deployment type and also allows skipping canary deployment by setting to 'AllAtOnce'"
     Type: String
     Default: "Canary10Percent10Minutes"
     AllowedValues:
@@ -1487,12 +1487,7 @@ Resources:
                 - codedeploy.amazonaws.com
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda
-      PermissionsBoundary:
-        !If [
-          UsePermissionsBoundary,
-          !Ref PermissionsBoundary,
-          !Ref AWS::NoValue,
-        ]
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
 
 Outputs:
   PrivateApiEndpoint:
