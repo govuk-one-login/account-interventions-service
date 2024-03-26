@@ -9,7 +9,12 @@ import {
   noMetadata,
   TriggerEventsEnum,
 } from '../data-types/constants';
-import { DynamoDBStateResult, StateDetails, TxMAEgressEventName, TxMAIngressEvent } from '../data-types/interfaces';
+import {
+  DynamoDBStateResult,
+  StateDetails,
+  TxMAEgressEventTransitionType,
+  TxMAIngressEvent,
+} from '../data-types/interfaces';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
 import {
   attemptToParseJson,
@@ -23,9 +28,9 @@ import { AppConfigService } from '../services/app-config-service';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-import { sendAuditEvent } from '../services/send-audit-events';
 import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
 import { publishTimeToResolveMetrics, updateAccountStateCountMetric } from '../commons/metrics-helper';
+import { AuditEvents } from '../services/audit-events-model';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
@@ -116,9 +121,10 @@ async function processSQSRecord(record: SQSRecord) {
 
   updateAccountStateCountMetric(currentAccountState, statusResult.stateResult);
   addMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
-  await (eventName === EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION
-    ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT, eventName, recordBody, statusResult)
-    : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED, eventName, recordBody, statusResult));
+  await new AuditEvents(TxMAEgressEventTransitionType.TRANSITION_APPLIED, eventName, recordBody, statusResult).send();
+  // await (eventName === EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION
+  //   ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT_TRANSITION_APPLIED, eventName, recordBody, statusResult)
+  //   : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED, eventName, recordBody, statusResult));
 }
 
 /**
@@ -138,9 +144,20 @@ async function handleError(error: unknown, record: SQSRecord) {
   else if (error instanceof StateTransitionError) {
     logger.warn('StateTransitionError caught, message will not be retried.', { errorMessage: error.message });
     const recordBody = JSON.parse(record.body) as TxMAIngressEvent;
-    await (recordBody.event_name === TriggerEventsEnum.OPERATIONAL_ACCOUNT_INTERVENTION
-      ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT, error.transition, recordBody, error.output)
-      : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_TRANSITION_IGNORED, error.transition, recordBody, error.output));
+    await new AuditEvents(
+      TxMAEgressEventTransitionType.TRANSITION_IGNORED,
+      error.transition,
+      recordBody,
+      error.output,
+    ).send();
+    // await (recordBody.event_name === TriggerEventsEnum.OPERATIONAL_ACCOUNT_INTERVENTION
+    //   ? sendAuditEvent(
+    //       TxMAEgressEventName.AIS_NON_FRAUD_EVENT_TRANSITION_IGNORED,
+    //       error.transition,
+    //       recordBody,
+    //       error.output,
+    //     )
+    //   : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_TRANSITION_IGNORED, error.transition, recordBody, error.output));
   } else {
     logger.error('Error caught, message will be retried.', { errorMessage: (error as Error).message });
     return record.messageId;
@@ -183,19 +200,24 @@ async function validateAccountIsNotDeleted(
   if (itemFromDB?.isAccountDeleted === true) {
     logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
     addMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-    await (intervention === EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION
-      ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT, intervention, record, {
-          stateResult: initialState,
-          interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-          nextAllowableInterventions:
-            AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
-        })
-      : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_IGNORED_ACCOUNT_DELETED, intervention, record, {
-          stateResult: initialState,
-          interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-          nextAllowableInterventions:
-            AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
-        }));
+    await new AuditEvents(TxMAEgressEventTransitionType.IGNORED_ACCOUNT_DELETED, intervention, record, {
+      stateResult: initialState,
+      interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+      nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+    }).send();
+    // await (intervention === EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION
+    //   ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT_IGNORED_ACCOUNT_DELETED, intervention, record, {
+    //       stateResult: initialState,
+    //       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+    //       nextAllowableInterventions:
+    //         AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+    //     })
+    //   : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_IGNORED_ACCOUNT_DELETED, intervention, record, {
+    //       stateResult: initialState,
+    //       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+    //       nextAllowableInterventions:
+    //         AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+    //     }));
     throw new ValidationError('Account is marked as deleted.');
   }
 }

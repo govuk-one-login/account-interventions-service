@@ -16,6 +16,7 @@ import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 jest.mock('../../commons/metrics');
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../send-audit-events');
+jest.mock('../audit-events-service');
 jest.mock('../../commons/get-current-timestamp', () => ({
   getCurrentTimestamp: jest.fn().mockImplementation(() => {
     return {
@@ -226,7 +227,7 @@ describe('event-validation', () => {
         ),
     ).rejects.toThrow(new ValidationError('Event received predates last applied event for this user.'));
     expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
-    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_NON_FRAUD_EVENT', 'OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION', staleEvent, {
+    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_NON_FRAUD_EVENT_IGNORED_STALE', 'OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION', staleEvent, {
       stateResult: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
       interventionName: 'AIS_NO_INTERVENTION',
       nextAllowableInterventions: ['01', '03', '04', '05', '06', '25'],

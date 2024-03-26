@@ -549,7 +549,7 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        TxMAEgressEventName.AIS_NON_FRAUD_EVENT,
+        TxMAEgressEventName.AIS_NON_FRAUD_EVENT_TRANSITION_APPLIED,
         EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION,
         operationalEventBody,
         {
@@ -597,7 +597,7 @@ describe('intervention processor handler', () => {
         errorMessage: 'State transition Error',
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        TxMAEgressEventName.AIS_NON_FRAUD_EVENT,
+        TxMAEgressEventName.AIS_NON_FRAUD_EVENT_TRANSITION_IGNORED,
         EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION,
         operationalEventBody,
         {
@@ -636,7 +636,7 @@ describe('intervention processor handler', () => {
         ['ValidationError caught, message will not be retried.', { errorMessage: 'Account is marked as deleted.' }],
       ]);
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        TxMAEgressEventName.AIS_NON_FRAUD_EVENT,
+        TxMAEgressEventName.AIS_NON_FRAUD_EVENT_IGNORED_ACCOUNT_DELETED,
         EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION,
         operationalEventBody,
         {
