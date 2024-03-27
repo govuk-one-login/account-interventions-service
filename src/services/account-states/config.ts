@@ -116,8 +116,8 @@ export const transitionConfiguration: TransitionConfigurationInterface = {
     AccountIsOkay: ['01', '03', '04', '05', '06', '25'],
     AccountIsBlocked: ['07'],
     AccountIsSuspended: ['02', '03', '04', '05', '06'],
-    AccountNeedsPasswordReset: ['01', '02', '03', '05', '06', '25', '90', '94'],
+    AccountNeedsPasswordReset: ['01', '02', '03', '05', '06', '90', '94'],
     AccountNeedsIdReset: ['01', '02', '03', '04', '06', '91'],
-    AccountNeedsPswAndIdReset: ['01', '02', '03', '04', '05', '25', '92', '93', '95'],
+    AccountNeedsPswAndIdReset: ['01', '02', '03', '04', '05', '92', '93', '95'],
   },
 };

@@ -69,7 +69,7 @@ const passwordResetRequiredUpdate = {
     reproveIdentity: false,
   },
   interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
-  nextAllowableInterventions: ['01', '02', '03', '05', '06', '25', '90', '94'],
+  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '94'],
 };
 const idResetRequiredUpdate = {
   stateResult: {
@@ -89,7 +89,7 @@ const pswAndIdResetRequiredUpdate = {
     reproveIdentity: true,
   },
   interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
-  nextAllowableInterventions: ['01', '02', '03', '04', '05', '25', '92', '93', '95'],
+  nextAllowableInterventions: ['01', '02', '03', '04', '05', '92', '93', '95'],
 };
 const unsuspendAccountUpdate = {
   stateResult: {
@@ -145,7 +145,7 @@ const idResetSuccessfulUpdateSuspended = {
     resetPassword: true,
     reproveIdentity: false,
   },
-  nextAllowableInterventions: ['01', '02', '03', '05', '06', '25', '90', '94'],
+  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '94'],
 };
 
 jest.mock('@aws-lambda-powertools/logger');
@@ -239,12 +239,7 @@ describe('account-state-service', () => {
           EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
           accountNeedsPswReset,
           pswAndIdResetRequiredUpdate,
-        ],
-        [
-          EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION,
-          accountNeedsPswReset,
-          idResetRequiredUpdate,
-        ],
+        ]
       ])('%p', (intervention, retrievedAccountState, command) => {
         const partialCommand = accountStateEngine.applyEventTransition(intervention, retrievedAccountState);
         expect(partialCommand).toEqual(command);
