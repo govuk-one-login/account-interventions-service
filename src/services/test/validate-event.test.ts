@@ -15,7 +15,6 @@ import { AuditEvents } from '../audit-events-service';
 
 jest.mock('../../commons/metrics');
 jest.mock('@aws-lambda-powertools/logger');
-jest.mock('../send-audit-events');
 jest.mock('../audit-events-service');
 jest.mock('../../commons/get-current-timestamp', () => ({
   getCurrentTimestamp: jest.fn().mockImplementation(() => {

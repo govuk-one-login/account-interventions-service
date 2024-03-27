@@ -17,7 +17,6 @@ jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
 jest.mock('@aws-sdk/util-dynamodb');
 jest.mock('../../services/dynamo-database-service');
-jest.mock('../../services/send-audit-events');
 jest.mock('../../commons/metrics-helper');
 jest.mock('../../services/audit-events-service');
 
