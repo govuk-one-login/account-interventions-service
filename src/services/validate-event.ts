@@ -96,7 +96,7 @@ export async function validateEventIsNotStale(
     await new AuditEvents(TxMAEgressEventTransitionType.IGNORED_STALE, intervention, event, {
       stateResult: initialState,
       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-      nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+      nextAllowableInterventions: AccountStateEngine.getInstance().getNextAllowableInterventions(initialState),
     }).send();
     throw new ValidationError('Event received predates last applied event for this user.');
   }

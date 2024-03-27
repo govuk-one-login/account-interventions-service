@@ -81,7 +81,7 @@ async function processSQSRecord(record: SQSRecord) {
   const currentTimestamp = getCurrentTimestamp();
   const recordBody = attemptToParseJson(record.body);
   validateEventAgainstSchema(recordBody);
-  const eventName = getEventName(recordBody);
+  let eventName = getEventName(recordBody);
   logger.debug('Intervention received.', { intervention: eventName });
   validateLevelOfConfidence(eventName, recordBody);
   await validateEventIsNotInFuture(eventName, recordBody);
@@ -93,7 +93,14 @@ async function processSQSRecord(record: SQSRecord) {
 
   const itemFromDB = await service.getAccountStateInformation(userId);
 
-  const currentAccountState: StateDetails = formCurrentAccountStateObject(itemFromDB);
+  const currentAccountState = formCurrentAccountStateObject(itemFromDB);
+
+  if (eventName === EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION) {
+    const stateName = accountStateEngine.findAccountStateName(currentAccountState);
+    if (stateName === 'AccountNeedsPasswordReset') {
+      eventName = EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_OPERATIONAL_IDENTITY_REVERIFICATION;
+    }
+  }
 
   if (itemFromDB) {
     await validateAccountIsNotDeleted(eventName, userId, recordBody, currentAccountState, itemFromDB);
@@ -192,7 +199,7 @@ async function validateAccountIsNotDeleted(
     await new AuditEvents(TxMAEgressEventTransitionType.IGNORED_ACCOUNT_DELETED, intervention, record, {
       stateResult: initialState,
       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-      nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+      nextAllowableInterventions: AccountStateEngine.getInstance().getNextAllowableInterventions(initialState),
     }).send();
     throw new ValidationError('Account is marked as deleted.');
   }
@@ -203,7 +210,7 @@ async function validateAccountIsNotDeleted(
  * @param itemFromDB - query result from database
  * @returns - Object representing the account state
  */
-function formCurrentAccountStateObject(itemFromDB?: DynamoDBStateResult) {
+function formCurrentAccountStateObject(itemFromDB?: DynamoDBStateResult): StateDetails {
   return {
     blocked: itemFromDB ? itemFromDB.blocked : false,
     suspended: itemFromDB ? itemFromDB.suspended : false,

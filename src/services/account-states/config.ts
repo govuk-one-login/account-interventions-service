@@ -87,6 +87,11 @@ export const transitionConfiguration: TransitionConfigurationInterface = {
       name: EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION,
       interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
     },
+    '26': {
+      to: 'AccountNeedsPswAndIdReset',
+      name: EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_OPERATIONAL_IDENTITY_REVERIFICATION,
+      interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
+    },
     '90': {
       to: 'AccountIsOkay',
       name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
@@ -116,7 +121,7 @@ export const transitionConfiguration: TransitionConfigurationInterface = {
     AccountIsOkay: ['01', '03', '04', '05', '06', '25'],
     AccountIsBlocked: ['07'],
     AccountIsSuspended: ['02', '03', '04', '05', '06'],
-    AccountNeedsPasswordReset: ['01', '02', '03', '05', '06', '90', '94'],
+    AccountNeedsPasswordReset: ['01', '02', '03', '05', '06', '26', '90', '94'],
     AccountNeedsIdReset: ['01', '02', '03', '04', '06', '91'],
     AccountNeedsPswAndIdReset: ['01', '02', '03', '04', '05', '92', '93', '95'],
   },
