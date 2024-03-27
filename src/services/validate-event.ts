@@ -71,9 +71,6 @@ export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: T
     logger.debug(`Timestamp is in the future (sec): ${eventTimestampInMs}.`);
     addMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
     await new AuditEvents(TxMAEgressEventTransitionType.IGNORED_IN_FUTURE, eventEnum, event).send();
-    // await (eventEnum === EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION
-    //   ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT_IGNORED_IN_FUTURE, eventEnum, event)
-    //   : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_IGNORED_IN_FUTURE, eventEnum, event));
     throw new Error('Event is in the future. It will be retried');
   }
 }
@@ -101,19 +98,6 @@ export async function validateEventIsNotStale(
       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
       nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
     }).send();
-    // await (intervention === EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION
-    //   ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT_IGNORED_STALE, intervention, event, {
-    //       stateResult: initialState,
-    //       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-    //       nextAllowableInterventions:
-    //         AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
-    //     })
-    //   : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_IGNORED_STALE, intervention, event, {
-    //       stateResult: initialState,
-    //       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-    //       nextAllowableInterventions:
-    //         AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
-    //     }));
     throw new ValidationError('Event received predates last applied event for this user.');
   }
 }

@@ -30,7 +30,7 @@ import { AccountStateEngine } from '../services/account-states/account-state-eng
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
 import { publishTimeToResolveMetrics, updateAccountStateCountMetric } from '../commons/metrics-helper';
-import { AuditEvents } from '../services/audit-events-model';
+import { AuditEvents } from '../services/audit-events-service';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
@@ -122,9 +122,6 @@ async function processSQSRecord(record: SQSRecord) {
   updateAccountStateCountMetric(currentAccountState, statusResult.stateResult);
   addMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
   await new AuditEvents(TxMAEgressEventTransitionType.TRANSITION_APPLIED, eventName, recordBody, statusResult).send();
-  // await (eventName === EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION
-  //   ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT_TRANSITION_APPLIED, eventName, recordBody, statusResult)
-  //   : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED, eventName, recordBody, statusResult));
 }
 
 /**
@@ -150,14 +147,6 @@ async function handleError(error: unknown, record: SQSRecord) {
       recordBody,
       error.output,
     ).send();
-    // await (recordBody.event_name === TriggerEventsEnum.OPERATIONAL_ACCOUNT_INTERVENTION
-    //   ? sendAuditEvent(
-    //       TxMAEgressEventName.AIS_NON_FRAUD_EVENT_TRANSITION_IGNORED,
-    //       error.transition,
-    //       recordBody,
-    //       error.output,
-    //     )
-    //   : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_TRANSITION_IGNORED, error.transition, recordBody, error.output));
   } else {
     logger.error('Error caught, message will be retried.', { errorMessage: (error as Error).message });
     return record.messageId;
@@ -205,19 +194,6 @@ async function validateAccountIsNotDeleted(
       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
       nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
     }).send();
-    // await (intervention === EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION
-    //   ? sendAuditEvent(TxMAEgressEventName.AIS_NON_FRAUD_EVENT_IGNORED_ACCOUNT_DELETED, intervention, record, {
-    //       stateResult: initialState,
-    //       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-    //       nextAllowableInterventions:
-    //         AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
-    //     })
-    //   : sendAuditEvent(TxMAEgressEventName.AIS_EVENT_IGNORED_ACCOUNT_DELETED, intervention, record, {
-    //       stateResult: initialState,
-    //       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-    //       nextAllowableInterventions:
-    //         AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
-    //     }));
     throw new ValidationError('Account is marked as deleted.');
   }
 }

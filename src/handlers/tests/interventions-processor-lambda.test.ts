@@ -9,9 +9,9 @@ import { AccountStateEngine } from '../../services/account-states/account-state-
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
 import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
-import { sendAuditEvent } from '../../services/send-audit-events';
-import { TxMAEgressEventName, TxMAIngressEvent } from '../../data-types/interfaces';
+import { TxMAEgressEventTransitionType, TxMAIngressEvent } from '../../data-types/interfaces';
 import { publishTimeToResolveMetrics } from '../../commons/metrics-helper';
+import { AuditEvents} from '../../services/audit-events-service';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -19,6 +19,7 @@ jest.mock('@aws-sdk/util-dynamodb');
 jest.mock('../../services/dynamo-database-service');
 jest.mock('../../services/send-audit-events');
 jest.mock('../../commons/metrics-helper');
+jest.mock('../../services/audit-events-service');
 
 jest.mock('../../commons/get-current-timestamp', () => ({
   getCurrentTimestamp: jest.fn().mockImplementation(() => {
@@ -192,8 +193,8 @@ describe('intervention processor handler', () => {
       expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried.', {
         errorMessage: 'State transition Error',
       });
-      expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        TxMAEgressEventName.AIS_EVENT_TRANSITION_IGNORED,
+      expect(AuditEvents).toHaveBeenLastCalledWith(
+        TxMAEgressEventTransitionType.TRANSITION_IGNORED,
         EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
         interventionEventBody,
         {
@@ -224,8 +225,8 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
+      expect(AuditEvents).toHaveBeenLastCalledWith(
+        TxMAEgressEventTransitionType.TRANSITION_APPLIED,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
@@ -261,8 +262,8 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
+      expect(AuditEvents).toHaveBeenLastCalledWith(
+        TxMAEgressEventTransitionType.TRANSITION_APPLIED,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
@@ -299,8 +300,8 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        TxMAEgressEventName.AIS_EVENT_TRANSITION_APPLIED,
+      expect(AuditEvents).toHaveBeenLastCalledWith(
+        TxMAEgressEventTransitionType.TRANSITION_APPLIED,
         EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
         resetPasswordEventBody,
         {
@@ -339,8 +340,8 @@ describe('intervention processor handler', () => {
         ['Sensitive info - user abc account has been deleted.'],
         ['ValidationError caught, message will not be retried.', { errorMessage: 'Account is marked as deleted.' }],
       ]);
-      expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        TxMAEgressEventName.AIS_EVENT_IGNORED_ACCOUNT_DELETED,
+      expect(AuditEvents).toHaveBeenLastCalledWith(
+        TxMAEgressEventTransitionType.IGNORED_ACCOUNT_DELETED,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
@@ -367,8 +368,8 @@ describe('intervention processor handler', () => {
         ],
       });
       expect(addMetric).toHaveBeenCalledWith('INTERVENTION_IGNORED_IN_FUTURE');
-      expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        TxMAEgressEventName.AIS_EVENT_IGNORED_IN_FUTURE,
+      expect(AuditEvents).toHaveBeenLastCalledWith(
+        TxMAEgressEventTransitionType.IGNORED_IN_FUTURE,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBodyInTheFuture,
       );
@@ -412,8 +413,8 @@ describe('intervention processor handler', () => {
       });
       expect(logger.warn).toHaveBeenCalledWith('Event received predates last applied event for this user.');
       expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
-      expect(sendAuditEvent).toHaveBeenCalledWith(
-        TxMAEgressEventName.AIS_EVENT_IGNORED_STALE,
+      expect(AuditEvents).toHaveBeenCalledWith(
+        TxMAEgressEventTransitionType.IGNORED_STALE,
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         interventionEventBody,
         {
@@ -548,8 +549,8 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        TxMAEgressEventName.AIS_NON_FRAUD_EVENT_TRANSITION_APPLIED,
+      expect(AuditEvents).toHaveBeenLastCalledWith(
+        TxMAEgressEventTransitionType.TRANSITION_APPLIED,
         EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION,
         operationalEventBody,
         {
@@ -596,8 +597,8 @@ describe('intervention processor handler', () => {
       expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried.', {
         errorMessage: 'State transition Error',
       });
-      expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        TxMAEgressEventName.AIS_NON_FRAUD_EVENT_TRANSITION_IGNORED,
+      expect(AuditEvents).toHaveBeenLastCalledWith(
+        TxMAEgressEventTransitionType.TRANSITION_IGNORED,
         EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION,
         operationalEventBody,
         {
@@ -635,8 +636,8 @@ describe('intervention processor handler', () => {
         ['Sensitive info - user abc account has been deleted.'],
         ['ValidationError caught, message will not be retried.', { errorMessage: 'Account is marked as deleted.' }],
       ]);
-      expect(sendAuditEvent).toHaveBeenLastCalledWith(
-        TxMAEgressEventName.AIS_NON_FRAUD_EVENT_IGNORED_ACCOUNT_DELETED,
+      expect(AuditEvents).toHaveBeenLastCalledWith(
+        TxMAEgressEventTransitionType.IGNORED_ACCOUNT_DELETED,
         EventsEnum.OPERATIONAL_FORCED_USER_IDENTITY_REVERIFICATION,
         operationalEventBody,
         {
