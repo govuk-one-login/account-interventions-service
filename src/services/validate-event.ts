@@ -1,4 +1,9 @@
-import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
+import {
+  DynamoDBStateResult,
+  StateDetails,
+  TxMAEgressEventTransitionType,
+  TxMAIngressEvent,
+} from '../data-types/interfaces';
 import logger from '../commons/logger';
 import { addMetric } from '../commons/metrics';
 import { AISInterventionTypes, EventsEnum, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
@@ -6,7 +11,7 @@ import { ValidationError } from '../data-types/errors';
 import { compileSchema } from '../commons/compile-schema';
 import { TxMAIngress } from '../data-types/schemas';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-import { sendAuditEvent } from './send-audit-events';
+import { AuditEvents } from './audit-events-service';
 import { AccountStateEngine } from './account-states/account-state-engine';
 
 const validateInterventionDataInput = compileSchema(TxMAIngress);
@@ -32,7 +37,7 @@ export function validateEventAgainstSchema(interventionRequest: TxMAIngressEvent
  * @param interventionRequest - the TxMA event
  */
 export function validateInterventionEvent(interventionRequest: TxMAIngressEvent): void {
-  if (Number.isNaN(Number.parseInt(interventionRequest.extensions!.intervention!.intervention_code))) {
+  if (Number.isNaN(Number.parseInt(interventionRequest.extensions?.intervention?.intervention_code ?? ''))) {
     logger.debug('Invalid intervention request. Intervention code is NAN');
     addMetric(MetricNames.INVALID_EVENT_RECEIVED);
     throw new ValidationError('Invalid intervention event.');
@@ -65,7 +70,7 @@ export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: T
   if (now < eventTimestampInMs) {
     logger.debug(`Timestamp is in the future (sec): ${eventTimestampInMs}.`);
     addMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
-    await sendAuditEvent('AIS_EVENT_IGNORED_IN_FUTURE', eventEnum, event);
+    await new AuditEvents(TxMAEgressEventTransitionType.IGNORED_IN_FUTURE, eventEnum, event).send();
     throw new Error('Event is in the future. It will be retried');
   }
 }
@@ -88,11 +93,11 @@ export async function validateEventIsNotStale(
   if (!isEventAfterLastEvent(eventTimestampInMs, itemFromDB.sentAt, itemFromDB.appliedAt)) {
     logger.warn('Event received predates last applied event for this user.');
     addMetric(MetricNames.INTERVENTION_EVENT_STALE);
-    await sendAuditEvent('AIS_EVENT_IGNORED_STALE', intervention, event, {
+    await new AuditEvents(TxMAEgressEventTransitionType.IGNORED_STALE, intervention, event, {
       stateResult: initialState,
       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-      nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
-    });
+      nextAllowableInterventions: AccountStateEngine.getInstance().getNextAllowableInterventions(initialState),
+    }).send();
     throw new ValidationError('Event received predates last applied event for this user.');
   }
 }

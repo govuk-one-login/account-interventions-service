@@ -1,0 +1,17 @@
+{
+  "timestamp": 1234,
+  "event_timestamp_ms": 1234000,
+  "event_name": "OPERATIONAL_ACCOUNT_INTERVENTION",
+  "event_id": "123",
+  "component_id": "TSD",
+  "user": { "user_id": "urn:fdc:gov.uk:2022:AMD_DEMO" },
+  "extensions": {
+    "intervention": {
+      "intervention_code": "25",
+      "intervention_reason": "something",
+      "originating_component_id": "CMS",
+      "originator_reference_id": "1234567",
+      "requester_id": "1234567"
+    }
+  }
+}
