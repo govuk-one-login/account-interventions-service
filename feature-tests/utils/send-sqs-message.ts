@@ -3,6 +3,7 @@ import { aisEvents } from './ais-events';
 import EndPoints from '../apiEndpoints/endpoints';
 import { CurrentTimeDescriptor, timeDelayForTestEnvironment, attemptParseJSON } from '../utils/utility';
 import { invalidAisEvents } from './invalid-ais-events';
+import { aisEventsWithEnhancedFields } from './enhanced-ais-events';
 
 export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeof aisEvents) {
   const currentTime = getCurrentTimestamp();
@@ -30,6 +31,28 @@ export async function sendInvalidSQSEvent(testUserId: string, invalidAisEventTyp
   const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
   const queueURL = EndPoints.SQS_QUEUE_URL;
   const event = { ...invalidAisEvents[invalidAisEventTypes] };
+  event.user.user_id = testUserId;
+  const messageBody = JSON.stringify(event);
+  const parameters = {
+    MessageBody: messageBody,
+    QueueUrl: queueURL,
+  };
+
+  try {
+    const data = await sqs.sendMessage(parameters);
+    console.log('Success, messageId is', data.MessageId);
+  } catch (error) {
+    console.log('Error', error);
+  }
+}
+
+export async function sendEnhancedSQSEvent(
+  testUserId: string,
+  enhancedAisEvent: keyof typeof aisEventsWithEnhancedFields,
+) {
+  const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
+  const queueURL = EndPoints.SQS_QUEUE_URL;
+  const event = { ...aisEventsWithEnhancedFields[enhancedAisEvent] };
   event.user.user_id = testUserId;
   const messageBody = JSON.stringify(event);
   const parameters = {

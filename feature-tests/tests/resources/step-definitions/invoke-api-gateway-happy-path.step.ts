@@ -1,6 +1,11 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
-import { sendSQSEvent, purgeEgressQueue, filterUserIdInMessages } from '../../../utils/send-sqs-message';
+import {
+  sendSQSEvent,
+  purgeEgressQueue,
+  filterUserIdInMessages,
+  sendEnhancedSQSEvent,
+} from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import {
   InformationFromTable,
@@ -12,6 +17,7 @@ import { aisEventResponse } from '../../../utils/ais-events-responses';
 import { updateItemInTable, getRecordFromTable } from '../../../utils/dynamo-database-methods';
 import { cloudwatchLogs, LogEvent } from '../../../utils/cloudwatch-logs-service';
 import { sendSNSDeleteMessage } from '../../../utils/send-sns-message';
+import { aisEventsWithEnhancedFields } from '../../../utils/enhanced-ais-events';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
@@ -58,6 +64,39 @@ defineFeature(feature, (test) => {
           const extensions = body ? attemptParseJSON(body).extensions : {};
           expect(extensions.allowable_interventions).toEqual(aisEventResponse[aisEventType].allowable_interventions);
         }
+      },
+    );
+  });
+
+  test('Happy Path - Get Request to /ais/userId with enhanced fields- Returns Expected Data for <aisEventType>', ({
+    given,
+    when,
+    then,
+  }) => {
+    given(
+      /^I send an (.*) intervention message to the TxMA ingress SQS queue with enhanced fields$/,
+      async (enhancedAisEventType) => {
+        await sendEnhancedSQSEvent(testUserId, enhancedAisEventType);
+      },
+    );
+
+    when(/^I invoke an API to retrieve the intervention status of the account$/, async () => {
+      await timeDelayForTestEnvironment(1500);
+      response = await invokeGetAccountState(testUserId, true);
+    });
+
+    then(
+      /^I expect the egress queue response with all the enhanced fields send to the ingress queue for the event type (.*)$/,
+      async (enhancedAisEventType: keyof typeof aisEventsWithEnhancedFields) => {
+        const receivedMessage = await filterUserIdInMessages(testUserId);
+        const body = receivedMessage[0].Body;
+        const extensions = body ? attemptParseJSON(body).extensions : {};
+        expect(extensions.a_new_field_number).toEqual(
+          aisEventsWithEnhancedFields[enhancedAisEventType].extensions.intervention.a_new_field_number,
+        );
+        expect(extensions.a_new_field_string).toEqual(
+          aisEventsWithEnhancedFields[enhancedAisEventType].extensions.intervention.a_new_field_string,
+        );
       },
     );
   });
