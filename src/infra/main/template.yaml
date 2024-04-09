@@ -54,6 +54,10 @@ Parameters:
       - Canary10Percent10Minutes
       - Canary10Percent15Minutes
       - Canary10Percent30Minutes
+  MainAPIName:
+    Description: "The name of the Main API Gateway"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/ais-main/PrivateRestApi/Name" #pragma: allowlist secret
   ProductTagValue:
     Description: Value for the Product Tag
     Type: String
