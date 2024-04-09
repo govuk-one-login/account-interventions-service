@@ -539,11 +539,11 @@ Resources:
             Resource:
               - !GetAtt SQSEncryptionKey.Arn
               - !GetAtt AccountDeletionProcessorSNSKmsKey.Arn
-          - Effect: Allow
-            Action:
-              - "dynamodb:UpdateItem"
-            Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
+#          - Effect: Allow
+#            Action:
+#              - "dynamodb:UpdateItem"
+#            Resource:
+#              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
           - Effect: Allow
             Action:
               - "kms:decrypt"
