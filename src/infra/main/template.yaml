@@ -54,10 +54,6 @@ Parameters:
       - Canary10Percent10Minutes
       - Canary10Percent15Minutes
       - Canary10Percent30Minutes
-  MainAPIName:
-    Description: "The name of the Main API Gateway"
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: "/ais-main/PrivateRestApi/Name" #pragma: allowlist secret
   ProductTagValue:
     Description: Value for the Product Tag
     Type: String
@@ -1018,7 +1014,7 @@ Resources:
           - AllAtOnce
         Alarms:
           - !Ref StatusRetrieverFunctionErrorsAlarm
-          - !Ref 5xxErrorsStatusRetrieverAlarm
+#          - !Ref 5xxErrorsStatusRetrieverAlarm
         Role: !GetAtt CodeDeployServiceRole.Arn
       MemorySize: 512
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
@@ -1433,24 +1429,24 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  5xxErrorsStatusRetrieverAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Canary Deployment: Lambda returning 5xx response"
-      Namespace: AWS/ApiGateway
-      MetricName: 5XXError
-      Dimensions:
-        - Name: ApiName
-          Value: !Ref MainAPIName
-      Statistic: Sum
-      Period: 60
-      EvaluationPeriods: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
+#  5xxErrorsStatusRetrieverAlarm:
+#    Type: AWS::CloudWatch::Alarm
+#    Properties:
+#      ActionsEnabled: true
+#      AlarmActions:
+#        - !Ref AlertingSNSHighAlertNotificationTopicARN
+#      AlarmDescription: "Canary Deployment: Lambda returning 5xx response"
+#      Namespace: AWS/ApiGateway
+#      MetricName: 5XXError
+#      Dimensions:
+#        - Name: ApiName
+#          Value: !Sub "${AWS::StackName}-PrivateRestApi"
+#      Statistic: Sum
+#      Period: 60
+#      EvaluationPeriods: 1
+#      Threshold: 1
+#      ComparisonOperator: GreaterThanOrEqualToThreshold
+#      TreatMissingData: notBreaching
 
   InterventionsProcessorFunctionErrorsAlarm:
     Type: AWS::CloudWatch::Alarm
