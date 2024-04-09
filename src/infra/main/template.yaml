@@ -193,6 +193,7 @@ Resources:
             - AllAtOnce
         Alarms:
           - !Ref InterventionsProcessorFunctionErrorsAlarm
+          - !Ref ErrorPublishingEventToTxMAAlarm
         Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 5
       Handler: interventions-processor-handler.handler
@@ -1013,6 +1014,7 @@ Resources:
           - AllAtOnce
         Alarms:
           - !Ref StatusRetrieverFunctionErrorsAlarm
+          - !Ref 5xxErrorsStatusRetrieverAlarm
         Role: !GetAtt CodeDeployServiceRole.Arn
       MemorySize: 512
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
@@ -1427,6 +1429,25 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
+  5xxErrorsStatusRetrieverAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Canary Deployment: Lambda returning 5xx response"
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Ref MainAPIName
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
   InterventionsProcessorFunctionErrorsAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -1445,6 +1466,24 @@ Resources:
       Period: 60
       EvaluationPeriods: 1
       Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  ErrorPublishingEventToTxMAAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Canary Deployment: Publishing to TxMA has failed due to incorrect Lambda permissions"
+      MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${AWS::StackName}-InterventionsProcessorFunction:live"
+      Namespace: !Ref SystemTagValue
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
