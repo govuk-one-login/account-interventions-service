@@ -1084,11 +1084,11 @@ Resources:
               - "logs:PutLogEvents"
             Resource:
               - !GetAtt StatusRetrieverFunctionLogGroup.Arn
-          - Effect: Allow
-            Action:
-              - "dynamodb:Query"
-            Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
+#          - Effect: Allow
+#            Action:
+#              - "dynamodb:Query"
+#            Resource:
+#              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
           - Effect: Allow
             Action:
               - "kms:decrypt"
