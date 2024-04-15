@@ -740,25 +740,6 @@ Resources:
         - Name: service
           Value: InterventionsProcessorFunction
 
-  LevelOfConfidenceTooLow:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Level of confidence is too low. ${RunBookURL}"
-      Namespace: !Ref SystemTagValue
-      MetricName: CONFIDENCE_LEVEL_TOO_LOW
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Statistic: Sum
-      Unit: Count
-      Threshold: 5
-      EvaluationPeriods: 1
-      Period: 60
-      TreatMissingData: notBreaching
-      Dimensions:
-        - Name: service
-          Value: InterventionsProcessorFunction
 
   InterventionEventStale:
     Type: AWS::CloudWatch::Alarm
