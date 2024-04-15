@@ -313,10 +313,10 @@ Resources:
               - "logs:PutLogEvents"
             Resource:
               - !GetAtt InterventionsProcessorFunctionLogGroup.Arn
-#          - Effect: Allow
-#            Action:
-#              - "sqs:SendMessage"
-#            Resource: !GetAtt TxMAEgressQueue.Arn
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt TxMAEgressQueue.Arn
           - Effect: Allow
             Action:
               - "kms:Decrypt"
@@ -1489,9 +1489,6 @@ Resources:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
       AlarmDescription: "Canary Deployment: Publishing to TxMA has failed due to incorrect Lambda permissions"
       MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
-      Dimensions:
-        - Name: Service
-          Value: !Sub "${AWS::StackName}-InterventionsProcessorFunction:live"
       Namespace: !Ref SystemTagValue
       Statistic: Sum
       Period: 60
