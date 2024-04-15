@@ -194,6 +194,7 @@ Resources:
         Alarms:
           - !Ref InterventionsProcessorFunctionErrorsAlarm
           - !Ref ErrorPublishingEventToTxMAAlarm
+          - !Ref InterventionsProcessorFunctionMetricErrorsAlarm
         Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 5
       Handler: interventions-processor-handler.handler
@@ -389,7 +390,7 @@ Resources:
   InterventionsProcessorLambdaErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
-      FilterPattern: '{ Validation Error caught, message will be retried }'
+      FilterPattern: '{ $.level = "ERROR" || $.message = "Validation Error caught, message will be retried" }'
       LogGroupName: !Ref InterventionsProcessorFunctionLogGroup
       MetricTransformations:
         - MetricValue: 1
@@ -1499,13 +1500,13 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  InterventionProcessorFunctionErrorMetricAlarm:
+  InterventionsProcessorFunctionMetricErrorsAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Canary Deployment: Interventions Processor Function Alarm for InterventionsProcessorLambdaErrorMetricFilter"
+      AlarmDescription: "Canary Deployment: Interventions Processor Function Alarm for InterventionsProcessorLambdaErrorMetricFilter "
       MetricName: Interventions_Processor_Lambda_Error
       Dimensions:
         - Name: Service
