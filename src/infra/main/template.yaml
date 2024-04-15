@@ -1508,9 +1508,6 @@ Resources:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
       AlarmDescription: "Canary Deployment: Interventions Processor Function Alarm for InterventionsProcessorLambdaErrorMetricFilter "
       MetricName: Interventions_Processor_Lambda_Error
-      Dimensions:
-        - Name: Service
-          Value: !Sub "${AWS::StackName}-InterventionsProcessorFunction:live"
       Namespace: !Ref SystemTagValue
       Statistic: Sum
       Period: 60
