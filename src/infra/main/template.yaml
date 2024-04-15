@@ -325,7 +325,7 @@ Resources:
           - Effect: Allow
             Action:
               - "dynamodb:UpdateItem"
-#              - "dynamodb:Query"
+              - "dynamodb:Query"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
           - Effect: "Allow"
