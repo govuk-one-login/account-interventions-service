@@ -324,7 +324,7 @@ Resources:
           - Effect: Allow
             Action:
               - "dynamodb:UpdateItem"
-#              - "dynamodb:Query"
+              - "dynamodb:Query"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
           - Effect: "Allow"
@@ -385,6 +385,17 @@ Resources:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
       LogGroupName: !Ref InterventionsProcessorFunctionLogGroup
       FilterPattern: "{$.message != \"Sensitive info*\"}"
+
+  InterventionsProcessorLambdaErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      FilterPattern: '{ Validation Error caught, message will be retried }'
+      LogGroupName: !Ref InterventionsProcessorFunctionLogGroup
+      MetricTransformations:
+        - MetricValue: 1
+          MetricNamespace: !Ref SystemTagValue
+          MetricName: Interventions_Processor_Lambda_Error
+          Unit: Count
 
 ### Account Deletion Processor ###
 
@@ -1477,6 +1488,25 @@ Resources:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
       AlarmDescription: "Canary Deployment: Publishing to TxMA has failed due to incorrect Lambda permissions"
       MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${AWS::StackName}-InterventionsProcessorFunction:live"
+      Namespace: !Ref SystemTagValue
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  InterventionProcessorFunctionErrorMetricAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSHighAlertNotificationTopicARN
+      AlarmDescription: "Canary Deployment: Interventions Processor Function Alarm for InterventionsProcessorLambdaErrorMetricFilter"
+      MetricName: Interventions_Processor_Lambda_Error
       Dimensions:
         - Name: Service
           Value: !Sub "${AWS::StackName}-InterventionsProcessorFunction:live"
