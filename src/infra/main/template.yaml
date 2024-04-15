@@ -313,10 +313,10 @@ Resources:
               - "logs:PutLogEvents"
             Resource:
               - !GetAtt InterventionsProcessorFunctionLogGroup.Arn
-#          - Effect: Allow
-#            Action:
-#              - "sqs:SendMessage"
-#            Resource: !GetAtt TxMAEgressQueue.Arn
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt TxMAEgressQueue.Arn
           - Effect: Allow
             Action:
               - "kms:Decrypt"
