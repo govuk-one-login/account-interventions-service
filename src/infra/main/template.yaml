@@ -313,10 +313,10 @@ Resources:
               - "logs:PutLogEvents"
             Resource:
               - !GetAtt InterventionsProcessorFunctionLogGroup.Arn
-          - Effect: Allow
-            Action:
-              - "sqs:SendMessage"
-            Resource: !GetAtt TxMAEgressQueue.Arn
+#          - Effect: Allow
+#            Action:
+#              - "sqs:SendMessage"
+#            Resource: !GetAtt TxMAEgressQueue.Arn
           - Effect: Allow
             Action:
               - "kms:Decrypt"
@@ -325,7 +325,7 @@ Resources:
           - Effect: Allow
             Action:
               - "dynamodb:UpdateItem"
-#              - "dynamodb:Query"
+              - "dynamodb:Query"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
           - Effect: "Allow"
