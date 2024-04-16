@@ -1491,7 +1491,7 @@ Resources:
       MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
       Namespace: !Ref SystemTagValue
       Dimensions:
-        - Name: Service
+        - Name: service
           Value: InterventionsProcessorFunction
       Statistic: Sum
       Period: 60
