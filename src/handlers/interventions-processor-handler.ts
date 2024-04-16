@@ -77,7 +77,7 @@ async function processSQSRecord(record: SQSRecord) {
   const recordBody = attemptToParseJson(record.body);
   validateEventAgainstSchema(recordBody);
   const eventName = getEventName(recordBody);
-  logger.debug('Intervention received.', { intervention: eventName });
+  logger.debug('Intervention received', { intervention: eventName });
   validateLevelOfConfidence(eventName, recordBody);
   await validateEventIsNotInFuture(eventName, recordBody);
 
