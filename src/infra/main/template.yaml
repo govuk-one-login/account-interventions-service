@@ -47,7 +47,7 @@ Parameters:
   LambdaDeploymentPreference:
     Description: "Specifies the configuration to enable gradual Lambda deployments. It can be used to set deployment type and also allows skipping canary deployment by setting to 'AllAtOnce'"
     Type: String
-    Default: "Canary10Percent5Minutes"
+    Default: "Canary10Percent10Minutes"
     AllowedValues:
       - AllAtOnce
       - Canary10Percent5Minutes

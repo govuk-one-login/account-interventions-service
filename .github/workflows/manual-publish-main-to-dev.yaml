@@ -9,7 +9,6 @@ on:
       - ".github/workflows/manual-publish-main-to-dev.yaml"
     branches:
       - main
-      - ATB-1256
   workflow_dispatch:
     inputs:
       gitRef:
