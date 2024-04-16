@@ -390,7 +390,7 @@ Resources:
   InterventionsProcessorLambdaErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
     Properties:
-      FilterPattern: '{ $.level = "ERROR" || $.message = "Validation Error caught, message will be retried" }'
+      FilterPattern: '{ $.message = " Error caught, message will be retried" }'
       LogGroupName: !Ref InterventionsProcessorFunctionLogGroup
       MetricTransformations:
         - MetricValue: 1
