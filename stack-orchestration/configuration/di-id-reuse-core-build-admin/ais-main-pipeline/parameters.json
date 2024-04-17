@@ -98,5 +98,9 @@
   {
     "ParameterKey": "RunTestContainerInVPC",
     "ParameterValue": "True"
+  },
+  {
+    "ParameterKey": "LambdaDeploymentPreference",
+    "ParameterValue": "None"
   }
 ]
