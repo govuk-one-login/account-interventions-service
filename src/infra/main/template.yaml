@@ -40,10 +40,10 @@ Parameters:
     Description: The name of the Core VC Storage stack
     Type: String
     Default: ais-core
-  AlertingSNSHighAlertNotificationTopicARN:
-    Description: "The ARN of the Alerting SNS High Alert Notification topic"
+  AlertingSNSLowAlertNotificationTopicARN:
+    Description: "The ARN of the Alerting SNS Low Alert Notification topic"
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/ais-infra-alerting/SNS/HighAlertNotificationTopic/ARN" #pragma: allowlist secret
+    Default: "/infra-alerting/SNS/LowAlertNotificationTopic/ARN" #pragma: allowlist secret
   LambdaDeploymentPreference:
     Description: "Specifies the configuration to enable gradual Lambda deployments. It can be used to set deployment type and also allows skipping canary deployment by setting to 'AllAtOnce'"
     Type: String
@@ -54,6 +54,10 @@ Parameters:
       - Canary10Percent10Minutes
       - Canary10Percent15Minutes
       - Canary10Percent30Minutes
+  RunBookURL:
+    Description: "A Link to the AIS Runbook"
+    Type: String
+    Default: "https://govukverify.atlassian.net/wiki/spaces/AB/pages/3892215824/Alarms+Metrics+Monitoring"
   ProductTagValue:
     Description: Value for the Product Tag
     Type: String
@@ -395,7 +399,7 @@ Resources:
       MetricTransformations:
         - MetricValue: 1
           MetricNamespace: !Ref SystemTagValue
-          MetricName: Interventions_Processor_Lambda_Error
+          MetricName: InterventionsProcessorLambdaError
           Unit: Count
 
 ### Account Deletion Processor ###
@@ -1425,8 +1429,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Canary Deployment: Errors returned from the StatusRetrieverFunction Lambda"
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Errors returned from the StatusRetrieverFunction Lambda. ${RunBookURL}"
       MetricName: Errors
       Dimensions:
         - Name: Resource
@@ -1446,8 +1450,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Canary Deployment: Lambda returning 5xx response"
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Lambda returning 5xx response. ${RunBookURL}"
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
@@ -1465,8 +1469,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Canary Deployment: Errors returned from the InterventionsProcessorFunction Lambda"
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Errors returned from the InterventionsProcessorFunction Lambda. ${RunBookURL}"
       MetricName: Errors
       Dimensions:
         - Name: Resource
@@ -1486,8 +1490,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Canary Deployment: Publishing to TxMA has failed due to incorrect Lambda permissions"
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Publishing to TxMA has failed due to incorrect Lambda permissions. ${RunBookURL}"
       MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
       Namespace: !Ref SystemTagValue
       Dimensions:
@@ -1505,9 +1509,9 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Canary Deployment: Interventions Processor Function Alarm for InterventionsProcessorLambdaErrorMetricFilter "
-      MetricName: Interventions_Processor_Lambda_Error
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Interventions Processor Function Alarm for InterventionsProcessorLambdaErrorMetricFilter. ${RunBookURL}"
+      MetricName: InterventionsProcessorLambdaError
       Namespace: !Ref SystemTagValue
       Statistic: Sum
       Period: 60
@@ -1521,8 +1525,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: "Canary Deployment: Errors returned from the AccountDeletionProcessorFunction Lambda"
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Errors returned from the AccountDeletionProcessorFunction Lambda. ${RunBookURL}"
       MetricName: Errors
       Dimensions:
         - Name: Resource
