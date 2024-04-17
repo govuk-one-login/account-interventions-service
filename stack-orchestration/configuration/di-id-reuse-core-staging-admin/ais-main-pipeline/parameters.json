@@ -97,6 +97,6 @@
   },
   {
     "ParameterKey": "LambdaDeploymentPreference",
-    "ParameterValue": "Canary10Percent10Minutes"
+    "ParameterValue": "None"
   }
 ]
