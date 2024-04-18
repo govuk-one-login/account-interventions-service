@@ -531,11 +531,7 @@ describe('intervention processor handler', () => {
 
     it('should log the expected error line when a message is retried - this line is used by a metric filter for canary deployment alarm', async () => {
       mockRetrieveRecords.mockRejectedValueOnce(new Error('Error'));
-      try {
-        await handler(mockEvent, mockContext)
-      } catch (error) {
-
-      }
+      await handler(mockEvent, mockContext);
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
       expect(logger.error).toHaveBeenCalledWith("Error caught, message will be retried.", {errorMessage: 'Error'});
     });
