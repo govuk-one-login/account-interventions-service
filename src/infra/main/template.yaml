@@ -1437,6 +1437,8 @@ Resources:
           Value: !Sub "${AWS::StackName}-StatusRetrieverFunction:live"
         - Name: FunctionName
           Value: !Ref StatusRetrieverFunction
+        - Name: ExecutedVersion
+          Value: !GetAtt StatusRetrieverFunction.Version.Version
       Namespace: AWS/Lambda
       Statistic: Sum
       Period: 60
@@ -1477,6 +1479,8 @@ Resources:
           Value: !Sub "${AWS::StackName}-InterventionsProcessorFunction:live"
         - Name: FunctionName
           Value: !Ref InterventionsProcessorFunction
+        - Name: ExecutedVersion
+          Value: !GetAtt InterventionsProcessorFunction.Version.Version
       Namespace: AWS/Lambda
       Statistic: Sum
       Period: 60
@@ -1533,6 +1537,8 @@ Resources:
           Value: !Sub "${AWS::StackName}-AccountDeletionProcessorFunction:live"
         - Name: FunctionName
           Value: !Ref AccountDeletionProcessorFunction
+        - Name: ExecutedVersion
+          Value: !GetAtt AccountDeletionProcessorFunction.Version.Version
       Namespace: AWS/Lambda
       Statistic: Sum
       Period: 60
