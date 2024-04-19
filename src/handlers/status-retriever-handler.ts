@@ -22,9 +22,6 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
 
   logger.debug('I am the new version! 137');
 
-  throw new Error('Test error');
-
-  // @ts-expect-error
   if (!event.pathParameters?.['userId']) {
     addMetric(MetricNames.INVALID_SUBJECT_ID);
     metric.publishStoredMetrics();

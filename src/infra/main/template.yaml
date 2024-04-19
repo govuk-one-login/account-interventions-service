@@ -1102,7 +1102,7 @@ Resources:
               - !GetAtt StatusRetrieverFunctionLogGroup.Arn
           - Effect: Allow
             Action:
-              - "dynamodb:Query"
+              - "dynamodb:PutItem"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
           - Effect: Allow
