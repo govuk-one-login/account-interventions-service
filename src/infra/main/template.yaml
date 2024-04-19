@@ -1025,7 +1025,7 @@ Resources:
       Description: "Retrieves the account's intervention status."
       DeploymentPreference:
         Type: !If
-          - IsProd
+          - IsInternal
           - !Ref LambdaDeploymentPreference
           - AllAtOnce
         Alarms:
