@@ -66,6 +66,7 @@ paths:
         type: aws_proxy
         uri:
           Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StatusRetrieverFunction.Arn}:live/invocations"
+
 components:
   schemas:
     InterventionMetadata:
