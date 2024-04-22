@@ -19,6 +19,10 @@ Parameters:
     Description: The stage name of the API
     Type: String
     Default: v1
+  LambdaAlias:
+    Description: The Lambda alias name
+    Type: String
+    Default: live
   VpcStackName:
     Description: The name of the stack that defines the VPC
     Type: String
