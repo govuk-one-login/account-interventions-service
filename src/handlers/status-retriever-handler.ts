@@ -20,7 +20,7 @@ const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableN
 export const handle = async (event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> => {
   logger.addContext(context);
 
-  logger.debug('I am the new version! 140');
+  logger.debug('I am the new version! 141');
 
   if (!event.pathParameters?.['userId']) {
     addMetric(MetricNames.INVALID_SUBJECT_ID);
