@@ -5,7 +5,6 @@ import 'aws-sdk-client-mock-jest';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { MetricNames } from "../../data-types/constants";
-import { context as dummyContext } from '../../commons/test/test-data';
 
 jest.mock('../../services/dynamo-database-service');
 jest.mock('@aws-sdk/util-dynamodb');
@@ -21,7 +20,20 @@ const loggerWarnSpy = jest.spyOn(logger, 'warn');
 describe('Account Deletion Processor', () => {
   let mockEvent: SQSEvent;
   let mockRecord: SQSRecord;
-  const mockContext = dummyContext;
+  const mockContext = {
+    callbackWaitsForEmptyEventLoop: true,
+    functionVersion: '$LATEST',
+    functionName: 'foo-bar-function',
+    memoryLimitInMB: '128',
+    logGroupName: '/aws/lambda/foo-bar-function-123456abcdef',
+    logStreamName: '2021/03/09/[$LATEST]abcdef123456abcdef123456abcdef123456',
+    invokedFunctionArn: 'arn:aws:lambda:eu-west-1:123456789012:function:foo-bar-function',
+    awsRequestId: 'c6af9ac6-7b61-11e6-9a41-93e812345678',
+    getRemainingTimeInMillis: () => 1234,
+    done: () => console.log('Done!'),
+    fail: () => console.log('Failed!'),
+    succeed: () => console.log('Succeeded!'),
+  };
 
   beforeAll(() => {
     jest.useFakeTimers();

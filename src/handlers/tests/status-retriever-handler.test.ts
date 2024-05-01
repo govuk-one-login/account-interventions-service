@@ -5,7 +5,6 @@ import logger from '../../commons/logger';
 import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import { addMetric } from '../../commons/metrics';
 import jestOpenAPI from 'jest-openapi';
-import { context as dummyContext } from '../../commons/test/test-data';
 
 jestOpenAPI(`${__dirname}/../../specs/api.yaml`);
 
@@ -62,7 +61,20 @@ const testEvent: APIGatewayEvent = {
   resource: '/{proxy+}',
 };
 
-const mockConfig = dummyContext;
+const mockConfig = {
+  callbackWaitsForEmptyEventLoop: true,
+  functionVersion: '$LATEST',
+  functionName: 'foo-bar-function',
+  memoryLimitInMB: '128',
+  logGroupName: '/aws/lambda/foo-bar-function-123456abcdef',
+  logStreamName: '2021/03/09/[$LATEST]abcdef123456abcdef123456abcdef123456',
+  invokedFunctionArn: 'arn:aws:lambda:eu-west-1:123456789012:function:foo-bar-function',
+  awsRequestId: 'c6af9ac6-7b61-11e6-9a41-93e812345678',
+  getRemainingTimeInMillis: () => 1234,
+  done: () => console.log('Done!'),
+  fail: () => console.log('Failed!'),
+  succeed: () => console.log('Succeeded!'),
+};
 const mockDynamoDBServiceRetrieveRecords = DynamoDatabaseService.prototype.getFullAccountInformation as jest.Mock;
 
 describe('status-retriever-handler', () => {
