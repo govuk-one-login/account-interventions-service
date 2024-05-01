@@ -1,6 +1,6 @@
 import express from 'express';
 import { handle } from '../../handlers/status-retriever-handler';
-import { ContextExamples } from '@aws-lambda-powertools/commons';
+import { context as dummyContext } from '../../commons/test/test-data';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 
 let result: APIGatewayProxyResult;
@@ -13,7 +13,7 @@ export function setupServer(port: number) {
   app.get('/ais/:userId', async (request, response) => {
     const apiGatewayEvent = createDefaultApiRequest(request.params['userId']);
     try {
-      result = await handle(apiGatewayEvent, ContextExamples.helloworldContext);
+      result = await handle(apiGatewayEvent, dummyContext);
       response.status(result.statusCode).json(JSON.parse(result.body));
     } catch (error) {
       console.log(`The operation had an unexpected outcome: ${error}`);

@@ -1,5 +1,4 @@
 import { handler } from '../interventions-processor-handler';
-import { ContextExamples } from '@aws-lambda-powertools/commons';
 import logger from '../../commons/logger';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { addMetric } from '../../commons/metrics';
@@ -12,6 +11,7 @@ import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from
 import { sendAuditEvent } from '../../services/send-audit-events';
 import { TxMAIngressEvent } from '../../data-types/interfaces';
 import { publishTimeToResolveMetrics } from '../../commons/metrics-helper';
+import { context as dummyContext } from '../../commons/test/test-data';
 
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
@@ -97,7 +97,7 @@ accountStateEngine.getInterventionEnumFromCode = jest.fn().mockImplementation(()
 describe('intervention processor handler', () => {
   let mockEvent: SQSEvent;
   let mockRecord: SQSRecord;
-  const mockContext = ContextExamples.helloworldContext;
+  const mockContext = dummyContext;
 
   beforeEach(() => {
     jest.clearAllMocks();

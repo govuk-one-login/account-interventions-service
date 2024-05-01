@@ -3,9 +3,9 @@ import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import logger from '../../commons/logger';
 import 'aws-sdk-client-mock-jest';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
-import { ContextExamples } from '@aws-lambda-powertools/commons';
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { MetricNames } from "../../data-types/constants";
+import { context as dummyContext } from '../../commons/test/test-data';
 
 jest.mock('../../services/dynamo-database-service');
 jest.mock('@aws-sdk/util-dynamodb');
@@ -21,7 +21,7 @@ const loggerWarnSpy = jest.spyOn(logger, 'warn');
 describe('Account Deletion Processor', () => {
   let mockEvent: SQSEvent;
   let mockRecord: SQSRecord;
-  const mockContext = ContextExamples.helloworldContext;
+  const mockContext = dummyContext;
 
   beforeAll(() => {
     jest.useFakeTimers();

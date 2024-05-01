@@ -1,11 +1,12 @@
 /* eslint-disable unicorn/no-null, unicorn/numeric-separators-style */
 import type { APIGatewayEvent, APIGatewayProxyEventQueryStringParameters } from 'aws-lambda';
-import { ContextExamples } from '@aws-lambda-powertools/commons';
 import { handle } from '../status-retriever-handler';
 import logger from '../../commons/logger';
 import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import { addMetric } from '../../commons/metrics';
 import jestOpenAPI from 'jest-openapi';
+import { context as dummyContext } from '../../commons/test/test-data';
+
 jestOpenAPI(`${__dirname}/../../specs/api.yaml`);
 
 jest.mock('../../commons/logger.ts');
@@ -61,7 +62,7 @@ const testEvent: APIGatewayEvent = {
   resource: '/{proxy+}',
 };
 
-const mockConfig = ContextExamples.helloworldContext;
+const mockConfig = dummyContext;
 const mockDynamoDBServiceRetrieveRecords = DynamoDatabaseService.prototype.getFullAccountInformation as jest.Mock;
 
 describe('status-retriever-handler', () => {
