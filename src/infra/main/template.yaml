@@ -127,7 +127,7 @@ Globals:
     Architectures:
       - arm64
     Tracing: Active
-    AutoPublishAlias: latest
+    AutoPublishAlias: live
     CodeUri: ../../handlers
     KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
     Environment:
@@ -213,11 +213,16 @@ Resources:
 
 
   InterventionsProcessorFunctionInvokePermission:
-    Type: 'AWS::Lambda::Permission'
+    DependsOn: InterventionsProcessorFunctionAliaslive
+    Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !GetAtt InterventionsProcessorFunction.Arn
-      Action: 'lambda:InvokeFunction'
-      Principal: 'sqs.amazonaws.com'
+      FunctionName: !Join
+        - ':'
+        - - 'function'
+          - !Select [ 6, !Split [ ':', !GetAtt InterventionsProcessorFunction.Arn ] ]
+          - 'live'
+      Action: lambda:InvokeFunction
+      Principal: sqs.amazonaws.com
       SourceAccount: !If
         - IsInternal
         - !Ref AWS::AccountId
@@ -426,10 +431,15 @@ Resources:
         EntryPoints:
           - account-deletion-processor-handler.ts
 
-  AccountDeletionProcessorResourcePolicy:
+  AccountDeletionProcessorFunctionPermission:
+    DependsOn: AccountDeletionProcessorFunctionAliaslive
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !Ref AccountDeletionProcessorFunction
+      FunctionName: !Join
+        - ':'
+        - - 'function'
+          - !Select [ 6, !Split [ ':', !GetAtt AccountDeletionProcessorFunction.Arn ] ]
+          - 'live'
       Action: lambda:InvokeFunction
       Principal: sns.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
@@ -1203,6 +1213,8 @@ Resources:
             Location: "../../specs/api.yaml"
       Description: "Private REST API that provides method to interact with the Account Interventions Services"
       StageName: !Ref ApiStageName
+      OpenApiVersion: 3.0.3
+      PropagateTags: true
       Auth:
         ResourcePolicy:
           IntrinsicVpcWhitelist:
@@ -1292,9 +1304,14 @@ Resources:
       FilterPattern: ""
 
   PrivateGatewayStatusRetrieverFunctionPermission:
+    DependsOn: StatusRetrieverFunctionAliaslive
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !Ref StatusRetrieverFunction
+      FunctionName: !Join
+        - ':'
+        - - 'function'
+          - !Select [ 6, !Split [ ':', !GetAtt StatusRetrieverFunction.Arn ] ]
+          - 'live'
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
