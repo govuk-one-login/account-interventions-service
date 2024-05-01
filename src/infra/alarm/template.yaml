@@ -235,25 +235,7 @@ Resources:
 # CloudWatch Alarms for Updating Deletion Status
 #
 
-  AccountDeletionProcessorErrors:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Account Deletion Processor Function Lambda Errors. ${RunBookURL}"
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Threshold: 1
-      EvaluationPeriods: 1
-      TreatMissingData: notBreaching
-      MetricName: Errors
-      Namespace: AWS/Lambda
-      Dimensions:
-        - Name: FunctionName
-          Value: !Sub "${MainStackName}-AccountDeletionProcessorFunction"
-      Period: 60
-      Statistic: Sum
-      Unit: Count
+#AccountDeletionProcessorErrors Alarm sets in our main template as also used for Canary Deployment.
 
   AccountDeletionProcessorErrorsOver5Mins:
     Type: AWS::CloudWatch::Alarm
@@ -540,25 +522,8 @@ Resources:
 # CloudWatch alarms for Account Interventions Processor
 #
 
-  InterventionsProcessorErrors:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Interventions Processor Function Lambda Errors. ${RunBookURL}"
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Threshold: 1
-      EvaluationPeriods: 1
-      TreatMissingData: notBreaching
-      MetricName: Errors
-      Namespace: AWS/Lambda
-      Dimensions:
-        - Name: FunctionName
-          Value: !Sub "${MainStackName}-InterventionsProcessorFunction"
-      Period: 60
-      Statistic: Sum
-      Unit: Count
+#InterventionsProcessorErrors Alarm sets in our main template as also used for Canary Deployment.
+
 
   InterventionsProcessorErrorsOver5Mins:
     Type: AWS::CloudWatch::Alarm
@@ -1011,25 +976,7 @@ Resources:
 # CloudWatch alarms for Status Retriever
 #
 
-  StatusRetrieverErrors:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Status Retriever Function Lambda Errors.${RunBookURL}"
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      Threshold: 1
-      EvaluationPeriods: 1
-      TreatMissingData: notBreaching
-      MetricName: Errors
-      Namespace: AWS/Lambda
-      Dimensions:
-        - Name: FunctionName
-          Value: !Sub "${MainStackName}-StatusRetrieverFunction"
-      Period: 60
-      Statistic: Sum
-      Unit: Count
+#StatusRetrieverErrors Alarm sets in our main template as also used for Canary Deployment.
 
   StatusRetrieverErrorsOver5Mins:
     Type: AWS::CloudWatch::Alarm
