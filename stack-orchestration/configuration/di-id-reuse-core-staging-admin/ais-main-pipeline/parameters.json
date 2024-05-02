@@ -97,6 +97,6 @@
   },
   {
     "ParameterKey": "LambdaDeploymentPreference",
-    "ParameterValue": "None"
+    "ParameterValue": "AllAtOnce"
   }
 ]
