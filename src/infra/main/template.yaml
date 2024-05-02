@@ -80,7 +80,7 @@ Conditions:
   IsNotInternal: !Not [ Condition: IsInternal ]
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
-#  IsProd: !Or [!Equals [!Ref Environment, integration], !Equals [!Ref Environment, production]]
+  IsProd: !Or [!Equals [!Ref Environment, integration], !Equals [!Ref Environment, production]]
 
 Mappings:
   EnvConfig:
@@ -192,13 +192,13 @@ Resources:
       Description: "Processes intervention events and updates account's intervention status."
       DeploymentPreference:
         Type: !If
-            - IsInternal
+            - IsProd
             - !Ref LambdaDeploymentPreference
             - AllAtOnce
         Alarms:
-          - !Ref InterventionsProcessorFunctionErrorsAlarm
-          - !Ref ErrorPublishingEventToTxMAAlarm
-          - !Ref InterventionsProcessorFunctionMetricErrorsAlarm
+          - !Ref InterventionsProcessorErrorsCanary
+          - !Ref ErrorPublishingEventToTxMACanary
+          - !Ref InterventionsProcessorMetricErrorsCanary
         Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 5
       Handler: interventions-processor-handler.handler
@@ -432,11 +432,11 @@ Resources:
       Description: "Updates an account intervention status indicating that the account has been deleted."
       DeploymentPreference:
         Type: !If
-          - IsInternal
+          - IsProd
           - !Ref LambdaDeploymentPreference
           - AllAtOnce
         Alarms:
-          - !Ref AccountDeletionProcessorFunctionErrorsAlarm
+          - !Ref AccountDeletionProcessorErrorsCanary
         Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 10
       Handler: account-deletion-processor-handler.handler
@@ -1025,12 +1025,12 @@ Resources:
       Description: "Retrieves the account's intervention status."
       DeploymentPreference:
         Type: !If
-          - IsInternal
+          - IsProd
           - !Ref LambdaDeploymentPreference
           - AllAtOnce
         Alarms:
-          - !Ref StatusRetrieverFunctionErrorsAlarm
-          - !Ref 5xxErrorsStatusRetrieverAlarm
+          - !Ref StatusRetrieverErrorsCanary
+          - !Ref 5xxErrorsStatusRetrieverCanary
         Role: !GetAtt CodeDeployServiceRole.Arn
       MemorySize: 512
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
@@ -1102,7 +1102,7 @@ Resources:
               - !GetAtt StatusRetrieverFunctionLogGroup.Arn
           - Effect: Allow
             Action:
-              - "dynamodb:PutItem"
+              - "dynamodb:Query"
             Resource:
               - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
           - Effect: Allow
@@ -1424,7 +1424,7 @@ Resources:
   #  Canary Deployment CloudWatch Alarms
   #
 
-  StatusRetrieverFunctionErrorsAlarm:
+  StatusRetrieverErrorsCanary:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -1448,7 +1448,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  5xxErrorsStatusRetrieverAlarm:
+  5xxErrorsStatusRetrieverCanary:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -1468,7 +1468,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  InterventionsProcessorFunctionErrorsAlarm:
+  InterventionsProcessorErrorsCanary:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -1492,7 +1492,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  ErrorPublishingEventToTxMAAlarm:
+  ErrorPublishingEventToTxMACanary:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -1512,7 +1512,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  InterventionsProcessorFunctionMetricErrorsAlarm:
+  InterventionsProcessorMetricErrorsCanary:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
@@ -1529,7 +1529,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  AccountDeletionProcessorFunctionErrorsAlarm:
+  AccountDeletionProcessorErrorsCanary:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
