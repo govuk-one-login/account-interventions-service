@@ -5,7 +5,7 @@
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
-    "ParameterValue": "arn:aws:s3:::ais-main-pipeline-artifactpromotionbucket-1xjfrmo8poo86"
+    "ParameterValue": "arn:aws:s3:::ais-main-pipeline-artifactpromotionbucket-jdybbj9dnst0"
   },
   {
     "ParameterKey": "ArtifactSourceBucketEventTriggerRoleArn",
