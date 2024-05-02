@@ -35,7 +35,6 @@ export enum MetricNames {
 
 export const noMetadata: { key: string; value: string }[] = [];
 export enum EventsEnum {
-  NO_EXISTING_INTERVENTIONS = 'NO_EXISTING_INTERVENTIONS',
   FRAUD_SUSPEND_ACCOUNT = 'FRAUD_SUSPEND_ACCOUNT',
   FRAUD_UNSUSPEND_ACCOUNT = 'FRAUD_UNSUSPEND_ACCOUNT',
   FRAUD_BLOCK_ACCOUNT = 'FRAUD_BLOCK_ACCOUNT',
