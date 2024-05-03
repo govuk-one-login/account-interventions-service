@@ -22,6 +22,8 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
     return;
   }
 
+  logger.debug('I am the new version!');
+
   const updateRecordsByIdPromises = event.Records.map((record) => {
     const userId = getUserId(record);
     return userId ? updateDeleteStatusId(userId) : undefined;
