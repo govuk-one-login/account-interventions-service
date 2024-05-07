@@ -40,6 +40,24 @@ Parameters:
     Description: The name of the Core VC Storage stack
     Type: String
     Default: ais-core
+  AlertingSNSLowAlertNotificationTopicARN:
+    Description: "The ARN of the Alerting SNS Low Alert Notification topic"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/infra-alerting/SNS/LowAlertNotificationTopic/ARN" #pragma: allowlist secret
+  LambdaDeploymentPreference:
+    Description: "Specifies the configuration to enable gradual Lambda deployments. It can be used to set deployment type and also allows skipping canary deployment by setting to 'AllAtOnce'"
+    Type: String
+    Default: "Canary10Percent10Minutes"
+    AllowedValues:
+      - AllAtOnce
+      - Canary10Percent5Minutes
+      - Canary10Percent10Minutes
+      - Canary10Percent15Minutes
+      - Canary10Percent30Minutes
+  RunBookURL:
+    Description: "A Link to the AIS Runbook"
+    Type: String
+    Default: "https://govukverify.atlassian.net/wiki/spaces/AB/pages/3892215824/Alarms+Metrics+Monitoring"
   ProductTagValue:
     Description: Value for the Product Tag
     Type: String
@@ -62,6 +80,7 @@ Conditions:
   IsNotInternal: !Not [ Condition: IsInternal ]
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
+  IsProd: !Or [!Equals [!Ref Environment, integration], !Equals [!Ref Environment, production]]
 
 Mappings:
   EnvConfig:
@@ -171,6 +190,16 @@ Resources:
     Properties:
       FunctionName: !Sub "${AWS::StackName}-InterventionsProcessorFunction"
       Description: "Processes intervention events and updates account's intervention status."
+      DeploymentPreference:
+        Type: !If
+            - IsProd
+            - !Ref LambdaDeploymentPreference
+            - AllAtOnce
+        Alarms:
+          - !Ref InterventionsProcessorErrorsCanary
+          - !Ref ErrorPublishingEventToTxMACanary
+          - !Ref InterventionsProcessorMetricErrorsCanary
+        Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 5
       Handler: interventions-processor-handler.handler
       MemorySize: 512
@@ -362,6 +391,17 @@ Resources:
       LogGroupName: !Ref InterventionsProcessorFunctionLogGroup
       FilterPattern: "{$.message != \"Sensitive info*\"}"
 
+  InterventionsProcessorLambdaErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      FilterPattern: '{ $.message = "Error caught, message will be retried." }'
+      LogGroupName: !Ref InterventionsProcessorFunctionLogGroup
+      MetricTransformations:
+        - MetricValue: 1
+          MetricNamespace: !Ref SystemTagValue
+          MetricName: InterventionsProcessorLambdaError
+          Unit: Count
+
 ### Account Deletion Processor ###
 
   AccountDeletionProcessorSNSTopic:
@@ -390,6 +430,14 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
       Description: "Updates an account intervention status indicating that the account has been deleted."
+      DeploymentPreference:
+        Type: !If
+          - IsProd
+          - !Ref LambdaDeploymentPreference
+          - AllAtOnce
+        Alarms:
+          - !Ref AccountDeletionProcessorErrorsCanary
+        Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 10
       Handler: account-deletion-processor-handler.handler
       MemorySize: 128
@@ -975,6 +1023,15 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-StatusRetrieverFunction'
       Description: "Retrieves the account's intervention status."
+      DeploymentPreference:
+        Type: !If
+          - IsProd
+          - !Ref LambdaDeploymentPreference
+          - AllAtOnce
+        Alarms:
+          - !Ref StatusRetrieverErrorsCanary
+          - !Ref 5xxErrorsStatusRetrieverCanary
+        Role: !GetAtt CodeDeployServiceRole.Arn
       MemorySize: 512
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
       Timeout: 10
@@ -1363,6 +1420,158 @@ Resources:
       AliasName: !Sub "alias/${AWS::StackName}-CloudWatchEncryptionKey"
       TargetKeyId: !GetAtt CloudWatchEncryptionKey.Arn
 
+  #
+  #  Canary Deployment CloudWatch Alarms
+  #
+
+  StatusRetrieverErrorsCanary:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Errors returned from the StatusRetrieverFunction Lambda. ${RunBookURL}"
+      MetricName: Errors
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-StatusRetrieverFunction:live"
+        - Name: FunctionName
+          Value: !Ref StatusRetrieverFunction
+        - Name: ExecutedVersion
+          Value: !GetAtt StatusRetrieverFunction.Version.Version
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  5xxErrorsStatusRetrieverCanary:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Lambda returning 5xx response. ${RunBookURL}"
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName}-PrivateRestApi"
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  InterventionsProcessorErrorsCanary:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Errors returned from the InterventionsProcessorFunction Lambda. ${RunBookURL}"
+      MetricName: Errors
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-InterventionsProcessorFunction:live"
+        - Name: FunctionName
+          Value: !Ref InterventionsProcessorFunction
+        - Name: ExecutedVersion
+          Value: !GetAtt InterventionsProcessorFunction.Version.Version
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  ErrorPublishingEventToTxMACanary:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Publishing to TxMA has failed due to incorrect Lambda permissions. ${RunBookURL}"
+      MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
+      Namespace: !Ref SystemTagValue
+      Dimensions:
+        - Name: service
+          Value: InterventionsProcessorFunction
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  InterventionsProcessorMetricErrorsCanary:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Interventions Processor Function Alarm for InterventionsProcessorLambdaErrorMetricFilter. ${RunBookURL}"
+      MetricName: InterventionsProcessorLambdaError
+      Namespace: !Ref SystemTagValue
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  AccountDeletionProcessorErrorsCanary:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Errors returned from the AccountDeletionProcessorFunction Lambda. ${RunBookURL}"
+      MetricName: Errors
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-AccountDeletionProcessorFunction:live"
+        - Name: FunctionName
+          Value: !Ref AccountDeletionProcessorFunction
+        - Name: ExecutedVersion
+          Value: !GetAtt AccountDeletionProcessorFunction.Version.Version
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  #
+  #  Code Deploy Service Role
+  #
+
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - codedeploy.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
 
 Outputs:
   PrivateApiEndpoint:

@@ -162,6 +162,7 @@ describe('intervention processor handler', () => {
       });
       expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
     });
+
     it('should not retry the record if a StateTransitionError is received', async () => {
       mockRetrieveRecords.mockReturnValue({
         blocked: false,
@@ -368,6 +369,8 @@ describe('intervention processor handler', () => {
         interventionEventBodyInTheFuture,
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalledWith("Error caught, message will be retried.", { errorMessage: 'Event is in the future. It will be retried' });
+
     });
 
     it('should ignore the event if body is invalid', async () => {
@@ -381,7 +384,7 @@ describe('intervention processor handler', () => {
     });
 
     it('should return message id to be retried if dynamo db operation fails', async () => {
-      mockRetrieveRecords.mockRejectedValueOnce('Error');
+      mockRetrieveRecords.mockRejectedValueOnce(new Error('Error'));
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [
           {
@@ -390,6 +393,7 @@ describe('intervention processor handler', () => {
         ],
       });
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalledWith("Error caught, message will be retried.", { errorMessage: 'Error' });
     });
 
     it('should not process the event and return if the event timestamp predates the latest applied intervention for the user ', async () => {
@@ -523,6 +527,13 @@ describe('intervention processor handler', () => {
       expect(addMetric).toHaveBeenCalledWith('CONFIDENCE_LEVEL_TOO_LOW');
       expect(logger.warn).toHaveBeenCalledWith('Received interventions has low level of confidence: P1');
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
+    });
+
+    it('should log the expected error line when a message is retried - this line is used by a metric filter for canary deployment alarm', async () => {
+      mockRetrieveRecords.mockRejectedValueOnce(new Error('Error'));
+      await handler(mockEvent, mockContext);
+      expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalledWith("Error caught, message will be retried.", {errorMessage: 'Error'});
     });
   });
 });
