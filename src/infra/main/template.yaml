@@ -43,7 +43,7 @@ Parameters:
   AlertingSNSLowAlertNotificationTopicARN:
     Description: "The ARN of the Alerting SNS Low Alert Notification topic"
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/infra-alerting/SNS/LowAlertNotificationTopic/ARN" #pragma: allowlist secret
+    Default: "/ais-infra-alerting/SNS/LowAlertNotificationTopic/ARN" #pragma: allowlist secret
   LambdaDeploymentPreference:
     Description: "Specifies the configuration to enable gradual Lambda deployments. It can be used to set deployment type and also allows skipping canary deployment by setting to 'AllAtOnce'"
     Type: String
