@@ -14,3 +14,5 @@ process.env['AWS_REGION'] = 'aws_region';
 process.env['DELETED_ACCOUNT_RETENTION_SECONDS'] = '12345';
 process.env['TXMA_QUEUE_URL'] = 'https://sqs.eu-west-2.amazonaws.com/111122223333/TxMAQueue';
 process.env['HISTORY_RETENTION_SECONDS'] = '63072000';
+process.env['PROVIDER_BASE_URL'] = 'http://127.0.0.1';
+process.env['PROVIDER_PORT'] = ':8080';

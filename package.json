@@ -11,7 +11,9 @@
   "scripts": {
     "test": "yarn test:unit",
     "test:unit": "jest --group=unit --coverage --runInBand --testPathIgnorePatterns \"src/contract-testing/*\"",
-    "test:pact": "jest --group=contract --runInBand --testPathPattern=\"src/contract-testing/*\"",
+    "test:pact:provider": "jest --group=contract --runInBand --testPathPattern=\"src/contract-testing/provider/*\"",
+    "test:pact:consumer": "jest --group=contract --runInBand --testPathPattern=\"src/contract-testing/consumer/*\"",
+    "connect:pact:broker": "tsc src/contract-testing/test-helpers/connect-to-pact-broker.ts && node src/contract-testing/test-helpers/connect-to-pact-broker.js",
     "lint": "yarn lint:code && yarn lint:spec && yarn lint:iac",
     "lint:code": "eslint --ext .ts .",
     "lint:code:fix": "yarn lint:code --fix",
@@ -32,11 +34,12 @@
     "@aws-sdk/client-dynamodb": "^3.569.0",
     "@aws-sdk/client-sqs": "^3.569.0",
     "@aws-sdk/util-dynamodb": "^3.569.0",
+    "@pact-foundation/pact-node": "^10.18.0",
     "@smithy/node-http-handler": "^2.5.0"
   },
   "devDependencies": {
-    "@aws-sdk/client-sts": "^3.569.0",
     "@aws-sdk/client-sso-oidc": "^3.569.0",
+    "@aws-sdk/client-sts": "^3.569.0",
     "@pact-foundation/pact": "^12.5.0",
     "@stoplight/spectral-cli": "^6.11.1",
     "@types/aws-lambda": "^8.10.137",
@@ -67,7 +70,6 @@
     "typescript": "^5.4.5",
     "yarn-audit-fix": "^10.0.7"
   },
-
   "resolutions": {
     "axios": "^1.6.8"
   }

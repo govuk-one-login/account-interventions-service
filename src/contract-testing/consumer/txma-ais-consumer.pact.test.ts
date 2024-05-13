@@ -1,8 +1,8 @@
 import { Matchers, MessageConsumerPact, synchronousBodyHandler, LogLevel } from '@pact-foundation/pact';
-import { COMPONENT_ID } from '../data-types/constants';
+import { COMPONENT_ID } from '../../data-types/constants';
 import { term } from '@pact-foundation/pact/src/dsl/matchers';
 import { boolean, number, string } from '@pact-foundation/pact/src/v3/matchers';
-import { validateEventAgainstSchema } from '../services/validate-event';
+import { validateEventAgainstSchema } from '../../services/validate-event';
 
 const { like } = Matchers;
 

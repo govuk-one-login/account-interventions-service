@@ -26,7 +26,7 @@ export function setupServer(port: number) {
   const app = express();
   app.disable('x-powered-by');
 
-  app.get('/ais/:userId', async (request, response) => {
+  app.get('/V1/ais/:userId', async (request, response) => {
     const apiGatewayEvent = createDefaultApiRequest(request.params['userId']);
     try {
       result = await handle(apiGatewayEvent, dummyContext);

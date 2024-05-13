@@ -1,9 +1,10 @@
-import { MessageConsumerPact, synchronousBodyHandler, LogLevel } from '@pact-foundation/pact';
-import { COMPONENT_ID } from '../data-types/constants';
+import { MessageConsumerPact, synchronousBodyHandler } from '@pact-foundation/pact';
+import { COMPONENT_ID } from '../../data-types/constants';
 import { string } from '@pact-foundation/pact/src/v3/matchers';
+import pkg from "@pact-foundation/pact-node";
+const { publishPacts } = pkg;
 
-const path = require('node:path');
-const LOG_LEVEL = process.env['LOG_LEVEL'] || 'ERROR';
+import path from 'node:path';
 
 describe('AMF & AIS - Contract Testing - Consumer', () => {
   const messagePact = new MessageConsumerPact({
@@ -11,7 +12,7 @@ describe('AMF & AIS - Contract Testing - Consumer', () => {
     dir: path.resolve(process.cwd(), 'pacts'),
     pactfileWriteMode: 'update',
     provider: 'Account Management Frontend',
-    logLevel: LOG_LEVEL as LogLevel,
+    logLevel: "info",
   });
 
   describe('Incoming delete account event from Account Management Frontend', () => {
@@ -34,3 +35,25 @@ function syncMessageHandler(event: any) {
   }
   return;
 }
+
+const publishPact = async () => {
+  console.log("STARTING PUBLISH PACT");
+  try {
+    const publishOptions = {
+      pactFilesOrDirs: [path.resolve(process.cwd(), "pacts")],
+      pactBroker: process.env['PACT_BROKER_URL']!,
+      pactBrokerUsername: process.env['PACT_BROKER_USER']!,
+      pactBrokerPassword: process.env['PACT_BROKER_PASSWORD']!,
+      logLevel: "info",
+      consumerVersion: process.env['CONSUMER_APP_VERSION']!,
+      branch: "main"
+    };
+
+    await publishPacts(publishOptions);
+  } catch (err) {
+    console.error("UNABLE TO PUBLISH PACTS ", err);
+    process.exitCode = 1;
+  }
+};
+
+void publishPact();

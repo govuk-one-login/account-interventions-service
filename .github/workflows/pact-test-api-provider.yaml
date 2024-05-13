@@ -1,0 +1,54 @@
+name: run pact tests for api provider
+
+env:
+  PACT_BROKER_USER: ${{ secrets.PACT_BROKER_USER }}
+  PACT_BROKER_PASSWORD: ${{ secrets.PACT_BROKER_PASSWORD }}
+  PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
+  PACT_BROKER_SOURCE_SECRET: ${{ secrets.PACT_BROKER_SOURCE_SECRET }}
+  GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
+  PROVIDER_APP_VERSION: ${{ github.sha }}
+  PUBLISH_RESULT: false
+
+on:
+  push:
+    paths:
+      - src/**
+      - package.json
+      - yarn.lock
+      - tsconfig.json
+      - .node-version
+      - .github/workflows/acceptance-checks.yaml
+    branches:
+      - main
+  pull_request:
+    paths:
+      - src/**
+    branches:
+      - main
+  workflow_dispatch:
+
+
+jobs:
+  contract-testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3
+        with:
+          ref: ${{ inputs.gitRef || github.ref }}
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # pin@v3
+        with:
+          node-version-file: '.node-version'
+
+      - name: Run yarn install
+        run: yarn install --frozen-lockfile
+
+      - name: Set up pact publishing
+        if: github.ref_name == 'main'
+        run: echo "PUBLISH_RESULT=true" >> "$GITHUB_ENV"
+
+      - name: Run pact tests for provider API
+        run: |
+          yarn connect:pact:broker
+          yarn test:pact:provider
