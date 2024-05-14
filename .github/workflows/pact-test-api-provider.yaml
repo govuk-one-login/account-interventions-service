@@ -23,6 +23,11 @@ on:
   pull_request:
     paths:
       - src/**
+      - package.json
+      - yarn.lock
+      - tsconfig.json
+      - .node-version
+      - .github/workflows/acceptance-checks.yaml
     branches:
       - main
     types:
@@ -31,6 +36,13 @@ on:
       - ready_for_review
       - synchronize
   workflow_dispatch:
+    inputs:
+      gitRef:
+        description: "Input branch name, commit SHA, or tag"
+        required: true
+        type: string
+        default: main
+
 
 
 jobs:
