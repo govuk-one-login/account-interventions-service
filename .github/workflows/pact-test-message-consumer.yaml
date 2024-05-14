@@ -42,6 +42,8 @@ on:
         type: string
         default: main
 
+permissions:
+  contents: read
 
 jobs:
   contract-testing:
