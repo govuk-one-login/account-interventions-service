@@ -1,21 +1,17 @@
-import { Matchers, MessageConsumerPact, synchronousBodyHandler, LogLevel } from '@pact-foundation/pact';
-import { COMPONENT_ID } from '../../data-types/constants';
+import { Matchers, MessageConsumerPact, synchronousBodyHandler } from '@pact-foundation/pact';
 import { term } from '@pact-foundation/pact/src/dsl/matchers';
 import { boolean, number, string } from '@pact-foundation/pact/src/v3/matchers';
 import { validateEventAgainstSchema } from '../../services/validate-event';
-
+import path from 'node:path';
 const { like } = Matchers;
-
-const path = require('node:path');
-const LOG_LEVEL = process.env['LOG_LEVEL'] || 'ERROR';
 
 describe('TxMA & AIS - Contract Testing - Consumer', () => {
   const messagePact = new MessageConsumerPact({
-    consumer: COMPONENT_ID,
+    consumer: 'AccountInterventionsServiceConsumer',
     dir: path.resolve(process.cwd(), 'pacts'),
     pactfileWriteMode: 'update',
-    provider: 'TxMA',
-    logLevel: LOG_LEVEL as LogLevel,
+    provider: 'TxMAProvider',
+    logLevel: "error",
   });
 
   describe('Incoming event is received from TxMA', () => {

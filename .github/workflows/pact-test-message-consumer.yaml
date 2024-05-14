@@ -7,7 +7,6 @@ env:
   PACT_BROKER_SOURCE_SECRET: ${{ secrets.PACT_BROKER_SOURCE_SECRET }}
   GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
   PROVIDER_APP_VERSION: ${{ github.sha }}
-  PUBLISH_RESULT: false
 
 on:
   push:
@@ -49,11 +48,11 @@ jobs:
       - name: Run yarn install
         run: yarn install --frozen-lockfile
 
-      - name: Set up pact publishing
-        if: github.ref_name == 'main'
-        run: echo "PUBLISH_RESULT=true" >> "$GITHUB_ENV"
+      - name: Run Pact Tests for Message Consumers
+        run:  yarn test:pact:consumer
 
-      - name: Run pact tests for provider API
+      - name: Publish Pact Files
+        if: github.ref_name == 'main'
         run: |
           yarn connect:pact:broker
-          yarn test:pact:provider
+          yarn pact:publish:contracts

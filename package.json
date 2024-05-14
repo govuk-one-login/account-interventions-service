@@ -14,6 +14,7 @@
     "test:pact:provider": "jest --group=contract --runInBand --testPathPattern=\"src/contract-testing/provider/*\"",
     "test:pact:consumer": "jest --group=contract --runInBand --testPathPattern=\"src/contract-testing/consumer/*\"",
     "connect:pact:broker": "tsc src/contract-testing/test-helpers/connect-to-pact-broker.ts && node src/contract-testing/test-helpers/connect-to-pact-broker.js",
+    "pact:publish:contracts": "tsc src/contract-testing/test-helpers/publish-pacts.ts && node src/contract-testing/test-helpers/publish-pacts.js",
     "lint": "yarn lint:code && yarn lint:spec && yarn lint:iac",
     "lint:code": "eslint --ext .ts .",
     "lint:code:fix": "yarn lint:code --fix",

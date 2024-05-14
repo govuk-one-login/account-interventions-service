@@ -44,19 +44,17 @@ function getDynamoDBResponseObject (interventionName: AISInterventionTypes, stat
   }
 }
 
-console.log(process.env['PACT_BROKER_URL'])
-
 const config: VerifierOptions = {
   providerBaseUrl: process.env['PROVIDER_BASE_URL']! + process.env['PROVIDER_PORT']!,
   providerBranch: process.env['GIT_BRANCH']!,
   providerVersion: process.env['PROVIDER_APP_VERSION']!,
-  pactBrokerUrl: "https://pactbroker-onelogin.account.gov.uk/",
+  pactBrokerUrl: process.env['PACT_BROKER_URL']!,
   publishVerificationResult: process.env['PUBLISH_RESULT']! === 'true',
-  consumerVersionTags: ["ATO-627/update-ais-contract-tests"],
+  consumerVersionTags: ["main"],
   pactBrokerPassword: process.env['PACT_BROKER_PASSWORD']!,
   pactBrokerUsername: process.env['PACT_BROKER_USER']!,
   provider: 'AccountInterventionServiceProvider',
-  logLevel: 'info',
+  logLevel: 'error',
   stateHandlers: {
     'provider is healthy': async () => {
       queryCommandMock.resolves({ Items: [] });
