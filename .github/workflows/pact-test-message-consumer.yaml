@@ -1,4 +1,4 @@
-name: Run Pact Tests For Message Consumer Provider
+name: Run Pact Tests For Message Consumer
 
 env:
   PACT_BROKER_USER: ${{ secrets.PACT_BROKER_USER }}
