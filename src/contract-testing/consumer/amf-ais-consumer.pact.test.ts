@@ -1,17 +1,14 @@
-import { MessageConsumerPact, synchronousBodyHandler, LogLevel } from '@pact-foundation/pact';
-import { COMPONENT_ID } from '../data-types/constants';
+import { MessageConsumerPact, synchronousBodyHandler } from '@pact-foundation/pact';
 import { string } from '@pact-foundation/pact/src/v3/matchers';
-
-const path = require('node:path');
-const LOG_LEVEL = process.env['LOG_LEVEL'] || 'ERROR';
+import path from 'node:path';
 
 describe('AMF & AIS - Contract Testing - Consumer', () => {
   const messagePact = new MessageConsumerPact({
-    consumer: COMPONENT_ID,
+    consumer: 'AccountInterventionsServiceConsumer',
     dir: path.resolve(process.cwd(), 'pacts'),
     pactfileWriteMode: 'update',
-    provider: 'Account Management Frontend',
-    logLevel: LOG_LEVEL as LogLevel,
+    provider: 'AccountManagementFrontendProvider',
+    logLevel: "error",
   });
 
   describe('Incoming delete account event from Account Management Frontend', () => {
