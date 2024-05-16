@@ -38,3 +38,10 @@ export class TooManyRecordsError extends Error {
     this.name = 'TooManyRecordsError';
   }
 }
+
+export class RetryEventError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'RetryEventError';
+  }
+}

@@ -369,8 +369,13 @@ describe('intervention processor handler', () => {
         interventionEventBodyInTheFuture,
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
-      expect(logger.error).toHaveBeenCalledWith("Error caught, message will be retried.", { errorMessage: 'Event is in the future. It will be retried' });
-
+      expect(logger.warn).toHaveBeenCalledWith("Event with timestamp in the future.", {
+        currentTime: "1970-01-15T06:56:07.890Z",
+        emittedAt: "1970-01-15T06:56:12.890Z",
+        event: "FRAUD_BLOCK_ACCOUNT",
+        eventName: "TICF_ACCOUNT_INTERVENTION",
+        msInTheFuture: 5000,
+      });
     });
 
     it('should ignore the event if body is invalid', async () => {

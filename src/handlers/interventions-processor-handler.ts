@@ -10,7 +10,7 @@ import {
   TriggerEventsEnum,
 } from '../data-types/constants';
 import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
-import { StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
+import { RetryEventError, StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
 import {
   attemptToParseJson,
   validateEventAgainstSchema,
@@ -141,6 +141,9 @@ async function handleError(error: unknown, record: SQSRecord) {
       JSON.parse(record.body) as TxMAIngressEvent,
       error.output,
     );
+  } else if (error instanceof RetryEventError) {
+    logger.warn('RetryEventError caught, message will be retried.', { errorMessage: error.message });
+    return record.messageId;
   } else {
     logger.error('Error caught, message will be retried.', { errorMessage: (error as Error).message });
     return record.messageId;
