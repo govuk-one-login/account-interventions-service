@@ -6,7 +6,7 @@ env:
   PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
   PACT_BROKER_SOURCE_SECRET: ${{ secrets.PACT_BROKER_SOURCE_SECRET }}
   GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
-  PROVIDER_APP_VERSION: ${{ github.sha }}
+  CONSUMER_APP_VERSION: ${{ github.sha }}
 
 on:
   push:
