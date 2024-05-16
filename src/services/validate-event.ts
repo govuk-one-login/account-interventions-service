@@ -2,7 +2,7 @@ import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-typ
 import logger from '../commons/logger';
 import { addMetric } from '../commons/metrics';
 import { AISInterventionTypes, EventsEnum, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
-import { ValidationError } from '../data-types/errors';
+import { RetryEventError, ValidationError } from '../data-types/errors';
 import { compileSchema } from '../commons/compile-schema';
 import { TxMAIngress } from '../data-types/schemas';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
@@ -63,10 +63,16 @@ export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: T
   const eventTimestampInMs = event.event_timestamp_ms ?? event.timestamp * 1000;
   const now = getCurrentTimestamp().milliseconds;
   if (now < eventTimestampInMs) {
-    logger.debug(`Timestamp is in the future (sec): ${eventTimestampInMs}.`);
+    logger.warn('Event with timestamp in the future.', {
+      eventName: event.event_name,
+      emittedAt: new Date(eventTimestampInMs).toISOString(),
+      currentTime: new Date(now).toISOString(),
+      msInTheFuture: eventTimestampInMs - now,
+      event: eventEnum.toString(),
+    });
     addMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
     await sendAuditEvent('AIS_EVENT_IGNORED_IN_FUTURE', eventEnum, event);
-    throw new Error('Event is in the future. It will be retried');
+    throw new RetryEventError('Event has timestamp that is in the future.');
   }
 }
 
