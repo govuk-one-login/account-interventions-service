@@ -8,6 +8,7 @@ env:
   GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
   PROVIDER_APP_VERSION: ${{ github.sha }}
   PUBLISH_RESULT: false
+  PACT_BROKER_CAN_I_DEPLOY_DRY_RUN: true
 
 on:
   push:
@@ -70,3 +71,7 @@ jobs:
         run: |
           yarn connect:pact:broker
           yarn test:pact:provider
+
+      - name: Run can-i-deploy check for AIS provider api
+        if: github.ref_name == 'main'
+        run: yarn pact:can-i-deploy
