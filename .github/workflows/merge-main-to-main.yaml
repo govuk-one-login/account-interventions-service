@@ -36,6 +36,13 @@ jobs:
     with:
       gitRef: ${{ inputs.gitRef }}
 
+  provider_contract_tests:
+    name: Provider Contract Tests
+    uses: ./.github/workflows/pact-test-api-provider.yaml
+    secrets: inherit # pragma: allowlist secret
+    with:
+      gitRef: ${{ inputs.gitRef }}
+
   publish_artifacts:
     name: "Publish Image & Template"
     runs-on: ubuntu-latest
