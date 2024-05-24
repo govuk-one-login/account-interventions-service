@@ -112,10 +112,10 @@ Mappings:
       TxMAAccountID: 178023842775
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:178023842775:self-staging-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:178023842775:key/e388cb30-2d78-431f-b1a6-847549a815aa
-      OrchestrationVPCID: vpc-0ca40c7d13490419d # Auth & Orchestration Staging VPC ID
-      AuthenticationVPCID: vpc-0b6f4a5d72f84ed0c # Authentication Sandbox VPC ID
+      OrchestrationVPCID: vpc-0217499e2982d99ca # Orchestration Staging VPC ID
+      AuthenticationVPCID: vpc-0ca40c7d13490419d # Authentication Staging VPC ID
       OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
-      UniqueVPCEndpointIDs: vpce-040f33c3489ff777b,vpce-0339d04aeb67de9da # Auth/Orch Sandbox & Staging VPC endpoint IDs
+      UniqueVPCEndpointIDs: vpce-040f33c3489ff777b,vpce-0339d04aeb67de9da,vpce-0a81481bcd8257f5e # Auth/Orch Staging VPC endpoint IDs
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     integration:
       LambdaLogLevel: INFO
