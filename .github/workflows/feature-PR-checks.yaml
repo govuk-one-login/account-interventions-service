@@ -3,46 +3,46 @@ name: "Pull Request - Feature Checks"
 
 #To be triggered when a PR is opened/updated/etc. NOT on every commit to a branch
 
-  pull_request:
-    types:
-      - opened
-      - reopened
-      - ready_for_review
-      - synchronize
+pull_request:
+  types:
+    - opened
+    - reopened
+    - ready_for_review
+    - synchronize
 
-  permissions:
-  id-token: write
-  contents: read
+permissions:
+id-token: write
+contents: read
 
-  jobs:
-    feature-checks:
-      name: "Run happy path feature tests"
-      runs-on: ubuntu-latest
-      timeout-minutes: 60
-      steps:
-        - name: Checkout
-          uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
-          with:
-            ref: ${{ github.ref }}
+jobs:
+  feature-checks:
+    name: "Run happy path feature tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        with:
+          ref: ${{ github.ref }}
 
-        - name: Setup NodeJS
-          uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # pin@v4.0.2
-          with:
-            node-version-file: '.node-version'
+      - name: Setup NodeJS
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # pin@v4.0.2
+        with:
+          node-version-file: '.node-version'
 
-        - name: Configure AWS Credentials
-          uses: aws-actions/configure-aws-credentials@67fbcbb121271f7775d2e7715933280b06314838 # pin@v1.7.0
-          with:
-            role-to-assume: ${{ secrets.DEV_TEST_REUSE_GH_ACTIONS_ROLE_ARN }}
-            aws-region: eu-west-2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@67fbcbb121271f7775d2e7715933280b06314838 # pin@v1.7.0
+        with:
+          role-to-assume: ${{ secrets.DEV_TEST_REUSE_GH_ACTIONS_ROLE_ARN }}
+          aws-region: eu-west-2
 
-        - name: Install yarn for codebase
-          run: yarn install --frozen-lockfile
+      - name: Install yarn for codebase
+        run: yarn install --frozen-lockfile
 
-        - name: Install yarn for tests
-          run: yarn install --frozen-lockfile
-            working-directory: feature-tests/
+      - name: Install yarn for tests
+        run: yarn install --frozen-lockfile
+          working-directory: feature-tests/
 
-        - name: Run Feature Tests
-          run: yarn test
-            working-directory: feature-tests/
+      - name: Run Feature Tests
+        run: yarn test
+          working-directory: feature-tests/
