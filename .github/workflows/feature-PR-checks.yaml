@@ -1,5 +1,6 @@
 ---
 name: "Pull Request - Feature Checks"
+
 #To be triggered when a PR is opened/updated/etc. NOT on every commit to a branch
 
   pull_request:
@@ -40,8 +41,8 @@ name: "Pull Request - Feature Checks"
 
         - name: Install yarn for tests
           run: yarn install --frozen-lockfile
-          working-directory: feature-tests/
+            working-directory: feature-tests/
 
         - name: Run Feature Tests
           run: yarn test
-          working-directory: feature-tests/
+            working-directory: feature-tests/
