@@ -36,8 +36,8 @@ jobs:
           role-to-assume: ${{ secrets.DEV_TEST_REUSE_GH_ACTIONS_ROLE_ARN }}
           aws-region: eu-west-2
 
-      - name: Install yarn for codebase
-        run: yarn install --frozen-lockfile
+    #  - name: Install yarn for codebase
+    #    run: yarn install --frozen-lockfile
 
       - name: Install yarn for tests
         run: yarn install --frozen-lockfile
