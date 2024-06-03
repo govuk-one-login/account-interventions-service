@@ -38,7 +38,7 @@
     "@smithy/node-http-handler": "^2.5.0"
   },
   "devDependencies": {
-    "@aws-sdk/client-sso-oidc": "^3.569.0",
+    "@aws-sdk/client-sso-oidc": "^3.588.0",
     "@aws-sdk/client-sts": "^3.569.0",
     "@pact-foundation/pact": "^12.5.0",
     "@pact-foundation/pact-node": "^10.18.0",
