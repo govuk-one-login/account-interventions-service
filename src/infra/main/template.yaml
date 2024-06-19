@@ -123,10 +123,10 @@ Mappings:
       TxMAAccountID: 729485541398
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:729485541398:self-integration-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:729485541398:key/c360ee61-da3b-48de-998e-68cb91743414
-      OrchestrationVPCID: vpc-04444d1dc96d8822c # Orchestration Integration VPC ID
+      OrchestrationVPCID: vpc-09984eb16fa30fb55 # Orchestration Integration VPC ID
       AuthenticationVPCID: vpc-04444d1dc96d8822c # Authentication Integration VPC ID
       OneLoginHomeVPCID: vpc-048c9133a5998efe7 # One Login Home Integration VPC ID
-      UniqueVPCEndpointIDs: vpce-068df58b11adba0c7 # Authentication & Orchestration Integration Shared VPC Endpoint ID
+      UniqueVPCEndpointIDs: vpce-068df58b11adba0c7,vpce-0704b783d794cea52 # Authentication & Orchestration Integration VPC Endpoint IDs
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     production:
       LambdaLogLevel: INFO
@@ -134,10 +134,10 @@ Mappings:
       TxMAAccountID: 451773080033
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:451773080033:self-production-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:451773080033:key/5bbb4188-6774-4fe8-a78a-968f5e435295
-      OrchestrationVPCID: vpc-00012e96e1cd0bf95 # Orchestration Production VPC ID
+      OrchestrationVPCID: vpc-058178adacb1c387a # Orchestration Production VPC ID
       AuthenticationVPCID: vpc-00012e96e1cd0bf95 # Authentication Production VPC ID
       OneLoginHomeVPCID: vpc-0c94e753d20410154 # One Login Home Production VPC ID
-      UniqueVPCEndpointIDs: vpce-0e7b281bd24fbd378 # Authentication & Orchestration Production Shared VPC Endpoint ID
+      UniqueVPCEndpointIDs: vpce-0e7b281bd24fbd378,vpce-0dd5d6bf9c2a1eade # Authentication & Orchestration Production VPC Endpoint IDs
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables # pragma: allowlist secret
 
 Globals:
