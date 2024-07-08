@@ -19,6 +19,7 @@ module.exports = {
     'object-curly-spacing': ['error', 'always'],
     'unicorn/filename-case': ['error', { case: 'kebabCase' }],
     'unicorn/prevent-abbreviations': ['warn'],
+    'unicorn/prefer-string-raw': ['off'],
     'unicorn/error-message': ['warn'],
     'unicorn/no-array-reduce': ['off'],
     'unicorn/prefer-logical-operator-over-ternary': ['warn'],
