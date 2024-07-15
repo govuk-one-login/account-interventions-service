@@ -1439,10 +1439,10 @@
     unzipper "^0.10.11"
     url-join "^4.0.1"
 
-"@pact-foundation/pact@^13.1.0":
-  version "13.1.0"
-  resolved "https://registry.yarnpkg.com/@pact-foundation/pact/-/pact-13.1.0.tgz#46adb653b396c324d945ba82bd4082722c572e8e"
-  integrity sha512-ddpnwPergsKiuMFhkejk34sYeR4cJsbHnBkqqDmoKN4hoGH6g9JrTI9c7zsLiUkfKOMKfDuX4qh+lMbF/cjKrA==
+"@pact-foundation/pact@^13.1.1":
+  version "13.1.1"
+  resolved "https://registry.yarnpkg.com/@pact-foundation/pact/-/pact-13.1.1.tgz#f05f5977074defc4cb691d01adb20ed6b74fc7dc"
+  integrity sha512-IZk9fCdCg83YkuGrlIOFeBx9sHyDj6xdj2ZLWEt7t4dM8lmHymWKvy1N30+3ZWSv2CkwHromY5kuvU3FA8m44g==
   dependencies:
     "@pact-foundation/pact-core" "^15.1.0"
     "@types/express" "^4.17.11"
