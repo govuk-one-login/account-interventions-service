@@ -174,7 +174,7 @@ defineFeature(feature, (test) => {
     });
   });
 
-  test('UnHappy Path - Get Request to /ais/userId - Level of Confidence for userActionIdResetSuccess - Returns Expected Data for <aisEventType>', ({
+  test('UnHappy Path - Get Request to /ais/userId - Identity Status for userActionIdResetSuccess - Returns Expected Data for <aisEventType>', ({
     given,
     when,
     and,
@@ -185,7 +185,7 @@ defineFeature(feature, (test) => {
     });
 
     and(
-      /^I send an other invalid event with invalid level of confidence (.*) to the txma sqs queue$/,
+      /^I send an other invalid event with invalid status (.*) to the txma sqs queue$/,
       async (invalidAisEventType) => {
         await timeDelayForTestEnvironment(1500);
         await sendInvalidSQSEvent(testUserId, invalidAisEventType);

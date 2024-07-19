@@ -40,16 +40,19 @@ export function validateInterventionEvent(interventionRequest: TxMAIngressEvent)
 }
 
 /**
- * A function to validate that the level of confidence is as expected for a IPV_IDENTITY_ISSUED event
+ * A function to validate that the status is as expected for a IPV_ACCOUNT_INTERVENTION_END event
  * @param intervention - the intervention name
  * @param event - the event received
- * @throws ValidationError - if the level of confidence is undefined or not as expected
+ * @throws ValidationError - if the status is undefined or not as expected
  */
-export function validateLevelOfConfidence(intervention: EventsEnum, event: TxMAIngressEvent) {
-  if (intervention === EventsEnum.IPV_IDENTITY_ISSUED && event.extensions?.levelOfConfidence !== 'P2') {
-    logger.warn(`Received interventions has low level of confidence: ${event.extensions?.levelOfConfidence}`);
-    addMetric(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
-    throw new ValidationError('Received intervention has low level of confidence.');
+export function validateIfIdentityAcquired(intervention: EventsEnum, event: TxMAIngressEvent) {
+  if (intervention === EventsEnum.IPV_ACCOUNT_INTERVENTION_END && event.extensions?.success !== true) {
+    logger.warn('Received event that does not meet criteria to lift intervention.', {
+      success: event.extensions?.success,
+      type: event.extensions?.type,
+    });
+    addMetric(MetricNames.IDENTITY_NOT_SUFFICIENTLY_PROVED);
+    throw new ValidationError('Received event that does not meet criteria to lift intervention.');
   }
 }
 

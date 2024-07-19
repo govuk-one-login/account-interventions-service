@@ -16,14 +16,14 @@ export const TxMAIngress = {
       required: ['timestamp', 'event_name', 'user'],
       allOf: [
         {
-          if: { properties: { event_name: { enum: [TriggerEventsEnum.IPV_IDENTITY_ISSUED] } } },
+          if: { properties: { event_name: { enum: [TriggerEventsEnum.IPV_ACCOUNT_INTERVENTION_END] } } },
           // eslint-disable-next-line unicorn/no-thenable
           then: {
             required: ['extensions'],
             properties: {
               extensions: {
                 type: 'object',
-                required: ['levelOfConfidence', 'ciFail', 'hasMitigations'],
+                required: ['type', 'success'],
                 not: {
                   anyOf: [{ required: ['intervention'] }],
                 },
@@ -41,11 +41,7 @@ export const TxMAIngress = {
                 type: 'object',
                 required: ['intervention'],
                 not: {
-                  anyOf: [
-                    { required: ['levelOfConfidence'] },
-                    { required: ['ciFail'] },
-                    { required: ['hasMitigations'] },
-                  ],
+                  anyOf: [{ required: ['type'] }, { required: ['success'] }],
                 },
                 properties: {
                   intervention: {
@@ -117,19 +113,14 @@ export const TxMAIngress = {
                 },
               },
             },
-            levelOfConfidence: {
-              $id: '#root/event/levelOfConfidence',
-              title: 'LevelOfConfidence',
+            type: {
+              $id: '#root/event/type',
+              title: 'Type',
               type: 'string',
             },
-            ciFail: {
-              $id: '#root/event/ciFail',
-              title: 'CIFail',
-              type: 'boolean',
-            },
-            hasMitigations: {
-              $id: '#root/event/hasMitigations',
-              title: 'HasMitigations',
+            success: {
+              $id: '#root/event/success',
+              title: 'Success',
               type: 'boolean',
             },
           },
@@ -137,15 +128,11 @@ export const TxMAIngress = {
             {
               required: ['intervention'],
               not: {
-                anyOf: [
-                  { required: ['levelOfConfidence'] },
-                  { required: ['ciFail'] },
-                  { required: ['hasMitigations'] },
-                ],
+                anyOf: [{ required: ['type'] }, { required: ['success'] }],
               },
             },
             {
-              required: ['levelOfConfidence'],
+              required: ['type'],
               not: {
                 anyOf: [{ required: ['intervention'] }],
               },

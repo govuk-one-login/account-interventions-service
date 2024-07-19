@@ -150,25 +150,21 @@ export const aisEvents: {
   },
 
   userActionIdResetSuccess: {
-    event_name: 'IPV_IDENTITY_ISSUED',
+    event_name: 'IPV_ACCOUNT_INTERVENTION_END',
     event_id: '123',
     timestamp: seconds,
     event_timestamp_ms: ms,
     client_id: 'UNKNOWN',
-    component_id: 'UNKNOWN',
+    component_id: 'https://identity.account.gov.uk',
     user: {
       user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
-      email: '',
-      phone: 'UNKNOWN',
-      ip_address: '',
-      session_id: '',
-      persistent_session_id: '',
-      govuk_signin_journey_id: '',
+      session_id: 'uOyXUiLAOlcty42HZw6Hgmrlvx7WVraU4JIOli8DHSM',
+      govuk_signin_journey_id: 'EKRb611GMsL_mOe7Yw8FU3fIaMw',
+      ip_address: '*.*.*.*',
     },
     extensions: {
-      levelOfConfidence: 'P2',
-      ciFail: false,
-      hasMitigations: false,
+      type: 'reprove_identity',
+      success: true,
     },
   },
 

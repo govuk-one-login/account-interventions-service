@@ -88,11 +88,11 @@ export const transitionConfiguration: TransitionConfigurationInterface = {
     },
     '91': {
       to: 'AccountIsOkay',
-      name: EventsEnum.IPV_IDENTITY_ISSUED,
+      name: EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
     },
     '92': {
       to: 'AccountNeedsPasswordReset',
-      name: EventsEnum.IPV_IDENTITY_ISSUED,
+      name: EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
     },
     '93': {
       to: 'AccountNeedsIdReset',
