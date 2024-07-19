@@ -100,7 +100,7 @@
     "ParameterValue": "True"
   },
   {
-    "ParameterKey": "LambdaDeploymentPreference",
+    "ParameterKey": "LambdaCanaryDeployment",
     "ParameterValue": "AllAtOnce"
   }
 ]
