@@ -87,9 +87,8 @@ export interface TxmaUser {
 
 interface IngressEventExtension {
   intervention?: Intervention;
-  levelOfConfidence?: string;
-  ciFail?: boolean;
-  hasMitigations?: boolean;
+  type?: string;
+  success?: boolean;
 }
 
 interface Intervention {

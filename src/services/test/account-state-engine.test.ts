@@ -247,7 +247,7 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountNeedsIDReset, passwordResetRequiredUpdate],
         [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsIDReset, suspendAccountUpdate],
         [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsIDReset, unsuspendAccountUpdate],
-        [EventsEnum.IPV_IDENTITY_ISSUED, accountNeedsIDReset, idResetSuccessfulUpdateUnsuspended],
+        [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountNeedsIDReset, idResetSuccessfulUpdateUnsuspended],
         [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountNeedsIDReset, blockAccountUpdate],
       ])('%p', (intervention, retrievedAccountState, command) => {
         const partialCommand = accountStateEngine.applyEventTransition(intervention, retrievedAccountState);
@@ -266,7 +266,7 @@ describe('account-state-service', () => {
           pswResetSuccessfulUpdateSuspended,
         ],
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountNeedsIDResetAdnPswReset, passwordResetRequiredUpdate],
-        [EventsEnum.IPV_IDENTITY_ISSUED, accountNeedsIDResetAdnPswReset, idResetSuccessfulUpdateSuspended],
+        [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountNeedsIDResetAdnPswReset, idResetSuccessfulUpdateSuspended],
         [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsIDResetAdnPswReset, unsuspendAccountUpdate],
         [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsIDResetAdnPswReset, suspendAccountUpdate],
       ])('%p', (intervention, retrievedAccountState, command) => {
@@ -306,7 +306,7 @@ describe('account-state-service', () => {
       it.each([
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsOkay],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT, accountIsOkay],
-        [EventsEnum.IPV_IDENTITY_ISSUED, accountIsOkay],
+        [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountIsOkay],
       ])('when is %p applied on account state: %p it should throw a StateTransitionError', (intervention, retrievedAccountState) => {
         expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(
           new StateTransitionError(`${intervention} is not allowed from current state`, intervention, {
@@ -326,10 +326,10 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsSuspended],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsSuspended],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT, accountIsSuspended],
-        [EventsEnum.IPV_IDENTITY_ISSUED, accountIsSuspended],
+        [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountIsSuspended],
 
         [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsPswReset],
-        [EventsEnum.IPV_IDENTITY_ISSUED, accountNeedsPswReset],
+        [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountNeedsPswReset],
 
         [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsIDReset],
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountNeedsIDReset],
@@ -338,7 +338,7 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsIDResetAdnPswReset],
 
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsBlocked],
-        [EventsEnum.IPV_IDENTITY_ISSUED, accountIsBlocked],
+        [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountIsBlocked],
         [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsBlocked],
         [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountIsBlocked],
         [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsBlocked],

@@ -41,7 +41,7 @@ export const buildPartialUpdateAccountStateCommand = (
     },
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
   };
-  if (eventName === EventsEnum.IPV_IDENTITY_ISSUED) {
+  if (eventName === EventsEnum.IPV_ACCOUNT_INTERVENTION_END) {
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RIdA'] = 'reprovedIdentityAt';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':rida'] = { N: `${eventTimestamp}` };
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';

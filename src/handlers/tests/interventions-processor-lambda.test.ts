@@ -498,7 +498,7 @@ describe('intervention processor handler', () => {
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
-    it('should ignore if level of confidence is not P2 for an ID Reset user action event', async () => {
+    it('should ignore if Success is false for an ID Reset user action event', async () => {
       mockRecord = {
         messageId: '123',
         receiptHandle: '',
@@ -507,11 +507,10 @@ describe('intervention processor handler', () => {
           user: {
             user_id: 'abc',
           },
-          event_name: 'IPV_IDENTITY_ISSUED',
+          event_name: 'IPV_ACCOUNT_INTERVENTION_END',
           extensions: {
-            levelOfConfidence: 'P1',
-            ciFail: false,
-            hasMitigations: false,
+            type: 'reprove_identity',
+            success: false
           },
         }),
         attributes: {
@@ -529,8 +528,8 @@ describe('intervention processor handler', () => {
       expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
         batchItemFailures: [],
       });
-      expect(addMetric).toHaveBeenCalledWith('CONFIDENCE_LEVEL_TOO_LOW');
-      expect(logger.warn).toHaveBeenCalledWith('Received interventions has low level of confidence: P1');
+      expect(addMetric).toHaveBeenCalledWith('IDENTITY_NOT_SUFFICIENTLY_PROVED');
+      expect(logger.warn).toHaveBeenCalledWith('Received event that does not meet criteria to lift intervention.', { success: false, type: 'reprove_identity' });
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 

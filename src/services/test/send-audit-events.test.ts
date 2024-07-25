@@ -528,7 +528,7 @@ describe('send-audit-events', () => {
     //sqsMock.reset();
     const response = await sendAuditEvent(
       'AIS_EVENT_TRANSITION_IGNORED',
-      EventsEnum.IPV_IDENTITY_ISSUED,
+      EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
       ingressUserActionEvent,
       {
         stateResult: {

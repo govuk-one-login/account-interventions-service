@@ -55,7 +55,11 @@ export function publishTimeToResolveMetrics(
     addMetric(MetricNames.TIME_TO_RESOLVE, noMetadata, timeDifferenceAsSeconds, { type: 'resetPassword' });
   }
 
-  if (eventName === EventsEnum.IPV_IDENTITY_ISSUED && oldState.reproveIdentity && !currentState.reproveIdentity) {
+  if (
+    eventName === EventsEnum.IPV_ACCOUNT_INTERVENTION_END &&
+    oldState.reproveIdentity &&
+    !currentState.reproveIdentity
+  ) {
     addMetric(MetricNames.TIME_TO_RESOLVE, noMetadata, timeDifferenceAsSeconds, { type: 'reproveIdentity' });
   }
 }

@@ -17,7 +17,7 @@ import {
   validateEventIsNotInFuture,
   validateEventIsNotStale,
   validateInterventionEvent,
-  validateLevelOfConfidence,
+  validateIfIdentityAcquired,
 } from '../services/validate-event';
 import { AppConfigService } from '../services/app-config-service';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
@@ -78,7 +78,7 @@ async function processSQSRecord(record: SQSRecord) {
   validateEventAgainstSchema(recordBody);
   const eventName = getEventName(recordBody);
   logger.debug('Intervention received.', { intervention: eventName });
-  validateLevelOfConfidence(eventName, recordBody);
+  validateIfIdentityAcquired(eventName, recordBody);
   await validateEventIsNotInFuture(eventName, recordBody);
 
   const userId = recordBody.user.user_id;

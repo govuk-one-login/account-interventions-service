@@ -53,14 +53,16 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
         .expectsToReceive('a valid user action event - reset password')
         .withContent({
           timestamp: number(1_705_318_190),
-          event_name: like('IPV_IDENTITY_ISSUED'),
+          event_name: like('IPV_ACCOUNT_INTERVENTION_END'),
           user: {
             user_id: string('urn:fdc:gov.uk:2022:USER_ONE'),
+            session_id: like('uOyXUiLAOlcty42HZw6Hgmrlvx7WVraU4JIOli8DHSM'),
+            govuk_signin_journey_id: like('EKRb611GMsL_mOe7Yw8FU3fIaMw'),
+            ip_address: like('*.*.*.*')
           },
           extensions: {
-            levelOfConfidence: like('P2'),
-            ciFail: boolean(false),
-            hasMitigations: boolean(false),
+            type: like('reprove_identity'),
+            success: boolean(true)
           },
         })
         .verify(synchronousBodyHandler(syncMessageHandler));

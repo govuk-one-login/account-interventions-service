@@ -92,7 +92,7 @@ describe('build-partial-update-state-command', () => {
       resetPassword: true,
       reproveIdentity: true,
     };
-    const userAction = EventsEnum.IPV_IDENTITY_ISSUED;
+    const userAction = EventsEnum.IPV_ACCOUNT_INTERVENTION_END;
     const expectedOutput = {
       ExpressionAttributeNames: {
         '#B': 'blocked',

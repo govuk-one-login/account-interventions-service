@@ -4,7 +4,7 @@ import {
   validateEventIsNotInFuture,
   validateEventIsNotStale,
   validateInterventionEvent,
-  validateLevelOfConfidence,
+  validateIfIdentityAcquired,
 } from '../validate-event';
 import logger from '../../commons/logger';
 import { addMetric } from '../../commons/metrics';
@@ -280,84 +280,71 @@ describe('event-validation', () => {
     expect(sendAuditEvent).not.toHaveBeenCalled();
   });
 
-  it('should throw if level of confidence is too low for a ID Reset event', () => {
-    const idResetEventLowConfidence = {
-      event_name: TriggerEventsEnum.IPV_IDENTITY_ISSUED,
+  it('should throw if success is false for a ID Reset event', () => {
+    const idResetEventWithoutSuccess = {
+      event_name: TriggerEventsEnum.IPV_ACCOUNT_INTERVENTION_END,
       event_id: '123',
       timestamp: 1_234_567,
-      client_id: 'UNKNOWN',
-      component_id: 'UNKNOWN',
+      component_id: 'https://identity.account.gov.uk',
       user: {
         user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
-        email: '',
-        phone: 'UNKNOWN',
-        ip_address: '',
-        session_id: '',
-        persistent_session_id: '',
-        govuk_signin_journey_id: '',
+        session_id: 'uOyXUiLAOlcty42HZw6Hgmrlvx7WVraU4JIOli8DHSM',
+        govuk_signin_journey_id: 'EKRb611GMsL_mOe7Yw8FU3fIaMw',
+        ip_address: "123.123.123.123"
       },
       extensions: {
-        levelOfConfidence: 'LessThanP2',
-        ciFail: false,
-        hasMitigations: false,
+        type: 'reprove_identity',
+        success: false,
       },
     };
-    expect(() => validateLevelOfConfidence(EventsEnum.IPV_IDENTITY_ISSUED, idResetEventLowConfidence)).toThrow(
-      new ValidationError('Received intervention has low level of confidence.'),
+    expect(() => validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEventWithoutSuccess)).toThrow(
+      new ValidationError('Received event that does not meet criteria to lift intervention.'),
     );
-    expect(addMetric).toHaveBeenCalledWith(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
+    expect(addMetric).toHaveBeenCalledWith(MetricNames.IDENTITY_NOT_SUFFICIENTLY_PROVED);
   });
 
-  it('should not throw if level of confidence is high enough for a ID Reset event', () => {
+  it('should not throw if success is true for a ID Reset event', () => {
     const idResetEvent = {
-      event_name: TriggerEventsEnum.IPV_IDENTITY_ISSUED,
+      event_name: TriggerEventsEnum.IPV_ACCOUNT_INTERVENTION_END,
       event_id: '123',
       timestamp: 1_234_567,
       client_id: 'UNKNOWN',
-      component_id: 'UNKNOWN',
+      component_id: 'https://identity.account.gov.uk',
       user: {
         user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
-        email: '',
-        phone: 'UNKNOWN',
-        ip_address: '',
-        session_id: '',
-        persistent_session_id: '',
-        govuk_signin_journey_id: '',
+        session_id: 'uOyXUiLAOlcty42HZw6Hgmrlvx7WVraU4JIOli8DHSM',
+        govuk_signin_journey_id: 'EKRb611GMsL_mOe7Yw8FU3fIaMw',
+        ip_address: "123.123.123.123"
       },
       extensions: {
-        levelOfConfidence: 'P2',
-        ciFail: false,
-        hasMitigations: false,
+        type: 'reprove_identity',
+        success: true,
       },
     };
-    expect(() => validateLevelOfConfidence(EventsEnum.IPV_IDENTITY_ISSUED, idResetEvent)).not.toThrow();
+    expect(() => validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEvent)).not.toThrow();
     expect(addMetric).not.toHaveBeenCalled();
   });
 
-  it('should throw if level of confidence field is not present in an ID Reset event', () => {
+  it('should throw if success field is not present in an ID Reset event', () => {
     const idResetEventLowConfidence = {
-      event_name: TriggerEventsEnum.IPV_IDENTITY_ISSUED,
+      event_name: TriggerEventsEnum.IPV_ACCOUNT_INTERVENTION_END,
       event_id: '123',
       timestamp: 1_234_567,
       client_id: 'UNKNOWN',
-      component_id: 'UNKNOWN',
+      component_id: 'https://identity.account.gov.uk',
       user: {
         user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
-        email: '',
-        phone: 'UNKNOWN',
-        ip_address: '',
-        session_id: '',
-        persistent_session_id: '',
-        govuk_signin_journey_id: '',
+        session_id: 'uOyXUiLAOlcty42HZw6Hgmrlvx7WVraU4JIOli8DHSM',
+        govuk_signin_journey_id: 'EKRb611GMsL_mOe7Yw8FU3fIaMw',
+        ip_address: "123.123.123.123"
       },
       extensions: {
-        ciFail: false,
-        hasMitigations: false,
+        type: 'reprove_identity',
       },
     };
-    expect(() => validateLevelOfConfidence(EventsEnum.IPV_IDENTITY_ISSUED, idResetEventLowConfidence)).toThrow(
-      new ValidationError('Received intervention has low level of confidence.'),
+    expect(() => validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEventLowConfidence)).toThrow(
+      new ValidationError('Received event that does not meet criteria to lift intervention.'),
     );
-    expect(addMetric).toHaveBeenCalledWith(MetricNames.CONFIDENCE_LEVEL_TOO_LOW);
+    expect(addMetric).toHaveBeenCalledWith(MetricNames.IDENTITY_NOT_SUFFICIENTLY_PROVED);
   });
 });
