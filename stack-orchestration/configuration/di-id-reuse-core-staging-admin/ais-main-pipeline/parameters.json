@@ -96,7 +96,7 @@
     "ParameterValue": "vpc"
   },
   {
-    "ParameterKey": "LambdaDeploymentPreference",
+    "ParameterKey": "LambdaCanaryDeployment",
     "ParameterValue": "AllAtOnce"
   }
 ]
