@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@aws-sdk/client-sso-oidc": "^3.621.0",
-    "@aws-sdk/client-sts": "^3.621.0",
+    "@aws-sdk/client-sts": "^3.623.0",
     "@pact-foundation/pact": "^13.1.1",
     "@pact-foundation/pact-node": "^10.18.0",
     "@stoplight/spectral-cli": "^6.11.1",
