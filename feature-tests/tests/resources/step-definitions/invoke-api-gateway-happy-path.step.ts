@@ -495,6 +495,7 @@ defineFeature(feature, (test) => {
     then(
       /^I expect response for (.*) with valid deleted marker fields for the userId$/,
       async (aisEventType: keyof typeof aisEventResponse) => {
+        await timeDelayForTestEnvironment();
         console.log(`Received`, { response });
         const eventTypes = [
           'unSuspendAction',
