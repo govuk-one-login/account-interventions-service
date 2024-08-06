@@ -81,7 +81,7 @@ defineFeature(feature, (test) => {
     );
 
     when(/^I invoke an API to retrieve the intervention status of the account$/, async () => {
-      await timeDelayForTestEnvironment(1500);
+      await timeDelayForTestEnvironment();
       response = await invokeGetAccountState(testUserId, true);
     });
 
@@ -113,7 +113,7 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke the API to retrieve the intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment(1500);
+        await timeDelayForTestEnvironment();
         response = await invokeGetAccountState(testUserId, historyValue);
       },
     );
@@ -147,7 +147,7 @@ defineFeature(feature, (test) => {
       async (allowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment();
         console.log('sending second message to put the user in : ' + allowableAisEventType);
         await sendSQSEvent(testUserId, allowableAisEventType);
       },
@@ -156,7 +156,7 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke the API to retrieve the allowable intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment();
         response = await invokeGetAccountState(testUserId, historyValue);
       },
     );
@@ -185,7 +185,7 @@ defineFeature(feature, (test) => {
       async (nonAllowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment();
         console.log('sending second message to put the user in : ' + nonAllowableAisEventType);
         await sendSQSEvent(testUserId, nonAllowableAisEventType);
       },
@@ -194,7 +194,7 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke the API to retrieve the non-allowable intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment();
         response = await invokeGetAccountState(testUserId, historyValue);
       },
     );
@@ -223,7 +223,7 @@ defineFeature(feature, (test) => {
       async (allowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment();
         console.log('sending second message to put the user in : ' + allowableAisEventType);
         await sendSQSEvent(testUserId, allowableAisEventType);
       },
@@ -232,7 +232,7 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke the API to retrieve the intervention status of the user's account with history (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment();
         response = await invokeGetAccountState(testUserId, historyValue);
       },
     );
@@ -268,16 +268,16 @@ defineFeature(feature, (test) => {
       async function (allowableAisEventType, originalAisEventType) {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment();
         console.log('sending second message to put the user in : ' + allowableAisEventType);
         await sendSQSEvent(testUserId, allowableAisEventType);
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment();
       },
     );
 
     when(/^I invoke API to retrieve the intervention status of the user's account$/, async () => {
       response = await invokeGetAccountState(testUserId, false);
-      await timeDelayForTestEnvironment(500);
+      await timeDelayForTestEnvironment();
     });
 
     then(/^I expect the response (.*) with the correct time stamp when the event was applied$/, async (values) => {
@@ -291,7 +291,7 @@ defineFeature(feature, (test) => {
 
     and(/^I send a new intervention event type (.*)$/, async (aisEventType) => {
       await sendSQSEvent(testUserId, aisEventType);
-      await timeDelayForTestEnvironment(500);
+      await timeDelayForTestEnvironment();
       response = await invokeGetAccountState(testUserId, true);
     });
 
@@ -315,7 +315,7 @@ defineFeature(feature, (test) => {
       async (allowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
-        await timeDelayForTestEnvironment(1500);
+        await timeDelayForTestEnvironment();
         console.log('sending second message to put the user in : ' + allowableAisEventType);
         await sendSQSEvent(testUserId, allowableAisEventType);
       },
@@ -324,7 +324,7 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke the API to retrieve the allowable intervention status of the user's account with (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment();
         response = await invokeGetAccountState(testUserId, historyValue);
       },
     );
@@ -354,30 +354,30 @@ defineFeature(feature, (test) => {
         console.log('sending first message to put the user in : passwordResetRequired');
         await sendSQSEvent(testUserId, `pswResetRequired`);
 
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment();
         console.log('sending second message to put the user in : suspendNoAction');
         await sendSQSEvent(testUserId, `suspendNoAction`);
 
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment();
         console.log('sending third message to put the user in : idResetRequired');
         await sendSQSEvent(testUserId, `idResetRequired`);
 
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment();
         console.log('sending fourth message to put the user in : pswAndIdResetRequired');
         await sendSQSEvent(testUserId, `pswAndIdResetRequired`);
 
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment();
         console.log('sending fifth message to put the user in : block');
         await sendSQSEvent(testUserId, `block`);
 
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment();
         console.log('sending sixth message to put the user in : unblock');
         await sendSQSEvent(testUserId, `unblock`);
       },
     );
 
     when(/^I invoke apiGateway to retreive the status of the valid userId with history as true$/, async () => {
-      await timeDelayForTestEnvironment(500);
+      await timeDelayForTestEnvironment();
       response = await invokeGetAccountState(testUserId, true);
     });
 
@@ -408,7 +408,7 @@ defineFeature(feature, (test) => {
     });
 
     when(/^I invoke the API to retrieve the intervention status of the user's account$/, async () => {
-      await timeDelayForTestEnvironment(1500);
+      await timeDelayForTestEnvironment();
       response = await invokeGetAccountState(testUserId, true);
     });
 
@@ -432,13 +432,13 @@ defineFeature(feature, (test) => {
         blocked: response.state.blocked,
         history: stringifiedHistory,
       };
-      await timeDelayForTestEnvironment(500);
+      await timeDelayForTestEnvironment();
       await updateItemInTable(testUserId, updateHistoryTimeStampInTable);
     });
 
     and(/^I send an another (.*) event and then invoke the API$/, async (allowableEventType) => {
       await sendSQSEvent(testUserId, allowableEventType);
-      await timeDelayForTestEnvironment(1500);
+      await timeDelayForTestEnvironment();
       response = await invokeGetAccountState(testUserId, true);
     });
 
@@ -477,7 +477,7 @@ defineFeature(feature, (test) => {
   }) => {
     given(/^I send an (.*) intervention to the TxMA ingress SQS queue which will be deleted$/, async (aisEventType) => {
       await sendSQSEvent(testUserId, aisEventType);
-      await timeDelayForTestEnvironment(2500);
+      await timeDelayForTestEnvironment();
     });
 
     when(/^I send a message with the userId to the Delete SNS Topic$/, async () => {
@@ -487,7 +487,7 @@ defineFeature(feature, (test) => {
     });
 
     and(/^I invoke an API to retrieve the deleted intervention status of the user's account$/, async () => {
-      await timeDelayForTestEnvironment(2500);
+      await timeDelayForTestEnvironment();
       getItem = await getRecordFromTable(testUserId);
       response = await invokeGetAccountState(testUserId, true);
     });
