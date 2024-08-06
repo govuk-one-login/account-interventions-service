@@ -49,7 +49,7 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke an API to retrieve the intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment(1500);
+        await timeDelayForTestEnvironment();
         response = await invokeGetAccountState(testUserId, historyValue);
       },
     );
@@ -487,7 +487,7 @@ defineFeature(feature, (test) => {
     });
 
     and(/^I invoke an API to retrieve the deleted intervention status of the user's account$/, async () => {
-      await timeDelayForTestEnvironment();
+      await timeDelayForTestEnvironment(1000);
       getItem = await getRecordFromTable(testUserId);
       response = await invokeGetAccountState(testUserId, true);
     });
@@ -495,7 +495,6 @@ defineFeature(feature, (test) => {
     then(
       /^I expect response for (.*) with valid deleted marker fields for the userId$/,
       async (aisEventType: keyof typeof aisEventResponse) => {
-        await timeDelayForTestEnvironment(1000);
         console.log(`Received`, { response });
         const eventTypes = [
           'unSuspendAction',
