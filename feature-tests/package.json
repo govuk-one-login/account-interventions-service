@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "jest --runInBand",
+    "test": "jest",
     "lint:code": "eslint --ext .ts .",
     "lint:code:fix": "yarn lint:code --fix"
   },

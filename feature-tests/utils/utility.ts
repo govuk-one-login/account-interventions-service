@@ -1,6 +1,6 @@
 const delay = (ms: number | undefined) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function timeDelayForTestEnvironment(ms = 2000) {
+export async function timeDelayForTestEnvironment(ms = 500) {
   console.log('Wait for endpoint operations to process');
   await delay(ms);
 }
