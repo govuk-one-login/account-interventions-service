@@ -49,7 +49,7 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke an API to retrieve the intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment(1000);
+        await timeDelayForTestEnvironment(1500);
         response = await invokeGetAccountState(testUserId, historyValue);
       },
     );
@@ -477,7 +477,7 @@ defineFeature(feature, (test) => {
   }) => {
     given(/^I send an (.*) intervention to the TxMA ingress SQS queue which will be deleted$/, async (aisEventType) => {
       await sendSQSEvent(testUserId, aisEventType);
-      await timeDelayForTestEnvironment();
+      await timeDelayForTestEnvironment(1000);
     });
 
     when(/^I send a message with the userId to the Delete SNS Topic$/, async () => {
@@ -487,7 +487,7 @@ defineFeature(feature, (test) => {
     });
 
     and(/^I invoke an API to retrieve the deleted intervention status of the user's account$/, async () => {
-      await timeDelayForTestEnvironment(2000);
+      await timeDelayForTestEnvironment(2500);
       getItem = await getRecordFromTable(testUserId);
       response = await invokeGetAccountState(testUserId, true);
     });
