@@ -49,7 +49,7 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke an API to retrieve the intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment(1500);
+        await timeDelayForTestEnvironment(2000);
         response = await invokeGetAccountState(testUserId, historyValue);
       },
     );
