@@ -49,7 +49,7 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke an API to retrieve the intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment();
+        await timeDelayForTestEnvironment(1000);
         response = await invokeGetAccountState(testUserId, historyValue);
       },
     );
@@ -487,7 +487,7 @@ defineFeature(feature, (test) => {
     });
 
     and(/^I invoke an API to retrieve the deleted intervention status of the user's account$/, async () => {
-      await timeDelayForTestEnvironment(1500);
+      await timeDelayForTestEnvironment(2000);
       getItem = await getRecordFromTable(testUserId);
       response = await invokeGetAccountState(testUserId, true);
     });
