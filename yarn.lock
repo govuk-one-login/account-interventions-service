@@ -55,10 +55,10 @@
     "@smithy/util-utf8" "^2.0.0"
     tslib "^2.6.2"
 
-"@aws-lambda-powertools/commons@^2.6.0":
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/commons/-/commons-2.6.0.tgz#16ccdd45c24c14493d4791f6d14ddce002d53691"
-  integrity sha512-mvJXwd+HUfc4K5OuKhMQv0i8UXkNt55yL42AZHmHV0Vd1fzixJ2xuKC6xyav+W/v8HnBsECHa1UgHt4qa4jK7A==
+"@aws-lambda-powertools/commons@^2.6.0", "@aws-lambda-powertools/commons@^2.7.0":
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/commons/-/commons-2.7.0.tgz#20383d84400c2773a0ad59eb696593e243ab7089"
+  integrity sha512-IHDwmjJLiEVu8GfpHaHPrd7kEycHm/6Qh/6ssWGtyNZVDDJA/RzBmiRBnedx/As0h5njJmR28eNEkCNFA7rdSA==
 
 "@aws-lambda-powertools/logger@^2.6.0":
   version "2.6.0"
@@ -68,12 +68,12 @@
     "@aws-lambda-powertools/commons" "^2.6.0"
     lodash.merge "^4.6.2"
 
-"@aws-lambda-powertools/metrics@^2.6.0":
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/metrics/-/metrics-2.6.0.tgz#d5430482767081b883e67c8709d2ed754632ac28"
-  integrity sha512-tTYEjzdpPXzcMNiTCVmE0iqsqtrqVJv0mUHEDQ/AOic6bKBwHBqn14bkDuNj3f3vhqLwcp0VpYCPo7UnA5ywcA==
+"@aws-lambda-powertools/metrics@^2.7.0":
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/@aws-lambda-powertools/metrics/-/metrics-2.7.0.tgz#cff2f4ee4a984d13909754f0e27205e9aca48093"
+  integrity sha512-wo7yfsgajTD5oIpxgq2696cobYGaAPJpvPc7HwcqKiQ6o9H6JsaC9u5LD6UXdReQAJiFTUIBsePTP6LFqWKh1w==
   dependencies:
-    "@aws-lambda-powertools/commons" "^2.6.0"
+    "@aws-lambda-powertools/commons" "^2.7.0"
 
 "@aws-lambda-powertools/tracer@^2.6.0":
   version "2.6.0"
