@@ -30,7 +30,7 @@ defineFeature(feature, (test) => {
     });
 
     when(/^I invoke the API to retrieve the intervention status of the account$/, async () => {
-      await timeDelayForTestEnvironment(1500);
+      await timeDelayForTestEnvironment();
       response = await invokeGetAccountState(testUserId, true);
       console.log(`Received`, { response });
     });
@@ -165,7 +165,7 @@ defineFeature(feature, (test) => {
     });
 
     when(/^I invoke apiGateway to retreive the status userId with (.*)$/, async (historyValue) => {
-      await timeDelayForTestEnvironment(1500);
+      await timeDelayForTestEnvironment();
       response = await invokeGetAccountState(testUserId, historyValue);
     });
 
@@ -187,13 +187,13 @@ defineFeature(feature, (test) => {
     and(
       /^I send an other invalid event with invalid status (.*) to the txma sqs queue$/,
       async (invalidAisEventType) => {
-        await timeDelayForTestEnvironment(1500);
+        await timeDelayForTestEnvironment();
         await sendInvalidSQSEvent(testUserId, invalidAisEventType);
       },
     );
 
     when(/^I invoke an apiGateway to retreive the status of the userId$/, async () => {
-      await timeDelayForTestEnvironment(1500);
+      await timeDelayForTestEnvironment();
       response = await invokeGetAccountState(testUserId, true);
     });
 
