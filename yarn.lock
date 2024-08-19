@@ -1427,14 +1427,14 @@
     unzipper "^0.10.11"
     url-join "^4.0.1"
 
-"@pact-foundation/pact@^13.1.1":
-  version "13.1.1"
-  resolved "https://registry.yarnpkg.com/@pact-foundation/pact/-/pact-13.1.1.tgz#f05f5977074defc4cb691d01adb20ed6b74fc7dc"
-  integrity sha512-IZk9fCdCg83YkuGrlIOFeBx9sHyDj6xdj2ZLWEt7t4dM8lmHymWKvy1N30+3ZWSv2CkwHromY5kuvU3FA8m44g==
+"@pact-foundation/pact@^13.1.2":
+  version "13.1.2"
+  resolved "https://registry.yarnpkg.com/@pact-foundation/pact/-/pact-13.1.2.tgz#c9a18a2425da00b17739427949dc8ef41a248ecd"
+  integrity sha512-hda8n6hm78UgcXU0+CRcQ/6OomNudNrlcp9PeQxKmIMHCxRHDmojlp4Y7GY+lucPv71BIqL/TeGXjJ4nX1IT7A==
   dependencies:
     "@pact-foundation/pact-core" "^15.1.0"
     "@types/express" "^4.17.11"
-    axios "^1.6.1"
+    axios "^1.7.4"
     body-parser "^1.20.0"
     cli-color "^2.0.1"
     express "^4.19.2"
@@ -2995,7 +2995,7 @@ aws-xray-sdk-core@^3.9.0:
     cls-hooked "^4.2.2"
     semver "^7.5.3"
 
-axios@^0.21.1, axios@^1.6.1, axios@^1.6.8, axios@^1.7.4:
+axios@^0.21.1, axios@^1.6.8, axios@^1.7.4:
   version "1.7.4"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.4.tgz#4c8ded1b43683c8dd362973c393f3ede24052aa2"
   integrity sha512-DukmaFRnY6AzAALSH4J2M3k6PkaC+MfaAGdEERRWcC9q3/TWQwLpHR8ZRLKTdQ3aBDL64EdluRDjJqKw+BPZEw==
