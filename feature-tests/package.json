@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.14.15",
+    "@types/node": "^20.16.5",
     "@types/supertest": "^6.0.2",
     "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
@@ -23,23 +23,20 @@
     "jest-cucumber": "^4.5.0",
     "jest-junit": "^16.0.0",
     "supertest": "^7.0.0",
-    "ts-jest": "^29.2.4",
+    "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
   },
   "dependencies": {
     "@aws-lambda-powertools/parameters": "^2.7.0",
-    "@aws-sdk/client-cloudwatch-logs": "^3.629.0",
-    "@aws-sdk/client-dynamodb": "^3.629.0",
-    "@aws-sdk/client-lambda": "^3.629.0",
-    "@aws-sdk/client-sso-oidc": "^3.629.0",
-    "@aws-sdk/client-secrets-manager": "^3.629.0",
-    "@aws-sdk/client-sns": "^3.629.0",
-    "@aws-sdk/client-sqs": "^3.629.0",
-    "@aws-sdk/credential-providers": "^3.629.0",
-    "@aws-sdk/util-dynamodb": "^3.629.0"
-  },
-  "resolutions": {
-    "fast-xml-parser": "^4.4.1"
+    "@aws-sdk/client-cloudwatch-logs": "^3.645.0",
+    "@aws-sdk/client-dynamodb": "^3.645.0",
+    "@aws-sdk/client-lambda": "^3.645.0",
+    "@aws-sdk/client-sso-oidc": "^3.645.0",
+    "@aws-sdk/client-secrets-manager": "^3.645.0",
+    "@aws-sdk/client-sns": "^3.645.0",
+    "@aws-sdk/client-sqs": "^3.645.0",
+    "@aws-sdk/credential-providers": "^3.645.0",
+    "@aws-sdk/util-dynamodb": "^3.645.0"
   }
 }

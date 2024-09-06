@@ -6,6 +6,7 @@ import { timeDelayForTestEnvironment } from '../../../utils/utility';
 import EndPoints from '../../../apiEndpoints/endpoints';
 import request from 'supertest';
 import { App } from 'supertest/types';
+import { AisResponseType } from '../../../utils/ais-events-responses';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-UnHappyPath.feature');
 
@@ -14,7 +15,7 @@ defineFeature(feature, (test) => {
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  let response: any;
+  let response: AisResponseType;
 
   beforeEach(() => {
     testUserId = generateRandomTestUserId();
