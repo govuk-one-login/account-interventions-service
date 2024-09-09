@@ -5,13 +5,14 @@ import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import { updateItemInTable, getRecordFromTable } from '../../../utils/dynamo-database-methods';
 import { InformationFromTable, timeDelayForTestEnvironment } from '../../../utils/utility';
 import * as fs from 'node:fs';
+import { AisResponseType } from '../../../utils/ais-events-responses';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeMultipleUsers-HappyPath.feature');
 
 defineFeature(feature, (test) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  let response: any;
+  let response: AisResponseType;
   const listOfUsers: string[] = [];
 
   test('Happy Path - create multiple users - Returns Expected Data for <aisEventType>', ({

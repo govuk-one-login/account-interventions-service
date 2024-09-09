@@ -1,3 +1,35 @@
+export interface AisResponseType {
+  message: string;
+  history: History[];
+  intervention: {
+    reproveIdentityAt: boolean;
+    resetPasswordAt: boolean;
+    reprovedIdentityAt: boolean;
+    accountDeletedAt: boolean;
+    updatedAt: number;
+    appliedAt: number;
+    sentAt: number;
+    description: string;
+  };
+  state: {
+    blocked: boolean;
+    suspended: boolean;
+    resetPassword: boolean;
+    reproveIdentity: boolean;
+  };
+  auditLevel: string; // Enum-like type if there are specific values for auditLevel
+}
+
+export interface History {
+  intervention: string;
+  component: string;
+  code: string;
+  reason: string;
+  originatingComponent: string;
+  originatorReferenceId: number;
+  requesterId: number;
+}
+
 export const aisEventResponse = {
   pswResetRequired: {
     description: 'AIS_FORCED_USER_PASSWORD_RESET',

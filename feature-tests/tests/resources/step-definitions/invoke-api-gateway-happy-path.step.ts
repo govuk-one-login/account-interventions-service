@@ -18,6 +18,7 @@ import { updateItemInTable, getRecordFromTable } from '../../../utils/dynamo-dat
 import { cloudwatchLogs, LogEvent } from '../../../utils/cloudwatch-logs-service';
 import { sendSNSDeleteMessage } from '../../../utils/send-sns-message';
 import { aisEventsWithEnhancedFields } from '../../../utils/enhanced-ais-events';
+import { AisResponseType } from '../../../utils/ais-events-responses';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
@@ -25,8 +26,8 @@ defineFeature(feature, (test) => {
   let testUserId: string;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  let response: any;
-  let getItem: any;
+  let response: AisResponseType;
+  let getItem: InformationFromTable | undefined;
   let events: LogEvent[];
 
   beforeAll(async () => {
@@ -334,10 +335,10 @@ defineFeature(feature, (test) => {
       async (allowableAisEventType: keyof typeof aisEventResponse) => {
         console.log(`Received History`, response.history);
         expect(response.intervention.description).toBe(aisEventResponse[allowableAisEventType].description);
-        expect(response.history.at(-1).component).toBe(aisEventResponse[allowableAisEventType].componentHistory);
-        expect(response.history.at(-1).code).toBe(aisEventResponse[allowableAisEventType].interventionCodeHistory);
-        expect(response.history.at(-1).intervention).toBe(aisEventResponse[allowableAisEventType].interventionHistory);
-        expect(response.history.at(-1).reason).toBe(aisEventResponse[allowableAisEventType].reason);
+        expect(response.history.at(-1)?.component).toBe(aisEventResponse[allowableAisEventType].componentHistory);
+        expect(response.history.at(-1)?.code).toBe(aisEventResponse[allowableAisEventType].interventionCodeHistory);
+        expect(response.history.at(-1)?.intervention).toBe(aisEventResponse[allowableAisEventType].interventionHistory);
+        expect(response.history.at(-1)?.reason).toBe(aisEventResponse[allowableAisEventType].reason);
         expect(response.auditLevel).toBe(aisEventResponse[allowableAisEventType].auditLevel);
       },
     );
@@ -386,13 +387,13 @@ defineFeature(feature, (test) => {
       console.log(`Received History`, response.history);
       expect(response.history.length === 6);
       expect(response.intervention.description).toBe(`AIS_ACCOUNT_UNBLOCKED`);
-      expect(response.history.at(0).intervention).toBe(`FRAUD_FORCED_USER_PASSWORD_RESET`);
-      expect(response.history.at(1).intervention).toBe(`FRAUD_SUSPEND_ACCOUNT`);
-      expect(response.history.at(2).intervention).toBe(`FRAUD_FORCED_USER_IDENTITY_REVERIFICATION`);
-      expect(response.history.at(3).intervention).toBe(`FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION`);
-      expect(response.history.at(4).intervention).toBe(`FRAUD_BLOCK_ACCOUNT`);
-      expect(response.history.at(5).intervention).toBe(`FRAUD_UNBLOCK_ACCOUNT`);
-      expect(response.history.at(-1).intervention).toBe(`FRAUD_UNBLOCK_ACCOUNT`);
+      expect(response.history.at(0)?.intervention).toBe(`FRAUD_FORCED_USER_PASSWORD_RESET`);
+      expect(response.history.at(1)?.intervention).toBe(`FRAUD_SUSPEND_ACCOUNT`);
+      expect(response.history.at(2)?.intervention).toBe(`FRAUD_FORCED_USER_IDENTITY_REVERIFICATION`);
+      expect(response.history.at(3)?.intervention).toBe(`FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION`);
+      expect(response.history.at(4)?.intervention).toBe(`FRAUD_BLOCK_ACCOUNT`);
+      expect(response.history.at(5)?.intervention).toBe(`FRAUD_UNBLOCK_ACCOUNT`);
+      expect(response.history.at(-1)?.intervention).toBe(`FRAUD_UNBLOCK_ACCOUNT`);
       expect(response.auditLevel).toBe('standard');
     });
   });
@@ -482,7 +483,7 @@ defineFeature(feature, (test) => {
 
     when(/^I send a message with the userId to the Delete SNS Topic$/, async () => {
       const messageKey = 'user_id';
-      response = await sendSNSDeleteMessage(messageKey, testUserId);
+      await sendSNSDeleteMessage(messageKey, testUserId);
       console.log(`AIS Record Deleted via SNS Message Sent`);
     });
 
