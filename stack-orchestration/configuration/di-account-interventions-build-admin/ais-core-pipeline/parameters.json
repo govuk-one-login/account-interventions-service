@@ -1,0 +1,94 @@
+[
+  {
+    "ParameterKey": "AllowedAccounts",
+    "ParameterValue": "863518416563"
+  },
+  {
+    "ParameterKey": "ArtifactSourceBucketArn",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "ArtifactSourceBucketEventTriggerRoleArn",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
+    "ParameterValue": "None"
+  },
+  {
+    "ParameterKey": "AWSOrganizationId",
+    "ParameterValue": "o-dpp53lco28"
+  },
+  {
+    "ParameterKey": "BuildNotificationStackName",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "ContainerSignerKmsKeyArn",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "CustomKmsKeyArns",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "build"
+  },
+  {
+    "ParameterKey": "GitHubRepositoryName",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "OneLoginRepositoryName",
+    "ParameterValue": "account-interventions-service"
+  },
+  {
+    "ParameterKey": "IncludePromotion",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "InvokableLambdaAccounts",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "LogRetentionDays",
+    "ParameterValue": "7"
+  },
+  {
+    "ParameterKey": "RequireManualApproval",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "RequireTestContainerSignatureValidation",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "SAMStackName",
+    "ParameterValue": "ais-core"
+  },
+  {
+    "ParameterKey": "SigningProfileArn",
+    "ParameterValue": "arn:aws:signer:eu-west-2:565393035754:/signing-profiles/SigningProfile_DPKtD4sMczJ6"
+  },
+  {
+    "ParameterKey": "SigningProfileVersionArn",
+    "ParameterValue": "arn:aws:signer:eu-west-2:565393035754:/signing-profiles/SigningProfile_DPKtD4sMczJ6/DtKMKLy2cr"
+  },
+  {
+    "ParameterKey": "SlackNotificationType",
+    "ParameterValue": "None"
+  },
+  {
+    "ParameterKey": "TestImageRepositoryUri",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "TestReportFormat",
+    "ParameterValue": "JUNITXML"
+  },
+  {
+    "ParameterKey": "VpcStackName",
+    "ParameterValue": "vpc"
+  }
+]

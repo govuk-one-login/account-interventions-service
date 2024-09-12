@@ -5,11 +5,11 @@
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
-    "ParameterValue": "arn:aws:s3:::ais-main-pipeline-artifactpromotionbucket-jdybbj9dnst0"
+    "ParameterValue": "arn:aws:s3:::ais-main-pipeline-artifactpromotionbucket-vh4ntmfkaonl"
   },
   {
     "ParameterKey": "ArtifactSourceBucketEventTriggerRoleArn",
-    "ParameterValue": "arn:aws:iam::922902741880:role/PL-ais-main-pipeline-PromoTrigRole-0a8826ffa486"
+    "ParameterValue": "arn:aws:iam::863518416563:role/PL-ais-main-pipeline-PromoTrigRole-06614062e8f7"
   },
   {
     "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
@@ -69,11 +69,11 @@
   },
   {
     "ParameterKey": "SigningProfileArn",
-    "ParameterValue": "arn:aws:signer:eu-west-2:688341086169:/signing-profiles/SigningProfile_kbj97jMWIt2N"
+    "ParameterValue": "arn:aws:signer:eu-west-2:565393035754:/signing-profiles/SigningProfile_DPKtD4sMczJ6"
   },
   {
     "ParameterKey": "SigningProfileVersionArn",
-    "ParameterValue": "arn:aws:signer:eu-west-2:688341086169:/signing-profiles/SigningProfile_kbj97jMWIt2N/1zo4Hwf3ub"
+    "ParameterValue": "arn:aws:signer:eu-west-2:565393035754:/signing-profiles/SigningProfile_DPKtD4sMczJ6/DtKMKLy2cr"
   },
   {
     "ParameterKey": "AdditionalCodeSigningVersionArns",

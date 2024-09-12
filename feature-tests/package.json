@@ -25,18 +25,18 @@
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.4"
+    "typescript": "^5.6.2"
   },
   "dependencies": {
     "@aws-lambda-powertools/parameters": "^2.7.0",
-    "@aws-sdk/client-cloudwatch-logs": "^3.645.0",
-    "@aws-sdk/client-dynamodb": "^3.645.0",
-    "@aws-sdk/client-lambda": "^3.645.0",
-    "@aws-sdk/client-sso-oidc": "^3.645.0",
-    "@aws-sdk/client-secrets-manager": "^3.645.0",
-    "@aws-sdk/client-sns": "^3.645.0",
-    "@aws-sdk/client-sqs": "^3.645.0",
-    "@aws-sdk/credential-providers": "^3.645.0",
-    "@aws-sdk/util-dynamodb": "^3.645.0"
+    "@aws-sdk/client-cloudwatch-logs": "^3.650.0",
+    "@aws-sdk/client-dynamodb": "^3.650.0",
+    "@aws-sdk/client-lambda": "^3.650.0",
+    "@aws-sdk/client-sso-oidc": "^3.650.0",
+    "@aws-sdk/client-secrets-manager": "^3.650.0",
+    "@aws-sdk/client-sns": "^3.650.0",
+    "@aws-sdk/client-sqs": "^3.650.0",
+    "@aws-sdk/credential-providers": "^3.650.0",
+    "@aws-sdk/util-dynamodb": "^3.650.0"
   }
 }

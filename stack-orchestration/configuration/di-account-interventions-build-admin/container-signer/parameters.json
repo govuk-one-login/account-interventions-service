@@ -1,0 +1,10 @@
+[
+  {
+    "ParameterKey": "AllowedAccounts",
+    "ParameterValue": "863518416563,217747075921,324281879537"
+  },
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "build"
+  }
+]

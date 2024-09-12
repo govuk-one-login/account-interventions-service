@@ -1,0 +1,106 @@
+[
+  {
+    "ParameterKey": "AllowedAccounts",
+    "ParameterValue": "863518416563"
+  },
+  {
+    "ParameterKey": "ArtifactSourceBucketArn",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "ArtifactSourceBucketEventTriggerRoleArn",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
+    "ParameterValue": "None"
+  },
+  {
+    "ParameterKey": "AWSOrganizationId",
+    "ParameterValue": "o-dpp53lco28"
+  },
+  {
+    "ParameterKey": "BuildNotificationStackName",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "ContainerSignerKmsKeyArn",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "CustomKmsKeyArns",
+    "ParameterValue": "arn:aws:kms:eu-west-2:216552277552:key/4bc58ab5-c9bb-4702-a2c3-5d339604a8fe,arn:aws:kms:eu-west-2:565393035754:key/329a506d-bee5-405c-b90c-f5d96a6ed1de,arn:aws:kms:eu-west-2:565393035754:key/cd8c1ded-c3d5-45e4-92e0-fdb131e12847,arn:aws:kms:eu-west-2:565393035754:key/8f89f45e-1e2a-4f76-9a65-a9f6b7991aeb"
+   },
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "build"
+  },
+  {
+    "ParameterKey": "GitHubRepositoryName",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "OneLoginRepositoryName",
+    "ParameterValue": "account-interventions-service"
+  },
+  {
+    "ParameterKey": "IncludePromotion",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "InvokableLambdaAccounts",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "LogRetentionDays",
+    "ParameterValue": "7"
+  },
+  {
+    "ParameterKey": "RequireManualApproval",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "RequireTestContainerSignatureValidation",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "SAMStackName",
+    "ParameterValue": "ais-main"
+  },
+  {
+    "ParameterKey": "SigningProfileArn",
+    "ParameterValue": "arn:aws:signer:eu-west-2:565393035754:/signing-profiles/SigningProfile_DPKtD4sMczJ6"
+  },
+  {
+    "ParameterKey": "SigningProfileVersionArn",
+    "ParameterValue": "arn:aws:signer:eu-west-2:565393035754:/signing-profiles/SigningProfile_DPKtD4sMczJ6/DtKMKLy2cr"
+  },
+  {
+    "ParameterKey": "AdditionalCodeSigningVersionArns",
+    "ParameterValue": "arn:aws:signer:eu-west-2:216552277552:/signing-profiles/DynatraceSigner/5uwzCCGTPq"
+  },
+  {
+    "ParameterKey": "SlackNotificationType",
+    "ParameterValue": "None"
+  },
+  {
+    "ParameterKey": "TestImageRepositoryUri",
+    "ParameterValue": "565393035754.dkr.ecr.eu-west-2.amazonaws.com/ais-test-ecr-testrunnerimagerepository-d6vkfovwv5yi"
+  },
+  {
+    "ParameterKey": "TestReportFormat",
+    "ParameterValue": "JUNITXML"
+  },
+  {
+    "ParameterKey": "VpcStackName",
+    "ParameterValue": "vpc"
+  },
+  {
+    "ParameterKey": "RunTestContainerInVPC",
+    "ParameterValue": "True"
+  },
+  {
+    "ParameterKey": "LambdaCanaryDeployment",
+    "ParameterValue": "AllAtOnce"
+  }
+]

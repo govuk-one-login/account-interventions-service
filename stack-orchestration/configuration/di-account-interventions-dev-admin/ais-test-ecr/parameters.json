@@ -1,0 +1,14 @@
+[
+  {
+    "ParameterKey": "AWSOrganizationId",
+    "ParameterValue": "o-dpp53lco28"
+  },
+  {
+    "ParameterKey": "PipelineStackName",
+    "ParameterValue": "ais-main-pipeline"
+  },
+  {
+    "ParameterKey": "RetainedImageCount",
+    "ParameterValue": "10"
+  }
+]
