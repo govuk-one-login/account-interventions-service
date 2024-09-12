@@ -1,0 +1,22 @@
+[
+  {
+    "ParameterKey": "AlertingStackName",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "ContainerSignerKmsKeyArn",
+    "ParameterValue": "arn:aws:kms:eu-west-2:484907510598:key/a0e3ce4f-e828-46fc-b461-7ddf07a60c40"
+  },
+  {
+    "ParameterKey": "ECRRegistryAccountID",
+    "ParameterValue": "484907510598"
+  },
+  {
+    "ParameterKey": "PermissionsBoundary",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "VpcStackName",
+    "ParameterValue": "vpc"
+  }
+]
