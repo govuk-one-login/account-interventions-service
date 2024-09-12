@@ -1,0 +1,166 @@
+[
+  {
+    "ParameterKey": "AllowedDomains",
+    "ParameterValue": "*.account.gov.uk"
+  },
+  {
+    "ParameterKey": "AllowRules",
+    "ParameterValue": "pass tls $HOME_NET any -> $EXTERNAL_NET 443 (tls.sni; content:\".account.gov.uk\"; endswith; msg:\"Pass TLS to *.account.gov.uk\"; flow:established; sid:2001; rev:1;)"
+  },
+  {
+    "ParameterKey": "AvailabilityZoneCount",
+    "ParameterValue": "3"
+  },
+  {
+    "ParameterKey": "CidrBlock",
+    "ParameterValue": "10.0.0.0/16"
+  },
+  {
+    "ParameterKey": "CloudWatchApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "CloudWatchLogsApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "CodeDeployApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "DynamoDBApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "AthenaApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "ECRApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "EventsApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "ExecuteApiGatewayEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "FirehoseApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "KinesisApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "GlueApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "KMSApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "LambdaApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "LogsApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "RestAPIGWVpcLinkEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "AccessLogsCustomBucketNameEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "S3ApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "SecretsManagerApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "SNSApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "SQSApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "SSMApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "SSMParametersStoreEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "StatesApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "SESSmtpEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "STSApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "SESApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "VpcLinkEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "XRayApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "TextractApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "BatchApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "ZoneAEIPAllocationId",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "ZoneBEIPAllocationId",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "ZoneCEIPAllocationId",
+    "ParameterValue": "none"
+  },
+  {
+    "ParameterKey": "DynatraceApiEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "CloudFormationEndpointEnabled",
+    "ParameterValue": "Yes"
+  },
+  {
+    "ParameterKey": "CodeBuildApiEnabled",
+    "ParameterValue": "No"
+  },
+  {
+    "ParameterKey": "CloudTrailApiEnabled",
+    "ParameterValue": "Yes"
+  }
+]

@@ -69,11 +69,11 @@
   },
   {
     "ParameterKey": "SigningProfileArn",
-    "ParameterValue": "arn:aws:signer:eu-west-2:013758878511:/signing-profiles/SigningProfile_h2ElE6mRDyik"
+    "ParameterValue": "arn:aws:signer:eu-west-2:484907510598:/signing-profiles/SigningProfile_wNrl5Bq2XOCr"
   },
   {
     "ParameterKey": "SigningProfileVersionArn",
-    "ParameterValue": "arn:aws:signer:eu-west-2:013758878511:/signing-profiles/SigningProfile_h2ElE6mRDyik/CG85oc4Ahg"
+    "ParameterValue": "arn:aws:signer:eu-west-2:484907510598:/signing-profiles/SigningProfile_wNrl5Bq2XOCr/NVKB4Ne6e3"
   },
   {
     "ParameterKey": "SlackNotificationType",

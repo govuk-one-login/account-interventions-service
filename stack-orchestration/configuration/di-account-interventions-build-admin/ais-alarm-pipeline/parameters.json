@@ -1,7 +1,7 @@
 [
   {
     "ParameterKey": "AllowedAccounts",
-    "ParameterValue": ""
+    "ParameterValue": "863518416563"
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
@@ -33,7 +33,7 @@
   },
   {
     "ParameterKey": "Environment",
-    "ParameterValue": "dev"
+    "ParameterValue": "build"
   },
   {
     "ParameterKey": "GitHubRepositoryName",
@@ -45,7 +45,7 @@
   },
   {
     "ParameterKey": "IncludePromotion",
-    "ParameterValue": "No"
+    "ParameterValue": "Yes"
   },
   {
     "ParameterKey": "InvokableLambdaAccounts",
@@ -65,15 +65,15 @@
   },
   {
     "ParameterKey": "SAMStackName",
-    "ParameterValue": "ais-core"
+    "ParameterValue": "ais-alarm"
   },
   {
     "ParameterKey": "SigningProfileArn",
-    "ParameterValue": "arn:aws:signer:eu-west-2:013758878511:/signing-profiles/SigningProfile_h2ElE6mRDyik"
+    "ParameterValue": "arn:aws:signer:eu-west-2:565393035754:/signing-profiles/SigningProfile_DPKtD4sMczJ6"
   },
   {
     "ParameterKey": "SigningProfileVersionArn",
-    "ParameterValue": "arn:aws:signer:eu-west-2:013758878511:/signing-profiles/SigningProfile_h2ElE6mRDyik/CG85oc4Ahg"
+    "ParameterValue": "arn:aws:signer:eu-west-2:565393035754:/signing-profiles/SigningProfile_DPKtD4sMczJ6/DtKMKLy2cr"
   },
   {
     "ParameterKey": "SlackNotificationType",
