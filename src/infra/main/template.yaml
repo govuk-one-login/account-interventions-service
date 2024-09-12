@@ -87,29 +87,29 @@ Mappings:
     dev:
       LambdaLogLevel: DEBUG
       AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:985326104449:UserAccountDeletion
-      TxMAAccountID: 013758878511 # DI ID Reuse Core Dev
+      TxMAAccountID: 484907510598 # DI ID Reuse Core Dev
       TxMAIngressQueueARN: "Uses Internal TxMAIngressQueue"
       TxMAIngressQueueKmsKeyARN: "Uses the SQSEncryptionKey with Internal TxMAIngressQueue"
-      OrchestrationVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
-      AuthenticationVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
-      OneLoginHomeVPCID: vpc-093ac0375aa3f291d # ID Reuse Core Dev VPC ID
+      OrchestrationVPCID: vpc-03688222b1d03a1f7 # ID Reuse Core Dev VPC ID
+      AuthenticationVPCID: vpc-03688222b1d03a1f7 # ID Reuse Core Dev VPC ID
+      OneLoginHomeVPCID: vpc-03688222b1d03a1f7 # ID Reuse Core Dev VPC ID
       UniqueVPCEndpointIDs: none
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     build:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:301577035144:UserAccountDeletion
-      TxMAAccountID: 688341086169 # DI ID Reuse Core Build
+      TxMAAccountID: 565393035754 # DI ID Reuse Core Build
       TxMAIngressQueueARN: "Uses Internal TxMAIngressQueue"
       TxMAIngressQueueKmsKeyARN: "Uses the SQSEncryptionKey with Internal TxMAIngressQueue"
-      OrchestrationVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
-      AuthenticationVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
-      OneLoginHomeVPCID: vpc-0ae068c236590b989 # ID Reuse Core Build VPC ID
+      OrchestrationVPCID: vpc-0f30b7754111ecc68 # ID Reuse Core Build VPC ID
+      AuthenticationVPCID: vpc-0f30b7754111ecc68 # ID Reuse Core Build VPC ID
+      OneLoginHomeVPCID: vpc-0f30b7754111ecc68 # ID Reuse Core Build VPC ID
       UniqueVPCEndpointIDs: none
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     staging:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:539729775994:UserAccountDeletion
-      TxMAAccountID: 178023842775
+      TxMAAccountID: 863518416563
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:178023842775:self-staging-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:178023842775:key/e388cb30-2d78-431f-b1a6-847549a815aa
       OrchestrationVPCID: vpc-0217499e2982d99ca # Orchestration Staging VPC ID
