@@ -25,13 +25,13 @@ servers:
     description: defaults to staging environment
     variables:
       environment:
-        default: 6c8dsd04i1 # staging
+        default: vjdj6kjrj2 # staging
         enum:
-          - 072ifz6cp9 # dev
-          - wxn8p5hxkg # build
-          - 6c8dsd04i1 # staging
-          - kgsdlzd95d # integration
-          - please-ask # Production
+          - m78zgo7p60 # dev
+          - rg7pm38qj4 # build
+          - vjdj6kjrj2 # staging
+          - 65zhj32bjb # integration
+          - ruz07ekh4b # Production
 
 paths:
   /ais/{userId}:
