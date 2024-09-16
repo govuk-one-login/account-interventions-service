@@ -36,7 +36,7 @@
     "@aws-sdk/client-dynamodb": "^3.650.0",
     "@aws-sdk/client-sqs": "^3.650.0",
     "@aws-sdk/util-dynamodb": "^3.650.0",
-    "@smithy/node-http-handler": "^3.2.0"
+    "@smithy/node-http-handler": "^3.2.2"
   },
   "devDependencies": {
     "@aws-sdk/client-sso-oidc": "^3.650.0",
