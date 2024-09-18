@@ -1,15 +1,15 @@
 [
   {
     "ParameterKey": "AllowedAccounts",
-    "ParameterValue": "922902741880"
+    "ParameterValue": "217747075921,324281879537"
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
-    "ParameterValue": "none"
+    "ParameterValue": "arn:aws:s3:::ais-core-pipeline-artifactpromotionbucket-9q4s88uazy0o"
   },
   {
     "ParameterKey": "ArtifactSourceBucketEventTriggerRoleArn",
-    "ParameterValue": "none"
+    "ParameterValue": "arn:aws:iam::565393035754:role/PL-ais-core-pipeline-PromoTrigRole-0a316b09e0ab"
   },
   {
     "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
@@ -29,11 +29,11 @@
   },
   {
     "ParameterKey": "CustomKmsKeyArns",
-    "ParameterValue": "arn:aws:kms:eu-west-2:216552277552:key/4bc58ab5-c9bb-4702-a2c3-5d339604a8fe,arn:aws:kms:eu-west-2:688341086169:key/d357b3a0-6129-46bc-9b64-6ab9ae155007,arn:aws:kms:eu-west-2:688341086169:key/ced952f4-921e-4233-b209-7481ca55e532,arn:aws:kms:eu-west-2:688341086169:key/5cde5ae4-7f63-4b07-a720-d40a0403b5cc"
+    "ParameterValue": ""
   },
   {
     "ParameterKey": "Environment",
-    "ParameterValue": "build"
+    "ParameterValue": "staging"
   },
   {
     "ParameterKey": "GitHubRepositoryName",
@@ -41,7 +41,7 @@
   },
   {
     "ParameterKey": "OneLoginRepositoryName",
-    "ParameterValue": "account-interventions-service"
+    "ParameterValue": "none"
   },
   {
     "ParameterKey": "IncludePromotion",
@@ -65,19 +65,15 @@
   },
   {
     "ParameterKey": "SAMStackName",
-    "ParameterValue": "ais-main"
+    "ParameterValue": "ais-core"
   },
   {
     "ParameterKey": "SigningProfileArn",
-    "ParameterValue": "arn:aws:signer:eu-west-2:688341086169:/signing-profiles/SigningProfile_kbj97jMWIt2N"
+    "ParameterValue": "arn:aws:signer:eu-west-2:565393035754:/signing-profiles/SigningProfile_DPKtD4sMczJ6"
   },
   {
     "ParameterKey": "SigningProfileVersionArn",
-    "ParameterValue": "arn:aws:signer:eu-west-2:688341086169:/signing-profiles/SigningProfile_kbj97jMWIt2N/1zo4Hwf3ub"
-  },
-  {
-    "ParameterKey": "AdditionalCodeSigningVersionArns",
-    "ParameterValue": "arn:aws:signer:eu-west-2:216552277552:/signing-profiles/DynatraceSigner/5uwzCCGTPq"
+    "ParameterValue": "arn:aws:signer:eu-west-2:565393035754:/signing-profiles/SigningProfile_DPKtD4sMczJ6/DtKMKLy2cr"
   },
   {
     "ParameterKey": "SlackNotificationType",
@@ -85,7 +81,7 @@
   },
   {
     "ParameterKey": "TestImageRepositoryUri",
-    "ParameterValue": "688341086169.dkr.ecr.eu-west-2.amazonaws.com/ais-test-ecr-testrunnerimagerepository-nzqdhrc9ylr0"
+    "ParameterValue": "none"
   },
   {
     "ParameterKey": "TestReportFormat",
@@ -94,13 +90,5 @@
   {
     "ParameterKey": "VpcStackName",
     "ParameterValue": "vpc"
-  },
-  {
-    "ParameterKey": "RunTestContainerInVPC",
-    "ParameterValue": "True"
-  },
-  {
-    "ParameterKey": "LambdaCanaryDeployment",
-    "ParameterValue": "AllAtOnce"
   }
 ]

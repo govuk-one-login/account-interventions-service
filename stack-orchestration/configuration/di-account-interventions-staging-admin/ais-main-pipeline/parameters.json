@@ -5,11 +5,11 @@
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
-    "ParameterValue": "arn:aws:s3:::ais-alarm-pipeline-artifactpromotionbucket-9zjxdwt6itx4"
+    "ParameterValue": "arn:aws:s3:::ais-main-pipeline-artifactpromotionbucket-jdgbu88e5xsv"
   },
   {
     "ParameterKey": "ArtifactSourceBucketEventTriggerRoleArn",
-    "ParameterValue": "arn:aws:iam::688341086169:role/PL-ais-alarm-pipeline-PromoTrigRole-06f06c770454"
+    "ParameterValue": "arn:aws:iam::565393035754:role/PL-ais-main-pipeline-PromoTrigRole-0ae9bed68d4f"
   },
   {
     "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
@@ -29,7 +29,7 @@
   },
   {
     "ParameterKey": "CustomKmsKeyArns",
-    "ParameterValue": ""
+    "ParameterValue": "arn:aws:kms:eu-west-2:216552277552:key/4bc58ab5-c9bb-4702-a2c3-5d339604a8fe"
   },
   {
     "ParameterKey": "Environment",
@@ -60,16 +60,24 @@
     "ParameterValue": "No"
   },
   {
+    "ParameterKey": "RequireTestContainerSignatureValidation",
+    "ParameterValue": "No"
+  },
+  {
     "ParameterKey": "SAMStackName",
-    "ParameterValue": "ais-alarm"
+    "ParameterValue": "ais-main"
   },
   {
     "ParameterKey": "SigningProfileArn",
-    "ParameterValue": "arn:aws:signer:eu-west-2:688341086169:/signing-profiles/SigningProfile_kbj97jMWIt2N"
+    "ParameterValue": "arn:aws:signer:eu-west-2:565393035754:/signing-profiles/SigningProfile_DPKtD4sMczJ6"
   },
   {
     "ParameterKey": "SigningProfileVersionArn",
-    "ParameterValue": "arn:aws:signer:eu-west-2:688341086169:/signing-profiles/SigningProfile_kbj97jMWIt2N/1zo4Hwf3ub"
+    "ParameterValue": "arn:aws:signer:eu-west-2:565393035754:/signing-profiles/SigningProfile_DPKtD4sMczJ6/DtKMKLy2cr"
+  },
+  {
+    "ParameterKey": "AdditionalCodeSigningVersionArns",
+    "ParameterValue": "arn:aws:signer:eu-west-2:216552277552:/signing-profiles/DynatraceSigner/5uwzCCGTPq"
   },
   {
     "ParameterKey": "SlackNotificationType",
@@ -86,5 +94,9 @@
   {
     "ParameterKey": "VpcStackName",
     "ParameterValue": "vpc"
+  },
+  {
+    "ParameterKey": "LambdaCanaryDeployment",
+    "ParameterValue": "AllAtOnce"
   }
 ]

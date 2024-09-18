@@ -4,7 +4,7 @@ set -u
 
 # Input parameters
 AWS_ACCOUNT=di-account-interventions-production-admin
-PIPELINE_VERSION=v2.48.0
+PIPELINE_VERSION=v2.67.1
 
 export AWS_ACCOUNT=$AWS_ACCOUNT
 

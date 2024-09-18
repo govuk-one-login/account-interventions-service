@@ -5,11 +5,11 @@
   },
   {
     "ParameterKey": "ArtifactSourceBucketArn",
-    "ParameterValue": "arn:aws:s3:::ais-core-pipeline-artifactpromotionbucket-fbdxmvogrdqf"
+    "ParameterValue": "arn:aws:s3:::ais-alarm-pipeline-artifactpromotionbucket-sjr3cjpil7hi"
   },
   {
     "ParameterKey": "ArtifactSourceBucketEventTriggerRoleArn",
-    "ParameterValue": "arn:aws:iam::688341086169:role/PL-ais-core-pipeline-PromoTrigRole-063cf012394c"
+    "ParameterValue": "arn:aws:iam::565393035754:role/PL-ais-alarm-pipeline-PromoTrigRole-029d86045ac3"
   },
   {
     "ParameterKey": "ArtifactWriteTimeLoggingLambdaArn",
@@ -60,20 +60,16 @@
     "ParameterValue": "No"
   },
   {
-    "ParameterKey": "RequireTestContainerSignatureValidation",
-    "ParameterValue": "No"
-  },
-  {
     "ParameterKey": "SAMStackName",
-    "ParameterValue": "ais-core"
+    "ParameterValue": "ais-alarm"
   },
   {
     "ParameterKey": "SigningProfileArn",
-    "ParameterValue": "arn:aws:signer:eu-west-2:688341086169:/signing-profiles/SigningProfile_kbj97jMWIt2N"
+    "ParameterValue": "arn:aws:signer:eu-west-2:565393035754:/signing-profiles/SigningProfile_DPKtD4sMczJ6"
   },
   {
     "ParameterKey": "SigningProfileVersionArn",
-    "ParameterValue": "arn:aws:signer:eu-west-2:688341086169:/signing-profiles/SigningProfile_kbj97jMWIt2N/1zo4Hwf3ub"
+    "ParameterValue": "arn:aws:signer:eu-west-2:565393035754:/signing-profiles/SigningProfile_DPKtD4sMczJ6/DtKMKLy2cr"
   },
   {
     "ParameterKey": "SlackNotificationType",

@@ -3,8 +3,8 @@
 set -u
 
 # Input parameters
-AWS_ACCOUNT=di-id-reuse-core-staging-admin
-PIPELINE_VERSION=v2.48.0
+AWS_ACCOUNT=di-account-interventions-staging-admin
+PIPELINE_VERSION=v2.67.1
 
 export AWS_ACCOUNT=$AWS_ACCOUNT
 #

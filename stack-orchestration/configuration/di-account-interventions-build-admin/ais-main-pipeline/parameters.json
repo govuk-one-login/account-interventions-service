@@ -29,7 +29,7 @@
   },
   {
     "ParameterKey": "CustomKmsKeyArns",
-    "ParameterValue": "arn:aws:kms:eu-west-2:216552277552:key/4bc58ab5-c9bb-4702-a2c3-5d339604a8fe,arn:aws:kms:eu-west-2:013758878511:key/ab396761-f7f0-420f-afa9-7a407896913f,arn:aws:kms:eu-west-2:013758878511:key/99255faa-1e7b-4cef-b32c-a426f565ecc7,arn:aws:kms:eu-west-2:013758878511:key/4769eaa8-cc9d-4744-95e8-422ff1146dfc"
+    "ParameterValue": "arn:aws:kms:eu-west-2:216552277552:key/4bc58ab5-c9bb-4702-a2c3-5d339604a8fe,arn:aws:kms:eu-west-2:565393035754:key/329a506d-bee5-405c-b90c-f5d96a6ed1de,arn:aws:kms:eu-west-2:565393035754:key/cd8c1ded-c3d5-45e4-92e0-fdb131e12847,arn:aws:kms:eu-west-2:565393035754:key/8f89f45e-1e2a-4f76-9a65-a9f6b7991aeb"
   },
   {
     "ParameterKey": "Environment",
