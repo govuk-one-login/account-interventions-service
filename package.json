@@ -16,7 +16,7 @@
     "connect:pact:broker": "tsc src/contract-testing/test-helpers/connect-to-pact-broker.ts && node src/contract-testing/test-helpers/connect-to-pact-broker.js",
     "pact:publish:contracts": "tsc src/contract-testing/test-helpers/publish-pacts.ts && node src/contract-testing/test-helpers/publish-pacts.js",
     "lint": "yarn lint:code && yarn lint:spec && yarn lint:iac",
-    "lint:code": "eslint --ext .ts .",
+    "lint:code": "eslint --ext .ts . ./feature-tests",
     "lint:code:fix": "yarn lint:code --fix",
     "lint:iac": "for f in src/infra/**/template.yaml; do (sam validate --lint -t $f) || exit 1; done",
     "lint:spec:oas": "spectral lint src/specs/api.yaml",
