@@ -8,10 +8,22 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
-      interval: weekly
+      interval: daily
       time: "03:00"
     target-branch: main
     labels:
-    - dependabot
+      - dependabot
+      - dependencies
     commit-message:
-      prefix: chore   # based on https://www.conventionalcommits.org/en/v1.0.0/#summary
+      prefix: BAU
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
