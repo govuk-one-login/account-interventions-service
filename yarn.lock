@@ -2017,10 +2017,10 @@
   resolved "https://registry.yarnpkg.com/@stoplight/path/-/path-1.3.2.tgz#96e591496b72fde0f0cdae01a61d64f065bd9ede"
   integrity sha512-lyIc6JUlUA8Ve5ELywPC8I2Sdnh1zc1zmbYgVarhXIp9YeAB0ReeqmGEOWNtlHkbP2DAA1AL65Wfn2ncjK/jtQ==
 
-"@stoplight/spectral-cli@^6.11.1":
-  version "6.11.1"
-  resolved "https://registry.yarnpkg.com/@stoplight/spectral-cli/-/spectral-cli-6.11.1.tgz#50a0a57bd1286c10b221ed4b53bf983a747e9fda"
-  integrity sha512-1zqsQ0TOuVSnxxZ9mHBfC0IygV6ex7nAY6Mp59mLmw5fW103U9yPVK5ZcX9ZngCmr3PdteAnMDUIIaoDGso6nA==
+"@stoplight/spectral-cli@^6.13.1":
+  version "6.13.1"
+  resolved "https://registry.yarnpkg.com/@stoplight/spectral-cli/-/spectral-cli-6.13.1.tgz#7b7ff71e414652d0091bd059adb37506c2a50929"
+  integrity sha512-v6ipX4w6wRhtbOotwdPL7RrEkP0m1OwHTIyqzVrAPi932F/zkee24jmf1CHNrTynonmfGoU6/XpeqUHtQdKDFw==
   dependencies:
     "@stoplight/json" "~3.21.0"
     "@stoplight/path" "1.3.2"
@@ -2028,8 +2028,8 @@
     "@stoplight/spectral-formatters" "^1.3.0"
     "@stoplight/spectral-parsers" "^1.0.3"
     "@stoplight/spectral-ref-resolver" "^1.0.4"
-    "@stoplight/spectral-ruleset-bundler" "^1.5.2"
-    "@stoplight/spectral-ruleset-migrator" "^1.9.5"
+    "@stoplight/spectral-ruleset-bundler" "^1.5.4"
+    "@stoplight/spectral-ruleset-migrator" "^1.9.6"
     "@stoplight/spectral-rulesets" ">=1"
     "@stoplight/spectral-runtime" "^1.1.2"
     "@stoplight/types" "^13.6.0"
@@ -2069,10 +2069,20 @@
     simple-eval "1.0.0"
     tslib "^2.3.0"
 
-"@stoplight/spectral-formats@>=1", "@stoplight/spectral-formats@^1.0.0", "@stoplight/spectral-formats@^1.5.0":
+"@stoplight/spectral-formats@^1.0.0", "@stoplight/spectral-formats@^1.5.0":
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/@stoplight/spectral-formats/-/spectral-formats-1.6.0.tgz#c4a7169ac85a2855a3d76cdcc7a59e8f2e8f2bb3"
   integrity sha512-X27qhUfNluiduH0u/QwJqhOd8Wk5YKdxVmKM03Aijlx0AH1H5mYt3l9r7t2L4iyJrsBaFPnMGt7UYJDGxszbNA==
+  dependencies:
+    "@stoplight/json" "^3.17.0"
+    "@stoplight/spectral-core" "^1.8.0"
+    "@types/json-schema" "^7.0.7"
+    tslib "^2.3.1"
+
+"@stoplight/spectral-formats@^1.7.0":
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/@stoplight/spectral-formats/-/spectral-formats-1.7.0.tgz#4aa5bee09ca05cf27e2f64970d4246babd6e5599"
+  integrity sha512-vJ1vIkA2s96fdJp0d3AJBGuPAW3sj8yMamyzR+dquEFO6ZAoYBo/BVsKKQskYzZi/nwljlRqUmGVmcf2PncIaA==
   dependencies:
     "@stoplight/json" "^3.17.0"
     "@stoplight/spectral-core" "^1.8.0"
@@ -2123,7 +2133,7 @@
     "@stoplight/yaml" "~4.2.3"
     tslib "^2.3.1"
 
-"@stoplight/spectral-ref-resolver@>=1", "@stoplight/spectral-ref-resolver@^1.0.0", "@stoplight/spectral-ref-resolver@^1.0.4":
+"@stoplight/spectral-ref-resolver@^1.0.0", "@stoplight/spectral-ref-resolver@^1.0.4":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@stoplight/spectral-ref-resolver/-/spectral-ref-resolver-1.0.4.tgz#cf0dc3d5f3fd36fb198a352657c20ef1c859bef5"
   integrity sha512-5baQIYL0NJTSVy8v6RxOR4U51xOUYM8wJri1YvlAT6bPN8m0EIxMwfVYi0xUZEMVeHcWx869nIkoqyWmOutF2A==
@@ -2134,19 +2144,19 @@
     dependency-graph "0.11.0"
     tslib "^2.3.1"
 
-"@stoplight/spectral-ruleset-bundler@^1.5.2":
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/@stoplight/spectral-ruleset-bundler/-/spectral-ruleset-bundler-1.5.2.tgz#dbe69ced8e7740c39ef23982fd008c9ae2e96e68"
-  integrity sha512-4QUVUFAU+S7IQ9XeCu+0TQMYxKFpKnkOAfa9unRQ1iPL2cviaipEN6witpbAptdHJD3UUjx4OnwlX8WwmXSq9w==
+"@stoplight/spectral-ruleset-bundler@^1.5.4":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@stoplight/spectral-ruleset-bundler/-/spectral-ruleset-bundler-1.6.0.tgz#01c57af807d9c8d62c78ef89d28dbda4818e9967"
+  integrity sha512-8CU7e4aEGdfU9ncVDtlnJSawg/6epzAHrQTjuNu1QfKAOoiwyG7oUk2XUTHWcvq6Q67iUctb0vjOokR+MPVg0Q==
   dependencies:
     "@rollup/plugin-commonjs" "~22.0.2"
     "@stoplight/path" "1.3.2"
     "@stoplight/spectral-core" ">=1"
-    "@stoplight/spectral-formats" ">=1"
+    "@stoplight/spectral-formats" "^1.7.0"
     "@stoplight/spectral-functions" ">=1"
     "@stoplight/spectral-parsers" ">=1"
-    "@stoplight/spectral-ref-resolver" ">=1"
-    "@stoplight/spectral-ruleset-migrator" "^1.7.4"
+    "@stoplight/spectral-ref-resolver" "^1.0.4"
+    "@stoplight/spectral-ruleset-migrator" "^1.9.6"
     "@stoplight/spectral-rulesets" ">=1"
     "@stoplight/spectral-runtime" "^1.1.0"
     "@stoplight/types" "^13.6.0"
@@ -2156,10 +2166,10 @@
     tslib "^2.3.1"
     validate-npm-package-name "3.0.0"
 
-"@stoplight/spectral-ruleset-migrator@^1.7.4", "@stoplight/spectral-ruleset-migrator@^1.9.5":
-  version "1.9.5"
-  resolved "https://registry.yarnpkg.com/@stoplight/spectral-ruleset-migrator/-/spectral-ruleset-migrator-1.9.5.tgz#20631f3e83655f41b9ac4c9788e32b30fa8271dd"
-  integrity sha512-76n/HETr3UinVl/xLNldrH9p0JNoD8Gz4K75J6E4OHp4xD0P+BA2e8+W30HjIvqm1LJdLU2BNma0ioy+q3B9RA==
+"@stoplight/spectral-ruleset-migrator@^1.9.6":
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/@stoplight/spectral-ruleset-migrator/-/spectral-ruleset-migrator-1.10.0.tgz#53eeedf96e2df4d49eae4ec9b309a61352db62a6"
+  integrity sha512-nDfkVfYeWWv0UvILC4TWZSnRqQ4rHgeOJO1/lHQ7XHeG5iONanQ639B1aK6ZS6vuUc8gwuyQsrPF67b4sHIyYw==
   dependencies:
     "@stoplight/json" "~3.21.0"
     "@stoplight/ordered-object-literal" "~1.0.4"
@@ -2169,7 +2179,7 @@
     "@stoplight/types" "^13.6.0"
     "@stoplight/yaml" "~4.2.3"
     "@types/node" "*"
-    ajv "^8.6.0"
+    ajv "^8.17.1"
     ast-types "0.14.2"
     astring "^1.7.5"
     reserved "0.1.2"
@@ -2789,6 +2799,16 @@ ajv@^8.0.0, ajv@^8.1.0, ajv@^8.4.0, ajv@^8.6.0, ajv@^8.6.3, ajv@^8.8.2, ajv@~8.1
     json-schema-traverse "^1.0.0"
     require-from-string "^2.0.2"
     uri-js "^4.2.2"
+
+ajv@^8.17.1:
+  version "8.17.1"
+  resolved "https://registry.yarnpkg.com/ajv/-/ajv-8.17.1.tgz#37d9a5c776af6bc92d7f4f9510eba4c0a60d11a6"
+  integrity sha512-B/gBuNg5SiMTrPkC+A2+cW0RszwxYmn6VYxB/inlBStS5nx6xHIt/ehKRhIMhqusl7a8LjQoZnjCs5vhwxOQ1g==
+  dependencies:
+    fast-deep-equal "^3.1.3"
+    fast-uri "^3.0.1"
+    json-schema-traverse "^1.0.0"
+    require-from-string "^2.0.2"
 
 ansi-escapes@^4.2.1:
   version "4.3.2"
@@ -4431,6 +4451,11 @@ fast-unique-numbers@^8.0.13:
   dependencies:
     "@babel/runtime" "^7.23.8"
     tslib "^2.6.2"
+
+fast-uri@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/fast-uri/-/fast-uri-3.0.1.tgz#cddd2eecfc83a71c1be2cc2ef2061331be8a7134"
+  integrity sha512-MWipKbbYiYI0UC7cl8m/i/IWTqfC8YXsqjzybjddLsFjStroQzsHXkc73JutMvBiXmOvapk+axIl79ig5t55Bw==
 
 fast-xml-parser@4.4.1:
   version "4.4.1"
