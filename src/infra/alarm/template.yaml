@@ -44,7 +44,7 @@ Parameters:
   RunBookURL:
     Description: "A Link to the AIS Runbook"
     Type: String
-    Default: "https://govukverify.atlassian.net/wiki/spaces/AB/pages/3892215824/Alarms+Metrics+Monitoring"
+    Default: "https://govukverify.atlassian.net/wiki/spaces/AIS/pages/4579595211/AIS+-+Alarms+Metrics+Monitoring"
 
 Resources:
 #
