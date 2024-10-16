@@ -406,26 +406,7 @@ Resources:
           MetricName: InterventionsProcessorLambdaError
           Unit: Count
 
-### Account Deletion Processor ###
 
-  AccountDeletionProcessorSNSTopic:
-    Type: AWS::SNS::Topic
-    Condition: IsInternal
-    Properties:
-      KmsMasterKeyId: !Ref AccountDeletionProcessorSNSKmsKey
-      TopicName: !Sub "${AWS::StackName}-AccountDeletionProcessorSNSTopic"
-      TracingConfig: "Active"
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
 
   TxmaEventHandlerFunction:
     Type: AWS::Serverless::Function
@@ -629,6 +610,27 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
+  ### Account Deletion Processor ###
+
+  AccountDeletionProcessorSNSTopic:
+    Type: AWS::SNS::Topic
+    Condition: IsInternal
+    Properties:
+      KmsMasterKeyId: !Ref AccountDeletionProcessorSNSKmsKey
+      TopicName: !Sub "${AWS::StackName}-AccountDeletionProcessorSNSTopic"
+      TracingConfig: "Active"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
   AccountDeletionProcessorFunction:
     Type: AWS::Serverless::Function
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
@@ -669,6 +671,14 @@ Resources:
               - IsInternal
               - !Ref AccountDeletionProcessorSNSTopic
               - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt AccountDeletionEventQueue.Arn
+            BatchSize: 1
+            Enabled: true
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
         Product: !Ref ProductTagValue
@@ -730,6 +740,12 @@ Resources:
                   - "sqs:DeleteMessage"
                   - "sqs:GetQueueAttributes"
                 Resource: !GetAtt AccountDeletionProcessorQueue.Arn
+              - Effect: Allow
+                Action:
+                  - "sqs:ReceiveMessage"
+                  - "sqs:DeleteMessage"
+                  - "sqs:GetQueueAttributes"
+                Resource: !GetAtt AccountDeletionEventQueue.Arn
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -826,6 +842,30 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
+  AccountDeletionEventQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-AccountDeletionEventQueue"
+      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
+      MessageRetentionPeriod: 1209600
+      VisibilityTimeout: 30
+      RedriveAllowPolicy:
+        redrivePermission: denyAll
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt AccountDeletionProcessorDLQ.Arn
+        maxReceiveCount: 60
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
   AccountDeletionProcessorQueuePolicy:
     Type: AWS::SQS::QueuePolicy
     Properties:
@@ -858,6 +898,7 @@ Resources:
         redrivePermission: byQueue
         sourceQueueArns:
           - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorQueue"
+          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionEventQueue"
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
