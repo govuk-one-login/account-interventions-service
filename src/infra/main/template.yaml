@@ -406,26 +406,7 @@ Resources:
           MetricName: InterventionsProcessorLambdaError
           Unit: Count
 
-### Account Deletion Processor ###
 
-  AccountDeletionProcessorSNSTopic:
-    Type: AWS::SNS::Topic
-    Condition: IsInternal
-    Properties:
-      KmsMasterKeyId: !Ref AccountDeletionProcessorSNSKmsKey
-      TopicName: !Sub "${AWS::StackName}-AccountDeletionProcessorSNSTopic"
-      TracingConfig: "Active"
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
 
   TxmaEventHandlerFunction:
     Type: AWS::Serverless::Function
@@ -629,6 +610,44 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
+  ### Account Deletion Processor ###
+
+  AccountDeletionProcessorSNSTopic:
+    Type: AWS::SNS::Topic
+    Condition: IsInternal
+    Properties:
+      KmsMasterKeyId: !Ref AccountDeletionProcessorSNSKmsKey
+      TopicName: !Sub "${AWS::StackName}-AccountDeletionProcessorSNSTopic"
+      TracingConfig: "Active"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  AccountDeletionEventSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${AWS::StackName}-AccountDeletionEventSNSTopic"
+      KmsMasterKeyId: !Ref AccountDeletionProcessorSNSKmsKey
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
   AccountDeletionProcessorFunction:
     Type: AWS::Serverless::Function
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
@@ -669,6 +688,10 @@ Resources:
               - IsInternal
               - !Ref AccountDeletionProcessorSNSTopic
               - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
+        SNSEventTxma:
+          Type: SNS
+          Properties:
+            Topic: !Ref AccountDeletionEventSNSTopic
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
         Product: !Ref ProductTagValue
@@ -684,6 +707,15 @@ Resources:
         Sourcemap: false
         EntryPoints:
           - account-deletion-processor-handler.ts
+
+  AccountDeletionEventProcessorFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt AccountDeletionProcessorFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: sns.amazonaws.com
+      SourceArn: !Ref AccountDeletionEventSNSTopic
+
 
   AccountDeletionProcessorFunctionPermission:
     DependsOn: AccountDeletionProcessorFunctionAliaslive
