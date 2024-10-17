@@ -691,11 +691,10 @@ Resources:
         SNSEventTxma:
           Type: SNS
           Properties:
-            RedrivePolicy: !Sub "{ \"deadLetterTargetArn\": \"arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorDLQ\" }"
             SqsSubscription:
               BatchSize: 1
               Enabled: true
-              QueueArn: !GetAtt AccountDeletionProcessorQueue.Arn
+              QueueArn: !GetAtt AccountDeletionEventQueue.Arn
               QueueUrl: !Ref AccountDeletionProcessorQueue
             Topic: !Ref AccountDeletionEventSNSTopic
       Tags:
@@ -863,6 +862,42 @@ Resources:
           Value: !Ref OwnerTagValue
         - Key: Source
           Value: !Ref SourceTagValue
+
+  AccountDeletionEventQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-AccountDeletionEventQueue"
+      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn  # You can reuse your existing KMS key for encryption
+      MessageRetentionPeriod: 1209600  # Message retention period of 14 days
+      VisibilityTimeout: 30  # Timeout in seconds
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  AccountDeletionEventQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref AccountDeletionEventQueue
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+            Action: "sqs:SendMessage"
+            Resource: !GetAtt AccountDeletionEventQueue.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Ref AccountDeletionEventSNSTopic
 
   AccountDeletionProcessorQueuePolicy:
     Type: AWS::SQS::QueuePolicy
