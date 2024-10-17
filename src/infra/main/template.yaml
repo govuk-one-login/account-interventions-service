@@ -767,6 +767,12 @@ Resources:
                   - "sqs:DeleteMessage"
                   - "sqs:GetQueueAttributes"
                 Resource: !GetAtt AccountDeletionProcessorQueue.Arn
+              - Effect: Allow
+                Action:
+                  - "sqs:ReceiveMessage"
+                  - "sqs:DeleteMessage"
+                  - "sqs:GetQueueAttributes"
+                Resource: !GetAtt AccountDeletionEventQueue.Arn
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
