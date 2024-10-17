@@ -716,10 +716,15 @@ Resources:
   AccountDeletionEventProcessorFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: !GetAtt AccountDeletionProcessorFunction.Arn
+      FunctionName: !Join
+        - ':'
+        - - 'function'
+          - !Select [ 6, !Split [ ':', !GetAtt AccountDeletionProcessorFunction.Arn ] ]
+          - 'live'
       Action: lambda:InvokeFunction
       Principal: sns.amazonaws.com
       SourceArn: !Ref AccountDeletionEventSNSTopic
+      SourceAccount: !Ref AWS::AccountId
 
 
   AccountDeletionProcessorFunctionPermission:
