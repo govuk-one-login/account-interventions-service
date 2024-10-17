@@ -901,9 +901,6 @@ Resources:
               Service: sns.amazonaws.com
             Action: "sqs:SendMessage"
             Resource: !GetAtt AccountDeletionEventQueue.Arn
-            Condition:
-              ArnEquals:
-                aws:SourceArn: !Ref AccountDeletionEventSNSTopic
 
   AccountDeletionProcessorQueuePolicy:
     Type: AWS::SQS::QueuePolicy
