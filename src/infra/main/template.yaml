@@ -691,6 +691,12 @@ Resources:
         SNSEventTxma:
           Type: SNS
           Properties:
+            RedrivePolicy: !Sub "{ \"deadLetterTargetArn\": \"arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorDLQ\" }"
+            SqsSubscription:
+              BatchSize: 1
+              Enabled: true
+              QueueArn: !GetAtt AccountDeletionProcessorQueue.Arn
+              QueueUrl: !Ref AccountDeletionProcessorQueue
             Topic: !Ref AccountDeletionEventSNSTopic
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
