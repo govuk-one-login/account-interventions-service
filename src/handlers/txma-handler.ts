@@ -16,10 +16,8 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
   }
 
   for (const record of event.Records) {
-    console.log(record);
     const body: TxMAEgressEvent = JSON.parse(record.body);
     if (body.event_name === 'AUTH_DELETE_ACCOUNT') {
-      console.log('sending to sqs queue');
       await sendSqsMessage(
         JSON.stringify({
           Message: record.body,

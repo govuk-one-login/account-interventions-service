@@ -38,7 +38,6 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
 function getUserId(record: SQSRecord) {
   let messageBody: SNSMessage;
   let message: DeleteStatusUpdateSNSMessage;
-  console.log(record);
   try {
     messageBody = JSON.parse(record.body);
     message = JSON.parse(messageBody.Message);
