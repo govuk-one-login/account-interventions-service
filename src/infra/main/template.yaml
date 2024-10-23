@@ -518,6 +518,10 @@ Resources:
                   - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
               - Effect: Allow
                 Action:
+                 - "sqs:SendMessage"
+                Resource: !GetAtt AccountDeletionEventQueue.Arn
+              - Effect: Allow
+                Action:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource: !GetAtt TxmaEventHandlerFunctionLogGroup.Arn
