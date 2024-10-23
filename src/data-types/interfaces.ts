@@ -42,15 +42,15 @@ export interface CurrentTimeDescriptor {
   seconds: number;
 }
 
-export type TxMAEgressEventName =
+export type TxMAEgressInterventionEventName =
   | 'AIS_EVENT_TRANSITION_APPLIED'
   | 'AIS_EVENT_TRANSITION_IGNORED'
   | 'AIS_EVENT_IGNORED_STALE'
   | 'AIS_EVENT_IGNORED_IN_FUTURE'
   | 'AIS_EVENT_IGNORED_ACCOUNT_DELETED';
 
-export interface TxMAEgressEvent {
-  event_name: TxMAEgressEventName;
+interface TxMAEgressInterventionEvent {
+  event_name: TxMAEgressInterventionEventName;
   timestamp: number;
   event_timestamp_ms?: number;
   event_timestamp_ms_formatted?: string;
@@ -58,6 +58,13 @@ export interface TxMAEgressEvent {
   user: TxmaUser;
   extensions: TxMAEgressExtensions | TxMAEgressBasicExtensions;
 }
+
+interface TxMAEgressDeletionEvent {
+  event_name: 'AUTH_DELETE_ACCOUNT';
+  user_id: string;
+}
+
+export type TxMAEgressEvent = TxMAEgressInterventionEvent | TxMAEgressDeletionEvent;
 
 export interface TxMAEgressExtensions extends TxMAEgressBasicExtensions {
   description: string | AISInterventionTypes;

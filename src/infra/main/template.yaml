@@ -432,6 +432,7 @@ Resources:
             Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
           DELETED_ACCOUNT_RETENTION_SECONDS: 63072000 #2 Years in Seconds
           METRIC_SERVICE_NAME: TxmaEventHandlerFunction
+          ACCOUNT_DELETION_SQS_QUEUE: !Ref AccountDeletionEventQueue
       CodeUri: ../../handlers # Assuming the file is located in the 'handlers' directory
       Tags:
         Product: !Ref ProductTagValue
