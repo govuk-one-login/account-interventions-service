@@ -422,7 +422,7 @@ Resources:
           - !Ref AccountDeletionProcessorErrorsCanary
         Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 5
-      Handler: account-deletion.handler
+      Handler: txma-handler.handler
       MemorySize: 128
       Role: !GetAtt TxmaEventHandlerFunctionRole.Arn
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
