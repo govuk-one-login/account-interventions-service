@@ -85,7 +85,7 @@
   },
   {
     "ParameterKey": "TestImageRepositoryUri",
-    "ParameterValue": "565393035754.dkr.ecr.eu-west-2.amazonaws.com/ais-test-ecr-testrunnerimagerepository-gpnlzi6xpzgd"
+    "ParameterValue": "565393035754.dkr.ecr.eu-west-2.amazonaws.com/ais-test-ecr-testrunnerimagerepository-d6vkfovwv5yi"
   },
   {
     "ParameterKey": "TestReportFormat",
