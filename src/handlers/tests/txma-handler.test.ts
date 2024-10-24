@@ -54,7 +54,7 @@ describe('TxMA Handler', () => {
         jest.clearAllMocks();
     })
 
-    it.only('Sends an SQS message to the delete queue', async () => {
+    it('Sends an SQS message to the delete queue', async () => {
         process.env['ACCOUNT_DELETION_SQS_QUEUE'] = 'queue'
         await handler(mockEvent, mockContext);
         expect(mockSendSqsMessage).toHaveBeenCalledWith('{\"Message\":\"{\\\"event_name\\\":\\\"AUTH_DELETE_ACCOUNT\\\",\\\"user_id\\\":\\\"hello\\\"}\"}', 'queue')
