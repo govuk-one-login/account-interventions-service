@@ -3,7 +3,7 @@ import logger from '../commons/logger';
 import { TxMAEgressEvent } from '../data-types/interfaces';
 import { sendSqsMessage } from '../services/send-sqs-message';
 import assert from 'node:assert/strict';
-import { addMetric } from '../commons/metrics';
+import { addMetric, metric } from '../commons/metrics';
 import { MetricNames } from '../data-types/constants';
 
 export const handler = async (event: SQSEvent, context: Context): Promise<void> => {
@@ -30,5 +30,6 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
     }
   }
 
+  metric.publishStoredMetrics();
   return;
 };
