@@ -6,7 +6,7 @@ import {
   AccountStateEngineOutput,
   TxMAEgressBasicExtensions,
   TxMAEgressEvent,
-  TxMAEgressEventName,
+  TxMAEgressInterventionEventName,
   TxMAEgressExtensions,
   TxMAIngressEvent,
 } from '../data-types/interfaces';
@@ -42,7 +42,7 @@ const sqsClient = tracer.captureAWSv3Client(
  * @returns - Response from sending the message to the Queue.
  */
 export async function sendAuditEvent(
-  egressEventName: TxMAEgressEventName,
+  egressEventName: TxMAEgressInterventionEventName,
   ingressEventName: EventsEnum,
   ingressTxMAEvent: TxMAIngressEvent,
   accountStateEngineOutput?: AccountStateEngineOutput,
@@ -87,7 +87,7 @@ export async function sendAuditEvent(
 function buildExtensions(
   txMAIngressEvent: TxMAIngressEvent,
   ingressEventName: EventsEnum,
-  egressEventName: TxMAEgressEventName,
+  egressEventName: TxMAEgressInterventionEventName,
   stateEngineOutput: AccountStateEngineOutput | undefined,
 ): TxMAEgressExtensions | TxMAEgressBasicExtensions {
   if (stateEngineOutput) {
@@ -119,7 +119,7 @@ function buildExtensions(
  */
 function buildAdditionalAttributes(
   stateEngineOutput: AccountStateEngineOutput,
-  egressEventName: TxMAEgressEventName,
+  egressEventName: TxMAEgressInterventionEventName,
 ): { state: State | undefined; action: ActiveStateActions | undefined } {
   if (egressEventName === 'AIS_EVENT_IGNORED_ACCOUNT_DELETED')
     return {
@@ -181,7 +181,7 @@ function buildAdditionalAttributes(
  * @param accountStateEngineOutput - optional parameter containing the output from the State Engine
  */
 function eventShouldBeIgnored(
-  egressEventName: TxMAEgressEventName,
+  egressEventName: TxMAEgressInterventionEventName,
   ingressEventName: EventsEnum,
   accountStateEngineOutput?: AccountStateEngineOutput,
 ) {
