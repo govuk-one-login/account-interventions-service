@@ -253,10 +253,7 @@ Resources:
           - 'live'
       Action: lambda:InvokeFunction
       Principal: sqs.amazonaws.com
-      SourceAccount: !If
-        - IsInternal
-        - !Ref AWS::AccountId
-        - !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountID ]
+      SourceAccount: !Ref AWS::AccountId
       SourceArn: !GetAtt AccountInterventionEventsQueue.Arn
 
   InterventionsProcessorFunctionRole:
@@ -1106,7 +1103,6 @@ Resources:
   #### Account Intervention Events Queues ####
   AccountInterventionEventsQueue:
     Type: AWS::SQS::Queue
-    Condition: IsInternal
     Properties:
       QueueName: !Sub "${AWS::StackName}-AccountInterventionEventsQueue"
       MessageRetentionPeriod: 1209600
@@ -1131,7 +1127,6 @@ Resources:
 
   AccountInterventionEventsQueuePolicy:
     Type: AWS::SQS::QueuePolicy
-    Condition: IsInternal
     Properties:
       Queues:
         - !Ref AccountInterventionEventsQueue
@@ -1146,7 +1141,6 @@ Resources:
 
   AccountInterventionEventsDLQ:
     Type: AWS::SQS::Queue
-    Condition: IsInternal
     Properties:
       QueueName: !Sub "${AWS::StackName}-AccountInterventionEventsDLQ"
       KmsMasterKeyId: !Ref SQSEncryptionKeyAlias
