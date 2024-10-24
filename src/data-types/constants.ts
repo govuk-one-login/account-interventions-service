@@ -31,6 +31,7 @@ export enum MetricNames {
   ACCOUNTS_BLOCKED = 'ACCOUNTS_BLOCKED',
   ACCOUNTS_SUSPENDED = 'ACCOUNTS_SUSPENDED',
   TIME_TO_RESOLVE = 'TIME_TO_RESOLVE',
+  RECIEVED_TXMA_ACCOUNT_DELETE = 'RECIEVED_TXMA_ACCOUNT_DELETE',
 }
 
 export const noMetadata: { key: string; value: string }[] = [];
