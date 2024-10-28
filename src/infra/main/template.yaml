@@ -210,10 +210,7 @@ Resources:
         SQSEvent:
           Type: SQS
           Properties:
-            Queue: !If
-              - IsInternal
-              - !GetAtt TxMAIngressQueue.Arn
-              - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
+            Queue: !GetAtt AccountInterventionEventsQueue.Arn
             BatchSize: 1
             Enabled: !If
               - IsDev
@@ -256,14 +253,8 @@ Resources:
           - 'live'
       Action: lambda:InvokeFunction
       Principal: sqs.amazonaws.com
-      SourceAccount: !If
-        - IsInternal
-        - !Ref AWS::AccountId
-        - !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountID ]
-      SourceArn: !If
-        - IsInternal
-        - !GetAtt TxMAIngressQueue.Arn
-        - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !GetAtt AccountInterventionEventsQueue.Arn
 
   InterventionsProcessorFunctionRole:
     Type: AWS::IAM::Role
@@ -292,10 +283,7 @@ Resources:
                   - "sqs:ReceiveMessage"
                   - "sqs:DeleteMessage"
                   - "sqs:GetQueueAttributes"
-                Resource: !If
-                  - IsInternal
-                  - !GetAtt TxMAIngressQueue.Arn
-                  - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
+                Resource: !GetAtt AccountInterventionEventsQueue.Arn
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -1115,6 +1103,69 @@ Resources:
         System: !Ref SystemTagValue
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
+
+
+  #### Account Intervention Events Queues ####
+  AccountInterventionEventsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-AccountInterventionEventsQueue"
+      MessageRetentionPeriod: 1209600
+      KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
+      RedriveAllowPolicy:
+        redrivePermission: denyAll
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt AccountInterventionEventsDLQ.Arn
+        maxReceiveCount: 60
+      VisibilityTimeout: 5
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  AccountInterventionEventsQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref AccountInterventionEventsQueue
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt AccountInterventionEventsQueue.Arn
+            Principal:
+              Service: sns.amazonaws.com
+
+  AccountInterventionEventsDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${AWS::StackName}-AccountInterventionEventsDLQ"
+      KmsMasterKeyId: !Ref SQSEncryptionKeyAlias
+      VisibilityTimeout: 0
+      MessageRetentionPeriod: 1209600
+      RedriveAllowPolicy:
+        redrivePermission: byQueue
+        sourceQueueArns:
+          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountInterventionEventsQueue"
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
 
 ### Encryption Key SQS & SNS ###
 
