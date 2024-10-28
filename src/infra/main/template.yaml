@@ -504,6 +504,10 @@ Resources:
                 Resource: !GetAtt AccountDeletionEventQueue.Arn
               - Effect: Allow
                 Action:
+                  - "sqs:SendMessage"
+                Resource: !GetAtt AccountInterventionEventsQueue.Arn
+              - Effect: Allow
+                Action:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource: !GetAtt TxmaEventHandlerFunctionLogGroup.Arn
