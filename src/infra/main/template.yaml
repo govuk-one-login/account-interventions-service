@@ -410,7 +410,7 @@ Resources:
           - !Ref AccountDeletionProcessorErrorsCanary
         Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 5
-      Handler: account-deletion.handler
+      Handler: txma-handler.handler
       MemorySize: 128
       Role: !GetAtt TxmaEventHandlerFunctionRole.Arn
       CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
@@ -420,6 +420,7 @@ Resources:
             Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
           DELETED_ACCOUNT_RETENTION_SECONDS: 63072000 #2 Years in Seconds
           METRIC_SERVICE_NAME: TxmaEventHandlerFunction
+          ACCOUNT_DELETION_SQS_QUEUE: !Ref AccountDeletionEventQueue
       CodeUri: ../../handlers # Assuming the file is located in the 'handlers' directory
       Tags:
         Product: !Ref ProductTagValue
@@ -503,6 +504,10 @@ Resources:
                   - IsInternal
                   - !GetAtt TxMAIngressQueue.Arn
                   - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
+              - Effect: Allow
+                Action:
+                 - "sqs:SendMessage"
+                Resource: !GetAtt AccountDeletionEventQueue.Arn
               - Effect: Allow
                 Action:
                   - "logs:CreateLogStream"
