@@ -81,7 +81,6 @@ Conditions:
   UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
   UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
   IsProd: !Or [!Equals [!Ref Environment, integration], !Equals [!Ref Environment, production]]
-  IsDev: !Equals [!Ref Environment, dev]
 
 Mappings:
   EnvConfig:
@@ -212,10 +211,7 @@ Resources:
           Properties:
             Queue: !GetAtt AccountInterventionEventsQueue.Arn
             BatchSize: 1
-            Enabled: !If
-              - IsDev
-              - false
-              - true
+            Enabled: true
             FunctionResponseTypes:
               - ReportBatchItemFailures
       Environment:
@@ -421,6 +417,7 @@ Resources:
           DELETED_ACCOUNT_RETENTION_SECONDS: 63072000 #2 Years in Seconds
           METRIC_SERVICE_NAME: TxmaEventHandlerFunction
           ACCOUNT_DELETION_SQS_QUEUE: !Ref AccountDeletionEventQueue
+          ACCOUNT_INTERVENTION_SQS_QUEUE: !Ref AccountInterventionEventsQueue
       CodeUri: ../../handlers # Assuming the file is located in the 'handlers' directory
       Tags:
         Product: !Ref ProductTagValue
@@ -437,10 +434,7 @@ Resources:
               - !GetAtt TxMAIngressQueue.Arn
               - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
             BatchSize: 1
-            Enabled: !If
-              - IsDev
-              - true
-              - false
+            Enabled: true
             FunctionResponseTypes:
               - ReportBatchItemFailures
     Metadata:

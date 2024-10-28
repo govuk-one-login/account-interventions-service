@@ -14,6 +14,12 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
   }
   const accountDeletionSqsQueue = process.env['ACCOUNT_DELETION_SQS_QUEUE'];
 
+  if (!process.env['ACCOUNT_INTERVENTION_SQS_QUEUE']) {
+    logger.error('ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set');
+    throw new Error('ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set');
+  }
+  const accountInterventionEventsQueue = process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'];
+
   if (!event.Records[0]) {
     logger.error('The event does not contain any records.');
     return;
@@ -28,6 +34,14 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
           Message: record.body,
         }),
         accountDeletionSqsQueue,
+      );
+    } else {
+      addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_INTERVENTION);
+      await sendSqsMessage(
+        JSON.stringify({
+          Message: record.body,
+        }),
+        accountInterventionEventsQueue,
       );
     }
   }

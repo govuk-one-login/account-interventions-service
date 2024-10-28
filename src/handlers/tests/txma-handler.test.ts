@@ -6,6 +6,27 @@ jest.mock('../../services/send-sqs-message')
 
 const mockSendSqsMessage = sendSqsMessage as jest.Mock
 
+const createMockRecord = (eventDetails: any) => {
+  return {
+    messageId: '',
+    receiptHandle: '',
+    body: JSON.stringify(eventDetails),
+
+    attributes: {
+      ApproximateReceiveCount: '',
+      SentTimestamp: '',
+      SenderId: '',
+      ApproximateFirstReceiveTimestamp: '',
+    },
+    messageAttributes: {},
+    md5OfBody: '',
+    eventSource: '',
+    eventSourceARN: '',
+    awsRegion: '',
+  };
+}
+
+
 describe('TxMA Handler', () => {
     const OLD_ENV = process.env
     let mockEvent: SQSEvent
@@ -27,26 +48,6 @@ describe('TxMA Handler', () => {
 
     beforeEach(() => {
         process.env = { ...OLD_ENV }
-        mockRecord = {
-            messageId: '',
-            receiptHandle: '',
-            body: JSON.stringify({
-                event_name: 'AUTH_DELETE_ACCOUNT',
-                user_id: 'hello'
-            }),
-            attributes: {
-                ApproximateReceiveCount: '',
-                SentTimestamp: '',
-                SenderId: '',
-                ApproximateFirstReceiveTimestamp: '',
-            },
-            messageAttributes: {},
-            md5OfBody: '',
-            eventSource: '',
-            eventSourceARN: '',
-            awsRegion: '',
-        };
-        mockEvent = { Records: [mockRecord] };
     })
 
     afterEach(() => {
@@ -55,8 +56,53 @@ describe('TxMA Handler', () => {
     })
 
     it('Sends an SQS message to the delete queue', async () => {
-        process.env['ACCOUNT_DELETION_SQS_QUEUE'] = 'queue'
+      let deleteEvent = {
+        event_name: 'AUTH_DELETE_ACCOUNT',
+        user_id: 'hello'
+      };
+      mockRecord = createMockRecord(deleteEvent);
+      mockEvent = { Records: [mockRecord] };
+
+        process.env['ACCOUNT_DELETION_SQS_QUEUE'] = 'delete_queue'
+        process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'] = 'intervention_queue'
         await handler(mockEvent, mockContext);
-        expect(mockSendSqsMessage).toHaveBeenCalledWith('{\"Message\":\"{\\\"event_name\\\":\\\"AUTH_DELETE_ACCOUNT\\\",\\\"user_id\\\":\\\"hello\\\"}\"}', 'queue')
+        expect(mockSendSqsMessage).toHaveBeenCalledWith('{\"Message\":\"{\\\"event_name\\\":\\\"AUTH_DELETE_ACCOUNT\\\",\\\"user_id\\\":\\\"hello\\\"}\"}', 'delete_queue')
     })
+
+    it('Sends an SQS message to the intervention queue', async () => {
+      let otherInterventionEvent = {
+        event_name: 'TICF_ACCOUNT_INTERVENTION',
+        user_id: 'hello'
+      };
+      mockRecord = createMockRecord(otherInterventionEvent);
+      mockEvent = { Records: [mockRecord] };
+      process.env['ACCOUNT_DELETION_SQS_QUEUE'] = 'delete_queue'
+      process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'] = 'intervention_queue'
+      await handler(mockEvent, mockContext);
+      expect(mockSendSqsMessage).toHaveBeenCalledWith('{\"Message\":\"{\\\"event_name\\\":\\\"TICF_ACCOUNT_INTERVENTION\\\",\\\"user_id\\\":\\\"hello\\\"}\"}', 'intervention_queue')
+    })
+
+  it('Sends throw an error if delete queue not configured', async () => {
+    process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'] = 'intervention_queue'
+    try {
+      await handler(mockEvent, mockContext);
+    } catch (error) {
+      expect((error as Error).message).toEqual(
+        'ACCOUNT_DELETION_SQS_QUEUE env variable is not set'
+      );
+    }
+    expect(mockSendSqsMessage).not.toHaveBeenCalled;
+  });
+
+  it('Sends throw an error if intervention queue not configured', async () => {
+    process.env['ACCOUNT_DELETION_SQS_QUEUE'] = 'queue'
+    try {
+      await handler(mockEvent, mockContext);
+    } catch (error) {
+      expect((error as Error).message).toEqual(
+        'ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set'
+      );
+    }
+    expect(mockSendSqsMessage).not.toHaveBeenCalled;
+  });
 })
