@@ -72,3 +72,6 @@ dist/
 # Test specific
 **/test-report.html
 /feature-tests/results/
+
+#Node
+package-lock.json
