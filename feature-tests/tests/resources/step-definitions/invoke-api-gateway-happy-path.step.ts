@@ -16,7 +16,6 @@ import {
 import { aisEventResponse } from '../../../utils/ais-events-responses';
 import { updateItemInTable, getRecordFromTable } from '../../../utils/dynamo-database-methods';
 import { cloudwatchLogs, LogEvent } from '../../../utils/cloudwatch-logs-service';
-import { sendSNSDeleteMessage } from '../../../utils/send-sns-message';
 import { aisEventsWithEnhancedFields } from '../../../utils/enhanced-ais-events';
 import { AisResponseType } from '../../../utils/ais-events-responses';
 
@@ -481,14 +480,13 @@ defineFeature(feature, (test) => {
       await timeDelayForTestEnvironment(1000);
     });
 
-    when(/^I send a message with the userId to the Delete SNS Topic$/, async () => {
-      const messageKey = 'user_id';
-      await sendSNSDeleteMessage(messageKey, testUserId);
-      console.log(`AIS Record Deleted via SNS Message Sent`);
+    when(/^I send a message  a delete event intervention to TxMA ingress SQS queue$/, async () => {
+      await sendSQSEvent(testUserId, 'deleteEvent');
+      console.log(`AIS Record Deleted via SQS Message Sent`);
     });
 
     and(/^I invoke an API to retrieve the deleted intervention status of the user's account$/, async () => {
-      await timeDelayForTestEnvironment(2500);
+      await timeDelayForTestEnvironment(4500);
       getItem = await getRecordFromTable(testUserId);
       response = await invokeGetAccountState(testUserId, true);
     });

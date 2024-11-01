@@ -207,7 +207,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
     @regression
     Scenario Outline: Happy Path - Send Delete Request to SNS Topic - Flag Record as deleted for userId with AIS Event Type <aisEventType>
         Given I send an <aisEventType> intervention to the TxMA ingress SQS queue which will be deleted
-        When I send a message with the userId to the Delete SNS Topic
+        When I send a message  a delete event intervention to TxMA ingress SQS queue
         And I invoke an API to retrieve the deleted intervention status of the user's account
         Then I expect response for <aisEventType> with valid deleted marker fields for the userId
         Examples:

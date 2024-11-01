@@ -22,6 +22,8 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
     return;
   }
 
+  logger.info(`Event is: ${JSON.stringify(event)}`);
+
   const updateRecordsByIdPromises = event.Records.map((record) => {
     const userId = getUserId(record);
     return userId ? updateDeleteStatusId(userId) : undefined;
@@ -36,6 +38,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
  * @returns - User ID as a string, with whitespace removed.
  */
 function getUserId(record: SQSRecord) {
+  logger.info(`Record is: ${JSON.stringify(record)}`);
   let messageBody: SNSMessage;
   let message: DeleteStatusUpdateSNSMessage;
   try {
