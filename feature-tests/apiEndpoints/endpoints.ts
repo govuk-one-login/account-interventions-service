@@ -1,7 +1,7 @@
 export default class EndPoints {
   public static AIS_BASE_URL =
     process.env.TEST_ENVIRONMENT === 'dev'
-      ? `https://m78zgo7p60.execute-api.${process.env.AWS_REGION}.amazonaws.com/v1`
+      ? `https://ysxfdzicei.execute-api.${process.env.AWS_REGION}.amazonaws.com/v1`
       : process.env.CFN_PrivateApiEndpoint;
   public static SQS_QUEUE_URL =
     process.env.TEST_ENVIRONMENT === 'dev'
