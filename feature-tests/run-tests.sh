@@ -17,7 +17,7 @@ cp -R /utils . 2>/dev/null || :
 declare test_run_result
 export tagFilter=@regression
 echo 'Beginning Tests'
-yarn test # 1>/dev/null
+yarn test 1>/dev/null
 test_run_result=$?
 
 # store report to dir where pipeline will export from
