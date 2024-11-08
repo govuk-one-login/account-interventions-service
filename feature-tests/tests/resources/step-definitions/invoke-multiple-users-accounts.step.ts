@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/numeric-separators-style */
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
@@ -21,13 +22,14 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
+    jest.setTimeout(200000);
     given(
       /^I invoke an API to retrieve the (.*) status to the (.*) accounts. With history (.*)$/,
       async (aisEventType, numberOfUsers, historyValue) => {
         for (let index = 0; index < numberOfUsers; index++) {
           const testUserId = generateRandomTestUserId();
           await sendSQSEvent(testUserId, aisEventType);
-          await timeDelayForTestEnvironment(500);
+          await timeDelayForTestEnvironment(1000);
           response = await invokeGetAccountState(testUserId, historyValue);
           expect(response.intervention.description).toBe('AIS_ACCOUNT_SUSPENDED');
           listOfUsers.push(testUserId);
@@ -48,7 +50,7 @@ defineFeature(feature, (test) => {
         blocked: response.state.blocked,
       };
       for (const user of listOfUsers) {
-        await timeDelayForTestEnvironment(500);
+        await timeDelayForTestEnvironment(1000);
         await updateItemInTable(user, updateResetPasswordItemInTable);
         const getItem = await getRecordFromTable(user);
         if (getItem) {
@@ -60,7 +62,7 @@ defineFeature(feature, (test) => {
 
     when(/^I Invoke an API to view the records$/, async () => {
       for (const user of listOfUsers) {
-        await timeDelayForTestEnvironment(200);
+        await timeDelayForTestEnvironment(2000);
         response = await invokeGetAccountState(user, true);
       }
     });
