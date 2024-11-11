@@ -22,7 +22,6 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
-    jest.setTimeout(200000);
     given(
       /^I invoke an API to retrieve the (.*) status to the (.*) accounts. With history (.*)$/,
       async (aisEventType, numberOfUsers, historyValue) => {

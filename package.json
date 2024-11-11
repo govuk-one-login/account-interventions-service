@@ -9,7 +9,7 @@
   },
   "packageManager": "yarn@1.22.21",
   "scripts": {
-    "test": "yarn test:unit",
+    "test": "yarn test:unit --runInBand",
     "test:unit": "jest --group=unit --coverage --runInBand --testPathIgnorePatterns \"src/contract-testing/*\"",
     "test:pact:provider": "jest --group=contract --runInBand --testPathPattern=\"src/contract-testing/provider/*\"",
     "test:pact:consumer": "jest --group=contract --runInBand --testPathPattern=\"src/contract-testing/consumer/*\"",
