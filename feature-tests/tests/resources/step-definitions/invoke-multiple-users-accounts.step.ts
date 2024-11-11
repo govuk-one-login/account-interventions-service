@@ -52,6 +52,7 @@ defineFeature(feature, (test) => {
       for (const user of listOfUsers) {
         await timeDelayForTestEnvironment(1000);
         await updateItemInTable(user, updateResetPasswordItemInTable);
+        await timeDelayForTestEnvironment(1000);
         const getItem = await getRecordFromTable(user);
         if (getItem) {
           console.log(getItem);
