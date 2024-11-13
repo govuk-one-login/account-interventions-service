@@ -27,6 +27,60 @@ export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeo
   }
 }
 
+export async function sendDeleteEvent(testUserId: string) {
+  const body = {
+    event_name: 'AUTH_DELETE_ACCOUNT',
+    event_id: '123',
+    timestamp: 1_730_815_689,
+    event_timestamp_ms: 1_730_815_689_933,
+    client_id: 'UNKNOWN',
+    component_id: 'UNKNOWN',
+    user: {
+      user_id: testUserId,
+      email: '',
+      phone: 'UNKNOWN',
+      ip_address: '',
+      session_id: '',
+      persistent_session_id: '',
+      govuk_signin_journey_id: '',
+    },
+  };
+
+  const mockRecord = {
+    messageId: '',
+    receiptHandle: '',
+    body: JSON.stringify(body),
+    attributes: {
+      ApproximateReceiveCount: '',
+      SentTimestamp: '',
+      SenderId: '',
+      ApproximateFirstReceiveTimestamp: '',
+    },
+    messageAttributes: {},
+    md5OfBody: '',
+    eventSource: '',
+    eventSourceARN: '',
+    awsRegion: '',
+  };
+
+  const mockEvent = { Records: [mockRecord] };
+
+  const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
+  const queueURL = EndPoints.SQS_QUEUE_URL;
+  const messageBody = JSON.stringify(mockEvent);
+  const parameters = {
+    MessageBody: messageBody,
+    QueueUrl: queueURL,
+  };
+
+  try {
+    const data = await sqs.sendMessage(parameters);
+    console.log('Success, messageId is', data.MessageId);
+  } catch (error) {
+    console.log('Error', error);
+  }
+}
+
 export async function sendInvalidSQSEvent(testUserId: string, invalidAisEventTypes: keyof typeof invalidAisEvents) {
   const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
   const queueURL = EndPoints.SQS_QUEUE_URL;

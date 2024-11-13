@@ -16,7 +16,6 @@ import {
 import { aisEventResponse } from '../../../utils/ais-events-responses';
 import { updateItemInTable, getRecordFromTable } from '../../../utils/dynamo-database-methods';
 import { cloudwatchLogs, LogEvent } from '../../../utils/cloudwatch-logs-service';
-import { sendSNSDeleteMessage } from '../../../utils/send-sns-message';
 import { aisEventsWithEnhancedFields } from '../../../utils/enhanced-ais-events';
 import { AisResponseType } from '../../../utils/ais-events-responses';
 
@@ -50,7 +49,7 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke an API to retrieve the intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment(2000);
+        await timeDelayForTestEnvironment(4000);
         response = await invokeGetAccountState(testUserId, historyValue);
       },
     );
@@ -82,8 +81,9 @@ defineFeature(feature, (test) => {
     );
 
     when(/^I invoke an API to retrieve the intervention status of the account$/, async () => {
-      await timeDelayForTestEnvironment();
+      await timeDelayForTestEnvironment(1000);
       response = await invokeGetAccountState(testUserId, true);
+      await timeDelayForTestEnvironment(1000);
     });
 
     then(
@@ -148,7 +148,7 @@ defineFeature(feature, (test) => {
       async (allowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
-        await timeDelayForTestEnvironment();
+        await timeDelayForTestEnvironment(2000);
         console.log('sending second message to put the user in : ' + allowableAisEventType);
         await sendSQSEvent(testUserId, allowableAisEventType);
       },
@@ -186,7 +186,7 @@ defineFeature(feature, (test) => {
       async (nonAllowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
-        await timeDelayForTestEnvironment();
+        await timeDelayForTestEnvironment(1000);
         console.log('sending second message to put the user in : ' + nonAllowableAisEventType);
         await sendSQSEvent(testUserId, nonAllowableAisEventType);
       },
@@ -195,8 +195,9 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke the API to retrieve the non-allowable intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment();
+        await timeDelayForTestEnvironment(1000);
         response = await invokeGetAccountState(testUserId, historyValue);
+        await timeDelayForTestEnvironment(1000);
       },
     );
 
@@ -224,7 +225,7 @@ defineFeature(feature, (test) => {
       async (allowableAisEventType, originalAisEventType) => {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
-        await timeDelayForTestEnvironment();
+        await timeDelayForTestEnvironment(1000);
         console.log('sending second message to put the user in : ' + allowableAisEventType);
         await sendSQSEvent(testUserId, allowableAisEventType);
       },
@@ -233,7 +234,7 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke the API to retrieve the intervention status of the user's account with history (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment();
+        await timeDelayForTestEnvironment(1000);
         response = await invokeGetAccountState(testUserId, historyValue);
       },
     );
@@ -269,16 +270,16 @@ defineFeature(feature, (test) => {
       async function (allowableAisEventType, originalAisEventType) {
         console.log('sending first message to put the user in : ' + originalAisEventType);
         await sendSQSEvent(testUserId, originalAisEventType);
-        await timeDelayForTestEnvironment();
+        await timeDelayForTestEnvironment(2000);
         console.log('sending second message to put the user in : ' + allowableAisEventType);
         await sendSQSEvent(testUserId, allowableAisEventType);
-        await timeDelayForTestEnvironment();
+        await timeDelayForTestEnvironment(2000);
       },
     );
 
     when(/^I invoke API to retrieve the intervention status of the user's account$/, async () => {
       response = await invokeGetAccountState(testUserId, false);
-      await timeDelayForTestEnvironment();
+      await timeDelayForTestEnvironment(2000);
     });
 
     then(/^I expect the response (.*) with the correct time stamp when the event was applied$/, async (values) => {
@@ -292,7 +293,7 @@ defineFeature(feature, (test) => {
 
     and(/^I send a new intervention event type (.*)$/, async (aisEventType) => {
       await sendSQSEvent(testUserId, aisEventType);
-      await timeDelayForTestEnvironment();
+      await timeDelayForTestEnvironment(2000);
       response = await invokeGetAccountState(testUserId, true);
     });
 
@@ -378,7 +379,7 @@ defineFeature(feature, (test) => {
     );
 
     when(/^I invoke apiGateway to retreive the status of the valid userId with history as true$/, async () => {
-      await timeDelayForTestEnvironment();
+      await timeDelayForTestEnvironment(2000);
       response = await invokeGetAccountState(testUserId, true);
     });
 
@@ -478,17 +479,16 @@ defineFeature(feature, (test) => {
   }) => {
     given(/^I send an (.*) intervention to the TxMA ingress SQS queue which will be deleted$/, async (aisEventType) => {
       await sendSQSEvent(testUserId, aisEventType);
-      await timeDelayForTestEnvironment(1000);
+      await timeDelayForTestEnvironment(2000);
     });
 
-    when(/^I send a message with the userId to the Delete SNS Topic$/, async () => {
-      const messageKey = 'user_id';
-      await sendSNSDeleteMessage(messageKey, testUserId);
-      console.log(`AIS Record Deleted via SNS Message Sent`);
+    when(/^I send a message  a delete event intervention to TxMA ingress SQS queue$/, async () => {
+      await sendSQSEvent(testUserId, 'deleteEvent');
+      console.log(`AIS Record Deleted via SQS Message Sent`);
     });
 
     and(/^I invoke an API to retrieve the deleted intervention status of the user's account$/, async () => {
-      await timeDelayForTestEnvironment(2500);
+      await timeDelayForTestEnvironment(4500);
       getItem = await getRecordFromTable(testUserId);
       response = await invokeGetAccountState(testUserId, true);
     });

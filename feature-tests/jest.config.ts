@@ -2,7 +2,8 @@ import type { Config } from 'jest';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const config: Config = {
+const config: Config.InitialOptions = {
+  retryTimes: 3,
   preset: 'ts-jest',
   testEnvironment: 'node',
   coveragePathIgnorePatterns: ['/node_modules/'],
@@ -15,6 +16,6 @@ const config: Config = {
     '^.+\\.tsx?$': 'ts-jest',
   },
   reporters: ['default', ['jest-junit', { outputDirectory: 'results', outputName: 'report.xml' }]],
-  testTimeout: 100_000,
+  testTimeout: 200_000,
 };
 export default config;

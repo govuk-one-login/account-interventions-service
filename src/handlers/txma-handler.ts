@@ -1,7 +1,7 @@
 import { SQSEvent, Context } from 'aws-lambda';
 import logger from '../commons/logger';
-import { TxMAEgressEvent } from '../data-types/interfaces';
-import { sendSqsMessage } from '../services/send-sqs-message';
+import { TxMAEgressDeletionEvent, TxMAEgressEvent } from '../data-types/interfaces';
+import { sendBatchSqsMessage } from '../services/send-sqs-message';
 import { addMetric, metric } from '../commons/metrics';
 import { MetricNames } from '../data-types/constants';
 
@@ -25,25 +25,36 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
     return;
   }
 
+  const deletionMessages = [];
+  const interventionMessages = [];
+  let id = 0;
   for (const record of event.Records) {
     const body: TxMAEgressEvent = JSON.parse(record.body);
     if (body.event_name === 'AUTH_DELETE_ACCOUNT') {
       addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_DELETE);
-      await sendSqsMessage(
-        JSON.stringify({
-          Message: record.body,
-        }),
-        accountDeletionSqsQueue,
-      );
+      const deletionEvent: TxMAEgressDeletionEvent = { event_name: 'AUTH_DELETE_ACCOUNT', user_id: body.user.user_id };
+      const messageBody = {
+        Message: JSON.stringify(deletionEvent),
+      };
+      deletionMessages.push({
+        Id: id + '',
+        MessageBody: JSON.stringify(messageBody),
+      });
     } else {
       addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_INTERVENTION);
-      await sendSqsMessage(
-        JSON.stringify({
-          Message: record.body,
-        }),
-        accountInterventionEventsQueue,
-      );
+      interventionMessages.push({
+        Id: id + '',
+        MessageBody: record.body,
+      });
     }
+    id = id + 1;
+  }
+
+  if (deletionMessages.length > 0) {
+    await sendBatchSqsMessage(deletionMessages, accountDeletionSqsQueue);
+  }
+  if (interventionMessages.length > 0) {
+    await sendBatchSqsMessage(interventionMessages, accountInterventionEventsQueue);
   }
 
   metric.publishStoredMetrics();

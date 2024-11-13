@@ -1,10 +1,10 @@
 import { SQSEvent, SQSRecord } from 'aws-lambda'
 import { handler } from '../txma-handler'
-import { sendSqsMessage } from '../../services/send-sqs-message'
+import {sendBatchSqsMessage} from '../../services/send-sqs-message'
 
 jest.mock('../../services/send-sqs-message')
 
-const mockSendSqsMessage = sendSqsMessage as jest.Mock
+const mockSendBatchSqsMessage = sendBatchSqsMessage as jest.Mock
 
 const createMockRecord = (eventDetails: any) => {
   return {
@@ -58,7 +58,20 @@ describe('TxMA Handler', () => {
     it('Sends an SQS message to the delete queue', async () => {
       let deleteEvent = {
         event_name: 'AUTH_DELETE_ACCOUNT',
-        user_id: 'hello'
+        event_id: '442a5554-720d-4d90-9e35-cf0090be3c23',
+        timestamp: 1_730_807_241,
+        event_timestamp_ms: 1_730_807_241_588,
+        client_id: 'UNKNOWN',
+        component_id: 'UNKNOWN',
+        user: {
+          user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
+          email: '',
+          phone: 'UNKNOWN',
+          ip_address: '',
+          session_id: '',
+          persistent_session_id: '',
+          govuk_signin_journey_id: '',
+        },
       };
       mockRecord = createMockRecord(deleteEvent);
       mockEvent = { Records: [mockRecord] };
@@ -66,7 +79,7 @@ describe('TxMA Handler', () => {
         process.env['ACCOUNT_DELETION_SQS_QUEUE'] = 'delete_queue'
         process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'] = 'intervention_queue'
         await handler(mockEvent, mockContext);
-        expect(mockSendSqsMessage).toHaveBeenCalledWith('{\"Message\":\"{\\\"event_name\\\":\\\"AUTH_DELETE_ACCOUNT\\\",\\\"user_id\\\":\\\"hello\\\"}\"}', 'delete_queue')
+        expect(mockSendBatchSqsMessage).toHaveBeenCalledWith([{"Id": "0", "MessageBody": "{\"Message\":\"{\\\"event_name\\\":\\\"AUTH_DELETE_ACCOUNT\\\",\\\"user_id\\\":\\\"urn:fdc:gov.uk:2022:USER_ONE\\\"}\"}"}], 'delete_queue')
     })
 
     it('Sends an SQS message to the intervention queue', async () => {
@@ -79,7 +92,7 @@ describe('TxMA Handler', () => {
       process.env['ACCOUNT_DELETION_SQS_QUEUE'] = 'delete_queue'
       process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'] = 'intervention_queue'
       await handler(mockEvent, mockContext);
-      expect(mockSendSqsMessage).toHaveBeenCalledWith('{\"Message\":\"{\\\"event_name\\\":\\\"TICF_ACCOUNT_INTERVENTION\\\",\\\"user_id\\\":\\\"hello\\\"}\"}', 'intervention_queue')
+      expect(mockSendBatchSqsMessage).toHaveBeenCalledWith([{"Id": "0", "MessageBody": "{\"event_name\":\"TICF_ACCOUNT_INTERVENTION\",\"user_id\":\"hello\"}"}], 'intervention_queue')
     })
 
   it('Sends throw an error if delete queue not configured', async () => {
@@ -91,7 +104,7 @@ describe('TxMA Handler', () => {
         'ACCOUNT_DELETION_SQS_QUEUE env variable is not set'
       );
     }
-    expect(mockSendSqsMessage).not.toHaveBeenCalled;
+    expect(mockSendBatchSqsMessage).not.toHaveBeenCalled;
   });
 
   it('Sends throw an error if intervention queue not configured', async () => {
@@ -103,6 +116,6 @@ describe('TxMA Handler', () => {
         'ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set'
       );
     }
-    expect(mockSendSqsMessage).not.toHaveBeenCalled;
+    expect(mockSendBatchSqsMessage).not.toHaveBeenCalled;
   });
 })

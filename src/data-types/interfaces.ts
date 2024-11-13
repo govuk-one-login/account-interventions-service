@@ -59,12 +59,22 @@ interface TxMAEgressInterventionEvent {
   extensions: TxMAEgressExtensions | TxMAEgressBasicExtensions;
 }
 
-interface TxMAEgressDeletionEvent {
+export interface TxMAEgressDeletionEvent {
   event_name: 'AUTH_DELETE_ACCOUNT';
   user_id: string;
 }
 
-export type TxMAEgressEvent = TxMAEgressInterventionEvent | TxMAEgressDeletionEvent;
+interface TxMAIngressDeletionEvent {
+  event_name: 'AUTH_DELETE_ACCOUNT';
+  timestamp: number;
+  event_timestamp_ms?: number;
+  event_timestamp_ms_formatted?: string;
+  component_id?: string;
+  user: TxmaUser;
+  extensions: TxMAEgressExtensions | TxMAEgressBasicExtensions;
+}
+
+export type TxMAEgressEvent = TxMAEgressInterventionEvent | TxMAIngressDeletionEvent;
 
 export interface TxMAEgressExtensions extends TxMAEgressBasicExtensions {
   description: string | AISInterventionTypes;
