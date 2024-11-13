@@ -34,28 +34,9 @@ export async function sendDeleteEvent(testUserId: string) {
     txma: { configVersion: '1.0.4' },
   };
 
-  const mockRecord = {
-    messageId: '',
-    receiptHandle: '',
-    body: JSON.stringify(body),
-    attributes: {
-      ApproximateReceiveCount: '',
-      SentTimestamp: '',
-      SenderId: '',
-      ApproximateFirstReceiveTimestamp: '',
-    },
-    messageAttributes: {},
-    md5OfBody: '',
-    eventSource: '',
-    eventSourceARN: '',
-    awsRegion: '',
-  };
-
-  const mockEvent = { Records: [mockRecord] };
-
   const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
   const queueURL = EndPoints.SQS_QUEUE_URL;
-  const messageBody = JSON.stringify(mockEvent);
+  const messageBody = JSON.stringify(body);
   const parameters = {
     MessageBody: messageBody,
     QueueUrl: queueURL,
