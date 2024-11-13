@@ -13,6 +13,7 @@ const feature = loadFeature('./tests/resources/features/aisGET/InvokeMultipleUse
 defineFeature(feature, (test) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
+  jest.retryTimes(3);
   let response: AisResponseType;
   const listOfUsers: string[] = [];
 

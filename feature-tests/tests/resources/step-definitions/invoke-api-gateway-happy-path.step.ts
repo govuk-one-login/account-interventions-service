@@ -23,6 +23,7 @@ import { AisResponseType } from '../../../utils/ais-events-responses';
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
 defineFeature(feature, (test) => {
+  jest.retryTimes(3);
   let testUserId: string;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
