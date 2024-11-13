@@ -5,6 +5,7 @@ import {
   purgeEgressQueue,
   filterUserIdInMessages,
   sendEnhancedSQSEvent,
+  sendDeleteEvent,
 } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import {
@@ -483,7 +484,7 @@ defineFeature(feature, (test) => {
     });
 
     when(/^I send a message  a delete event intervention to TxMA ingress SQS queue$/, async () => {
-      await sendSQSEvent(testUserId, 'deleteEvent');
+      await sendDeleteEvent(testUserId);
       console.log(`AIS Record Deleted via SQS Message Sent`);
     });
 

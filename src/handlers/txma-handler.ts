@@ -32,7 +32,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
     const body: TxMAEgressEvent = JSON.parse(record.body);
     if (body.event_name === 'AUTH_DELETE_ACCOUNT') {
       addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_DELETE);
-      const deletionEvent: TxMAEgressDeletionEvent = { event_name: 'AUTH_DELETE_ACCOUNT', user_id: body.user.user_id };
+      const deletionEvent: TxMAEgressDeletionEvent = { event_name: 'AUTH_DELETE_ACCOUNT', user_id: body.user_id };
       const messageBody = {
         Message: JSON.stringify(deletionEvent),
       };

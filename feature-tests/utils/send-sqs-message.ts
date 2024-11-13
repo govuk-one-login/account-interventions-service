@@ -30,20 +30,8 @@ export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeo
 export async function sendDeleteEvent(testUserId: string) {
   const body = {
     event_name: 'AUTH_DELETE_ACCOUNT',
-    event_id: '123',
-    timestamp: 1_730_815_689,
-    event_timestamp_ms: 1_730_815_689_933,
-    client_id: 'UNKNOWN',
-    component_id: 'UNKNOWN',
-    user: {
-      user_id: testUserId,
-      email: '',
-      phone: 'UNKNOWN',
-      ip_address: '',
-      session_id: '',
-      persistent_session_id: '',
-      govuk_signin_journey_id: '',
-    },
+    user_id: testUserId,
+    txma: { configVersion: '1.0.4' },
   };
 
   const mockRecord = {

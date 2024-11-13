@@ -66,12 +66,12 @@ export interface TxMAEgressDeletionEvent {
 
 interface TxMAIngressDeletionEvent {
   event_name: 'AUTH_DELETE_ACCOUNT';
-  timestamp: number;
-  event_timestamp_ms?: number;
-  event_timestamp_ms_formatted?: string;
-  component_id?: string;
-  user: TxmaUser;
-  extensions: TxMAEgressExtensions | TxMAEgressBasicExtensions;
+  user_id: string;
+  txma: Txmaconfig;
+}
+
+interface Txmaconfig {
+  configVersion: string;
 }
 
 export type TxMAEgressEvent = TxMAEgressInterventionEvent | TxMAIngressDeletionEvent;
