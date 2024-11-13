@@ -203,22 +203,4 @@ export const aisEvents: {
       govuk_signin_journey_id: '',
     },
   },
-
-  deleteEvent: {
-    event_name: 'AUTH_DELETE_ACCOUNT',
-    event_id: '442a5554-720d-4d90-9e35-cf0090be3c23',
-    timestamp: 1_730_807_241,
-    event_timestamp_ms: 1_730_807_241_588,
-    client_id: 'UNKNOWN',
-    component_id: 'UNKNOWN',
-    user: {
-      user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
-      email: '',
-      phone: 'UNKNOWN',
-      ip_address: '',
-      session_id: '',
-      persistent_session_id: '',
-      govuk_signin_journey_id: '',
-    },
-  },
 };

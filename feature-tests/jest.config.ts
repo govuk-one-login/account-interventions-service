@@ -3,7 +3,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const config: Config.InitialOptions = {
-  retryTimes: 3,
   preset: 'ts-jest',
   testEnvironment: 'node',
   coveragePathIgnorePatterns: ['/node_modules/'],
