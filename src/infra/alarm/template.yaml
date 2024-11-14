@@ -37,6 +37,14 @@ Parameters:
     Description: "The name of the Account Deletion Processor DLQ"
     Type: AWS::SSM::Parameter::Value<String>
     Default: "/ais-main/SQS/AccountDeletionProcessorDLQ/Name" #pragma: allowlist secret
+  AccountInterventionEventsQueueName:
+    Description: "The name of the Account Intervention Events queue"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/ais-main/SQS/AccountInterventionEventsQueue/Name" #pragma: allowlist secret
+  AccountInterventionEventsDLQName:
+    Description: "The name of the Account Intervention Events DLQ"
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/ais-main/SQS/AccountInterventionEventsDLQ/Name" #pragma: allowlist secret
   MainStackName:
     Description: The name of the Main AIS stack
     Type: String
@@ -165,6 +173,86 @@ Resources:
       Dimensions:
         - Name: QueueName
           Value: !Ref TxMAEgressDLQName
+      MetricName: ApproximateNumberOfMessagesVisible
+      Namespace: AWS/SQS
+      Period: 60
+      Statistic: Maximum
+      Unit: Count
+
+  AccountInterventionEventsQueueProcessingSlowly:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Intervention Events queue processing slowly. ${RunBookURL}"
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 60  # Adjust threshold as needed
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref AccountInterventionEventsQueueName
+      MetricName: ApproximateAgeOfOldestMessage
+      Namespace: AWS/SQS
+      Period: 60
+      Statistic: Maximum
+      Unit: Count
+
+  AccountInterventionEventsQueueTooManyMessages:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Intervention Events queue has too many messages. ${RunBookURL}"
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 50  # Adjust threshold as needed
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref AccountInterventionEventsQueueName
+      MetricName: ApproximateNumberOfMessagesVisible
+      Namespace: AWS/SQS
+      Period: 60
+      Statistic: Maximum
+      Unit: Count
+
+  AccountInterventionEventsDLQHasMessages:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Intervention Events DLQ has messages. ${RunBookURL}"
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref AccountInterventionEventsDLQName
+      MetricName: ApproximateNumberOfMessagesVisible
+      Namespace: AWS/SQS
+      Period: 60
+      Statistic: Maximum
+      Unit: Count
+
+  AccountInterventionEventsDLQTooManyMessages:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub "Account Intervention Events DLQ has too many messages. ${RunBookURL}"
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 10  # Adjust threshold as needed
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref AccountInterventionEventsDLQName
       MetricName: ApproximateNumberOfMessagesVisible
       Namespace: AWS/SQS
       Period: 60
