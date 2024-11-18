@@ -75,6 +75,7 @@
   "resolutions": {
     "axios": "^1.7.7",
     "cookie": "^0.7.0",
-    "jsonpath-plus": "^10.0.7"
+    "jsonpath-plus": "^10.0.7",
+    "cross-spawn": "^7.0.5"
   }
 }
