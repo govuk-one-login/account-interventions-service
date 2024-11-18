@@ -1165,6 +1165,34 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
+  AccountInterventionEventsQueueNameSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: The Name of the Account Intervention Events Queue
+      Name: !Sub "/${AWS::StackName}/SQS/AccountInterventionEventsQueue/Name"
+      Type: String
+      Value: !GetAtt AccountInterventionEventsQueue.QueueName
+      Tags:
+        Environment: !Ref Environment
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
+  AccountInterventionEventsDLQNameSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: The Name of the Account Intervention Events DLQ
+      Name: !Sub "/${AWS::StackName}/SQS/AccountInterventionEventsDLQ/Name"
+      Type: String
+      Value: !GetAtt AccountInterventionEventsDLQ.QueueName
+      Tags:
+        Environment: !Ref Environment
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
 ### Encryption Key SQS & SNS ###
 
   AccountDeletionProcessorSNSKmsKey:
