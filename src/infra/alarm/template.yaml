@@ -1053,7 +1053,7 @@ Resources:
       TreatMissingData: notBreaching
       Dimensions:
         - Name: service
-          Value: InterventionsProcessorFunction
+          Value: TxmaEventHandlerFunction
 
   AverageTxMALatencyOver5Sec:
     Type: AWS::CloudWatch::Alarm
@@ -1073,7 +1073,7 @@ Resources:
       TreatMissingData: notBreaching
       Dimensions:
         - Name: service
-          Value: InterventionsProcessorFunction
+          Value: TxmaEventHandlerFunction
 
   MaxTxMALatencyOver10Sec:
     Type: AWS::CloudWatch::Alarm
@@ -1093,7 +1093,7 @@ Resources:
       TreatMissingData: notBreaching
       Dimensions:
         - Name: service
-          Value: InterventionsProcessorFunction
+          Value: TxmaEventHandlerFunction
 
 #
 # CloudWatch alarms for Status Retriever
