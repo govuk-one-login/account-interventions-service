@@ -603,25 +603,6 @@ Resources:
 
   ### Account Deletion Processor ###
 
-  AccountDeletionProcessorSNSTopic:
-    Type: AWS::SNS::Topic
-    Condition: IsInternal
-    Properties:
-      KmsMasterKeyId: !Ref AccountDeletionProcessorSNSKmsKey
-      TopicName: !Sub "${AWS::StackName}-AccountDeletionProcessorSNSTopic"
-      TracingConfig: "Active"
-      Tags:
-        - Key: Product
-          Value: !Ref ProductTagValue
-        - Key: System
-          Value: !Ref SystemTagValue
-        - Key: Environment
-          Value: !Ref Environment
-        - Key: Owner
-          Value: !Ref OwnerTagValue
-        - Key: Source
-          Value: !Ref SourceTagValue
-
   AccountDeletionProcessorFunction:
     Type: AWS::Serverless::Function
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
@@ -649,19 +630,6 @@ Resources:
           DELETED_ACCOUNT_RETENTION_SECONDS: 63072000 #2 Years in Seconds
           METRIC_SERVICE_NAME: AccountDeletionProcessorFunction
       Events:
-        SNSEvent:
-          Type: SNS
-          Properties:
-            RedrivePolicy: !Sub "{ \"deadLetterTargetArn\": \"arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorDLQ\" }"
-            SqsSubscription:
-              BatchSize: 1
-              Enabled: true
-              QueueArn: !GetAtt AccountDeletionProcessorQueue.Arn
-              QueueUrl: !Ref AccountDeletionProcessorQueue
-            Topic: !If
-              - IsInternal
-              - !Ref AccountDeletionProcessorSNSTopic
-              - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
         SQSEvent:
           Type: SQS
           Properties:
@@ -686,22 +654,6 @@ Resources:
         EntryPoints:
           - account-deletion-processor-handler.ts
 
-  AccountDeletionProcessorFunctionPermission:
-    DependsOn: AccountDeletionProcessorFunctionAliaslive
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Join
-        - ':'
-        - - 'function'
-          - !Select [ 6, !Split [ ':', !GetAtt AccountDeletionProcessorFunction.Arn ] ]
-          - 'live'
-      Action: lambda:InvokeFunction
-      Principal: sns.amazonaws.com
-      SourceAccount: !Ref AWS::AccountId
-      SourceArn: !If
-        - IsInternal
-        - !Ref AccountDeletionProcessorSNSTopic
-        - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
 
   AccountDeletionProcessorFunctionRole:
     Type: AWS::IAM::Role
@@ -856,27 +808,6 @@ Resources:
           Value: !Ref OwnerTagValue
         - Key: Source
           Value: !Ref SourceTagValue
-
-  AccountDeletionProcessorQueuePolicy:
-    Type: AWS::SQS::QueuePolicy
-    Properties:
-      Queues:
-        - !Ref AccountDeletionProcessorQueue
-      PolicyDocument:
-        Statement:
-          - Effect: Allow
-            Action:
-              - "sqs:SendMessage"
-            Resource: !GetAtt AccountDeletionProcessorQueue.Arn
-            Principal:
-              Service: sns.amazonaws.com
-            Condition:
-              ArnEquals:
-                aws:SourceArn:
-                  - !If
-                    - IsInternal
-                    - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
-                    - !FindInMap [ EnvConfig, !Ref Environment, AccountDeletionProcessorSNSTopicARN ]
 
   AccountDeletionProcessorDLQ:
     Type: AWS::SQS::Queue
@@ -1219,7 +1150,6 @@ Resources:
               ArnEquals:
                 aws:SourceArn:
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-AccountDeletionProcessorFunction"
-                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -1312,12 +1242,6 @@ Resources:
               - "kms:Decrypt"
               - "kms:GenerateDataKey"
             Resource: "*"
-            Condition:
-              ArnEquals:
-                aws:SourceArn: !If
-                  - IsInternal
-                  - !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorSNSTopic"
-                  - !Ref AWS::NoValue
           - Effect: Allow
             Principal:
               AWS: !Join [ "", [ "arn:aws:iam::", !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountID ], ":root"] ]
@@ -1913,8 +1837,3 @@ Outputs:
     Condition: IsInternal
     Description: "Endpoint URL for TxMA Ingress Queue"
     Value: !Ref TxMAIngressQueue
-
-  AccountDeletionProcessorSNSTopicARN:
-    Condition: IsInternal
-    Description: "ARN for the AccountDeletionProcessorSNSTopic SNS Topic"
-    Value: !Ref AccountDeletionProcessorSNSTopic
