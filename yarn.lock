@@ -5590,7 +5590,7 @@ jest-mock@^29.7.0:
     "@types/node" "*"
     jest-util "^29.7.0"
 
-jest-openapi@^0.14.1:
+jest-openapi@^0.14.2:
   version "0.14.2"
   resolved "https://registry.yarnpkg.com/jest-openapi/-/jest-openapi-0.14.2.tgz#5a78f4b5c98ae2b7a7c622d368b71d52a75523c4"
   integrity sha512-7LNIV2FQrxE2ilhyJfIDQUUjeEn3rYmDmwzH4uXbvMj274ipGOKfajFMXVdY5ktw0WdAPBmXWuCGP/XCfr2Wjg==
