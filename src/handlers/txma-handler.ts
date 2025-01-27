@@ -58,5 +58,4 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
   }
 
   metric.publishStoredMetrics();
-  return;
 };
