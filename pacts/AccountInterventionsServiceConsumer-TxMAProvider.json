@@ -1,0 +1,222 @@
+{
+  "consumer": {
+    "name": "AccountInterventionsServiceConsumer"
+  },
+  "messages": [
+    {
+      "contents": {
+        "event_name": "TICF_ACCOUNT_INTERVENTION",
+        "extensions": {
+          "intervention": {
+            "intervention_code": "01",
+            "intervention_reason": "a reason for the intervention"
+          }
+        },
+        "timestamp": 1705318190,
+        "user": {
+          "user_id": "urn:fdc:gov.uk:2022:USER_ONE"
+        }
+      },
+      "description": "a valid intervention event",
+      "matchingRules": {
+        "body": {
+          "$.extensions.intervention.intervention_code": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "regex",
+                "regex": "^(01|02|03|04|05|06|07)$"
+              }
+            ]
+          },
+          "$.extensions.intervention.intervention_reason": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.timestamp": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.user.user_id": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "providerStates": [
+        {
+          "name": "AIS is healthy"
+        }
+      ]
+    },
+    {
+      "contents": {
+        "event_name": "AUTH_PASSWORD_RESET_SUCCESSFUL",
+        "timestamp": 1705318190,
+        "user": {
+          "user_id": "urn:fdc:gov.uk:2022:USER_ONE"
+        }
+      },
+      "description": "a valid user action event - reset password",
+      "matchingRules": {
+        "body": {
+          "$.event_name": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.timestamp": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "number"
+              }
+            ]
+          },
+          "$.user.user_id": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "providerStates": [
+        {
+          "name": "AIS is healthy"
+        }
+      ]
+    },
+    {
+      "contents": {
+        "event_name": "IPV_ACCOUNT_INTERVENTION_END",
+        "extensions": {
+          "success": true,
+          "type": "reprove_identity"
+        },
+        "timestamp": 1705318190,
+        "user": {
+          "govuk_signin_journey_id": "EKRb611GMsL_mOe7Yw8FU3fIaMw",
+          "ip_address": "*.*.*.*",
+          "session_id": "uOyXUiLAOlcty42HZw6Hgmrlvx7WVraU4JIOli8DHSM",
+          "user_id": "urn:fdc:gov.uk:2022:USER_ONE"
+        }
+      },
+      "description": "a valid user action event - reset password",
+      "matchingRules": {
+        "body": {
+          "$.event_name": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.extensions.success": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.extensions.type": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.timestamp": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "number"
+              }
+            ]
+          },
+          "$.user.govuk_signin_journey_id": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.user.ip_address": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.user.session_id": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          },
+          "$.user.user_id": {
+            "combine": "AND",
+            "matchers": [
+              {
+                "match": "type"
+              }
+            ]
+          }
+        }
+      },
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "providerStates": [
+        {
+          "name": "AIS is healthy"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "13.1.3"
+    },
+    "pactRust": {
+      "ffi": "0.4.21",
+      "models": "1.2.2"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "TxMAProvider"
+  }
+}
