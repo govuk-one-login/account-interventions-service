@@ -1,5 +1,5 @@
 ---
-name: "Build & Test"
+name: 'Build & Test'
 
 # Triggered when:
 #   - a file, listed below, is pushed to any branch other than `main`, i.e. a feature branch.
@@ -39,7 +39,7 @@ on:
 
 jobs:
   acceptance-checks:
-    name: "Build, Test, Lint & Scan"
+    name: 'Build, Test, Lint & Scan'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@83b7061638ee4956cf7545a6f7efe594e5ad0247 # pin@v3
@@ -64,7 +64,7 @@ jobs:
         run: yarn test:unit
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@c25d2e7e3def96d0d1781000d3c429da22cd6252 # pin@master
+        uses: SonarSource/sonarqube-scan-action@0303d6b62e310685c0e34d0b9cde218036885c4d # pin@v5.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
