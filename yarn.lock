@@ -83,10 +83,10 @@
     "@aws-lambda-powertools/commons" "^2.18.0"
     aws-xray-sdk-core "^3.10.3"
 
-"@aws-sdk/client-dynamodb@^3.782.0":
-  version "3.782.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-dynamodb/-/client-dynamodb-3.782.0.tgz#b67a52408c6f849d4908d36c271a7bcec49120ec"
-  integrity sha512-WS9GhnHjo5GeunVYSjExzKIWhE+5ZsdvlGlz1Z0FL02DjyTU+irJlNC1H0PiLISGN0/pwB9TIAvfbkdlsNSCGg==
+"@aws-sdk/client-dynamodb@^3.786.0":
+  version "3.786.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-dynamodb/-/client-dynamodb-3.786.0.tgz#256d07cfde1bfeb8bfb46c1fac4cb01d2ab22896"
+  integrity sha512-UNDZUhgGZMTidmqPfxW94Dkk3Qe4dKtV2lAq2zjvc4zTAXr4t220p8XI6JgwCuA7vo3UdGT/7LvR1A6+l5HuJA==
   dependencies:
     "@aws-crypto/sha256-browser" "5.2.0"
     "@aws-crypto/sha256-js" "5.2.0"
@@ -582,10 +582,10 @@
     "@smithy/types" "^4.2.0"
     tslib "^2.6.2"
 
-"@aws-sdk/util-dynamodb@^3.782.0":
-  version "3.782.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/util-dynamodb/-/util-dynamodb-3.782.0.tgz#69c8e7bfb4a5cafce067fd362d9f9c4047ff72e1"
-  integrity sha512-DsYJaP418Qmb1eGrTabtH5mjO4XHRyE9NzBdcKEWSFtDvLfUxUzzoCdNcW0GHy0Mqh5/tB52IDNjKQg5q3G1OA==
+"@aws-sdk/util-dynamodb@^3.786.0":
+  version "3.786.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/util-dynamodb/-/util-dynamodb-3.786.0.tgz#fe66ececd6c413241ecbf82af6b60693bb1a2a01"
+  integrity sha512-/qlHy3x4RHZ7c20hzvpe+Kbc2VSlO7UHmWy8/Dd9P0wrPsCUJlEyAdwLpNCystET6aoKYNFdPWMqd6Rd2q03Tw==
   dependencies:
     tslib "^2.6.2"
 
