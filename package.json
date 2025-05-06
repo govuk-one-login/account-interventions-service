@@ -33,9 +33,9 @@
     "@aws-lambda-powertools/logger": "^2.19.0",
     "@aws-lambda-powertools/metrics": "^2.19.0",
     "@aws-lambda-powertools/tracer": "^2.19.0",
-    "@aws-sdk/client-dynamodb": "^3.799.0",
-    "@aws-sdk/client-sqs": "^3.799.0",
-    "@aws-sdk/util-dynamodb": "^3.799.0",
+    "@aws-sdk/client-dynamodb": "^3.803.0",
+    "@aws-sdk/client-sqs": "^3.803.0",
+    "@aws-sdk/util-dynamodb": "^3.803.0",
     "@smithy/node-http-handler": "^4.0.4"
   },
   "devDependencies": {
