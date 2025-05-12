@@ -1,5 +1,7 @@
 ---
 name: 'Build & Test'
+permissions:
+  contents: read
 
 # Triggered when:
 #   - a file, listed below, is pushed to any branch other than `main`, i.e. a feature branch.

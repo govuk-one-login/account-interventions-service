@@ -1,9 +1,11 @@
-name: "Ensure SHA Pinned Actions"
+name: 'Ensure SHA Pinned Actions'
+permissions:
+  contents: read
 
 on:
   push:
     paths:
-      - ".github/workflows/*"
+      - '.github/workflows/*'
 
 jobs:
   harden_security:
