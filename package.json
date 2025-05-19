@@ -26,8 +26,7 @@
     "build": "sam build -t src/infra/main/template.yaml",
     "package": "yarn clean && yarn build",
     "precommit": "pre-commit run",
-    "postinstall": "husky",
-    "prepare": "husky"
+    "postinstall": "husky"
   },
   "dependencies": {
     "@aws-lambda-powertools/logger": "^2.19.1",
@@ -61,7 +60,7 @@
     "eslint-plugin-tsdoc": "^0.4.0",
     "eslint-plugin-unicorn": "^56.0.1",
     "express": "^4.21.2",
-    "husky": "^9.1.6",
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-extended": "^4.0.2",
     "jest-openapi": "^0.14.2",
@@ -76,6 +75,6 @@
     "axios": "^1.8.2",
     "cookie": "^0.7.0",
     "cross-spawn": "^7.0.5",
-    "@babel/helpers":"^7.26.10"
+    "@babel/helpers": "^7.26.10"
   }
 }
