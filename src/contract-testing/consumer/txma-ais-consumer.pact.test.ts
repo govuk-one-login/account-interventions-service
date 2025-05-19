@@ -32,7 +32,7 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
             },
           },
         })
-        .verify(synchronousBodyHandler(syncMessageHandler));
+        .verify(synchronousBodyHandler(interventionMessageValidator));
     });
     it('accepts a valid user action (reset password) event from TxMA', () => {
       return messagePact
@@ -45,7 +45,7 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
             user_id: string('urn:fdc:gov.uk:2022:USER_ONE'),
           },
         })
-        .verify(synchronousBodyHandler(syncMessageHandler));
+        .verify(synchronousBodyHandler(interventionMessageValidator));
     });
     it('accepts a valid user action (reset identity) event from TxMA', () => {
       return messagePact
@@ -65,12 +65,29 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
             success: boolean(true)
           },
         })
-        .verify(synchronousBodyHandler(syncMessageHandler));
+        .verify(synchronousBodyHandler(interventionMessageValidator));
+    });
+    it('accepts a valid account deletion event', () => {
+      return messagePact
+        .given('AIS is healthy')
+        .expectsToReceive('a valid intervention event')
+        .withContent({
+          user_id: string('urn:fdc:gov.uk:2022:USER_ONE'),
+        })
+        .verify(synchronousBodyHandler(deleteAccountEventValidator));
     });
   });
 });
 
-function syncMessageHandler(event: any) {
+function interventionMessageValidator(event: any) {
   validateEventAgainstSchema(event);
+  return;
+}
+
+function deleteAccountEventValidator(event: any) {
+  const userId = event['user_id'];
+  if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+    throw new Error('Invalid Message');
+  }
   return;
 }

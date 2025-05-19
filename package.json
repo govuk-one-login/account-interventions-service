@@ -75,6 +75,7 @@
   "resolutions": {
     "axios": "^1.8.2",
     "cookie": "^0.7.0",
-    "cross-spawn": "^7.0.5"
+    "cross-spawn": "^7.0.5",
+    "@babel/helpers":"^7.26.10"
   }
 }
