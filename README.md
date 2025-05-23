@@ -9,7 +9,7 @@ A serverless typescript project for the Account Intervention Service solution.
 ## How To
 ### Prerequisites
 - [Docker](https://docs.docker.com/engine/install/) >= v20.10
-- [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html#install-sam-cli-instructions) >= 1.96.0
+- [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html#install-sam-cli-instructions) >= 1.138.0
 
 ### Clone the repo
 ```shell
@@ -17,9 +17,11 @@ git clone git@github.com:govuk-one-login/account-interventions-service.git
 cd account-interventions-service
 ```
 
-### Setup Pre-Commit with Husky
+### Setup Pre-Commit for Husky and GitLint
 ```shell
-$ pre-commit install -f
+pip install gitlint
+pre-commit install -f
+$ pre-commit install --hook-type commit-msg
 $ yarn postinstall
 ```
 
