@@ -93,6 +93,7 @@ Mappings:
       OrchestrationVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       AuthenticationVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       OneLoginHomeVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
+      IPVCoreVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       UniqueVPCEndpointIDs: none
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     build:
@@ -104,6 +105,7 @@ Mappings:
       OrchestrationVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
       AuthenticationVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
       OneLoginHomeVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
+      IPVCoreVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
       UniqueVPCEndpointIDs: none
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     staging:
@@ -115,7 +117,8 @@ Mappings:
       OrchestrationVPCID: vpc-0217499e2982d99ca # Orchestration Staging VPC ID
       AuthenticationVPCID: vpc-0ca40c7d13490419d # Authentication Staging VPC ID
       OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
-      UniqueVPCEndpointIDs: vpce-040f33c3489ff777b,vpce-0339d04aeb67de9da,vpce-0a81481bcd8257f5e # Auth/Orch Staging VPC endpoint IDs
+      IPVCoreVPCID: vpc-039e664a2b3abb03e # IPV Core Staging VPC ID
+      UniqueVPCEndpointIDs: vpce-040f33c3489ff777b,vpce-0339d04aeb67de9da,vpce-0a81481bcd8257f5e,vpce-0cc0de10742b83b8a # Auth/Orch/Perf/IPV Staging VPC endpoint IDs
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     integration:
       LambdaLogLevel: INFO
@@ -126,7 +129,8 @@ Mappings:
       OrchestrationVPCID: vpc-09984eb16fa30fb55 # Orchestration Integration VPC ID
       AuthenticationVPCID: vpc-04444d1dc96d8822c # Authentication Integration VPC ID
       OneLoginHomeVPCID: vpc-048c9133a5998efe7 # One Login Home Integration VPC ID
-      UniqueVPCEndpointIDs: vpce-068df58b11adba0c7,vpce-0704b783d794cea52 # Authentication & Orchestration Integration VPC Endpoint IDs
+      IPVCoreVPCID: vpc-0a9e773e1f32b6697 # IPV Core Integration VPC ID
+      UniqueVPCEndpointIDs: vpce-068df58b11adba0c7,vpce-0704b783d794cea52,vpce-0f47068fdf9ad0c3d # Authentication, Orchestration & IPV Core Integration VPC Endpoint IDs
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     production:
       LambdaLogLevel: INFO
@@ -137,7 +141,8 @@ Mappings:
       OrchestrationVPCID: vpc-058178adacb1c387a # Orchestration Production VPC ID
       AuthenticationVPCID: vpc-00012e96e1cd0bf95 # Authentication Production VPC ID
       OneLoginHomeVPCID: vpc-0c94e753d20410154 # One Login Home Production VPC ID
-      UniqueVPCEndpointIDs: vpce-0e7b281bd24fbd378,vpce-0dd5d6bf9c2a1eade # Authentication & Orchestration Production VPC Endpoint IDs
+      IPVCoreVPCID: vpc-0274d75007239691f # IPV Core Production VPC ID
+      UniqueVPCEndpointIDs: vpce-0e7b281bd24fbd378,vpce-0dd5d6bf9c2a1eade,vpce-0e40247a557c2169e # Authentication, Orchestration & IPV Core Production VPC Endpoint IDs
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables # pragma: allowlist secret
 
 Globals:
@@ -1531,6 +1536,7 @@ Resources:
             - !FindInMap [ EnvConfig, !Ref Environment, AuthenticationVPCID ]
             - !FindInMap [ EnvConfig, !Ref Environment, OneLoginHomeVPCID ]
             - !FindInMap [ EnvConfig, !Ref Environment, OrchestrationVPCID ]
+            - !FindInMap [ EnvConfig, !Ref Environment, IPVCoreVPCID ]
       AccessLogSetting:
         Format: >-
           {
