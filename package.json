@@ -15,6 +15,7 @@
     "test:pact:consumer": "jest --group=contract --runInBand --testPathPattern=\"src/contract-testing/consumer/*\"",
     "connect:pact:broker": "tsc src/contract-testing/test-helpers/connect-to-pact-broker.ts && node src/contract-testing/test-helpers/connect-to-pact-broker.js",
     "pact:publish:contracts": "tsc src/contract-testing/test-helpers/publish-pacts.ts && node src/contract-testing/test-helpers/publish-pacts.js",
+    "pact:can-i-deploy": "pact-broker can-i-deploy --pacticipant  \"AccountInterventionServiceProvider\" --version \"$(git rev-parse HEAD)\" --broker-base-url=$PACT_BROKER_URL --broker-username $PACT_BROKER_USER --broker-password $PACT_BROKER_PASSWORD",
     "lint": "yarn lint:code && yarn lint:spec && yarn lint:iac",
     "lint:code": "eslint --ext .ts . ./feature-tests",
     "lint:code:fix": "yarn lint:code --fix",
