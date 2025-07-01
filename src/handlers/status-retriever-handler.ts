@@ -29,6 +29,8 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
     };
   }
 
+  logger.info('This is a comment for tests');
+
   const userId = decodeURIComponent(validateEvent(event.pathParameters?.['userId']));
   const historyQuery = event.queryStringParameters?.['history'];
 
