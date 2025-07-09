@@ -92,6 +92,7 @@ Mappings:
       TxMAIngressQueueKmsKeyARN: "Uses the SQSEncryptionKey with Internal TxMAIngressQueue"
       OrchestrationVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       AuthenticationVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
+      AuthenticationVPCIDNew: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       OneLoginHomeVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       IPVCoreVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       UniqueVPCEndpointIDs: none
@@ -104,6 +105,7 @@ Mappings:
       TxMAIngressQueueKmsKeyARN: "Uses the SQSEncryptionKey with Internal TxMAIngressQueue"
       OrchestrationVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
       AuthenticationVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
+      AuthenticationVPCIDNew: vpc-0f30b7754111ecc68 # di-account-interventions-dev VPC ID
       OneLoginHomeVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
       IPVCoreVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
       UniqueVPCEndpointIDs: none
@@ -115,10 +117,11 @@ Mappings:
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:178023842775:self-staging-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:178023842775:key/e388cb30-2d78-431f-b1a6-847549a815aa
       OrchestrationVPCID: vpc-0217499e2982d99ca # Orchestration Staging VPC ID
-      AuthenticationVPCID: vpc-0ca40c7d13490419d # Authentication Staging VPC ID
+      AuthenticationVPCID: vpc-0ca40c7d13490419d # Authentication Staging VPC ID - note: remove this when the switchover to new auth is completed
+      AuthenticationVPCIDNew: vpc-07cf1e76e27f28e86 # New Authentication Staging VPC ID (post split)
       OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
       IPVCoreVPCID: vpc-039e664a2b3abb03e # IPV Core Staging VPC ID
-      UniqueVPCEndpointIDs: vpce-040f33c3489ff777b,vpce-0339d04aeb67de9da,vpce-0a81481bcd8257f5e,vpce-0cc0de10742b83b8a # Auth/Orch/Perf/IPV Staging VPC endpoint IDs
+      UniqueVPCEndpointIDs: vpce-040f33c3489ff777b,vpce-0339d04aeb67de9da,vpce-0a81481bcd8257f5e,vpce-0cc0de10742b83b8a,vpce-07078f5f005fe5efc # Auth/Orch/Perf/IPV Staging VPC endpoint IDs
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     integration:
       LambdaLogLevel: INFO
@@ -127,10 +130,11 @@ Mappings:
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:729485541398:self-integration-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:729485541398:key/c360ee61-da3b-48de-998e-68cb91743414
       OrchestrationVPCID: vpc-09984eb16fa30fb55 # Orchestration Integration VPC ID
-      AuthenticationVPCID: vpc-04444d1dc96d8822c # Authentication Integration VPC ID
+      AuthenticationVPCID: vpc-04444d1dc96d8822c # Authentication Integration VPC ID - note: remove this when the switchover to new auth is completed
+      AuthenticationVPCIDNew: vpc-04796e8a5bf41b046 # New Authentication Integration VPC ID (post split)
       OneLoginHomeVPCID: vpc-048c9133a5998efe7 # One Login Home Integration VPC ID
       IPVCoreVPCID: vpc-0a9e773e1f32b6697 # IPV Core Integration VPC ID
-      UniqueVPCEndpointIDs: vpce-068df58b11adba0c7,vpce-0704b783d794cea52,vpce-0f47068fdf9ad0c3d # Authentication, Orchestration & IPV Core Integration VPC Endpoint IDs
+      UniqueVPCEndpointIDs: vpce-068df58b11adba0c7,vpce-0704b783d794cea52,vpce-0f47068fdf9ad0c3d,vpce-0df10df14d851e1c9 # Authentication, Orchestration & IPV Core Integration VPC Endpoint IDs
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     production:
       LambdaLogLevel: INFO
@@ -139,10 +143,11 @@ Mappings:
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:451773080033:self-production-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:451773080033:key/5bbb4188-6774-4fe8-a78a-968f5e435295
       OrchestrationVPCID: vpc-058178adacb1c387a # Orchestration Production VPC ID
-      AuthenticationVPCID: vpc-00012e96e1cd0bf95 # Authentication Production VPC ID
+      AuthenticationVPCID: vpc-00012e96e1cd0bf95 # Authentication Production VPC ID - note: remove this when the switchover to new auth is completed
+      AuthenticationVPCIDNew: vpc-06a7d758af9eefddb # New Authentication Production VPC ID (post split)
       OneLoginHomeVPCID: vpc-0c94e753d20410154 # One Login Home Production VPC ID
       IPVCoreVPCID: vpc-0274d75007239691f # IPV Core Production VPC ID
-      UniqueVPCEndpointIDs: vpce-0e7b281bd24fbd378,vpce-0dd5d6bf9c2a1eade,vpce-0e40247a557c2169e # Authentication, Orchestration & IPV Core Production VPC Endpoint IDs
+      UniqueVPCEndpointIDs: vpce-0e7b281bd24fbd378,vpce-0dd5d6bf9c2a1eade,vpce-0e40247a557c2169e,vpce-0db136878c87bf2d0 # Authentication, Orchestration & IPV Core Production VPC Endpoint IDs
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables # pragma: allowlist secret
 
 Globals:
@@ -1534,6 +1539,7 @@ Resources:
         ResourcePolicy:
           IntrinsicVpcWhitelist:
             - !FindInMap [ EnvConfig, !Ref Environment, AuthenticationVPCID ]
+            - !FindInMap [ EnvConfig, !Ref Environment, AuthenticationVPCIDNew ]
             - !FindInMap [ EnvConfig, !Ref Environment, OneLoginHomeVPCID ]
             - !FindInMap [ EnvConfig, !Ref Environment, OrchestrationVPCID ]
             - !FindInMap [ EnvConfig, !Ref Environment, IPVCoreVPCID ]

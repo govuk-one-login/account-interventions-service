@@ -20,7 +20,7 @@ min-length=10
 words=wip
 
 [title-match-regex]
-regex=^(BAU|OLH-[0-9]{1,4})[: ]+\w
+regex=^(BAU|FPAD-[0-9]{1,4})[: ]+\w
 
 [author-valid-email]
 regex=[\w\.\+_-]+@(digital.cabinet-office.gov.uk|users.noreply.github.com)
