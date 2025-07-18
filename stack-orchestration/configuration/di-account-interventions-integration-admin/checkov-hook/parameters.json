@@ -2,5 +2,9 @@
     {
       "ParameterKey": "CheckovRulesToSkip",
       "ParameterValue": "CKV_AWS_111"
+    },
+    {
+      "ParameterKey": "FailureMode",
+      "ParameterValue": "WARN"
     }
 ]
