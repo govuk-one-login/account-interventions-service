@@ -38,8 +38,8 @@
     "@smithy/node-http-handler": "^4.0.6"
   },
   "devDependencies": {
-    "@aws-sdk/client-sso-oidc": "^3.830.0",
-    "@aws-sdk/client-sts": "^3.830.0",
+    "@aws-sdk/client-sso-oidc": "^3.859.0",
+    "@aws-sdk/client-sts": "^3.859.0",
     "@pact-foundation/pact": "^15.0.1",
     "@pact-foundation/pact-node": "^10.18.0",
     "@stoplight/spectral-cli": "^6.15.0",
@@ -66,9 +66,9 @@
     "jest-openapi": "^0.14.2",
     "prettier": "^3.6.0",
     "rimraf": "^6.0.1",
-    "ts-jest": "^29.4.0",
+    "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3",
+    "typescript": "^5.9.2",
     "yarn-audit-fix": "^10.0.9"
   },
   "resolutions": {
