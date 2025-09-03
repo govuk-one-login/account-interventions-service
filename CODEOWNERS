@@ -1,1 +1,2 @@
-* @govuk-one-login/fraud-ssf-team
+* @govuk-one-login/fraud-mercury-team @govuk-one-login/fraud-platform-team
+/.github/CODEOWNERS @govuk-one-login/fraud-platform-leads
