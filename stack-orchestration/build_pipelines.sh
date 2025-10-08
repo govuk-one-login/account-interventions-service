@@ -4,7 +4,7 @@ set -u
 
 # Input parameters
 AWS_ACCOUNT=di-account-interventions-build-admin
-PIPELINE_VERSION=v2.68.6
+PIPELINE_VERSION=v2.88.3
 
 export AWS_ACCOUNT=$AWS_ACCOUNT
 
