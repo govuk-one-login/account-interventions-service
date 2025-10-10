@@ -193,6 +193,8 @@ Globals:
 
 Resources:
   ### Interventions Processor ###
+  # Dummy commit: Testing workflow trigger - no functional changes
+  # This should trigger the main workflow when pushed to main
   InterventionsProcessorFunction:
     Type: AWS::Serverless::Function
     Properties:
