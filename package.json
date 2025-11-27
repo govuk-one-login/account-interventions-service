@@ -62,20 +62,22 @@
     "express": "^5.1.0",
     "husky": "^9.1.7",
     "jest": "^29.7.0",
-    "jest-extended": "^4.0.2",
+    "jest-extended": "^6.0.0",
     "jest-openapi": "^0.14.2",
     "prettier": "^3.6.0",
-    "rimraf": "^6.0.1",
+    "rimraf": "^6.1.2",
     "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
     "yarn-audit-fix": "^10.0.9"
   },
   "resolutions": {
-    "axios": "^1.8.2",
+    "axios": "^1.12.0",
     "cookie": "^0.7.0",
     "cross-spawn": "^7.0.5",
     "@babel/helpers": "^7.26.10",
-    "form-data": "4.0.4"
+    "form-data": "4.0.4",
+    "js-yaml": "^3.14.2",
+    "body-parser" : "^2.2.1"
   }
 }
