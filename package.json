@@ -11,8 +11,8 @@
   "scripts": {
     "test": "yarn test:unit --runInBand",
     "test:unit": "jest --group=unit --coverage --runInBand --testPathIgnorePatterns \"src/contract-testing/*\"",
-    "test:pact:provider": "jest --group=contract --runInBand --testPathPattern=\"src/contract-testing/provider/*\"",
-    "test:pact:consumer": "jest --group=contract --runInBand --testPathPattern=\"src/contract-testing/consumer/*\"",
+    "test:pact:provider": "jest --group=contract --runInBand --testPathPatterns=\"src/contract-testing/provider/*\"",
+    "test:pact:consumer": "jest --group=contract --runInBand --testPathPatterns=\"src/contract-testing/consumer/*\"",
     "connect:pact:broker": "tsc src/contract-testing/test-helpers/connect-to-pact-broker.ts && node src/contract-testing/test-helpers/connect-to-pact-broker.js",
     "pact:publish:contracts": "tsc src/contract-testing/test-helpers/publish-pacts.ts && node src/contract-testing/test-helpers/publish-pacts.js",
     "lint": "yarn lint:code && yarn lint:spec && yarn lint:iac",
