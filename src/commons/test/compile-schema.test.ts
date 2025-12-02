@@ -25,7 +25,7 @@ describe('compile schema', () => {
         },
       },
     };
-    expect(() => compileSchema(schema)).toThrowError('Schema is invalid');
+    expect(() => compileSchema(schema)).toThrow('Schema is invalid');
     expect(metric.addMetric).toHaveBeenCalledWith('INVALID_SCHEMA', 'Count', 1);
     expect(logger.error).toHaveBeenCalledWith('Schema is invalid, failed to compile', {
       reasons: expect.any(Array),
