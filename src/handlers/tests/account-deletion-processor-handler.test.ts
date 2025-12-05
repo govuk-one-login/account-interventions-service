@@ -3,8 +3,8 @@ import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import logger from '../../commons/logger';
 import 'aws-sdk-client-mock-jest';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
-import { Metrics } from "@aws-lambda-powertools/metrics";
-import { MetricNames } from "../../data-types/constants";
+import { Metrics } from '@aws-lambda-powertools/metrics';
+import { MetricNames } from '../../data-types/constants';
 
 jest.mock('../../services/dynamo-database-service');
 jest.mock('@aws-sdk/util-dynamodb');
@@ -136,11 +136,11 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ Message: JSON.stringify({ user_id: 'hello' }) });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await expect(handler(mockEvent, mockContext)).rejects.toThrowError('Failed to update the account status.');
+    await expect(handler(mockEvent, mockContext)).rejects.toThrow('Failed to update the account status.');
     expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
     expect(loggerErrorSpy).toHaveBeenCalledWith(`Sensitive info - Error updating account hello`, { error: 'Error' });
     expect(mockAddMetric).toHaveBeenCalledTimes(1);
-    expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.MARK_AS_DELETED_FAILED, "Count", 1);
+    expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.MARK_AS_DELETED_FAILED, 'Count', 1);
   });
 
   it('successfully process the message when it contains a single record', async () => {
@@ -152,8 +152,11 @@ describe('Account Deletion Processor', () => {
 
   it('successfully process the message when it contains multiple records', async () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
-    const mockRecord2 = { ... mockRecord, body: JSON.stringify({ Message: JSON.stringify({ user_id: 'other_user_id' }) })}
-    const mockEvent = { Records: [mockRecord, mockRecord2] }
+    const mockRecord2 = {
+      ...mockRecord,
+      body: JSON.stringify({ Message: JSON.stringify({ user_id: 'other_user_id' }) }),
+    };
+    const mockEvent = { Records: [mockRecord, mockRecord2] };
     await handler(mockEvent, mockContext);
     expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
     expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(2);
@@ -161,12 +164,15 @@ describe('Account Deletion Processor', () => {
 
   it('will throw an error if one of multiple records fails to process', async () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValueOnce('');
-    mockDynamoDBServiceUpdateDeleteStatus.mockRejectedValueOnce('Error');
-    const mockRecord2 = { ... mockRecord, body: JSON.stringify({ Message: JSON.stringify({ user_id: 'other_user_id' }) })}
-    const mockEvent = { Records: [mockRecord, mockRecord2] }
+    mockDynamoDBServiceUpdateDeleteStatus.mockRejectedValue('Error');
+    const mockRecord2 = {
+      ...mockRecord,
+      body: JSON.stringify({ Message: JSON.stringify({ user_id: 'other_user_id' }) }),
+    };
+    const mockEvent = { Records: [mockRecord, mockRecord2] };
     await expect(handler(mockEvent, mockContext)).rejects.toThrow('Failed to update the account status.');
     expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
     expect(mockAddMetric).toHaveBeenCalledTimes(1);
-    expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.MARK_AS_DELETED_FAILED, "Count", 1);
-  })
+    expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.MARK_AS_DELETED_FAILED, 'Count', 1);
+  });
 });
