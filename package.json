@@ -35,6 +35,7 @@
     "@aws-sdk/client-dynamodb": "^3.943.0",
     "@aws-sdk/client-sqs": "^3.943.0",
     "@aws-sdk/util-dynamodb": "^3.943.0",
+    "@babel/helpers": "^7.26.10",
     "@smithy/node-http-handler": "^4.0.6"
   },
   "devDependencies": {
