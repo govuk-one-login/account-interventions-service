@@ -181,6 +181,7 @@ Globals:
           - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANT}}' # pragma: allowlist secret
           - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, DynatraceSecretArn ]
         DT_OPEN_TELEMETRY_ENABLE_INTEGRATION: "true"
+        AWS_XRAY_CONTEXT_MISSING: 'IGNORE_ERROR'
     VpcConfig:
       SubnetIds:
         - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdA
