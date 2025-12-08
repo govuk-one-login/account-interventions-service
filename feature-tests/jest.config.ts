@@ -2,7 +2,7 @@ import type { Config } from 'jest';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const config: Config.InitialOptions = {
+const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   coveragePathIgnorePatterns: ['/node_modules/'],

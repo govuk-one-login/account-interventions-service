@@ -10,6 +10,7 @@
   "scripts": {
     "build": "tsc",
     "test": "jest",
+    "audit:fix": "yarn-audit-fix",
     "lint:code": "eslint --ext .ts .",
     "lint:code:fix": "yarn lint:code --fix"
   },
@@ -25,7 +26,8 @@
     "supertest": "^7.1.4",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "yarn-audit-fix": "^10.0.9"
   },
   "dependencies": {
     "@aws-lambda-powertools/parameters": "^2.8.0",
@@ -38,5 +40,8 @@
     "@aws-sdk/client-sqs": "^3.654.0",
     "@aws-sdk/credential-providers": "^3.654.0",
     "@aws-sdk/util-dynamodb": "^3.656.0"
+  },
+  "resolutions": {
+    "glob": "13.0.0"
   }
 }
