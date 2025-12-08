@@ -1580,6 +1580,8 @@ Resources:
         Environment: !Ref Environment
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
+        FMSRegionalPolicy: False
+        CustomPolicy: True
 
   PrivateRestApiNameSSM:
     Type: AWS::SSM::Parameter
