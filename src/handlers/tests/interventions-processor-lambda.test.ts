@@ -369,11 +369,11 @@ describe('intervention processor handler', () => {
         interventionEventBodyInTheFuture,
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
-      expect(logger.warn).toHaveBeenCalledWith("Event with timestamp in the future.", {
-        currentTime: "1970-01-15T06:56:07.890Z",
-        emittedAt: "1970-01-15T06:56:12.890Z",
-        event: "FRAUD_BLOCK_ACCOUNT",
-        eventName: "TICF_ACCOUNT_INTERVENTION",
+      expect(logger.warn).toHaveBeenCalledWith('Event with timestamp in the future.', {
+        currentTime: '1970-01-15T06:56:07.890Z',
+        emittedAt: '1970-01-15T06:56:12.890Z',
+        event: 'FRAUD_BLOCK_ACCOUNT',
+        eventName: 'TICF_ACCOUNT_INTERVENTION',
         msInTheFuture: 5000,
       });
     });
@@ -389,7 +389,7 @@ describe('intervention processor handler', () => {
     });
 
     it('should return message id to be retried if dynamo db operation fails', async () => {
-      mockRetrieveRecords.mockRejectedValueOnce(new Error('Error'));
+      mockRetrieveRecords.mockRejectedValue(new Error('Error'));
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [
           {
@@ -398,7 +398,7 @@ describe('intervention processor handler', () => {
         ],
       });
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
-      expect(logger.error).toHaveBeenCalledWith("Error caught, message will be retried.", { errorMessage: 'Error' });
+      expect(logger.error).toHaveBeenCalledWith('Error caught, message will be retried.', { errorMessage: 'Error' });
     });
 
     it('should not process the event and return if the event timestamp predates the latest applied intervention for the user ', async () => {
@@ -510,7 +510,7 @@ describe('intervention processor handler', () => {
           event_name: 'IPV_ACCOUNT_INTERVENTION_END',
           extensions: {
             type: 'reprove_identity',
-            success: false
+            success: false,
           },
         }),
         attributes: {
@@ -529,15 +529,18 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
       expect(addMetric).toHaveBeenCalledWith('IDENTITY_NOT_SUFFICIENTLY_PROVED');
-      expect(logger.warn).toHaveBeenCalledWith('Received event that does not meet criteria to lift intervention.', { success: false, type: 'reprove_identity' });
+      expect(logger.warn).toHaveBeenCalledWith('Received event that does not meet criteria to lift intervention.', {
+        success: false,
+        type: 'reprove_identity',
+      });
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
     it('should log the expected error line when a message is retried - this line is used by a metric filter for canary deployment alarm', async () => {
-      mockRetrieveRecords.mockRejectedValueOnce(new Error('Error'));
+      mockRetrieveRecords.mockRejectedValue(new Error('Error'));
       await handler(mockEvent, mockContext);
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
-      expect(logger.error).toHaveBeenCalledWith("Error caught, message will be retried.", {errorMessage: 'Error'});
+      expect(logger.error).toHaveBeenCalledWith('Error caught, message will be retried.', { errorMessage: 'Error' });
     });
   });
 });
