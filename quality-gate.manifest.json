@@ -1,0 +1,80 @@
+{
+  "$schema": "https://raw.githubusercontent.com/govuk-one-login/quality-gates/refs/tags/v0.1.0/schemas/schema.json",
+  "services": [
+    {
+      "service-tag": "account-interventions-service",
+      "quality-gates": [
+        {
+          "check-types": ["code quality", "code style and linting"],
+          "provider": "GitHub",
+          "phase": "pre-merge",
+          "config": {
+            "file": ".github/workflows/acceptance-checks.yaml",
+            "name": "Run yarn lint",
+            "path": "jobs.acceptance-checks"
+          }
+        }
+      ]
+    },
+    {
+      "service-tag": "account-interventions-service",
+      "quality-gates": [
+        {
+          "check-types": ["unit", "unit test coverage"],
+          "provider": "GitHub",
+          "phase": "pre-merge",
+          "config": {
+            "file": ".github/workflows/acceptance-checks.yaml",
+            "name": "Run unit tests with coverage report",
+            "path": "jobs.acceptance-checks"
+          }
+        }
+      ]
+    },
+    {
+      "service-tag": "account-interventions-service",
+      "quality-gates": [
+        {
+          "check-types": ["code quality", "code style and linting", "unit test coverage", "vulnerability detection"],
+          "provider": "GitHub",
+          "phase": "pre-merge",
+          "config": {
+            "file": ".github/workflows/acceptance-checks.yaml",
+            "name": "SonarCloud Scan",
+            "path": "jobs.acceptance-checks"
+          }
+        }
+      ]
+    },
+    {
+      "service-tag": "account-interventions-service",
+      "quality-gates": [
+        {
+          "check-types": ["contract"],
+          "provider": "GitHub",
+          "phase": "pre-merge",
+          "config": {
+            "file": ".github/workflows/pact-test-api-provider.yaml",
+            "name": "Run pact tests for provider API",
+            "path": "jobs.contract-testing"
+          }
+        }
+      ]
+    },
+    {
+      "service-tag": "account-interventions-service",
+      "quality-gates": [
+        {
+          "check-types": ["contract"],
+          "provider": "GitHub",
+          "phase": "pre-merge",
+          "config": {
+            "file": ".github/workflows/pact-test-message-consumer.yaml",
+            "name": "Run Pact Tests for Message Consumers",
+            "path": "jobs.contract-testing"
+          }
+        }
+      ]
+    }
+  ]
+}
