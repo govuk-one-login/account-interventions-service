@@ -152,7 +152,7 @@ describe('status-retriever-handler', () => {
 
     mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
     const response = await handle(testEvent, mockConfig);
-    expect(logger.info).toBeCalledWith('Query matched no records in DynamoDB.');
+    expect(logger.info).toHaveBeenCalledWith('Query matched no records in DynamoDB.');
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body);
     expect(payload).toEqual(accountNotFoundDefaultObject);
@@ -287,8 +287,8 @@ describe('status-retriever-handler', () => {
     };
     const invalidTestEvent = { ...testEvent, pathParameters: invalidPathParameters };
     const response = await handle(invalidTestEvent, mockConfig);
-    expect(logger.warn).toBeCalledTimes(1);
-    expect(logger.warn).toBeCalledWith('Attribute invalid: user_id is empty.');
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith('Attribute invalid: user_id is empty.');
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body);
     expect(payload).toEqual(accountNotFoundDefaultObject);
@@ -296,7 +296,7 @@ describe('status-retriever-handler', () => {
   });
 
   it('will return the correct response if there is a problem with the query to dynamoDB', async () => {
-    mockDynamoDBServiceRetrieveRecords.mockRejectedValueOnce('There was a problem with the query operation');
+    mockDynamoDBServiceRetrieveRecords.mockRejectedValue('There was a problem with the query operation');
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(500);
     const payload = JSON.parse(response.body);
@@ -557,7 +557,7 @@ describe('status-retriever-handler', () => {
     const payload = JSON.parse(response.body);
     expect(payload).toEqual(accountIsNotSuspended);
     expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
-    expect(logger.error).toBeCalledWith('History string is malformed.', { error });
-    expect(addMetric).toBeCalled();
+    expect(logger.error).toHaveBeenCalledWith('History string is malformed.', { error });
+    expect(addMetric).toHaveBeenCalled();
   });
 });
