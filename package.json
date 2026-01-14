@@ -38,8 +38,8 @@
     "@smithy/node-http-handler": "^4.0.6"
   },
   "devDependencies": {
-    "@aws-sdk/client-sso-oidc": "^3.943.0",
-    "@aws-sdk/client-sts": "^3.943.0",
+    "@aws-sdk/client-sso-oidc": "^3.968.0",
+    "@aws-sdk/client-sts": "^3.968.0",
     "@pact-foundation/pact": "^16.0.2",
     "@pact-foundation/pact-node": "^10.18.0",
     "@stoplight/spectral-cli": "^6.15.0",
