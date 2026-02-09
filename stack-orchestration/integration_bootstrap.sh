@@ -7,7 +7,6 @@ AWS_ACCOUNT=di-account-interventions-integration-admin
 
 export AWS_ACCOUNT=$AWS_ACCOUNT
 
-./provisioner.sh $AWS_ACCOUNT checkov-hook checkov-hook LATEST || exit 1
 ./provisioner.sh $AWS_ACCOUNT lambda-audit-hook lambda-audit-hook LATEST || exit 1
 ./provisioner.sh $AWS_ACCOUNT infra-audit-hook infrastructure-audit-hook LATEST || exit 1
 
