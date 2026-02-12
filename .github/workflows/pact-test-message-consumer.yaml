@@ -59,7 +59,13 @@ jobs:
           node-version-file: '.node-version'
 
       - name: Run yarn install
-        run: yarn install --frozen-lockfile
+        run: | 
+          yarn install --frozen-lockfile
+
+          # Install this one binary file
+          pushd node_modules/@pact-foundation/pact-node
+          yarn run postinstall
+          popd
 
       - name: Run Pact Tests for Message Consumers
         run:  yarn test:pact:consumer
