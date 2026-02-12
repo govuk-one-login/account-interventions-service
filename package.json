@@ -46,7 +46,7 @@
     "@types/aws-lambda": "^8.10.160",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
-    "@types/node": "^20.17.54",
+    "@types/node": "^25.2.2",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "aws-crt": "^1.29.0",
