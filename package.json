@@ -38,9 +38,9 @@
     "@smithy/node-http-handler": "^4.0.6"
   },
   "devDependencies": {
-    "@aws-sdk/client-sso-oidc": "^3.982.0",
-    "@aws-sdk/client-sts": "^3.982.0",
-    "@pact-foundation/pact": "^16.0.2",
+    "@aws-sdk/client-sso-oidc": "^3.989.0",
+    "@aws-sdk/client-sts": "^3.989.0",
+    "@pact-foundation/pact": "^16.2.0",
     "@pact-foundation/pact-node": "^10.18.0",
     "@stoplight/spectral-cli": "^6.15.0",
     "@types/aws-lambda": "^8.10.160",
@@ -52,7 +52,7 @@
     "aws-crt": "^1.29.0",
     "aws-sdk-client-mock": "^4.1.0",
     "aws-sdk-client-mock-jest": "^4.1.0",
-    "esbuild": "^0.27.1",
+    "esbuild": "^0.27.3",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.5",
