@@ -56,7 +56,7 @@ defineFeature(feature, (test) => {
     );
 
     then(
-      /^I expect the response with next allowable intervention types...$/,
+      /^I expect the response with next allowable intervention types in TXMA Egress Queue for (.*)$/,
       async (aisEventType: keyof typeof aisEventResponse) => {
         const events = ['userActionIdResetSuccess', 'userActionPswResetSuccess'];
         if (!events.includes(aisEventType)) {
