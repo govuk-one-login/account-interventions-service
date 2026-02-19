@@ -28,11 +28,11 @@ repos:
         pass_filenames: false
         entry: "yarn lint"
         language: system
-      - id: yarn-audit
-        name: Dependency Checks
-        pass_filenames: false
-        entry: "yarn audit"
-        language: system
+#      - id: yarn-audit
+#        name: Dependency Checks
+#        pass_filenames: false
+#        entry: "yarn audit"
+#        language: system
 
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.4.0

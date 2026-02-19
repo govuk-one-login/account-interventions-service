@@ -17,6 +17,9 @@ cp -R /utils . 2>/dev/null || :
 declare test_run_result
 export tagFilter=@regression
 echo 'Beginning Tests'
+echo "\n--- START DEBUG ---\n"
+env | grep -E "QueueUrl|Endpoint|STACK"
+echo "\n--- END DEBUG ---\n"
 yarn test 1>/dev/null
 test_run_result=$?
 

@@ -10,11 +10,8 @@ export default class EndPoints {
   public static SNS_DELETE_ACCOUNT_TOPIC_ARN =
     process.env.TEST_ENVIRONMENT === 'dev'
       ? `arn:aws:sns:${process.env.AWS_REGION}:484907510598:${process.env.SAM_STACK_NAME}-AccountDeletionProcessorSNSTopic`
-      : process.env.CFN_AccountDeletionProcessorSNSTopicARN;
-  public static SQS_EGRESS_QUEUE_URL =
-    process.env.TEST_ENVIRONMENT === 'dev'
-      ? `https://sqs.${process.env.AWS_REGION}.amazonaws.com/484907510598/${process.env.SAM_STACK_NAME}-TxMAEgressQueue`
-      : process.env.CFN_TxMAEgressSqsQueueUrl;
+      : process.env.AccountDeletionProcessorSNSTopicARN;
+  public static SQS_EGRESS_QUEUE_URL = 'https://sqs.eu-west-2.amazonaws.com/484907510598/ais-main-TxMAEgressQueue';
   public static PATH_AIS = '/ais/';
   public static INVOKE_PRIVATE_API_GATEWAY = `${process.env.SAM_STACK_NAME}-InvokePrivateAPIGatewayFunction`;
   public static TABLE_NAME = 'ais-core-account-status';
