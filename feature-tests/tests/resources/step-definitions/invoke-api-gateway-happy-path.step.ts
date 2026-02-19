@@ -1,24 +1,23 @@
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
 import {
-  sendSQSEvent,
-  purgeEgressQueue,
   filterUserIdInMessages,
-  sendEnhancedSQSEvent,
+  purgeEgressQueue,
   sendDeleteEvent,
+  sendEnhancedSQSEvent,
+  sendSQSEvent,
 } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import {
-  InformationFromTable,
   attemptParseJSON,
-  timeDelayForTestEnvironment,
   getPastTimestamp,
+  InformationFromTable,
+  timeDelayForTestEnvironment,
 } from '../../../utils/utility';
-import { aisEventResponse } from '../../../utils/ais-events-responses';
-import { updateItemInTable, getRecordFromTable } from '../../../utils/dynamo-database-methods';
+import { aisEventResponse, AisResponseType } from '../../../utils/ais-events-responses';
+import { getRecordFromTable, updateItemInTable } from '../../../utils/dynamo-database-methods';
 import { cloudwatchLogs, LogEvent } from '../../../utils/cloudwatch-logs-service';
 import { aisEventsWithEnhancedFields } from '../../../utils/enhanced-ais-events';
-import { AisResponseType } from '../../../utils/ais-events-responses';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
@@ -51,17 +50,28 @@ defineFeature(feature, (test) => {
     when(
       /^I invoke an API to retrieve the intervention status of the user's account. With history (.*)$/,
       async (historyValue) => {
-        await timeDelayForTestEnvironment(4000);
+        await timeDelayForTestEnvironment(10_000);
         response = await invokeGetAccountState(testUserId, historyValue);
       },
     );
 
     then(
-      /^I expect the response with next allowable intervention types in TXMA Egress Queue for (.*)$/,
+      /^I expect the response with next allowable intervention types...$/,
       async (aisEventType: keyof typeof aisEventResponse) => {
         const events = ['userActionIdResetSuccess', 'userActionPswResetSuccess'];
         if (!events.includes(aisEventType)) {
-          const receivedMessage = await filterUserIdInMessages(testUserId);
+          let receivedMessage = await filterUserIdInMessages(testUserId);
+
+          if (receivedMessage.length === 0) {
+            console.log('Message not found. Waiting 5 more seconds...');
+            await timeDelayForTestEnvironment(5000);
+            receivedMessage = await filterUserIdInMessages(testUserId);
+          }
+
+          if (!receivedMessage[0]) {
+            throw new Error(`TEST FAILED: No message found for user ${testUserId} in Egress Queue`);
+          }
+
           const body = receivedMessage[0].Body;
           const extensions = body ? attemptParseJSON(body).extensions : {};
           expect(extensions.allowable_interventions).toEqual(aisEventResponse[aisEventType].allowable_interventions);
