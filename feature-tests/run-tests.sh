@@ -16,7 +16,7 @@ cp -R /utils . 2>/dev/null || :
 # run tests and save the exit code
 declare test_run_result
 export tagFilter=@regression
-echo 'Beginning Tests132'
+echo 'New Branch'
 echo "\n--- START DEBUG ---\n"
 env | grep -E "QueueUrl|Endpoint|STACK"
 echo "\n--- END DEBUG ---\n"

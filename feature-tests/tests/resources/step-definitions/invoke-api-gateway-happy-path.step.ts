@@ -69,7 +69,7 @@ defineFeature(feature, (test) => {
           }
 
           if (!receivedMessage[0]) {
-            throw new Error(`TEST FAILED: No message found for user ${testUserId} in Egress Queue`);
+            throw new Error(`TEST FAILED-new-branch: No message found for user ${testUserId} in Egress Queue`);
           }
 
           const body = receivedMessage[0].Body;
