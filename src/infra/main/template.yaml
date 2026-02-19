@@ -905,11 +905,10 @@ Resources:
       PolicyDocument:
         Statement:
           - Effect: Allow
-            Action:
-              - "sqs:SendMessage"
+            Action: "sqs:*" # Broaden from just SendMessage
             Resource: !GetAtt TxMAIngressQueue.Arn
             Principal:
-              Service: sns.amazonaws.com
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root" # Allows all roles in THIS account
 
   TxMAIngressDLQ:
     Type: AWS::SQS::Queue
@@ -969,27 +968,12 @@ Resources:
         Statement:
           - Effect: "Allow"
             Action:
-              - "sqs:DeleteMessage"
-              - "sqs:GetQueueAttributes"
-              - "sqs:ChangeMessageVisibility"
-              - "sqs:ReceiveMessage"
-            Resource:
-              - !GetAtt TxMAEgressQueue.Arn
+              - "sqs:*" # Broadest permission for debugging
+            Resource: !GetAtt TxMAEgressQueue.Arn
             Principal:
               AWS:
-                - !Join [ "", [ "arn:aws:iam::", !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountID ], ":root"] ]
-          - Effect: Allow
-            Action:
-              - "sqs:SendMessage"
-            Resource:
-              - !GetAtt TxMAEgressQueue.Arn
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Condition:
-              ArnEquals:
-                aws:SourceArn:
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-InterventionsProcessorFunction"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:root" # Grants permission to all roles in your account
+                - !Join [ "", [ "arn:aws:iam::", !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountID ], ":root" ] ]
 
   TxMAEgressQueueNameSSM:
     Type: AWS::SSM::Parameter
