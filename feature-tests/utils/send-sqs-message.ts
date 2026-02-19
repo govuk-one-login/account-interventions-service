@@ -1,26 +1,25 @@
-import { SQS } from '@aws-sdk/client-sqs';
+import { PurgeQueueCommand, ReceiveMessageCommand, SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
 import { aisEvents } from './ais-events';
 import EndPoints from '../apiEndpoints/endpoints';
-import { CurrentTimeDescriptor, timeDelayForTestEnvironment, attemptParseJSON } from '../utils/utility';
+import { attemptParseJSON, CurrentTimeDescriptor, timeDelayForTestEnvironment } from '../utils/utility';
 import { invalidAisEvents } from './invalid-ais-events';
 import { aisEventsWithEnhancedFields } from './enhanced-ais-events';
 
+const sqsClient = new SQSClient({ region: process.env.AWS_REGION });
+
 export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeof aisEvents) {
   const currentTime = getCurrentTimestamp();
-  const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
-  const queueURL = EndPoints.SQS_QUEUE_URL;
   const event = { ...aisEvents[aisEventType] };
   event.user.user_id = testUserId;
   event.event_timestamp_ms = currentTime.milliseconds;
   event.timestamp = currentTime.seconds;
-  const messageBody = JSON.stringify(event);
-  const parameters = {
-    MessageBody: messageBody,
-    QueueUrl: queueURL,
-  };
+  const command = new SendMessageCommand({
+    QueueUrl: EndPoints.SQS_QUEUE_URL,
+    MessageBody: JSON.stringify(event),
+  });
 
   try {
-    const data = await sqs.sendMessage(parameters);
+    const data = await sqsClient.send(command);
     console.log('Success, messageId is', data.MessageId);
   } catch (error) {
     console.log('Error', error);
@@ -34,16 +33,15 @@ export async function sendDeleteEvent(testUserId: string) {
     txma: { configVersion: '1.0.4' },
   };
 
-  const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
-  const queueURL = EndPoints.SQS_QUEUE_URL;
-  const messageBody = JSON.stringify(body);
   const parameters = {
-    MessageBody: messageBody,
-    QueueUrl: queueURL,
+    QueueUrl: EndPoints.SQS_QUEUE_URL,
+    MessageBody: JSON.stringify(body),
   };
 
   try {
-    const data = await sqs.sendMessage(parameters);
+    const command = new SendMessageCommand(parameters);
+    const data = await sqsClient.send(command);
+
     console.log('Success, messageId is', data.MessageId);
   } catch (error) {
     console.log('Error', error);
@@ -51,7 +49,6 @@ export async function sendDeleteEvent(testUserId: string) {
 }
 
 export async function sendInvalidSQSEvent(testUserId: string, invalidAisEventTypes: keyof typeof invalidAisEvents) {
-  const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
   const queueURL = EndPoints.SQS_QUEUE_URL;
   const event = { ...invalidAisEvents[invalidAisEventTypes] };
   event.user.user_id = testUserId;
@@ -62,7 +59,8 @@ export async function sendInvalidSQSEvent(testUserId: string, invalidAisEventTyp
   };
 
   try {
-    const data = await sqs.sendMessage(parameters);
+    const command = new SendMessageCommand(parameters);
+    const data = await sqsClient.send(command);
     console.log('Success, messageId is', data.MessageId);
   } catch (error) {
     console.log('Error', error);
@@ -73,7 +71,6 @@ export async function sendEnhancedSQSEvent(
   testUserId: string,
   enhancedAisEvent: keyof typeof aisEventsWithEnhancedFields,
 ) {
-  const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
   const queueURL = EndPoints.SQS_QUEUE_URL;
   const event = { ...aisEventsWithEnhancedFields[enhancedAisEvent] };
   event.user.user_id = testUserId;
@@ -84,7 +81,9 @@ export async function sendEnhancedSQSEvent(
   };
 
   try {
-    const data = await sqs.sendMessage(parameters);
+    const command = new SendMessageCommand(parameters);
+    const data = await sqsClient.send(command);
+
     console.log('Success, messageId is', data.MessageId);
   } catch (error) {
     console.log('Error', error);
@@ -100,34 +99,28 @@ function getCurrentTimestamp(date = new Date()): CurrentTimeDescriptor {
 }
 
 export async function purgeEgressQueue() {
-  const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
-  const queueURL = EndPoints.SQS_EGRESS_QUEUE_URL;
-  const parameters = {
-    QueueUrl: queueURL,
-  };
   try {
-    await sqs.purgeQueue(parameters);
+    await sqsClient.send(new PurgeQueueCommand({ QueueUrl: EndPoints.SQS_EGRESS_QUEUE_URL }));
     await timeDelayForTestEnvironment(5000);
     console.log('Purge Success');
   } catch (error) {
-    console.log('Error', error);
+    console.error('Purge Error', error);
   }
 }
 
 export async function receiveMessagesFromEgressQueue() {
-  const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
   let response;
-  const queueURL = EndPoints.SQS_EGRESS_QUEUE_URL;
   const messages = [];
 
   const parameters = {
-    QueueUrl: queueURL,
+    QueueUrl: EndPoints.SQS_EGRESS_QUEUE_URL,
     MaxNumberOfMessages: 10,
+    WaitTimeSeconds: 2,
   };
   let count = 0;
   do {
     try {
-      response = await sqs.receiveMessage(parameters);
+      response = await sqsClient.send(new ReceiveMessageCommand(parameters));
 
       if (response?.Messages) {
         for (const message of response.Messages) {
@@ -143,11 +136,21 @@ export async function receiveMessagesFromEgressQueue() {
   return messages;
 }
 
-export async function filterUserIdInMessages(testUserId: string) {
-  const messages = await receiveMessagesFromEgressQueue();
-  const filteredMessageByUserId = messages.filter((message) => {
-    const messageBody = message.Body ? attemptParseJSON(message.Body) : {};
-    return messageBody.user.user_id === testUserId;
-  });
-  return filteredMessageByUserId;
+export async function filterUserIdInMessages(testUserId: string, retries = 5) {
+  for (let index = 0; index < retries; index++) {
+    const messages = await receiveMessagesFromEgressQueue();
+
+    const filtered = messages.filter((message) => {
+      const messageBody = message.Body ? attemptParseJSON(message.Body) : {};
+      return messageBody.user?.user_id === testUserId;
+    });
+
+    if (filtered.length > 0) {
+      return filtered;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+
+  return [];
 }
