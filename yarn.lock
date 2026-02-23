@@ -78,10 +78,10 @@
     "@aws-lambda-powertools/commons" "2.31.0"
     aws-xray-sdk-core "^3.12.0"
 
-"@aws-sdk/client-dynamodb@^3.993.0":
-  version "3.993.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-dynamodb/-/client-dynamodb-3.993.0.tgz#fc229912af8528dcfba2c48affa11c1e465dd0f7"
-  integrity sha512-Yxal65s8pKK+f+C5vFrtBKhe5dN57ITq63NpitQ0NKBoNNRfmseIP4UGaa6/KvgAkF20p/EgC+CXg7pPix+1cQ==
+"@aws-sdk/client-dynamodb@^3.995.0":
+  version "3.995.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-dynamodb/-/client-dynamodb-3.995.0.tgz#212f26fdecbaf20aa310ce7d32e110efb4e9a7a5"
+  integrity sha512-JDg3O4w8qi8XIHhPf1AMmquqlrpQJ6z22z0h3Z2rUmzrS+cNj3aUnXrZVRvRlHbvEMzTgVcpcfdRcy4RvDcamw==
   dependencies:
     "@aws-crypto/sha256-browser" "5.2.0"
     "@aws-crypto/sha256-js" "5.2.0"
@@ -95,9 +95,9 @@
     "@aws-sdk/middleware-user-agent" "^3.972.11"
     "@aws-sdk/region-config-resolver" "^3.972.3"
     "@aws-sdk/types" "^3.973.1"
-    "@aws-sdk/util-endpoints" "3.993.0"
+    "@aws-sdk/util-endpoints" "3.995.0"
     "@aws-sdk/util-user-agent-browser" "^3.972.3"
-    "@aws-sdk/util-user-agent-node" "^3.972.9"
+    "@aws-sdk/util-user-agent-node" "^3.972.10"
     "@smithy/config-resolver" "^4.4.6"
     "@smithy/core" "^3.23.2"
     "@smithy/fetch-http-handler" "^5.3.9"
@@ -126,10 +126,10 @@
     "@smithy/util-waiter" "^4.2.8"
     tslib "^2.6.2"
 
-"@aws-sdk/client-sqs@^3.993.0":
-  version "3.993.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sqs/-/client-sqs-3.993.0.tgz#a9b158e35bb9f02e6f7cb82894c8f34472412cf0"
-  integrity sha512-DKtONDUt568hbs4VrnBoK2VJGPXMvkm3Plef/gdsyRjWUMXcCuiLeWi9ru10YN2wAJeGxKMSBoedcuQS9wt2Pg==
+"@aws-sdk/client-sqs@^3.995.0":
+  version "3.995.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sqs/-/client-sqs-3.995.0.tgz#2e3670c62a4e09ba5e3de5d85f6e9cf2650341e0"
+  integrity sha512-vGE9tY5m+eCarVFRHo4Me/49531+Tp3qpTV8Ka4/AOwv/zWkJNG+zQhBUHHibnxepZcTkpoPRMro4wk7fCA9og==
   dependencies:
     "@aws-crypto/sha256-browser" "5.2.0"
     "@aws-crypto/sha256-js" "5.2.0"
@@ -142,9 +142,9 @@
     "@aws-sdk/middleware-user-agent" "^3.972.11"
     "@aws-sdk/region-config-resolver" "^3.972.3"
     "@aws-sdk/types" "^3.973.1"
-    "@aws-sdk/util-endpoints" "3.993.0"
+    "@aws-sdk/util-endpoints" "3.995.0"
     "@aws-sdk/util-user-agent-browser" "^3.972.3"
-    "@aws-sdk/util-user-agent-node" "^3.972.9"
+    "@aws-sdk/util-user-agent-node" "^3.972.10"
     "@smithy/config-resolver" "^4.4.6"
     "@smithy/core" "^3.23.2"
     "@smithy/fetch-http-handler" "^5.3.9"
@@ -607,10 +607,10 @@
     "@smithy/types" "^4.12.0"
     tslib "^2.6.2"
 
-"@aws-sdk/util-dynamodb@^3.993.0":
-  version "3.993.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/util-dynamodb/-/util-dynamodb-3.993.0.tgz#93efc79a516809f048c0b09bb85a31624519b0c0"
-  integrity sha512-bS+7s/r9RfzHHi3cwrLX1wLz1M6g3fr4bqW3gNDSjkOE5CLHsWmtBSJmcET3ex+KO8u27F73S/r6SeogusWNow==
+"@aws-sdk/util-dynamodb@^3.995.0":
+  version "3.995.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/util-dynamodb/-/util-dynamodb-3.995.0.tgz#3269602716b1e3a4e2ac49828329c565403dde81"
+  integrity sha512-ErHBnAaxlPAn/TCBY8+Alr/IF9E3tFeK6NCY1GdRUl6Lz2PFZnZeoh7GrLZZn0jvlX4OirXlhwAds6mqp+NKoA==
   dependencies:
     tslib "^2.6.2"
 
@@ -636,6 +636,17 @@
     "@smithy/util-endpoints" "^3.2.8"
     tslib "^2.6.2"
 
+"@aws-sdk/util-endpoints@3.995.0":
+  version "3.995.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/util-endpoints/-/util-endpoints-3.995.0.tgz#9815ef48b79e56e05130928885126385835a120c"
+  integrity sha512-aym/pjB8SLbo9w2nmkrDdAAVKVlf7CM71B9mKhjDbJTzwpSFBPHqJIMdDyj0mLumKC0aIVDr1H6U+59m9GvMFw==
+  dependencies:
+    "@aws-sdk/types" "^3.973.1"
+    "@smithy/types" "^4.12.0"
+    "@smithy/url-parser" "^4.2.8"
+    "@smithy/util-endpoints" "^3.2.8"
+    tslib "^2.6.2"
+
 "@aws-sdk/util-locate-window@^3.0.0":
   version "3.965.4"
   resolved "https://registry.yarnpkg.com/@aws-sdk/util-locate-window/-/util-locate-window-3.965.4.tgz#f62d279e1905f6939b6dffb0f76ab925440f72bf"
@@ -653,10 +664,10 @@
     bowser "^2.11.0"
     tslib "^2.6.2"
 
-"@aws-sdk/util-user-agent-node@^3.972.4", "@aws-sdk/util-user-agent-node@^3.972.9":
-  version "3.972.9"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/util-user-agent-node/-/util-user-agent-node-3.972.9.tgz#23f03f29daa06192d2308e5c52757c2515e761c8"
-  integrity sha512-JNswdsLdQemxqaSIBL2HRhsHPUBBziAgoi5RQv6/9avmE5g5RSdt1hWr3mHJ7OxqRYf+KeB11ExWbiqfrnoeaA==
+"@aws-sdk/util-user-agent-node@^3.972.10", "@aws-sdk/util-user-agent-node@^3.972.4", "@aws-sdk/util-user-agent-node@^3.972.9":
+  version "3.972.10"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/util-user-agent-node/-/util-user-agent-node-3.972.10.tgz#a449af988dba13db55ac37ab1844d942f522ab68"
+  integrity sha512-LVXzICPlsheET+sE6tkcS47Q5HkSTrANIlqL1iFxGAY/wRQ236DX/PCAK56qMh9QJoXAfXfoRW0B0Og4R+X7Nw==
   dependencies:
     "@aws-sdk/middleware-user-agent" "^3.972.11"
     "@aws-sdk/types" "^3.973.1"
