@@ -31,14 +31,14 @@
   },
   "dependencies": {
     "@aws-lambda-powertools/parameters": "^2.8.0",
-    "@aws-sdk/client-cloudwatch-logs": "^3.654.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.993.0",
     "@aws-sdk/client-dynamodb": "^3.656.0",
-    "@aws-sdk/client-lambda": "^3.654.0",
-    "@aws-sdk/client-secrets-manager": "^3.654.0",
-    "@aws-sdk/client-sns": "^3.654.0",
-    "@aws-sdk/client-sqs": "^3.654.0",
-    "@aws-sdk/client-sso-oidc": "^3.654.0",
-    "@aws-sdk/credential-providers": "^3.654.0",
+    "@aws-sdk/client-lambda": "^3.993.0",
+    "@aws-sdk/client-secrets-manager": "^3.993.0",
+    "@aws-sdk/client-sns": "^3.993.0",
+    "@aws-sdk/client-sqs": "^3.993.0",
+    "@aws-sdk/client-sso-oidc": "^3.993.0",
+    "@aws-sdk/credential-providers": "^3.993.0",
     "@aws-sdk/util-dynamodb": "^3.656.0"
   },
   "resolutions": {
