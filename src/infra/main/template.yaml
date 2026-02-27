@@ -351,10 +351,10 @@ Resources:
         - !Ref InterventionsProcessorFunctionRole
 
   InterventionsProcessorFunctionTxMAKeyPolicy:
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Condition: IsNotInternal
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionTxMAKeyPolicy"
+      ManagedPolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionTxMAKeyPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -587,10 +587,10 @@ Resources:
         - !Ref TxmaEventHandlerFunctionRole
 
   TxmaEventHandlerFunctionTxMAKeyPolicy:
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Condition: IsNotInternal
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-TxmaEventHandlerFunctionTxMAKeyPolicy"
+      ManagedPolicyName: !Sub "${AWS::StackName}-TxmaEventHandlerFunctionTxMAKeyPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1496,9 +1496,9 @@ Resources:
 
   InvokePrivateAPIGatewayFunctionPolicy:
     Condition: IsInternal
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-InvokePrivateAPIGatewayFunctionPolicy"
+      ManagedPolicyName: !Sub "${AWS::StackName}-InvokePrivateAPIGatewayFunctionPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
