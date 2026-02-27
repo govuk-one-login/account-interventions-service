@@ -278,17 +278,6 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-      Policies:
-        - PolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionRolePolicy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "sqs:ReceiveMessage"
-                  - "sqs:DeleteMessage"
-                  - "sqs:GetQueueAttributes"
-                Resource: !GetAtt AccountInterventionEventsQueue.Arn
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -301,10 +290,26 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-  InterventionsProcessorFunctionPolicy:
-    Type: AWS::IAM::Policy
+  InterventionsProcessorFunctionRolePolicy:
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionPolicy"
+      ManagedPolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionRolePolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+            Resource: !GetAtt AccountInterventionEventsQueue.Arn
+      Roles:
+        - !Ref InterventionsProcessorFunctionRole
+
+  InterventionsProcessorFunctionPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -346,10 +351,10 @@ Resources:
         - !Ref InterventionsProcessorFunctionRole
 
   InterventionsProcessorFunctionTxMAKeyPolicy:
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Condition: IsNotInternal
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionTxMAKeyPolicy"
+      ManagedPolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionTxMAKeyPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -493,33 +498,6 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-      Policies:
-        - PolicyName: !Sub "${AWS::StackName}-TxmaEventHandlerFunctionRolePolicy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "sqs:ReceiveMessage"
-                  - "sqs:DeleteMessage"
-                  - "sqs:GetQueueAttributes"
-                Resource: !If
-                  - IsInternal
-                  - !GetAtt TxMAIngressQueue.Arn
-                  - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
-              - Effect: Allow
-                Action:
-                 - "sqs:SendMessage"
-                Resource: !GetAtt AccountDeletionEventQueue.Arn
-              - Effect: Allow
-                Action:
-                  - "sqs:SendMessage"
-                Resource: !GetAtt AccountInterventionEventsQueue.Arn
-              - Effect: Allow
-                Action:
-                  - "logs:CreateLogStream"
-                  - "logs:PutLogEvents"
-                Resource: !GetAtt TxmaEventHandlerFunctionLogGroup.Arn
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -532,10 +510,42 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-  TxmaEventHandlerFunctionPolicy:
-    Type: AWS::IAM::Policy
+  TxmaEventHandlerFunctionRolePolicy:
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-TxmaEventHandlerFunctionPolicy"
+      ManagedPolicyName: !Sub "${AWS::StackName}-TxmaEventHandlerFunctionRolePolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+            Resource: !If
+              - IsInternal
+              - !GetAtt TxMAIngressQueue.Arn
+              - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt AccountDeletionEventQueue.Arn
+          - Effect: Allow
+            Action:
+              - "sqs:SendMessage"
+            Resource: !GetAtt AccountInterventionEventsQueue.Arn
+          - Effect: Allow
+            Action:
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource: !GetAtt TxmaEventHandlerFunctionLogGroup.Arn
+      Roles:
+        - !Ref TxmaEventHandlerFunctionRole
+
+  TxmaEventHandlerFunctionPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AWS::StackName}-TxmaEventHandlerFunctionPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -577,10 +587,10 @@ Resources:
         - !Ref TxmaEventHandlerFunctionRole
 
   TxmaEventHandlerFunctionTxMAKeyPolicy:
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Condition: IsNotInternal
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-TxmaEventHandlerFunctionTxMAKeyPolicy"
+      ManagedPolicyName: !Sub "${AWS::StackName}-TxmaEventHandlerFunctionTxMAKeyPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -681,23 +691,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-      Policies:
-        - PolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionRolePolicy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "sqs:ReceiveMessage"
-                  - "sqs:DeleteMessage"
-                  - "sqs:GetQueueAttributes"
-                Resource: !GetAtt AccountDeletionProcessorQueue.Arn
-              - Effect: Allow
-                Action:
-                  - "sqs:ReceiveMessage"
-                  - "sqs:DeleteMessage"
-                  - "sqs:GetQueueAttributes"
-                Resource: !GetAtt AccountDeletionEventQueue.Arn
+        - !GetAtt AccountDeletionProcessorFunctionRolePolicy.PolicyArn
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -710,10 +704,30 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-  AccountDeletionProcessorFunctionPolicy:
-    Type: AWS::IAM::Policy
+  AccountDeletionProcessorFunctionRolePolicy:
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionPolicy"
+      ManagedPolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionRolePolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+            Resource: !GetAtt AccountDeletionProcessorQueue.Arn
+          - Effect: Allow
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+            Resource: !GetAtt AccountDeletionEventQueue.Arn
+
+  AccountDeletionProcessorFunctionPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1350,9 +1364,9 @@ Resources:
           Value: !Ref SourceTagValue
 
   StatusRetrieverFunctionPolicy:
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-StatusRetrieverFunctionPolicy"
+      ManagedPolicyName: !Sub "${AWS::StackName}-StatusRetrieverFunctionPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -1482,9 +1496,9 @@ Resources:
 
   InvokePrivateAPIGatewayFunctionPolicy:
     Condition: IsInternal
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-InvokePrivateAPIGatewayFunctionPolicy"
+      ManagedPolicyName: !Sub "${AWS::StackName}-InvokePrivateAPIGatewayFunctionPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
