@@ -1356,9 +1356,9 @@ Resources:
           Value: !Ref SourceTagValue
 
   StatusRetrieverFunctionPolicy:
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-StatusRetrieverFunctionPolicy"
+      ManagedPolicyName: !Sub "${AWS::StackName}-StatusRetrieverFunctionPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
