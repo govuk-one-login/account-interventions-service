@@ -681,23 +681,6 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
-      Policies:
-        - PolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionRolePolicy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "sqs:ReceiveMessage"
-                  - "sqs:DeleteMessage"
-                  - "sqs:GetQueueAttributes"
-                Resource: !GetAtt AccountDeletionProcessorQueue.Arn
-              - Effect: Allow
-                Action:
-                  - "sqs:ReceiveMessage"
-                  - "sqs:DeleteMessage"
-                  - "sqs:GetQueueAttributes"
-                Resource: !GetAtt AccountDeletionEventQueue.Arn
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -710,10 +693,33 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-  AccountDeletionProcessorFunctionPolicy:
-    Type: AWS::IAM::Policy
+  AccountDeletionProcessorFunctionRolePolicy:
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      PolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionPolicy"
+      ManagedPolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionRolePolicy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+            Resource: !GetAtt AccountDeletionProcessorQueue.Arn
+          - Effect: Allow
+            Action:
+              - "sqs:ReceiveMessage"
+              - "sqs:DeleteMessage"
+              - "sqs:GetQueueAttributes"
+            Resource: !GetAtt AccountDeletionEventQueue.Arn
+      Roles:
+        - !Ref AccountDeletionProcessorFunctionRole
+
+
+  AccountDeletionProcessorFunctionPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionPolicy"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
