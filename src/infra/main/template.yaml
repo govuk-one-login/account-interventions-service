@@ -691,6 +691,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+        - !GetAtt AccountDeletionProcessorFunctionRolePolicy.PolicyArn
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -722,9 +723,6 @@ Resources:
               - "sqs:DeleteMessage"
               - "sqs:GetQueueAttributes"
             Resource: !GetAtt AccountDeletionEventQueue.Arn
-      Roles:
-        - !Ref AccountDeletionProcessorFunctionRole
-
 
   AccountDeletionProcessorFunctionPolicy:
     Type: AWS::IAM::ManagedPolicy
