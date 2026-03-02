@@ -306,7 +306,7 @@ Resources:
       Roles:
         - !Ref InterventionsProcessorFunctionRole
 
-  InterventionsProcessorFunctionPolicy:
+  InterventionsProcessorFunctionManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionPolicy"
@@ -542,7 +542,7 @@ Resources:
       Roles:
         - !Ref TxmaEventHandlerFunctionRole
 
-  TxmaEventHandlerFunctionPolicy:
+  TxmaEventHandlerFunctionManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: !Sub "${AWS::StackName}-TxmaEventHandlerFunctionPolicy"
@@ -724,7 +724,7 @@ Resources:
               - "sqs:GetQueueAttributes"
             Resource: !GetAtt AccountDeletionEventQueue.Arn
 
-  AccountDeletionProcessorFunctionPolicy:
+  AccountDeletionProcessorFunctionManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionPolicy"
@@ -1363,7 +1363,7 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-  StatusRetrieverFunctionPolicy:
+  StatusRetrieverFunctionManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: !Sub "${AWS::StackName}-StatusRetrieverFunctionPolicy"
@@ -1494,7 +1494,7 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
 
-  InvokePrivateAPIGatewayFunctionPolicy:
+  InvokePrivateAPIGatewayFunctionManagedPolicy:
     Condition: IsInternal
     Type: AWS::IAM::ManagedPolicy
     Properties:
