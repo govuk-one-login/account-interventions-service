@@ -43,6 +43,7 @@
   },
   "resolutions": {
     "glob": "13.0.0",
-    "lodash": "4.17.23"
+    "lodash": "4.17.23",
+    "minimatch": "3.1.3"
   }
 }
