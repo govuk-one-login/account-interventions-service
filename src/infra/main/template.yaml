@@ -350,7 +350,7 @@ Resources:
       Roles:
         - !Ref InterventionsProcessorFunctionRole
 
-  InterventionsProcessorFunctionTxMAKeyPolicy:
+  InterventionsProcessorFunctionTxMAKeyManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Condition: IsNotInternal
     Properties:
@@ -586,7 +586,7 @@ Resources:
       Roles:
         - !Ref TxmaEventHandlerFunctionRole
 
-  TxmaEventHandlerFunctionTxMAKeyPolicy:
+  TxmaEventHandlerFunctionTxMAKeyManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Condition: IsNotInternal
     Properties:
