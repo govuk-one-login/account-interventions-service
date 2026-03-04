@@ -4,7 +4,7 @@ set -u
 
 # Input parameters
 AWS_ACCOUNT=di-account-interventions-staging-admin
-PIPELINE_VERSION=v2.94.2
+PIPELINE_VERSION=v2.88.3
 
 export AWS_ACCOUNT=$AWS_ACCOUNT
 #

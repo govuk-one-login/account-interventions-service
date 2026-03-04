@@ -1,5 +1,7 @@
-import path from 'node:path';
-import pact from '@pact-foundation/pact-cli';
+// eslint-disable-next-line @typescript-eslint/no-var-requires, unicorn/prefer-module
+const path = require('node:path');
+import pkg from '@pact-foundation/pact-node';
+const { publishPacts } = pkg;
 
 const publishPact = async () => {
   console.log('STARTING PUBLISH PACT');
@@ -14,7 +16,7 @@ const publishPact = async () => {
       branch: process.env['GIT_BRANCH']!,
     };
 
-    await pact.publishPacts(publishOptions);
+    await publishPacts(publishOptions);
   } catch (error) {
     console.error('UNABLE TO PUBLISH PACTS', error);
     process.exitCode = 1;

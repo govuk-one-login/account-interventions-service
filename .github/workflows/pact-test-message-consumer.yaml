@@ -57,15 +57,12 @@ jobs:
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # pin@v3
         with:
           node-version-file: '.node-version'
-          cache: 'yarn'
 
       - name: Run yarn install
         run: yarn install --frozen-lockfile
 
       - name: Run Pact Tests for Message Consumers
-        run: yarn test:pact:consumer
-        env:
-          NODE_OPTIONS: "--experimental-vm-modules"
+        run:  yarn test:pact:consumer
 
       - name: Publish Pact Files
         if: github.ref_name == 'main'
