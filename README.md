@@ -95,8 +95,7 @@ To deploy the base common CloudFormation stacks required created by Dev Platform
 3. certificate-expiry
 4. vpc
 5. lambda-audit-hook
-6. checkov-hook
-7. infra-audit-hook
+6. infra-audit-hook
 
 ### Setup AWS SSO Login
 ```shell
@@ -176,13 +175,13 @@ $ sh staging_pipelines.sh
 
 ❗ **Update this table if version has been updated**
 
-|             | ais-main-pipeline | ais-core-pipeline | ais-alarm-pipeline | alerting-integration | api-gateway-logs | certificate-expiry | vpc    | ecr-image-scan-findings-logger | lambda-audit-hook |  checkov-hook | infra-audit-hook |
-|-------------|-------------------|-------------------|--------------------|----------------------|------------------|--------------------|--------|--------------------------------|-------------------|---------------|------------------|
-| Dev         | v2.48.0           | v2.48.0           | v2.48.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a           | n/a              |
-| Build       | v2.48.0           | v2.48.0           | v2.48.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a           | n/a              |
-| Staging     | v2.48.0           | v2.48.0           | v2.48.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a           | n/a              |
-| Integration | v2.48.0           | v2.48.0           | v2.48.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a           | n/a              |
-| Production  | v2.48.0           | v2.48.0           | v2.48.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | n/a                            | n/a               | n/a           | n/a              |
+|             | ais-main-pipeline | ais-core-pipeline | ais-alarm-pipeline | alerting-integration | api-gateway-logs | certificate-expiry | vpc    | ecr-image-scan-findings-logger | lambda-audit-hook | infra-audit-hook |
+|-------------|-------------------|-------------------|--------------------|----------------------|------------------|--------------------|--------|--------------------------------|-------------------|------------------|
+| Dev         | v2.48.0           | v2.48.0           | v2.48.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a              |
+| Build       | v2.48.0           | v2.48.0           | v2.48.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a              |
+| Staging     | v2.48.0           | v2.48.0           | v2.48.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a              |
+| Integration | v2.48.0           | v2.48.0           | v2.48.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | v.1.1.4                        | n/a               | n/a              |
+| Production  | v2.48.0           | v2.48.0           | v2.48.0            | v1.0.6               | v1.0.5           | v1.1.0             | v2.3.1 | n/a                            | n/a               | n/a              |
 
 
 ## Additional Info

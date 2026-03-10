@@ -11,7 +11,6 @@ export AWS_ACCOUNT=$AWS_ACCOUNT
 ./provisioner.sh $AWS_ACCOUNT aws-signer signer v1.0.8 || exit 1
 ./provisioner.sh $AWS_ACCOUNT container-signer container-signer v1.1.2 || exit 1
 
-./provisioner.sh $AWS_ACCOUNT checkov-hook checkov-hook LATEST || exit 1
 ./provisioner.sh $AWS_ACCOUNT lambda-audit-hook lambda-audit-hook LATEST || exit 1
 ./provisioner.sh $AWS_ACCOUNT infra-audit-hook infrastructure-audit-hook LATEST || exit 1
 
