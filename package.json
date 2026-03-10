@@ -74,7 +74,7 @@
     "@babel/helpers": "^7.26.10",
     "axios": "^1.13.5",
     "cross-spawn": "^7.0.5",
-    "eslint-visitor-keys": "^5.0.0",
+    "eslint-visitor-keys": "^4.2.0",
     "fast-xml-parser": "^5.3.8",
     "form-data": "^4.0.4",
     "lodash": "4.17.23",
