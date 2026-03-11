@@ -78,10 +78,10 @@
     "@aws-lambda-powertools/commons" "2.31.0"
     aws-xray-sdk-core "^3.12.0"
 
-"@aws-sdk/client-dynamodb@^3.996.0":
-  version "3.1005.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-dynamodb/-/client-dynamodb-3.1005.0.tgz#499565f05e03bd192f58839f6d33c6a452dba890"
-  integrity sha512-lPkeRwkXhXEjyO3YENmxseFMfAQQAjecT9BjohoZqurvceLrqTml94Dt84OYtJpAvAVQua5SK7rOrjk2vEeU5A==
+"@aws-sdk/client-dynamodb@^3.1006.0":
+  version "3.1006.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-dynamodb/-/client-dynamodb-3.1006.0.tgz#f8e070ac1285e483dc3d3b265b10d153937c4236"
+  integrity sha512-PTGnTtTdOezfg7UsICBeS8BtxAxYfWI2/JNLflWjjryiJdHIl7aAprsHrIzlsD6qwQOloxhmwqp7C9JFY5BT2Q==
   dependencies:
     "@aws-crypto/sha256-browser" "5.2.0"
     "@aws-crypto/sha256-js" "5.2.0"
@@ -123,13 +123,13 @@
     "@smithy/util-middleware" "^4.2.11"
     "@smithy/util-retry" "^4.2.11"
     "@smithy/util-utf8" "^4.2.2"
-    "@smithy/util-waiter" "^4.2.11"
+    "@smithy/util-waiter" "^4.2.12"
     tslib "^2.6.2"
 
-"@aws-sdk/client-sqs@^3.996.0":
-  version "3.1005.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sqs/-/client-sqs-3.1005.0.tgz#d4da5aeb79c21124803930363fc64f09f5aebb47"
-  integrity sha512-XowZ5JNwf6m19yL/R3Z3n9xCH7PD+uPziGEKMkrxFRjDvx0cKoC2LHRYlv0XEkGo1NWgNVqUpaT5WC9eNLcMxA==
+"@aws-sdk/client-sqs@^3.1006.0":
+  version "3.1006.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sqs/-/client-sqs-3.1006.0.tgz#1ddf3cea6382aeab1d7d5dc62fd41e6d180532d4"
+  integrity sha512-VbG8CUJDqnnrgtWrv4ib7ApQzNbsEOTYKICeNG9On8Noi3VpRIi2IksGyWstpkLRibkE7ZHOPoiyfNk6UYRKDQ==
   dependencies:
     "@aws-crypto/sha256-browser" "5.2.0"
     "@aws-crypto/sha256-js" "5.2.0"
@@ -2102,10 +2102,10 @@
     "@smithy/util-buffer-from" "^4.2.2"
     tslib "^2.6.2"
 
-"@smithy/util-waiter@^4.2.11":
-  version "4.2.11"
-  resolved "https://registry.yarnpkg.com/@smithy/util-waiter/-/util-waiter-4.2.11.tgz#afe08ad75c9b51e35c83e3c11926855d886741f6"
-  integrity sha512-x7Rh2azQPs3XxbvCzcttRErKKvLnbZfqRf/gOjw2pb+ZscX88e5UkRPCB67bVnsFHxayvMvmePfKTqsRb+is1A==
+"@smithy/util-waiter@^4.2.12":
+  version "4.2.12"
+  resolved "https://registry.yarnpkg.com/@smithy/util-waiter/-/util-waiter-4.2.12.tgz#8cbe8f0fe586c7901fb66d21544339f1da1c6bef"
+  integrity sha512-ek5hyDrzS6mBFsNCEX8LpM+EWSLq6b9FdmPRlkpXXhiJE6aIZehKT9clC6+nFpZAA+i/Yg0xlaPeWGNbf5rzQA==
   dependencies:
     "@smithy/abort-controller" "^4.2.11"
     "@smithy/types" "^4.13.0"
