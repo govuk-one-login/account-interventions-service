@@ -152,7 +152,7 @@ Mappings:
 
 Globals:
   Function:
-    Runtime: nodejs20.x
+    Runtime: nodejs24.x
     Architectures:
       - arm64
     Tracing: Active
