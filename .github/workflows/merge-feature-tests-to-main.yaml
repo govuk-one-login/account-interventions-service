@@ -30,7 +30,7 @@ jobs:
           ref: ${{ inputs.gitRef }}
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@67fbcbb121271f7775d2e7715933280b06314838 # pin@v1.7.0
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # pin@6.0.0
         with:
           role-to-assume: ${{ secrets.TEST_GH_ACTIONS_ROLE_ARN }}
           aws-region: eu-west-2

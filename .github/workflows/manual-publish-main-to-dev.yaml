@@ -61,7 +61,7 @@ jobs:
         run: yarn package
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e1e17a757e536f70e52b5a12b2e8d1d1c60e04ef # pin@v1-node16
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # pin@6.0.0
         with:
           role-to-assume: ${{ secrets.DEV_MAIN_GH_ACTIONS_ROLE_ARN }}
           aws-region: eu-west-2
