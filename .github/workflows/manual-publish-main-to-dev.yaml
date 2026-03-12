@@ -50,7 +50,7 @@ jobs:
           ref: ${{ inputs.gitRef }}
 
       - name: Setup NodeJS
-        uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7 # pin@v3
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # pin@v6.3.0
         with:
           node-version-file: '.node-version'
 
