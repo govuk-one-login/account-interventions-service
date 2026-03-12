@@ -5,7 +5,7 @@
   "private": true,
   "license": "MIT",
   "engines": {
-    "node": ">=20"
+    "node": ">=24.14.0 <25"
   },
   "packageManager": "yarn@1.22.21",
   "scripts": {
@@ -35,7 +35,8 @@
     "@aws-sdk/client-dynamodb": "^3.1006.0",
     "@aws-sdk/client-sqs": "^3.1006.0",
     "@aws-sdk/util-dynamodb": "^3.996.0",
-    "@smithy/node-http-handler": "^4.4.11"
+    "@smithy/node-http-handler": "^4.4.11",
+    "fast-xml-parser": "^5.3.8"
   },
   "devDependencies": {
     "@aws-sdk/client-sso-oidc": "^3.1006.0",
@@ -46,7 +47,7 @@
     "@types/aws-lambda": "^8.10.160",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
-    "@types/node": "^20.17.54",
+    "@types/node": "^24.12.0",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "aws-crt": "^1.29.0",
