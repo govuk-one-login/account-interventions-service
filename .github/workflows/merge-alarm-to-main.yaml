@@ -31,18 +31,18 @@ jobs:
     needs:
       - validate_deployment
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # pin@v3
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6.0.2
         with:
           ref: ${{ inputs.gitRef }}
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e1e17a757e536f70e52b5a12b2e8d1d1c60e04ef # pin@v1-node16
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # pin@6.0.0
         with:
           role-to-assume: ${{ secrets.ALARM_GH_ACTIONS_ROLE_ARN }}
           aws-region: eu-west-2
 
       - name: "Deploy SAM app"
-        uses: govuk-one-login/devplatform-upload-action@dc8158079d3976d613515180e543930cdbe73f5f # pin@v3.9.1
+        uses: govuk-one-login/devplatform-upload-action@b7bc01ed6e0b61d54f42e7f3d12dd3fdbb0f172a # pin@v3.13.0
         with:
           artifact-bucket-name: ${{ secrets.ALARM_ARTIFACT_BUCKET_NAME }}
           signing-profile-name: ${{ secrets.SIGNING_PROFILE_NAME }}
