@@ -29,7 +29,7 @@ export const handle = async (event: CustomEvent) => {
     headers,
   });
 
-  const response = await responsePromise.json();
+  const response = (await responsePromise.json()) as Response;
 
   return {
     statusCode: response.status,
@@ -65,5 +65,5 @@ function validateConfiguration(environmentVariable: string): string {
     logger.error(message);
     throw new Error(message);
   }
-  return process.env[environmentVariable] as string;
+  return process.env[environmentVariable];
 }

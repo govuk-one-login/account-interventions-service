@@ -23,69 +23,81 @@ export const buildPartialUpdateAccountStateCommand = (
   interventionName?: AISInterventionTypes,
 ): Partial<UpdateItemCommandInput> => {
   const eventTimestamp = interventionEvent.event_timestamp_ms ?? interventionEvent.timestamp * 1000;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const baseUpdateItemCommandInput: Record<string, any> = {
-    ExpressionAttributeNames: {
-      '#B': 'blocked',
-      '#S': 'suspended',
-      '#RP': 'resetPassword',
-      '#RI': 'reproveIdentity',
-      '#UA': 'updatedAt',
-    },
-    ExpressionAttributeValues: {
-      ':b': { BOOL: finalState.blocked },
-      ':s': { BOOL: finalState.suspended },
-      ':rp': { BOOL: finalState.resetPassword },
-      ':ri': { BOOL: finalState.reproveIdentity },
-      ':ua': { N: `${currentTimestamp}` },
-    },
-    UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
+
+  const expressionAttributeNames: UpdateItemCommandInput['ExpressionAttributeNames'] = {
+    '#B': 'blocked',
+    '#S': 'suspended',
+    '#RP': 'resetPassword',
+    '#RI': 'reproveIdentity',
+    '#UA': 'updatedAt',
   };
+  const expressionAttributeValues: UpdateItemCommandInput['ExpressionAttributeValues'] = {
+    ':b': { BOOL: finalState.blocked },
+    ':s': { BOOL: finalState.suspended },
+    ':rp': { BOOL: finalState.resetPassword },
+    ':ri': { BOOL: finalState.reproveIdentity },
+    ':ua': { N: String(currentTimestamp) },
+  };
+
+  let updateExpression = 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua';
+
   if (eventName === EventsEnum.IPV_ACCOUNT_INTERVENTION_END) {
-    baseUpdateItemCommandInput['ExpressionAttributeNames']['#RIdA'] = 'reprovedIdentityAt';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rida'] = { N: `${eventTimestamp}` };
-    baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
+    expressionAttributeNames['#RIdA'] = 'reprovedIdentityAt';
+    expressionAttributeValues[':rida'] = { N: String(eventTimestamp) };
+    expressionAttributeNames['#H'] = 'history';
+    expressionAttributeValues[':h'] = {
       L: extractValidHistoryItems(historyList, currentTimestamp),
     };
-    baseUpdateItemCommandInput['UpdateExpression'] += ', #RIdA = :rida, #H = :h';
-    return baseUpdateItemCommandInput;
+    updateExpression += ', #RIdA = :rida, #H = :h';
+    return {
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
+      UpdateExpression: updateExpression,
+    };
   }
   if (
     eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL ||
     eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT
   ) {
-    baseUpdateItemCommandInput['ExpressionAttributeNames']['#RPswdA'] = 'resetPasswordAt';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rpswda'] = { N: `${eventTimestamp}` };
-    baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
+    expressionAttributeNames['#RPswdA'] = 'resetPasswordAt';
+    expressionAttributeValues[':rpswda'] = { N: String(eventTimestamp) };
+    expressionAttributeNames['#H'] = 'history';
+    expressionAttributeValues[':h'] = {
       L: extractValidHistoryItems(historyList, currentTimestamp),
     };
-    baseUpdateItemCommandInput['UpdateExpression'] += ', #RPswdA = :rpswda, #H = :h';
-    return baseUpdateItemCommandInput;
+    updateExpression += ', #RPswdA = :rpswda, #H = :h';
+    return {
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
+      UpdateExpression: updateExpression,
+    };
   }
   if (!interventionName) {
     addMetric(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
     throw new Error('The intervention received did not have an interventionName field.');
   }
-  baseUpdateItemCommandInput['ExpressionAttributeNames']['#INT'] = 'intervention';
-  baseUpdateItemCommandInput['ExpressionAttributeValues'][':int'] = { S: interventionName };
-  baseUpdateItemCommandInput['ExpressionAttributeNames']['#AA'] = 'appliedAt';
-  baseUpdateItemCommandInput['ExpressionAttributeValues'][':aa'] = { N: `${currentTimestamp}` };
-  baseUpdateItemCommandInput['ExpressionAttributeNames']['#SA'] = 'sentAt';
-  baseUpdateItemCommandInput['ExpressionAttributeValues'][':sa'] = { N: `${eventTimestamp}` };
+  expressionAttributeNames['#INT'] = 'intervention';
+  expressionAttributeValues[':int'] = { S: interventionName };
+  expressionAttributeNames['#AA'] = 'appliedAt';
+  expressionAttributeValues[':aa'] = { N: String(currentTimestamp) };
+  expressionAttributeNames['#SA'] = 'sentAt';
+  expressionAttributeValues[':sa'] = { N: String(eventTimestamp) };
   const stringBuilder = new HistoryStringBuilder();
-  baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
-  baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
+  expressionAttributeNames['#H'] = 'history';
+  expressionAttributeValues[':h'] = {
     L: [
       ...extractValidHistoryItems(historyList, currentTimestamp),
       { S: stringBuilder.getHistoryString(interventionEvent, eventTimestamp) },
     ],
   };
-  baseUpdateItemCommandInput['UpdateExpression'] += ', #INT = :int, #SA = :sa, #AA = :aa, #H = :h';
-  baseUpdateItemCommandInput['UpdateExpression'] += buildRemoveExpression(finalState);
+  updateExpression += ', #INT = :int, #SA = :sa, #AA = :aa, #H = :h';
+  updateExpression += buildRemoveExpression(finalState);
 
-  return baseUpdateItemCommandInput;
+  return {
+    ExpressionAttributeNames: expressionAttributeNames,
+    ExpressionAttributeValues: expressionAttributeValues,
+    UpdateExpression: updateExpression,
+  };
 };
 
 /**

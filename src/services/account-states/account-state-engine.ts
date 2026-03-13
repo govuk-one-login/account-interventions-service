@@ -11,6 +11,7 @@ export class AccountStateEngine {
 
   private constructor() {}
   public static getInstance() {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!AccountStateEngine.instance) {
       AccountStateEngine.validateConfiguration();
       AccountStateEngine.instance = new AccountStateEngine();
@@ -95,7 +96,7 @@ export class AccountStateEngine {
    */
   private findAccountStateName(state: StateDetails) {
     for (const key of Object.keys(transitionConfiguration.nodes))
-      if (areAccountStatesTheSame(transitionConfiguration.nodes[key]!, state)) return key;
+      if (areAccountStatesTheSame(transitionConfiguration.nodes[key] as StateDetails, state)) return key;
     throw buildConfigurationError(
       MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG,
       'Account state does not exists in current configuration.',
@@ -128,7 +129,7 @@ export class AccountStateEngine {
    */
   private getTransition(allowedTransition: string[], transition: EventsEnum, initialState: StateDetails) {
     for (const edge of allowedTransition) {
-      if (AccountStateEngine.configuration.edges[edge]?.name === transition.toString()) return edge;
+      if (AccountStateEngine.configuration.edges[edge]?.name.toString() === transition.toString()) return edge;
     }
     throw buildStateTransitionError(
       MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED,
@@ -143,7 +144,7 @@ export class AccountStateEngine {
    * @param edge - code mapping to a specific transition
    */
   private getNewStateObject(edge: string) {
-    const newStateName = AccountStateEngine.configuration.edges[edge]!.to;
+    const newStateName = AccountStateEngine.configuration.edges[edge]?.to as string;
     const newStateObject = AccountStateEngine.configuration.nodes[newStateName];
     if (!newStateObject)
       throw buildConfigurationError(
@@ -169,7 +170,7 @@ function buildStateTransitionError(
 ) {
   if (
     !(
-      areAccountStatesTheSame(initialState, transitionConfiguration.nodes['AccountIsOkay']!) &&
+      areAccountStatesTheSame(initialState, transitionConfiguration.nodes['AccountIsOkay'] as StateDetails) &&
       userLedActionList.includes(transition)
     )
   ) {

@@ -53,7 +53,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
   const itemFailures: SQSBatchItemFailure[] = [];
 
   const promiseArray = event.Records.map((record: SQSRecord) => {
-    return processSQSRecord(record).catch(async (error) => {
+    return processSQSRecord(record).catch(async (error: unknown) => {
       const itemIdentifier = await handleError(error, record);
       if (itemIdentifier) itemFailures.push({ itemIdentifier });
     });
@@ -159,7 +159,7 @@ function getEventName(recordBody: TxMAIngressEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
   if (recordBody.event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION) {
     validateInterventionEvent(recordBody);
-    const interventionCode = recordBody.extensions!.intervention!.intervention_code;
+    const interventionCode = recordBody.extensions?.intervention?.intervention_code as string;
     return accountStateEngine.getInterventionEnumFromCode(interventionCode);
   }
   return recordBody.event_name as unknown as EventsEnum;
@@ -180,7 +180,7 @@ async function validateAccountIsNotDeleted(
   initialState: StateDetails,
   itemFromDB: DynamoDBStateResult,
 ) {
-  if (itemFromDB?.isAccountDeleted === true) {
+  if (itemFromDB.isAccountDeleted === true) {
     logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
     addMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
     await sendAuditEvent('AIS_EVENT_IGNORED_ACCOUNT_DELETED', intervention, record, {
