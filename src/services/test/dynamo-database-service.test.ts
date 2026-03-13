@@ -200,7 +200,7 @@ describe('Dynamo DB Service', () => {
     const loggerErrorSpy = jest.spyOn(logger, 'error');
     const dynamoDBService = new DynamoDatabaseService('table_name');
     await expect(async () => await dynamoDBService.updateDeleteStatus('hello')).rejects.toThrow(
-      new Error('Error was not a Conditional Check Failed Exception.'),
+      new Error('Error was not a Conditional Check Failed Exception.', { cause: { message: 'InternalServerError' } }),
     );
     expect(loggerErrorSpy).toHaveBeenCalledWith('Sensitive info - Error updating Dynamo DB.', {
       error: error,
