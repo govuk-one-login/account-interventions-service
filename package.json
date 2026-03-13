@@ -16,7 +16,7 @@
     "connect:pact:broker": "tsc --esModuleInterop src/contract-testing/test-helpers/connect-to-pact-broker.ts && node src/contract-testing/test-helpers/connect-to-pact-broker.js",
     "pact:publish:contracts": "tsc --esModuleInterop src/contract-testing/test-helpers/publish-pacts.ts && node src/contract-testing/test-helpers/publish-pacts.js",
     "lint": "yarn lint:code && yarn lint:spec && yarn lint:iac",
-    "lint:code": "eslint --ext .ts . ./feature-tests",
+    "lint:code": "eslint --ext .ts .",
     "lint:code:fix": "yarn lint:code --fix",
     "lint:iac": "for f in src/infra/**/template.yaml; do (sam validate --lint -t $f) || exit 1; done",
     "lint:spec:oas": "spectral lint src/specs/api.yaml",
@@ -41,6 +41,7 @@
   "devDependencies": {
     "@aws-sdk/client-sso-oidc": "^3.1006.0",
     "@aws-sdk/client-sts": "^3.1006.0",
+    "@eslint/js": "^10.0.1",
     "@pact-foundation/pact": "^16.3.0",
     "@pact-foundation/pact-cli": "^16.1.6",
     "@stoplight/spectral-cli": "^6.15.0",
@@ -54,7 +55,7 @@
     "aws-sdk-client-mock": "^4.1.0",
     "aws-sdk-client-mock-jest": "^4.1.0",
     "esbuild": "^0.27.3",
-    "eslint": "^8.57.1",
+    "eslint": "^10.0.3",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-tsdoc": "^0.5.0",
@@ -69,6 +70,7 @@
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.0",
     "yarn-audit-fix": "^10.0.9"
   },
   "resolutions": {

@@ -42,13 +42,13 @@ export class HistoryStringBuilder {
     const interventionInformation = event.extensions?.intervention;
     if (!interventionInformation) throw new Error('No intervention information found in event.');
     return this.buildHistoryString(
-      `${timeStamp}`,
+      String(timeStamp),
       event.component_id,
-      interventionInformation?.intervention_code,
-      interventionInformation?.intervention_reason,
-      interventionInformation?.originating_component_id,
-      interventionInformation?.originator_reference_id,
-      interventionInformation?.requester_id,
+      interventionInformation.intervention_code,
+      interventionInformation.intervention_reason,
+      interventionInformation.originating_component_id,
+      interventionInformation.originator_reference_id,
+      interventionInformation.requester_id,
     );
   }
 

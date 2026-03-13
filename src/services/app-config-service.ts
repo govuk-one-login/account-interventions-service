@@ -12,6 +12,7 @@ export class AppConfigService {
    * A static method which creates a single instance of the AppConfigService class and returns it.
    */
   public static getInstance(): AppConfigService {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!AppConfigService.instance) {
       AppConfigService.instance = new AppConfigService();
     }
@@ -70,7 +71,7 @@ export class AppConfigService {
       logger.error(message);
       throw new InvalidEnvironmentVariableError(message);
     }
-    return process.env[environmentVariable] as string;
+    return process.env[environmentVariable];
   }
 
   private validateIsHTTPSUrl(environmentVariable: string) {
