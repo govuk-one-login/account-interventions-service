@@ -47,8 +47,8 @@ export function publishTimeToResolveMetrics(
   }
 
   if (
-    (eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL ||
-      eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT) &&
+    (eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL.toString() ||
+      eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT.toString()) &&
     oldState.resetPassword &&
     !currentState.resetPassword
   ) {
@@ -56,7 +56,7 @@ export function publishTimeToResolveMetrics(
   }
 
   if (
-    eventName === EventsEnum.IPV_ACCOUNT_INTERVENTION_END &&
+    eventName === EventsEnum.IPV_ACCOUNT_INTERVENTION_END.toString() &&
     oldState.reproveIdentity &&
     !currentState.reproveIdentity
   ) {

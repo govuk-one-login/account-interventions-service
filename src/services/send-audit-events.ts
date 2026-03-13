@@ -97,7 +97,7 @@ function buildExtensions(
       ...txMAIngressEvent.extensions?.intervention,
       description: userLedActionList.includes(ingressEventName)
         ? 'USER_LED_ACTION'
-        : stateEngineOutput.interventionName!,
+        : stateEngineOutput.interventionName,
       allowable_interventions: stateEngineOutput.nextAllowableInterventions.filter(
         (intervention) => transitionConfiguration.edges[intervention]?.interventionName,
       ),
@@ -161,6 +161,7 @@ function buildAdditionalAttributes(
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (stateEngineOutput.stateResult.suspended) {
     return {
       state: State.SUSPENDED,

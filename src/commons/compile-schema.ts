@@ -16,6 +16,6 @@ export function compileSchema(schema: object) {
   } catch (error) {
     logger.error('Schema is invalid, failed to compile', { reasons: ajv.errors, error });
     addMetric(MetricNames.INVALID_SCHEMA);
-    throw new Error('Schema is invalid');
+    throw new Error('Schema is invalid', { cause: error });
   }
 }

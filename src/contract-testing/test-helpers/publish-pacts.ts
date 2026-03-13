@@ -6,12 +6,12 @@ const publishPact = async () => {
   try {
     const publishOptions = {
       pactFilesOrDirs: [path.resolve(process.cwd(), 'pacts')],
-      pactBroker: process.env['PACT_BROKER_URL']!,
-      pactBrokerUsername: process.env['PACT_BROKER_USER']!,
-      pactBrokerPassword: process.env['PACT_BROKER_PASSWORD']!,
+      pactBroker: process.env['PACT_BROKER_URL'] as string,
+      pactBrokerUsername: process.env['PACT_BROKER_USER'] as string,
+      pactBrokerPassword: process.env['PACT_BROKER_PASSWORD'] as string,
       logLevel: 'info',
-      consumerVersion: process.env['CONSUMER_APP_VERSION']!,
-      branch: process.env['GIT_BRANCH']!,
+      consumerVersion: process.env['CONSUMER_APP_VERSION'] as string,
+      branch: process.env['GIT_BRANCH'] as string,
     };
 
     await pact.publishPacts(publishOptions);

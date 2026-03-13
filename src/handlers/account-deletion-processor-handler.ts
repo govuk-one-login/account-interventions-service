@@ -36,15 +36,15 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
  * @returns - User ID as a string, with whitespace removed.
  */
 function getUserId(record: SQSRecord) {
-  let messageBody: SNSMessage;
   let message: DeleteStatusUpdateSNSMessage;
   try {
-    messageBody = JSON.parse(record.body);
-    message = JSON.parse(messageBody.Message);
+    const messageBody = JSON.parse(record.body) as SNSMessage;
+    message = JSON.parse(messageBody.Message) as DeleteStatusUpdateSNSMessage;
   } catch {
     logger.error('The SQS message can not be parsed.');
     return;
   }
+  // eslint-disable-next-line no-prototype-builtins
   if (!message.hasOwnProperty('user_id')) {
     logger.warn('Attribute missing: user_id.');
     return;
@@ -76,6 +76,6 @@ async function updateDeleteStatusId(userId: string) {
     logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} Error updating account ${userId}`, { error });
     addMetric(MetricNames.MARK_AS_DELETED_FAILED);
     metric.publishStoredMetrics();
-    throw new Error('Failed to update the account status.');
+    throw new Error('Failed to update the account status.', { cause: error });
   }
 }
