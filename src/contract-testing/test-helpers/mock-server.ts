@@ -1,7 +1,7 @@
 import express from 'express';
 import { handle } from '../../handlers/status-retriever-handler';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { Server } from 'http';
+import { Server } from 'node:http';
 
 let result: APIGatewayProxyResult;
 
