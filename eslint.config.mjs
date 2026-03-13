@@ -1,15 +1,30 @@
-module.exports = {
-  plugins: [
-    "eslint-plugin-tsdoc"
-  ],
-  extends: ['plugin:@typescript-eslint/recommended', 'plugin:prettier/recommended', 'plugin:unicorn/recommended'],
-  parser: '@typescript-eslint/parser',
-  parserOptions: {
-    ecmaVersion: 2022,
-    project: ['./tsconfig.json', './feature-tests/tsconfig.json'],
-    sourceType: 'module',
+// @ts-check
+
+import eslint from '@eslint/js';
+import { defineConfig } from 'eslint/config';
+import tseslint from 'typescript-eslint';
+import eslintPluginUnicorn from 'eslint-plugin-unicorn';
+import eslintPluginTsdoc from 'eslint-plugin-tsdoc'
+import globals from 'globals';
+
+export default defineConfig(
+  {
+    ignores: ['**/node_modules/**', '**/feature-tests/**', '**/*.test.ts', 'coverage/**', '**/.aws-sam/**'],
   },
-  rules: {
+  {
+    files: ['**/*.ts'],
+    extends: [eslint.configs.recommended, tseslint.configs.strictTypeChecked],
+    languageOptions: {
+            globals: globals.builtin,
+      parserOptions: {
+        projectService: true,
+      },
+        },
+    plugins: {
+            unicorn: eslintPluginUnicorn,
+      tsdoc: eslintPluginTsdoc
+        },
+    rules: {
     '@typescript-eslint/no-floating-promises': ['error'],
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-explicit-any': ['warn'],
@@ -26,4 +41,5 @@ module.exports = {
     'unicorn/prefer-spread': ['warn'],
     'tsdoc/syntax': ['warn'],
   },
-};
+  }
+);
