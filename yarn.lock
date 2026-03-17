@@ -78,10 +78,10 @@
     "@aws-lambda-powertools/commons" "2.31.0"
     aws-xray-sdk-core "^3.12.0"
 
-"@aws-sdk/client-dynamodb@^3.1009.0":
-  version "3.1009.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-dynamodb/-/client-dynamodb-3.1009.0.tgz#d26c3787bc36218471d36626db03b1acd6ad2ec6"
-  integrity sha512-2QYVDbPQpVWxXzeVo94NYwv12K5r1+7Bm4IgG/4TuU03nxgXqdlODWv7VPQeYE+a6cCMWxlEoeWAdX6SJ/lx6A==
+"@aws-sdk/client-dynamodb@^3.1010.0":
+  version "3.1010.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-dynamodb/-/client-dynamodb-3.1010.0.tgz#c159e8bf5cfd44aaced7d8bbb7e5483d76f2cf76"
+  integrity sha512-iVgfou3tQ6lIsaWh4Ke4Ki5zc8p0Gu/fOrTnpbqwaTFPxjMgYv56wZ5RsRdvmpenWarsi6YyAUeNODLkzi1DWw==
   dependencies:
     "@aws-crypto/sha256-browser" "5.2.0"
     "@aws-crypto/sha256-js" "5.2.0"
@@ -126,10 +126,10 @@
     "@smithy/util-waiter" "^4.2.13"
     tslib "^2.6.2"
 
-"@aws-sdk/client-sqs@^3.1009.0":
-  version "3.1009.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sqs/-/client-sqs-3.1009.0.tgz#d353b2edd0c33432d2f488fbbaf650d46bc797f4"
-  integrity sha512-emuPZV3PvPoTYVCk/YB4Ye2QtuT2sdz9UAqR8sAyG1RQ4KwBE42lgIuNuXW6d8XlxBp6R0o0qoGbFTkAC6XTFQ==
+"@aws-sdk/client-sqs@^3.1010.0":
+  version "3.1010.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sqs/-/client-sqs-3.1010.0.tgz#9cb01cf51b8960232915cde2ff9721bf30d37e5b"
+  integrity sha512-yMMnHbbH6eo54zR5QIGINgf2P8u9DEkmEWOx0EtUvRzTUqjmTwAbKZZHITo1s395dJihIc5V9Jj2zNPvk01wgg==
   dependencies:
     "@aws-crypto/sha256-browser" "5.2.0"
     "@aws-crypto/sha256-js" "5.2.0"
@@ -1849,10 +1849,10 @@
     "@smithy/types" "^4.13.1"
     tslib "^2.6.2"
 
-"@smithy/node-http-handler@^4.4.11", "@smithy/node-http-handler@^4.4.14", "@smithy/node-http-handler@^4.4.16":
-  version "4.4.16"
-  resolved "https://registry.yarnpkg.com/@smithy/node-http-handler/-/node-http-handler-4.4.16.tgz#bb9de91f546c22b312820acabc081debe0417dff"
-  integrity sha512-ULC8UCS/HivdCB3jhi+kLFYe4B5gxH2gi9vHBfEIiRrT2jfKiZNiETJSlzRtE6B26XbBHjPtc8iZKSNqMol9bw==
+"@smithy/node-http-handler@^4.4.14", "@smithy/node-http-handler@^4.4.16", "@smithy/node-http-handler@^4.5.0":
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/@smithy/node-http-handler/-/node-http-handler-4.5.0.tgz#6a506a0da462c79e725fdbcfa55b0eed5b929727"
+  integrity sha512-Rnq9vQWiR1+/I6NZZMNzJHV6pZYyEHt2ZnuV3MG8z2NNenC4i/8Kzttz7CjZiHSmsN5frhXhg17z3Zqjjhmz1A==
   dependencies:
     "@smithy/abort-controller" "^4.2.12"
     "@smithy/protocol-http" "^5.3.12"
@@ -4468,19 +4468,19 @@ fast-uri@^3.0.1:
   resolved "https://registry.yarnpkg.com/fast-uri/-/fast-uri-3.1.0.tgz#66eecff6c764c0df9b762e62ca7edcfb53b4edfa"
   integrity sha512-iPeeDKJSWf4IEOasVVrknXpaBV0IApz/gp7S2bb7Z4Lljbl2MGJRqInZiUrQwV16cpzw/D3S5j5Julj/gT52AA==
 
-fast-xml-builder@^1.1.3:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/fast-xml-builder/-/fast-xml-builder-1.1.3.tgz#283579acba94aecf998a7e1339bc7e037195abc1"
-  integrity sha512-1o60KoFw2+LWKQu3IdcfcFlGTW4dpqEWmjhYec6H82AYZU2TVBXep6tMl8Z1Y+wM+ZrzCwe3BZ9Vyd9N2rIvmg==
+fast-xml-builder@^1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/fast-xml-builder/-/fast-xml-builder-1.1.4.tgz#0c407a1d9d5996336c0cd76f7ff785cac6413017"
+  integrity sha512-f2jhpN4Eccy0/Uz9csxh3Nu6q4ErKxf0XIsasomfOihuSUa3/xw6w8dnOtCDgEItQFJG8KyXPzQXzcODDrrbOg==
   dependencies:
     path-expression-matcher "^1.1.3"
 
-fast-xml-parser@5.4.1, fast-xml-parser@^5.3.8, fast-xml-parser@^5.5.5:
-  version "5.5.5"
-  resolved "https://registry.yarnpkg.com/fast-xml-parser/-/fast-xml-parser-5.5.5.tgz#cadbcb992d6ac3f7e643d459506a8e1dd8adf5f2"
-  integrity sha512-NLY+V5NNbdmiEszx9n14mZBseJTC50bRq1VHsaxOmR72JDuZt+5J1Co+dC/4JPnyq+WrIHNM69r0sqf7BMb3Mg==
+fast-xml-parser@5.4.1, fast-xml-parser@^5.3.8, fast-xml-parser@^5.5.6:
+  version "5.5.6"
+  resolved "https://registry.yarnpkg.com/fast-xml-parser/-/fast-xml-parser-5.5.6.tgz#6fc61f5ae06a55a1f058abd6a4f4b5d3e9972cd0"
+  integrity sha512-3+fdZyBRVg29n4rXP0joHthhcHdPUHaIC16cuyyd1iLsuaO6Vea36MPrxgAzbZna8lhvZeRL8Bc9GP56/J9xEw==
   dependencies:
-    fast-xml-builder "^1.1.3"
+    fast-xml-builder "^1.1.4"
     path-expression-matcher "^1.1.3"
     strnum "^2.1.2"
 
