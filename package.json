@@ -36,7 +36,7 @@
     "@aws-sdk/client-sqs": "^3.1009.0",
     "@aws-sdk/util-dynamodb": "^3.996.0",
     "@smithy/node-http-handler": "^4.4.11",
-    "fast-xml-parser": "^5.5.5"
+    "fast-xml-parser": "^5.5.6"
   },
   "devDependencies": {
     "@aws-sdk/client-sso-oidc": "^3.1008.0",
