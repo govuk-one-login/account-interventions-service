@@ -1,6 +1,7 @@
 import express from 'express';
 import { handle } from '../../handlers/status-retriever-handler';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { Server } from 'node:http';
 
 let result: APIGatewayProxyResult;
 
@@ -14,13 +15,18 @@ const dummyContext = {
   invokedFunctionArn: 'arn:aws:lambda:eu-west-1:123456789012:function:foo-bar-function',
   awsRequestId: 'c6af9ac6-7b61-11e6-9a41-93e812345678',
   getRemainingTimeInMillis: () => 1234,
-  done: () => console.log('Done!'),
-  fail: () => console.log('Failed!'),
-  succeed: () => console.log('Succeeded!'),
+  done: () => {
+    console.log('Done!');
+  },
+  fail: () => {
+    console.log('Failed!');
+  },
+  succeed: () => {
+    console.log('Succeeded!');
+  },
 };
 
-// eslint-disable-next-line  @typescript-eslint/no-explicit-any
-let server: any;
+let server: Server | undefined;
 
 export function setupServer(port: number) {
   const app = express();
@@ -32,13 +38,13 @@ export function setupServer(port: number) {
       result = await handle(apiGatewayEvent, dummyContext);
       response.status(result.statusCode).json(JSON.parse(result.body));
     } catch (error) {
-      console.log(`The operation had an unexpected outcome: ${error}`);
-      response.status(500).json(`The call to the handler was unsuccessful: ${error}`);
+      console.log(`The operation had an unexpected outcome: ${String(error)}`);
+      response.status(500).json(`The call to the handler was unsuccessful: ${String(error)}`);
     }
   });
 
   server = app.listen(port, () => {
-    console.log(`mock server listening on port ${port}`);
+    console.log(`mock server listening on port ${String(port)}`);
   });
 }
 

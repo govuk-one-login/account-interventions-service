@@ -29,7 +29,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
   const interventionMessages = [];
   let id = 0;
   for (const record of event.Records) {
-    const body: TxMAEgressEvent = JSON.parse(record.body);
+    const body = JSON.parse(record.body) as TxMAEgressEvent;
     if (body.event_name === 'AUTH_DELETE_ACCOUNT') {
       addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_DELETE);
       const deletionEvent: TxMAEgressDeletionEvent = { event_name: 'AUTH_DELETE_ACCOUNT', user_id: body.user_id };
@@ -37,13 +37,13 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
         Message: JSON.stringify(deletionEvent),
       };
       deletionMessages.push({
-        Id: id + '',
+        Id: String(id),
         MessageBody: JSON.stringify(messageBody),
       });
     } else {
       addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_INTERVENTION);
       interventionMessages.push({
-        Id: id + '',
+        Id: String(id),
         MessageBody: record.body,
       });
     }

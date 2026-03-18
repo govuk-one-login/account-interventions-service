@@ -31,7 +31,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
 
   logger.info('This is a comment for tests');
 
-  const userId = decodeURIComponent(validateEvent(event.pathParameters?.['userId']));
+  const userId = decodeURIComponent(validateEvent(event.pathParameters['userId']));
   const historyQuery = event.queryStringParameters?.['history'];
 
   try {
@@ -55,7 +55,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
     const accountStatus = transformResponseFromDynamoDatabase(response);
 
     if (historyQuery && historyQuery === 'true') {
-      accountStatus.history = response.history ? constructHistoryObjectField(response.history) : [];
+      accountStatus.history = constructHistoryObjectField(response.history);
     }
     metric.publishStoredMetrics();
     return {

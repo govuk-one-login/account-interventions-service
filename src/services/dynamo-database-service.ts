@@ -119,7 +119,7 @@ export class DynamoDatabaseService {
       if (error instanceof Error && (!error.name || error.name !== 'ConditionalCheckFailedException')) {
         logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} Error updating Dynamo DB.`, { error, userId });
         addMetric(MetricNames.DB_UPDATE_ERROR);
-        throw new Error('Error was not a Conditional Check Failed Exception.'); //Therefore re-driving message back to the queue.
+        throw new Error('Error was not a Conditional Check Failed Exception.', { cause: error }); //Therefore re-driving message back to the queue.
       }
       logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} No intervention exists for this account.`, { error, userId });
     }
@@ -144,7 +144,8 @@ export class DynamoDatabaseService {
    * Function to validate the response and send metrics if there is a problem with the received response
    * @param response - the response from dynamoDB
    */
-  private validateQueryResponse<T>(response: QueryCommandOutput) {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+  private validateQueryResponse<T>(response: QueryCommandOutput): T | undefined {
     if (!response.Items) {
       const errorMessage = 'DynamoDB may have failed to query, returned a null response.';
       logger.error(errorMessage);

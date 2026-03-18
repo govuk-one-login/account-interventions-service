@@ -5,6 +5,10 @@ import { addMetric } from './metrics';
 import { HistoryStringBuilder } from './history-string-builder';
 import { AppConfigService } from '../services/app-config-service';
 
+type DeepRequiredKey<T, K extends keyof T> = Omit<T, K> & {
+  [P in K]-?: Exclude<T[P], undefined>;
+};
+
 /**
  * Method to build a Partial of UpdateItemCommandInput
  * @param finalState - new account state object
@@ -23,8 +27,11 @@ export const buildPartialUpdateAccountStateCommand = (
   interventionName?: AISInterventionTypes,
 ): Partial<UpdateItemCommandInput> => {
   const eventTimestamp = interventionEvent.event_timestamp_ms ?? interventionEvent.timestamp * 1000;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const baseUpdateItemCommandInput: Record<string, any> = {
+
+  const baseUpdateItemCommandInput: DeepRequiredKey<
+    Partial<UpdateItemCommandInput>,
+    'ExpressionAttributeNames' | 'ExpressionAttributeValues' | 'UpdateExpression'
+  > = {
     ExpressionAttributeNames: {
       '#B': 'blocked',
       '#S': 'suspended',
@@ -37,13 +44,14 @@ export const buildPartialUpdateAccountStateCommand = (
       ':s': { BOOL: finalState.suspended },
       ':rp': { BOOL: finalState.resetPassword },
       ':ri': { BOOL: finalState.reproveIdentity },
-      ':ua': { N: `${currentTimestamp}` },
+      ':ua': { N: String(currentTimestamp) },
     },
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
   };
+
   if (eventName === EventsEnum.IPV_ACCOUNT_INTERVENTION_END) {
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RIdA'] = 'reprovedIdentityAt';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rida'] = { N: `${eventTimestamp}` };
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rida'] = { N: String(eventTimestamp) };
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
       L: extractValidHistoryItems(historyList, currentTimestamp),
@@ -51,12 +59,13 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RIdA = :rida, #H = :h';
     return baseUpdateItemCommandInput;
   }
+
   if (
     eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL ||
     eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT
   ) {
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#RPswdA'] = 'resetPasswordAt';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rpswda'] = { N: `${eventTimestamp}` };
+    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rpswda'] = { N: String(eventTimestamp) };
     baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
     baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
       L: extractValidHistoryItems(historyList, currentTimestamp),
@@ -64,6 +73,7 @@ export const buildPartialUpdateAccountStateCommand = (
     baseUpdateItemCommandInput['UpdateExpression'] += ', #RPswdA = :rpswda, #H = :h';
     return baseUpdateItemCommandInput;
   }
+
   if (!interventionName) {
     addMetric(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
     throw new Error('The intervention received did not have an interventionName field.');
@@ -71,9 +81,9 @@ export const buildPartialUpdateAccountStateCommand = (
   baseUpdateItemCommandInput['ExpressionAttributeNames']['#INT'] = 'intervention';
   baseUpdateItemCommandInput['ExpressionAttributeValues'][':int'] = { S: interventionName };
   baseUpdateItemCommandInput['ExpressionAttributeNames']['#AA'] = 'appliedAt';
-  baseUpdateItemCommandInput['ExpressionAttributeValues'][':aa'] = { N: `${currentTimestamp}` };
+  baseUpdateItemCommandInput['ExpressionAttributeValues'][':aa'] = { N: String(currentTimestamp) };
   baseUpdateItemCommandInput['ExpressionAttributeNames']['#SA'] = 'sentAt';
-  baseUpdateItemCommandInput['ExpressionAttributeValues'][':sa'] = { N: `${eventTimestamp}` };
+  baseUpdateItemCommandInput['ExpressionAttributeValues'][':sa'] = { N: String(eventTimestamp) };
   const stringBuilder = new HistoryStringBuilder();
   baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
   baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
