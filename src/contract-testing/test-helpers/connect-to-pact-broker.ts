@@ -1,3 +1,5 @@
+import getEnvOrThrow from '../../commons/get-env-or-throw';
+
 //required to connect to PactBroker as Pact libraries don't allow testSource parameter to be passed
 function connectToPactBroker(pact_url: string, pact_user: string, pact_password: string): string {
   const auth = btoa(`${pact_user}:${pact_password}`);
@@ -19,7 +21,7 @@ function connectToPactBroker(pact_url: string, pact_user: string, pact_password:
 }
 
 connectToPactBroker(
-  (process.env['PACT_BROKER_URL'] as string) + '?testSource=' + (process.env['PACT_BROKER_SOURCE_SECRET'] as string),
-  process.env['PACT_BROKER_USER'] as string,
-  process.env['PACT_BROKER_PASSWORD'] as string,
+  getEnvOrThrow('PACT_BROKER_URL') + '?testSource=' + getEnvOrThrow('PACT_BROKER_SOURCE_SECRET'),
+  getEnvOrThrow('PACT_BROKER_USER'),
+  getEnvOrThrow('PACT_BROKER_PASSWORD'),
 );

@@ -7,7 +7,7 @@ import { AccountStateEngine } from '../services/account-states/account-state-eng
  * and converts a history string into an object containing the required fields.
  */
 export class HistoryStringBuilder {
-  separator: string = '|';
+  separator = '|';
   /**
    * Method to build the history string from parts
    * @param event_timestamp_ms - sentAt part of the history string

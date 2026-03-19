@@ -50,13 +50,13 @@ export const buildPartialUpdateAccountStateCommand = (
   };
 
   if (eventName === EventsEnum.IPV_ACCOUNT_INTERVENTION_END) {
-    baseUpdateItemCommandInput['ExpressionAttributeNames']['#RIdA'] = 'reprovedIdentityAt';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rida'] = { N: String(eventTimestamp) };
-    baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
+    baseUpdateItemCommandInput.ExpressionAttributeNames['#RIdA'] = 'reprovedIdentityAt';
+    baseUpdateItemCommandInput.ExpressionAttributeValues[':rida'] = { N: String(eventTimestamp) };
+    baseUpdateItemCommandInput.ExpressionAttributeNames['#H'] = 'history';
+    baseUpdateItemCommandInput.ExpressionAttributeValues[':h'] = {
       L: extractValidHistoryItems(historyList, currentTimestamp),
     };
-    baseUpdateItemCommandInput['UpdateExpression'] += ', #RIdA = :rida, #H = :h';
+    baseUpdateItemCommandInput.UpdateExpression += ', #RIdA = :rida, #H = :h';
     return baseUpdateItemCommandInput;
   }
 
@@ -64,13 +64,13 @@ export const buildPartialUpdateAccountStateCommand = (
     eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL ||
     eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT
   ) {
-    baseUpdateItemCommandInput['ExpressionAttributeNames']['#RPswdA'] = 'resetPasswordAt';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':rpswda'] = { N: String(eventTimestamp) };
-    baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
-    baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
+    baseUpdateItemCommandInput.ExpressionAttributeNames['#RPswdA'] = 'resetPasswordAt';
+    baseUpdateItemCommandInput.ExpressionAttributeValues[':rpswda'] = { N: String(eventTimestamp) };
+    baseUpdateItemCommandInput.ExpressionAttributeNames['#H'] = 'history';
+    baseUpdateItemCommandInput.ExpressionAttributeValues[':h'] = {
       L: extractValidHistoryItems(historyList, currentTimestamp),
     };
-    baseUpdateItemCommandInput['UpdateExpression'] += ', #RPswdA = :rpswda, #H = :h';
+    baseUpdateItemCommandInput.UpdateExpression += ', #RPswdA = :rpswda, #H = :h';
     return baseUpdateItemCommandInput;
   }
 
@@ -78,22 +78,22 @@ export const buildPartialUpdateAccountStateCommand = (
     addMetric(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
     throw new Error('The intervention received did not have an interventionName field.');
   }
-  baseUpdateItemCommandInput['ExpressionAttributeNames']['#INT'] = 'intervention';
-  baseUpdateItemCommandInput['ExpressionAttributeValues'][':int'] = { S: interventionName };
-  baseUpdateItemCommandInput['ExpressionAttributeNames']['#AA'] = 'appliedAt';
-  baseUpdateItemCommandInput['ExpressionAttributeValues'][':aa'] = { N: String(currentTimestamp) };
-  baseUpdateItemCommandInput['ExpressionAttributeNames']['#SA'] = 'sentAt';
-  baseUpdateItemCommandInput['ExpressionAttributeValues'][':sa'] = { N: String(eventTimestamp) };
+  baseUpdateItemCommandInput.ExpressionAttributeNames['#INT'] = 'intervention';
+  baseUpdateItemCommandInput.ExpressionAttributeValues[':int'] = { S: interventionName };
+  baseUpdateItemCommandInput.ExpressionAttributeNames['#AA'] = 'appliedAt';
+  baseUpdateItemCommandInput.ExpressionAttributeValues[':aa'] = { N: String(currentTimestamp) };
+  baseUpdateItemCommandInput.ExpressionAttributeNames['#SA'] = 'sentAt';
+  baseUpdateItemCommandInput.ExpressionAttributeValues[':sa'] = { N: String(eventTimestamp) };
   const stringBuilder = new HistoryStringBuilder();
-  baseUpdateItemCommandInput['ExpressionAttributeNames']['#H'] = 'history';
-  baseUpdateItemCommandInput['ExpressionAttributeValues'][':h'] = {
+  baseUpdateItemCommandInput.ExpressionAttributeNames['#H'] = 'history';
+  baseUpdateItemCommandInput.ExpressionAttributeValues[':h'] = {
     L: [
       ...extractValidHistoryItems(historyList, currentTimestamp),
       { S: stringBuilder.getHistoryString(interventionEvent, eventTimestamp) },
     ],
   };
-  baseUpdateItemCommandInput['UpdateExpression'] += ', #INT = :int, #SA = :sa, #AA = :aa, #H = :h';
-  baseUpdateItemCommandInput['UpdateExpression'] += buildRemoveExpression(finalState);
+  baseUpdateItemCommandInput.UpdateExpression += ', #INT = :int, #SA = :sa, #AA = :aa, #H = :h';
+  baseUpdateItemCommandInput.UpdateExpression += buildRemoveExpression(finalState);
 
   return baseUpdateItemCommandInput;
 };

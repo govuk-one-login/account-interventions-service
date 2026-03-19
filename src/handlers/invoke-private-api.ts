@@ -1,3 +1,4 @@
+import getEnvOrThrow from '../commons/get-env-or-throw';
 import logger from '../commons/logger';
 
 interface CustomEvent {
@@ -5,9 +6,7 @@ interface CustomEvent {
   queryParameters?: string;
   baseUrl?: string;
   endpoint?: string;
-  headers?: {
-    [key: string]: string;
-  };
+  headers?: Record<string, string>;
 }
 
 export const handle = async (event: CustomEvent) => {
@@ -38,7 +37,7 @@ export const handle = async (event: CustomEvent) => {
 };
 
 function getUserId() {
-  return process.env['USER_ID'] as string;
+  return getEnvOrThrow('USER_ID');
 }
 
 function getBaseUrl() {
@@ -52,7 +51,7 @@ function getEndpoint() {
 }
 
 function getQueryParameters() {
-  return process.env['QUERY_PARAMETERS'] as string;
+  return getEnvOrThrow('QUERY_PARAMETERS');
 }
 
 function getHttpRequestMethod() {
