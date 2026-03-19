@@ -16,7 +16,7 @@ export function addMetric(
   metricName: string,
   metadata: { key: string; value: string }[] = [],
   value = 1,
-  dimensions?: { [key: string]: string },
+  dimensions?: Record<string, string>,
 ) {
   for (const data of metadata) {
     metric.addMetadata(data.key, data.value);

@@ -1,17 +1,18 @@
 import path from 'node:path';
 import pact from '@pact-foundation/pact-cli';
+import getEnvOrThrow from '../../commons/get-env-or-throw';
 
 const publishPact = async () => {
   console.log('STARTING PUBLISH PACT');
   try {
     const publishOptions = {
       pactFilesOrDirs: [path.resolve(process.cwd(), 'pacts')],
-      pactBroker: process.env['PACT_BROKER_URL'] as string,
-      pactBrokerUsername: process.env['PACT_BROKER_USER'] as string,
-      pactBrokerPassword: process.env['PACT_BROKER_PASSWORD'] as string,
+      pactBroker: getEnvOrThrow('PACT_BROKER_URL'),
+      pactBrokerUsername: getEnvOrThrow('PACT_BROKER_USER'),
+      pactBrokerPassword: getEnvOrThrow('PACT_BROKER_PASSWORD'),
       logLevel: 'info',
-      consumerVersion: process.env['CONSUMER_APP_VERSION'] as string,
-      branch: process.env['GIT_BRANCH'] as string,
+      consumerVersion: getEnvOrThrow('CONSUMER_APP_VERSION'),
+      branch: getEnvOrThrow('GIT_BRANCH'),
     };
 
     await pact.publishPacts(publishOptions);

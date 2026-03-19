@@ -9,7 +9,6 @@ export class AccountStateEngine {
   private static readonly configuration = transitionConfiguration;
   private static instance: AccountStateEngine;
 
-  private constructor() {}
   public static getInstance() {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!AccountStateEngine.instance) {

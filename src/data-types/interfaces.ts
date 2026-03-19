@@ -122,19 +122,16 @@ export interface DeleteStatusUpdateSNSMessage {
 }
 
 export interface TransitionConfigurationInterface {
-  nodes: {
-    [key: string]: StateDetails;
-  };
-  edges: {
-    [key: string]: {
+  nodes: Record<string, StateDetails>;
+  edges: Record<
+    string,
+    {
       to: string;
       name: EventsEnum;
       interventionName?: AISInterventionTypes;
-    };
-  };
-  adjacency: {
-    [key: string]: string[];
-  };
+    }
+  >;
+  adjacency: Record<string, string[]>;
 }
 
 export interface AccountStatus {
