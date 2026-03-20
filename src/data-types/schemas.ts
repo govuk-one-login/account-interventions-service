@@ -17,7 +17,8 @@ export const TxMAIngress = {
       allOf: [
         {
           if: { properties: { event_name: { enum: [TriggerEventsEnum.IPV_ACCOUNT_INTERVENTION_END] } } },
-          then: { // NOSONAR
+          // eslint-disable-next-line unicorn/no-thenable
+          then: {
             required: ['extensions'],
             properties: {
               extensions: {
@@ -32,7 +33,8 @@ export const TxMAIngress = {
         },
         {
           if: { properties: { event_name: { enum: [TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION] } } },
-          then: { // NOSONAR
+          // eslint-disable-next-line unicorn/no-thenable
+          then: {
             required: ['extensions'],
             properties: {
               extensions: {
