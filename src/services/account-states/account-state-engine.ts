@@ -22,8 +22,8 @@ export class AccountStateEngine {
    * Private method to validate configuration object in use by this class
    */
   private static validateConfiguration() {
-    const accountStates = Object.keys(AccountStateEngine.configuration.nodes).sort(compareStrings);
-    const adjacencyLists = Object.keys(AccountStateEngine.configuration.adjacency).sort(compareStrings);
+    const accountStates = Object.keys(AccountStateEngine.configuration.nodes).toSorted(compareStrings);
+    const adjacencyLists = Object.keys(AccountStateEngine.configuration.adjacency).toSorted(compareStrings);
     if (JSON.stringify(adjacencyLists) !== JSON.stringify(accountStates))
       throw buildConfigurationError(
         MetricNames.INVALID_STATE_ENGINE_CONFIGURATION,
