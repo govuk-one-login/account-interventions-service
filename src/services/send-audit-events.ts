@@ -56,7 +56,6 @@ export async function sendAuditEvent(
   const txmaEvent: TxMAEgressEvent = {
     timestamp: timestamp.seconds,
     event_timestamp_ms: timestamp.milliseconds,
-    event_timestamp_ms_formatted: timestamp.isoString,
     component_id: COMPONENT_ID,
     event_name: egressEventName,
     user: { user_id: ingressTxMAEvent.user.user_id },

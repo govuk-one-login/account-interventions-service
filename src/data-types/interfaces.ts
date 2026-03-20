@@ -53,7 +53,6 @@ interface TxMAEgressInterventionEvent {
   event_name: TxMAEgressInterventionEventName;
   timestamp: number;
   event_timestamp_ms?: number;
-  event_timestamp_ms_formatted?: string;
   component_id?: string;
   user: TxmaUser;
   extensions: TxMAEgressExtensions | TxMAEgressBasicExtensions;

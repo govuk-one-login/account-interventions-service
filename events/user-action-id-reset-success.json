@@ -4,7 +4,6 @@
   "timestamp": 1703174676,
   "timestamp_formatted": "2023-12-21T16:04:36.000Z",
   "event_timestamp_ms": 1234567000,
-  "event_timestamp_ms_formatted": "2023-12-21T16:04:36.062Z",
   "component_id": "https://identity.account.gov.uk",
   "user": {
     "user_id": "urn:fdc:gov.uk:2022:USER_ONE",
