@@ -39,8 +39,8 @@
     "fast-xml-parser": "^5.5.8"
   },
   "devDependencies": {
-    "@aws-sdk/client-sso-oidc": "^3.1011.0",
-    "@aws-sdk/client-sts": "^3.1011.0",
+    "@aws-sdk/client-sso-oidc": "^3.1013.0",
+    "@aws-sdk/client-sts": "^3.1013.0",
     "@eslint/js": "^10.0.1",
     "@pact-foundation/pact": "^16.3.0",
     "@pact-foundation/pact-cli": "^16.1.6",
@@ -70,7 +70,7 @@
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.0",
+    "typescript-eslint": "^8.57.1",
     "yarn-audit-fix": "^10.0.9"
   },
   "resolutions": {
