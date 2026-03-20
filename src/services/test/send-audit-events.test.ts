@@ -88,7 +88,6 @@ const sqsCommandInputForUserAction = {
   MessageBody: JSON.stringify({
     timestamp: 1_234_567,
     event_timestamp_ms: 1_234_567_890,
-    event_timestamp_ms_formatted: 'today',
     component_id: 'ACCOUNT_INTERVENTION_SERVICE',
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: {
@@ -110,7 +109,6 @@ const sqsCommandInputForBlockIntervention = {
   MessageBody: JSON.stringify({
     timestamp: 1_234_567,
     event_timestamp_ms: 1_234_567_890,
-    event_timestamp_ms_formatted: 'today',
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: { user_id: 'testUserId' },
@@ -131,7 +129,6 @@ const sqsCommandInputForDeletedAccount = {
   MessageBody: JSON.stringify({
     timestamp: 1_234_567,
     event_timestamp_ms: 1_234_567_890,
-    event_timestamp_ms_formatted: 'today',
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_IGNORED_ACCOUNT_DELETED',
     user: { user_id: 'testUserId' },
@@ -152,7 +149,6 @@ const sqsCommandInputForSuspendIntervention = {
   MessageBody: JSON.stringify({
     timestamp: 1_234_567,
     event_timestamp_ms: 1_234_567_890,
-    event_timestamp_ms_formatted: 'today',
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: { user_id: 'testUserId' },
@@ -173,7 +169,6 @@ const sqsCommandInputForUnsuspendIntervention = {
   MessageBody: JSON.stringify({
     timestamp: 1_234_567,
     event_timestamp_ms: 1_234_567_890,
-    event_timestamp_ms_formatted: 'today',
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: { user_id: 'testUserId' },
@@ -194,7 +189,6 @@ const sqsCommandInputForFutureInterventions = {
   MessageBody: JSON.stringify({
     timestamp: 1_234_567,
     event_timestamp_ms: 1_234_567_890,
-    event_timestamp_ms_formatted: 'today',
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_IGNORED_IN_FUTURE',
     user: { user_id: 'testUserId' },
@@ -212,7 +206,6 @@ const sqsCommandInputForSuspendUserAction = {
   MessageBody: JSON.stringify({
     timestamp: 1_234_567,
     event_timestamp_ms: 1_234_567_890,
-    event_timestamp_ms_formatted: 'today',
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: { user_id: 'testUserId' },
@@ -234,7 +227,6 @@ const sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass = {
   MessageBody: JSON.stringify({
     timestamp: 1_234_567,
     event_timestamp_ms: 1_234_567_890,
-    event_timestamp_ms_formatted: 'today',
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: { user_id: 'testUserId' },
@@ -256,7 +248,6 @@ const sqsInputWithExtraFields = {
   MessageBody: JSON.stringify({
     timestamp: 1_234_567,
     event_timestamp_ms: 1_234_567_890,
-    event_timestamp_ms_formatted: 'today',
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: { user_id: 'testUserId' },
@@ -354,7 +345,8 @@ describe('send-audit-events', () => {
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendIntervention);
     expect(logger.error).toHaveBeenCalledWith(
-      'An error happened while trying to send the audit event to the TxMA queue.', { error: new Error('SomeSQSError')}
+      'An error happened while trying to send the audit event to the TxMA queue.',
+      { error: new Error('SomeSQSError') },
     );
     expect(addMetric).toHaveBeenCalledWith('ERROR_PUBLISHING_EVENT_TO_TXMA');
   });
@@ -465,7 +457,6 @@ describe('send-audit-events', () => {
       MessageBody: JSON.stringify({
         timestamp: 1_234_567,
         event_timestamp_ms: 1_234_567_890,
-        event_timestamp_ms_formatted: 'today',
         component_id: COMPONENT_ID,
         event_name: 'AIS_EVENT_TRANSITION_APPLIED',
         user: { user_id: 'testUserId' },
