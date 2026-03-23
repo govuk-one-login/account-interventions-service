@@ -39,8 +39,8 @@
     "fast-xml-parser": "^5.5.8"
   },
   "devDependencies": {
-    "@aws-sdk/client-sso-oidc": "^3.1013.0",
-    "@aws-sdk/client-sts": "^3.1013.0",
+    "@aws-sdk/client-sso-oidc": "^3.1014.0",
+    "@aws-sdk/client-sts": "^3.1014.0",
     "@eslint/js": "^10.0.1",
     "@pact-foundation/pact": "^16.3.0",
     "@pact-foundation/pact-cli": "^16.1.6",
@@ -55,7 +55,7 @@
     "aws-sdk-client-mock": "^4.1.0",
     "aws-sdk-client-mock-jest": "^4.1.0",
     "esbuild": "^0.27.4",
-    "eslint": "^10.0.3",
+    "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-tsdoc": "^0.5.0",
