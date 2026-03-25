@@ -8,3 +8,6 @@
 
 # Style changes from running prettier against codebase
 66293639e2bec0ce22545e8fedf96df26affc526
+
+# ESLint fixes
+7f12fd1cde19f67b346ac85d0f11d6ac5f1900f9
