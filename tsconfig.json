@@ -25,5 +25,5 @@
     "checkJs": true,
     "resolveJsonModule": true
   },
-  "exclude": ["feature-tests"]
+  "exclude": ["feature-tests", "coverage"]
 }
