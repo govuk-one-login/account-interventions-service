@@ -131,7 +131,13 @@ describe('update-account-state-metrics', () => {
       });
 
       it('when an account stays suspended even after identity has been reset successfully', () => {
-        publishTimeToResolveMetrics(accountNeedsIdReset, accountIsSuspended, 1000, 11_000, 'IPV_ACCOUNT_INTERVENTION_END');
+        publishTimeToResolveMetrics(
+          accountNeedsIdReset,
+          accountIsSuspended,
+          1000,
+          11_000,
+          'IPV_ACCOUNT_INTERVENTION_END',
+        );
         expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'reproveIdentity' });
         expect(addMetric).toHaveBeenCalledTimes(1);
       });

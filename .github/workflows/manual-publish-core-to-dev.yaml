@@ -1,17 +1,17 @@
 ---
-name: "Validate & Publish Core SAM Template to Dev Env"
+name: 'Validate & Publish Core SAM Template to Dev Env'
 
 on:
   push:
     paths:
-      - "src/infra/core/**"
-      - ".github/workflows/manual-publish-core-to-dev.yaml"
+      - 'src/infra/core/**'
+      - '.github/workflows/manual-publish-core-to-dev.yaml'
     branches:
       - main
   workflow_dispatch:
     inputs:
       gitRef:
-        description: "Input branch name, commit SHA, or tag."
+        description: 'Input branch name, commit SHA, or tag.'
         required: true
         type: string
         default: main
@@ -30,7 +30,7 @@ jobs:
       githubActionsRoleARN: ${{ secrets.DEV_CORE_GH_ACTIONS_ROLE_ARN }}
 
   publish_artifacts:
-    name: "Publish Image & Template"
+    name: 'Publish Image & Template'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -44,7 +44,7 @@ jobs:
           role-to-assume: ${{ secrets.DEV_CORE_GH_ACTIONS_ROLE_ARN }}
           aws-region: eu-west-2
 
-      - name: "Deploy SAM app"
+      - name: 'Deploy SAM app'
         uses: govuk-one-login/devplatform-upload-action@b7bc01ed6e0b61d54f42e7f3d12dd3fdbb0f172a # pin@v3.13.0
         with:
           artifact-bucket-name: ${{ secrets.DEV_CORE_ARTIFACT_BUCKET_NAME }}
@@ -52,5 +52,5 @@ jobs:
           working-directory: ./src/infra/core/
           template-file: template.yaml
 
-      - name: "Delegated Deployment via AWS CodeDeploy"
+      - name: 'Delegated Deployment via AWS CodeDeploy'
         run: echo "Deployment has been delegated to AWS CodeDeploy"

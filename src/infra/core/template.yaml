@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Description: >-
@@ -45,13 +45,13 @@ Resources:
           AttributeType: S
       KeySchema:
         - AttributeName: pk
-          KeyType: HASH  # partition key
+          KeyType: HASH # partition key
       BillingMode: PAY_PER_REQUEST
       SSESpecification:
         KMSMasterKeyId: !Ref AccountStatusTableEncryptionKey
         SSEEnabled: true
         SSEType: KMS
-      DeletionProtectionEnabled: !If [ IsDevEnvironment, false, true ]
+      DeletionProtectionEnabled: !If [IsDevEnvironment, false, true]
       ContributorInsightsSpecification:
         Enabled: false
       PointInTimeRecoverySpecification:
@@ -79,28 +79,28 @@ Resources:
       Description: AWS KMS key for encrypting the data stored within our Account Status Table
       EnableKeyRotation: true
       KeyPolicy:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
             Action:
               - kms:*
-            Resource: "*"
+            Resource: '*'
           - Effect: Allow
             Principal:
-              Service: "dynamodb.amazonaws.com"
+              Service: 'dynamodb.amazonaws.com'
             Action:
-              - "kms:Encrypt"
-              - "kms:Decrypt"
-              - "kms:ReEncrypt*"
-              - "kms:GenerateDataKey*"
-              - "kms:DescribeKey"
-              - "kms:CreateGrant"
-            Resource: "*"
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey*'
+              - 'kms:DescribeKey'
+              - 'kms:CreateGrant'
+            Resource: '*'
             Condition:
               ArnEquals:
-                aws:SourceArn: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AWS::StackName}-AccountStatusTable"
+                aws:SourceArn: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AWS::StackName}-AccountStatusTable'
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -113,35 +113,35 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
         - Key: Name
-          Value: !Sub "${AWS::StackName}-AccountStatusTableEncryptionKey"
+          Value: !Sub '${AWS::StackName}-AccountStatusTableEncryptionKey'
 
   AccountStatusTableEncryptionKeyAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub "alias/${AWS::StackName}-AccountStatusTableEncryptionKey"
+      AliasName: !Sub 'alias/${AWS::StackName}-AccountStatusTableEncryptionKey'
       TargetKeyId: !GetAtt AccountStatusTableEncryptionKey.Arn
 
 Outputs:
   AccountStatusTableName:
-    Description: "The name of the Intervention History DynamoDB database"
+    Description: 'The name of the Intervention History DynamoDB database'
     Value: !Ref AccountStatusTable
     Export:
       Name: !Sub ${AWS::StackName}-AccountStatusTableName
 
   AccountStatusTableArn:
-    Description: "The ARN of the VC Intervention History DynamoDB database"
+    Description: 'The ARN of the VC Intervention History DynamoDB database'
     Value: !GetAtt AccountStatusTable.Arn
     Export:
       Name: !Sub ${AWS::StackName}-AccountStatusTableArn
 
   AccountStatusTableKeyArn:
-    Description: "The ARN of the Account Status Table KMS key"
+    Description: 'The ARN of the Account Status Table KMS key'
     Value: !GetAtt AccountStatusTableEncryptionKey.Arn
     Export:
       Name: !Sub ${AWS::StackName}-AccountStatusTableKeyArn
 
   AccountStatusTableEncryptionKeyArn:
-    Description: "The ARN of the Account Status DynamoDB KMS key"
+    Description: 'The ARN of the Account Status DynamoDB KMS key'
     Value: !GetAtt AccountStatusTableEncryptionKey.Arn
     Export:
       Name: !Sub ${AWS::StackName}-AccountStatusTableEncryptionKeyArn
