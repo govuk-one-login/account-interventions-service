@@ -104,7 +104,7 @@ describe('TxMA Handler', () => {
     } catch (error) {
       expect((error as Error).message).toEqual('ACCOUNT_DELETION_SQS_QUEUE env variable is not set');
     }
-    expect(mockSendBatchSqsMessage).not.toHaveBeenCalled;
+    expect(mockSendBatchSqsMessage).not.toHaveBeenCalled();
   });
 
   it('Sends throw an error if intervention queue not configured', async () => {
@@ -114,6 +114,6 @@ describe('TxMA Handler', () => {
     } catch (error) {
       expect((error as Error).message).toEqual('ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set');
     }
-    expect(mockSendBatchSqsMessage).not.toHaveBeenCalled;
+    expect(mockSendBatchSqsMessage).not.toHaveBeenCalled();
   });
 });

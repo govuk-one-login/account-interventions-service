@@ -508,7 +508,7 @@ defineFeature(feature, (test) => {
         ];
         if (eventTypes.includes(aisEventType)) {
           expect(response.intervention.description).toBe('AIS_NO_INTERVENTION');
-          expect(response.intervention.accountDeletedAt).toBeFalsy;
+          expect(response.intervention.accountDeletedAt).toBeFalsy();
         } else {
           expect(response.intervention.description).toBe(aisEventResponse[aisEventType].description);
           expect(response.intervention.accountDeletedAt).toBeTruthy();
@@ -516,8 +516,8 @@ defineFeature(feature, (test) => {
         if (getItem) {
           console.log(getItem);
           expect(getItem.isAccountDeleted).toBe(true);
-          expect(getItem.deletedAt).toBeTruthy;
-          expect(getItem.ttl).toBeTruthy;
+          expect(getItem.deletedAt).toBeTruthy();
+          expect(getItem.ttl).toBeTruthy();
         }
       },
     );

@@ -75,7 +75,7 @@ class CloudWatchLogsService {
   }
 
   filterMessagesBy(key: string) {
-    return this.logs.filter((log) => log.message && log.message.hasOwnProperty(key));
+    return this.logs.filter((log) => log.message && log[key] !== undefined);
   }
 }
 

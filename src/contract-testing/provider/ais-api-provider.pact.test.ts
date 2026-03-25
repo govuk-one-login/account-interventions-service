@@ -4,6 +4,7 @@ import { closeServer, setupServer } from '../test-helpers/mock-server';
 import { Verifier, VerifierOptions } from '@pact-foundation/pact';
 import { AISInterventionTypes } from '../../data-types/constants';
 import { StateDetails } from '../../data-types/interfaces';
+import getEnvOrThrow from '../../commons/get-env-or-throw';
 
 jest.mock('@aws-lambda-powertools/metrics');
 jest.mock('@aws-lambda-powertools/logger');
@@ -46,15 +47,16 @@ function getDynamoDBResponseObject(
   };
 }
 
+/* eslint-disable @typescript-eslint/require-await */
 const config: VerifierOptions = {
-  providerBaseUrl: process.env['PROVIDER_BASE_URL']! + process.env['PROVIDER_PORT']!,
-  providerBranch: process.env['GIT_BRANCH']!,
-  providerVersion: process.env['PROVIDER_APP_VERSION']!,
-  pactBrokerUrl: process.env['PACT_BROKER_URL']!,
-  publishVerificationResult: process.env['PUBLISH_RESULT']! === 'true',
+  providerBaseUrl: getEnvOrThrow('PROVIDER_BASE_URL') + getEnvOrThrow('PROVIDER_PORT'),
+  providerBranch: getEnvOrThrow('GIT_BRANCH'),
+  providerVersion: getEnvOrThrow('PROVIDER_APP_VERSION'),
+  pactBrokerUrl: getEnvOrThrow('PACT_BROKER_URL'),
+  publishVerificationResult: getEnvOrThrow('PUBLISH_RESULT') === 'true',
   consumerVersionTags: ['main'],
-  pactBrokerPassword: process.env['PACT_BROKER_PASSWORD']!,
-  pactBrokerUsername: process.env['PACT_BROKER_USER']!,
+  pactBrokerPassword: getEnvOrThrow('PACT_BROKER_PASSWORD'),
+  pactBrokerUsername: getEnvOrThrow('PACT_BROKER_USER'),
   provider: 'AccountInterventionServiceProvider',
   logLevel: 'error',
   stateHandlers: {
@@ -159,6 +161,7 @@ const config: VerifierOptions = {
     },
   },
 };
+/* eslint-enable @typescript-eslint/require-await */
 
 describe('PACT verification', () => {
   afterAll(() => {

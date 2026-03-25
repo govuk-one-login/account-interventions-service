@@ -20,7 +20,7 @@ describe('Tests for account state engine configuration file', () => {
   it('each node should have one adjacency list', () => {
     expect(adjListKeys.length === nodesKeysList.length).toEqual(true);
     const equality =
-      JSON.stringify(nodesKeysList.sort(compareStrings)) === JSON.stringify(adjListKeys.sort(compareStrings));
+      JSON.stringify(nodesKeysList.toSorted(compareStrings)) === JSON.stringify(adjListKeys.toSorted(compareStrings));
     expect(equality).toEqual(true);
   });
   it('each edge should point to an existing node', () => {

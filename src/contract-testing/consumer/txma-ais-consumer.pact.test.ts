@@ -3,6 +3,8 @@ import { term } from '@pact-foundation/pact/src/dsl/matchers';
 import { boolean, number, string } from '@pact-foundation/pact/src/v3/matchers';
 import { validateEventAgainstSchema } from '../../services/validate-event';
 import path from 'node:path';
+import { AnyJson } from '@pact-foundation/pact/src/common/jsonTypes';
+import { TxMAIngressEvent } from '../../data-types/interfaces';
 const { like } = Matchers;
 
 describe('TxMA & AIS - Contract Testing - Consumer', () => {
@@ -75,13 +77,13 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
   });
 });
 
-function interventionMessageValidator(event: any) {
-  validateEventAgainstSchema(event);
+function interventionMessageValidator(event: AnyJson | Buffer) {
+  validateEventAgainstSchema(event as unknown as TxMAIngressEvent);
   return;
 }
 
-function deleteAccountEventValidator(event: any) {
-  const userId = event['user_id'];
+function deleteAccountEventValidator(event: AnyJson | Buffer) {
+  const userId = (event as unknown as { user_id?: string }).user_id;
   if (!userId || typeof userId !== 'string' || userId.trim() === '') {
     throw new Error('Invalid Message');
   }

@@ -44,8 +44,7 @@ function getUserId(record: SQSRecord) {
     logger.error('The SQS message can not be parsed.');
     return;
   }
-  // eslint-disable-next-line no-prototype-builtins
-  if (!message.hasOwnProperty('user_id')) {
+  if ((message.user_id as unknown) == undefined) {
     logger.warn('Attribute missing: user_id.');
     return;
   }
