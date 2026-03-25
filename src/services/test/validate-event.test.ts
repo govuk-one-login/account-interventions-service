@@ -58,8 +58,8 @@ describe('event-validation', () => {
         },
       },
     };
-    expect(validateEventAgainstSchema(TxMAEvent)).toBeUndefined();
-    expect(validateInterventionEvent(TxMAEvent)).toBeUndefined();
+    validateEventAgainstSchema(TxMAEvent);
+    validateInterventionEvent(TxMAEvent);
   });
 
   it('should return an error as intervention is invalid', () => {
@@ -148,7 +148,7 @@ describe('event-validation', () => {
         },
       },
     };
-    expect(validateEventAgainstSchema(TxMAEvent)).toBeUndefined();
+    validateEventAgainstSchema(TxMAEvent);
     expect(() => {
       validateInterventionEvent(TxMAEvent);
     }).toThrow(new ValidationError('Invalid intervention event.'));
