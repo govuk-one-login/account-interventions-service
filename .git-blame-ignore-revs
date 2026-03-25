@@ -1,0 +1,7 @@
+# .git-blame-ignore-revs
+# This file lists commits to be ignored by `git blame`
+# For more information refer to the Github documentation:
+# https://docs.github.com/en/repositories/working-with-files/using-files/viewing-and-understanding-files#ignore-commits-in-the-blame-view
+
+# template.yaml style fixes
+0f21acad1186aef37676f75cbf2376052765476a
