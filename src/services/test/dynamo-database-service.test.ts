@@ -68,7 +68,7 @@ describe('Dynamo DB Service', () => {
       ':s': { BOOL: true },
       ':rp': { BOOL: false },
       ':ri': { BOOL: false },
-      ':ua': { N: `${getCurrentTimestamp().milliseconds}` },
+      ':ua': { N: getCurrentTimestamp().milliseconds.toString() },
     },
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
   };

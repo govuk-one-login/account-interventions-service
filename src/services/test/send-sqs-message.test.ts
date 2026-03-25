@@ -1,6 +1,11 @@
 // send-sqs-message.test.ts
 import { sendBatchSqsMessage, sendSqsMessage } from '../send-sqs-message';
-import { SQSClient, SendMessageCommand, SendMessageBatchCommand } from '@aws-sdk/client-sqs';
+import {
+  SQSClient,
+  SendMessageCommand,
+  SendMessageBatchCommand,
+  SendMessageBatchRequestEntry,
+} from '@aws-sdk/client-sqs';
 import logger from '../../commons/logger';
 
 jest.mock('@aws-sdk/client-sqs');
@@ -49,8 +54,8 @@ describe('sendSqsMessage', () => {
 });
 
 describe('sendBatchSqsMessage', () => {
-  const entry = {
-    Id: 0,
+  const entry: SendMessageBatchRequestEntry = {
+    Id: '0',
     MessageBody: 'Test message',
   };
   const entries: SendMessageBatchRequestEntry[] = [entry];
