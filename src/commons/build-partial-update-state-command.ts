@@ -44,14 +44,14 @@ export const buildPartialUpdateAccountStateCommand = (
       ':s': { BOOL: finalState.suspended },
       ':rp': { BOOL: finalState.resetPassword },
       ':ri': { BOOL: finalState.reproveIdentity },
-      ':ua': { N: String(currentTimestamp) },
+      ':ua': { N: currentTimestamp.toString() },
     },
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
   };
 
   if (eventName === EventsEnum.IPV_ACCOUNT_INTERVENTION_END) {
     baseUpdateItemCommandInput.ExpressionAttributeNames['#RIdA'] = 'reprovedIdentityAt';
-    baseUpdateItemCommandInput.ExpressionAttributeValues[':rida'] = { N: String(eventTimestamp) };
+    baseUpdateItemCommandInput.ExpressionAttributeValues[':rida'] = { N: eventTimestamp.toString() };
     baseUpdateItemCommandInput.ExpressionAttributeNames['#H'] = 'history';
     baseUpdateItemCommandInput.ExpressionAttributeValues[':h'] = {
       L: extractValidHistoryItems(historyList, currentTimestamp),
@@ -65,7 +65,7 @@ export const buildPartialUpdateAccountStateCommand = (
     eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT
   ) {
     baseUpdateItemCommandInput.ExpressionAttributeNames['#RPswdA'] = 'resetPasswordAt';
-    baseUpdateItemCommandInput.ExpressionAttributeValues[':rpswda'] = { N: String(eventTimestamp) };
+    baseUpdateItemCommandInput.ExpressionAttributeValues[':rpswda'] = { N: eventTimestamp.toString() };
     baseUpdateItemCommandInput.ExpressionAttributeNames['#H'] = 'history';
     baseUpdateItemCommandInput.ExpressionAttributeValues[':h'] = {
       L: extractValidHistoryItems(historyList, currentTimestamp),
@@ -81,9 +81,9 @@ export const buildPartialUpdateAccountStateCommand = (
   baseUpdateItemCommandInput.ExpressionAttributeNames['#INT'] = 'intervention';
   baseUpdateItemCommandInput.ExpressionAttributeValues[':int'] = { S: interventionName };
   baseUpdateItemCommandInput.ExpressionAttributeNames['#AA'] = 'appliedAt';
-  baseUpdateItemCommandInput.ExpressionAttributeValues[':aa'] = { N: String(currentTimestamp) };
+  baseUpdateItemCommandInput.ExpressionAttributeValues[':aa'] = { N: currentTimestamp.toString() };
   baseUpdateItemCommandInput.ExpressionAttributeNames['#SA'] = 'sentAt';
-  baseUpdateItemCommandInput.ExpressionAttributeValues[':sa'] = { N: String(eventTimestamp) };
+  baseUpdateItemCommandInput.ExpressionAttributeValues[':sa'] = { N: eventTimestamp.toString() };
   const stringBuilder = new HistoryStringBuilder();
   baseUpdateItemCommandInput.ExpressionAttributeNames['#H'] = 'history';
   baseUpdateItemCommandInput.ExpressionAttributeValues[':h'] = {
