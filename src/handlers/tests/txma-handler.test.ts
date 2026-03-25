@@ -6,8 +6,7 @@ jest.mock('../../services/send-sqs-message');
 
 const mockSendBatchSqsMessage = sendBatchSqsMessage as jest.Mock;
 
-const createMockRecord = (eventDetails: any) => {
-  return {
+const createMockRecord = (eventDetails: unknown) => ({
     messageId: '',
     receiptHandle: '',
     body: JSON.stringify(eventDetails),
@@ -23,8 +22,7 @@ const createMockRecord = (eventDetails: any) => {
     eventSource: '',
     eventSourceARN: '',
     awsRegion: '',
-  };
-};
+  });
 
 describe('TxMA Handler', () => {
   const OLD_ENV = process.env;
@@ -40,9 +38,9 @@ describe('TxMA Handler', () => {
     invokedFunctionArn: 'arn:aws:lambda:eu-west-1:123456789012:function:foo-bar-function',
     awsRequestId: 'c6af9ac6-7b61-11e6-9a41-93e812345678',
     getRemainingTimeInMillis: () => 1234,
-    done: () => console.log('Done!'),
-    fail: () => console.log('Failed!'),
-    succeed: () => console.log('Succeeded!'),
+    done: () => { console.log('Done!'); },
+    fail: () => { console.log('Failed!'); },
+    succeed: () => { console.log('Succeeded!'); },
   };
 
   beforeEach(() => {
@@ -55,7 +53,7 @@ describe('TxMA Handler', () => {
   });
 
   it('Sends an SQS message to the delete queue', async () => {
-    let deleteEvent = {
+    const deleteEvent = {
       event_name: 'AUTH_DELETE_ACCOUNT',
       user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
       txma: { configVersion: '1.0.4' },
@@ -79,7 +77,7 @@ describe('TxMA Handler', () => {
   });
 
   it('Sends an SQS message to the intervention queue', async () => {
-    let otherInterventionEvent = {
+    const otherInterventionEvent = {
       event_name: 'TICF_ACCOUNT_INTERVENTION',
       user_id: 'hello',
     };

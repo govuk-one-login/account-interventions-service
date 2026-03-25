@@ -4,11 +4,13 @@ import { Metrics } from '@aws-lambda-powertools/metrics';
 jest.mock('@aws-lambda-powertools/metrics');
 jest.mock('@aws-lambda-powertools/logger');
 
+/* eslint-disable @typescript-eslint/unbound-method */
 const mockSerialiseMetrics = Metrics.prototype.serializeMetrics as jest.Mock;
 const mockPublishStoredMetrics = Metrics.prototype.publishStoredMetrics as jest.Mock;
 const mockAddMetadata = Metrics.prototype.addMetadata as jest.Mock;
 const mockAddMetric = Metrics.prototype.addMetric as jest.Mock;
 const mockAddDimensions = Metrics.prototype.addDimensions as jest.Mock;
+/* eslint-enable @typescript-eslint/unbound-method */
 mockSerialiseMetrics.mockReturnValue({ _aws: { CloudWatchMetrics: [{ Metrics: ['some metrics '] }] } });
 
 describe('metrics', () => {

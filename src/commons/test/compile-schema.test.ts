@@ -26,10 +26,12 @@ describe('compile schema', () => {
       },
     };
     expect(() => compileSchema(schema)).toThrow('Schema is invalid');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(metric.addMetric).toHaveBeenCalledWith('INVALID_SCHEMA', 'Count', 1);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledWith('Schema is invalid, failed to compile', {
-      reasons: expect.any(Array),
-      error: expect.anything(),
+      reasons: expect.any(Array) as unknown,
+      error: expect.anything() as unknown,
     });
   });
 });

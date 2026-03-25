@@ -25,7 +25,9 @@ describe('AppConfigService', () => {
     const appConfig = AppConfigService.getInstance();
     const expectedMessage = 'Invalid configuration - Environment variable AWS_REGION is not defined.';
     expect(() => appConfig.awsRegion).toThrowWithMessage(InvalidEnvironmentVariableError, expectedMessage);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledTimes(1);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledWith(expectedMessage);
   });
 
@@ -34,7 +36,9 @@ describe('AppConfigService', () => {
     const appConfig = AppConfigService.getInstance();
     const expectedMessage = 'Invalid configuration - Environment variable TABLE_NAME is not defined.';
     expect(() => appConfig.tableName).toThrowWithMessage(InvalidEnvironmentVariableError, expectedMessage);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledTimes(1);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledWith(expectedMessage);
   });
 
@@ -44,7 +48,9 @@ describe('AppConfigService', () => {
     const expectedMessage =
       'Invalid configuration - Environment variable DELETED_ACCOUNT_RETENTION_SECONDS is not defined.';
     expect(() => appConfig.maxRetentionSeconds).toThrowWithMessage(InvalidEnvironmentVariableError, expectedMessage);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledTimes(1);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledWith(expectedMessage);
   });
 
@@ -56,7 +62,9 @@ describe('AppConfigService', () => {
       InvalidEnvironmentVariableError,
       expectedMessage,
     );
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledTimes(1);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledWith(expectedMessage);
   });
 
@@ -65,7 +73,9 @@ describe('AppConfigService', () => {
     const appConfig = AppConfigService.getInstance();
     const expectedMessage = `${LOGS_PREFIX_INVALID_CONFIG} Environment variable TXMA_QUEUE_URL is not a valid HTTPS URL (notAURL).`;
     expect(() => appConfig.txmaEgressQueueUrl).toThrow(new InvalidEnvironmentVariableError(expectedMessage));
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledTimes(1);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledWith(expectedMessage);
   });
 
@@ -86,7 +96,9 @@ describe('AppConfigService', () => {
       'Invalid configuration - Environment variable DELETED_ACCOUNT_RETENTION_SECONDS is not a number.';
     const appConfig = AppConfigService.getInstance();
     expect(() => appConfig.maxRetentionSeconds).toThrowWithMessage(InvalidEnvironmentVariableError, expectedMessage);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledTimes(1);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledWith(expectedMessage);
   });
 });

@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/numeric-separators-style */
 import { defineFeature, loadFeature } from 'jest-cucumber';
 import { generateRandomTestUserId } from '../../../utils/generate-random-test-user-id';
 import { sendSQSEvent } from '../../../utils/send-sqs-message';
