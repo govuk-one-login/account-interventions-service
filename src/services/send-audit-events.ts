@@ -4,10 +4,8 @@ import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { SendMessageCommand, SendMessageCommandOutput, SQSClient } from '@aws-sdk/client-sqs';
 import {
   AccountStateEngineOutput,
-  TxMAEgressBasicExtensions,
   TxMAEgressEvent,
   TxMAEgressInterventionEventName,
-  TxMAEgressExtensions,
   TxMAIngressEvent,
 } from '../data-types/interfaces';
 import logger from '../commons/logger';
@@ -22,6 +20,7 @@ import {
 } from '../data-types/constants';
 import { addMetric } from '../commons/metrics';
 import { transitionConfiguration } from './account-states/config';
+import { AisEventIgnoredStaleBasicExtensions, AisEventIgnoredStaleExtensions } from '../events/ais-event-ignored-stale';
 
 const appConfig = AppConfigService.getInstance();
 
@@ -88,7 +87,7 @@ function buildExtensions(
   ingressEventName: EventsEnum,
   egressEventName: TxMAEgressInterventionEventName,
   stateEngineOutput: AccountStateEngineOutput | undefined,
-): TxMAEgressExtensions | TxMAEgressBasicExtensions {
+): AisEventIgnoredStaleExtensions | AisEventIgnoredStaleBasicExtensions {
   if (stateEngineOutput) {
     return {
       trigger_event: txMAIngressEvent.event_name,

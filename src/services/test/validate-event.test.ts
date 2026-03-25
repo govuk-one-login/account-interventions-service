@@ -12,6 +12,7 @@ import { ValidationError } from '../../data-types/errors';
 import { EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { sendAuditEvent } from '../send-audit-events';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
+import { InterventionCodeEnum1 } from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_APPLIED';
 
 jest.mock('../../commons/metrics');
 jest.mock('@aws-lambda-powertools/logger');
@@ -143,7 +144,7 @@ describe('event-validation', () => {
       event_id: '123',
       extensions: {
         intervention: {
-          intervention_code: 'nan',
+          intervention_code: 'nan' as InterventionCodeEnum1,
           intervention_reason: 'reason',
         },
       },
@@ -167,7 +168,7 @@ describe('event-validation', () => {
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       extensions: {
         intervention: {
-          intervention_code: '01',
+          intervention_code: '01' as InterventionCodeEnum1,
           intervention_reason: 'something',
           originating_component_id: 'CMS',
           originator_reference_id: '1234567',
@@ -206,7 +207,7 @@ describe('event-validation', () => {
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       extensions: {
         intervention: {
-          intervention_code: '01',
+          intervention_code: '01' as InterventionCodeEnum1,
           intervention_reason: 'something',
           originating_component_id: 'CMS',
           originator_reference_id: '1234567',
@@ -241,7 +242,7 @@ describe('event-validation', () => {
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       extensions: {
         intervention: {
-          intervention_code: '01',
+          intervention_code: '01' as InterventionCodeEnum1,
           intervention_reason: 'something',
           originating_component_id: 'CMS',
           originator_reference_id: '1234567',
@@ -270,7 +271,7 @@ describe('event-validation', () => {
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       extensions: {
         intervention: {
-          intervention_code: '01',
+          intervention_code: '01' as InterventionCodeEnum1,
           intervention_reason: 'something',
           originating_component_id: 'CMS',
           originator_reference_id: '1234567',
