@@ -1,6 +1,13 @@
 import { transitionConfiguration } from './config';
 import { AccountStateEngineOutput, StateDetails } from '../../data-types/interfaces';
-import { AISInterventionTypes, EventsEnum, MetricNames, userLedActionList } from '../../data-types/constants';
+import {
+  AISInterventionTypes,
+  Codes,
+  EventsEnum,
+  MetricNames,
+  PossibleAccountStatus,
+  userLedActionList,
+} from '../../data-types/constants';
 import { StateEngineConfigurationError, StateTransitionError } from '../../data-types/errors';
 import logger from '../../commons/logger';
 import { addMetric } from '../../commons/metrics';
@@ -43,13 +50,13 @@ export class AccountStateEngine {
    * @param code - string mapping to an intervention event
    */
   getInterventionEnumFromCode(code: string): EventsEnum {
-    const newStateName = AccountStateEngine.configuration.edges[code]?.name;
-    if (!newStateName)
+    if (!isCode(code))
       throw buildConfigurationError(
         MetricNames.INTERVENTION_CODE_NOT_FOUND_IN_CONFIG,
         `code: ${code} is not found in current configuration`,
       );
-    return newStateName;
+
+    return AccountStateEngine.configuration.edges[code].name;
   }
 
   /**
@@ -74,7 +81,7 @@ export class AccountStateEngine {
       );
     return {
       stateResult: newStateObject,
-      interventionName: AccountStateEngine.configuration.edges[transition]?.interventionName as AISInterventionTypes,
+      interventionName: AccountStateEngine.configuration.edges[transition].interventionName,
       nextAllowableInterventions: this.findPossibleTransitions(this.findAccountStateName(newStateObject)),
     };
   }
@@ -93,9 +100,10 @@ export class AccountStateEngine {
    * It returns the name if found, throws an error otherwise
    * @param state - StateDetail object representing the state of the account
    */
-  private findAccountStateName(state: StateDetails) {
-    for (const key of Object.keys(transitionConfiguration.nodes))
-      if (areAccountStatesTheSame(transitionConfiguration.nodes[key] as StateDetails, state)) return key;
+  private findAccountStateName(state: StateDetails): PossibleAccountStatus {
+    for (const [key, node] of Object.entries(transitionConfiguration.nodes)) {
+      if (areAccountStatesTheSame(node, state)) return key as PossibleAccountStatus;
+    }
     throw buildConfigurationError(
       MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG,
       'Account state does not exists in current configuration.',
@@ -107,7 +115,7 @@ export class AccountStateEngine {
    * If none can be found it throws an error
    * @param nodeKey - the state name used as the key to identify the nodes in the config object
    */
-  private findPossibleTransitions(nodeKey: string): string[] {
+  private findPossibleTransitions(nodeKey: PossibleAccountStatus): Codes[] {
     const allowedTransition = AccountStateEngine.configuration.adjacency[nodeKey];
     if (!allowedTransition)
       throw buildConfigurationError(
@@ -126,9 +134,9 @@ export class AccountStateEngine {
    * @param transition - EventsEnum representation of the proposed transition
    * @param initialState - initial state of the account
    */
-  private getTransition(allowedTransition: string[], transition: EventsEnum, initialState: StateDetails) {
+  private getTransition(allowedTransition: Codes[], transition: EventsEnum, initialState: StateDetails) {
     for (const edge of allowedTransition) {
-      if (AccountStateEngine.configuration.edges[edge]?.name.toString() === transition.toString()) return edge;
+      if (AccountStateEngine.configuration.edges[edge].name.toString() === transition.toString()) return edge;
     }
     throw buildStateTransitionError(
       MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED,
@@ -142,17 +150,15 @@ export class AccountStateEngine {
    * Helper method to return the new account state given a transition
    * @param edge - code mapping to a specific transition
    */
-  private getNewStateObject(edge: string) {
-    const newStateName = AccountStateEngine.configuration.edges[edge]?.to as string;
+  private getNewStateObject(edge: Codes) {
+    const newStateName = AccountStateEngine.configuration.edges[edge].to;
     const newStateObject = AccountStateEngine.configuration.nodes[newStateName];
-    if (!newStateObject)
-      throw buildConfigurationError(
-        MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG,
-        `state ${newStateName} not found in current config.`,
-      );
+
     return newStateObject;
   }
 }
+
+export const isCode = (value: string): value is Codes => Object.values(Codes).includes(value as Codes);
 
 /**
  * Helper method to build a StateTransitionError and log relevant information when this type of error is to be thrown
@@ -169,7 +175,7 @@ function buildStateTransitionError(
 ) {
   if (
     !(
-      areAccountStatesTheSame(initialState, transitionConfiguration.nodes['AccountIsOkay'] as StateDetails) &&
+      areAccountStatesTheSame(initialState, transitionConfiguration.nodes[PossibleAccountStatus.AccountIsOkay]) &&
       userLedActionList.includes(transition)
     )
   ) {

@@ -1,4 +1,12 @@
-import { EventsEnum, AISInterventionTypes, TriggerEventsEnum, ActiveStateActions, State } from './constants';
+import {
+  EventsEnum,
+  AISInterventionTypes,
+  TriggerEventsEnum,
+  PossibleAccountStatus,
+  ActiveStateActions,
+  State,
+  Codes,
+} from './constants';
 
 export interface StateDetails {
   blocked: boolean;
@@ -32,8 +40,8 @@ export interface FullAccountInformation {
 }
 export interface AccountStateEngineOutput {
   stateResult: StateDetails;
-  interventionName?: AISInterventionTypes;
-  nextAllowableInterventions: string[];
+  interventionName: AISInterventionTypes | undefined;
+  nextAllowableInterventions: Codes[];
 }
 
 export interface CurrentTimeDescriptor {
@@ -122,16 +130,16 @@ export interface DeleteStatusUpdateSNSMessage {
 }
 
 export interface TransitionConfigurationInterface {
-  nodes: Record<string, StateDetails>;
+  nodes: Record<PossibleAccountStatus, StateDetails>;
   edges: Record<
-    string,
+    Codes,
     {
-      to: string;
+      to: PossibleAccountStatus;
       name: EventsEnum;
       interventionName?: AISInterventionTypes;
     }
   >;
-  adjacency: Record<string, string[]>;
+  adjacency: Record<PossibleAccountStatus, Codes[] | undefined>;
 }
 
 export interface AccountStatus {

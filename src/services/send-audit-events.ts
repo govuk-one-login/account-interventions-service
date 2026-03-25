@@ -98,7 +98,7 @@ function buildExtensions(
         ? 'USER_LED_ACTION'
         : stateEngineOutput.interventionName,
       allowable_interventions: stateEngineOutput.nextAllowableInterventions.filter(
-        (intervention) => transitionConfiguration.edges[intervention]?.interventionName,
+        (intervention) => transitionConfiguration.edges[intervention].interventionName,
       ),
       ...buildAdditionalAttributes(stateEngineOutput, egressEventName),
     };

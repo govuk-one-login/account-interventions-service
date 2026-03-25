@@ -1,4 +1,4 @@
-import { EventsEnum, AISInterventionTypes } from '../../data-types/constants';
+import { EventsEnum, AISInterventionTypes, PossibleAccountStatus, Codes } from '../../data-types/constants';
 import { TransitionConfigurationInterface } from '../../data-types/interfaces';
 
 /**
@@ -47,72 +47,72 @@ export const transitionConfiguration: TransitionConfigurationInterface = {
     },
   },
   edges: {
-    '01': {
-      to: 'AccountIsSuspended',
+    [Codes.C01]: {
+      to: PossibleAccountStatus.AccountIsSuspended,
       name: EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
     },
-    '02': {
-      to: 'AccountIsOkay',
+    [Codes.C02]: {
+      to: PossibleAccountStatus.AccountIsOkay,
       name: EventsEnum.FRAUD_UNSUSPEND_ACCOUNT,
       interventionName: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
     },
-    '03': {
-      to: 'AccountIsBlocked',
+    [Codes.C03]: {
+      to: PossibleAccountStatus.AccountIsBlocked,
       name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
       interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
     },
-    '04': {
-      to: 'AccountNeedsPasswordReset',
+    [Codes.C04]: {
+      to: PossibleAccountStatus.AccountNeedsPasswordReset,
       name: EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
       interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
     },
-    '05': {
-      to: 'AccountNeedsIdReset',
+    [Codes.C05]: {
+      to: PossibleAccountStatus.AccountNeedsIdReset,
       name: EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
       interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
     },
-    '06': {
-      to: 'AccountNeedsPswAndIdReset',
+    [Codes.C06]: {
+      to: PossibleAccountStatus.AccountNeedsPswAndIdReset,
       name: EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
       interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
     },
-    '07': {
-      to: 'AccountIsOkay',
+    [Codes.C07]: {
+      to: PossibleAccountStatus.AccountIsOkay,
       name: EventsEnum.FRAUD_UNBLOCK_ACCOUNT,
       interventionName: AISInterventionTypes.AIS_ACCOUNT_UNBLOCKED,
     },
-    '90': {
-      to: 'AccountIsOkay',
+    [Codes.C90]: {
+      to: PossibleAccountStatus.AccountIsOkay,
       name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
     },
-    '91': {
-      to: 'AccountIsOkay',
+    [Codes.C91]: {
+      to: PossibleAccountStatus.AccountIsOkay,
       name: EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
     },
-    '92': {
-      to: 'AccountNeedsPasswordReset',
+    [Codes.C92]: {
+      to: PossibleAccountStatus.AccountNeedsPasswordReset,
       name: EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
     },
-    '93': {
-      to: 'AccountNeedsIdReset',
+    [Codes.C93]: {
+      to: PossibleAccountStatus.AccountNeedsIdReset,
       name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
     },
-    '94': {
-      to: 'AccountIsOkay',
+    [Codes.C94]: {
+      to: PossibleAccountStatus.AccountIsOkay,
       name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
     },
-    '95': {
-      to: 'AccountNeedsIdReset',
+    [Codes.C95]: {
+      to: PossibleAccountStatus.AccountNeedsIdReset,
       name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
     },
   },
   adjacency: {
-    AccountIsOkay: ['01', '03', '04', '05', '06'],
-    AccountIsBlocked: ['07'],
-    AccountIsSuspended: ['02', '03', '04', '05', '06'],
-    AccountNeedsPasswordReset: ['01', '02', '03', '05', '06', '90', '94'],
-    AccountNeedsIdReset: ['01', '02', '03', '04', '06', '91'],
-    AccountNeedsPswAndIdReset: ['01', '02', '03', '04', '05', '92', '93', '95'],
+    AccountIsOkay: [Codes.C01, Codes.C03, Codes.C04, Codes.C05, Codes.C06],
+    AccountIsBlocked: [Codes.C07],
+    AccountIsSuspended: [Codes.C02, Codes.C03, Codes.C04, Codes.C05, Codes.C06],
+    AccountNeedsPasswordReset: [Codes.C01, Codes.C02, Codes.C03, Codes.C05, Codes.C06, Codes.C90, Codes.C94],
+    AccountNeedsIdReset: [Codes.C01, Codes.C02, Codes.C03, Codes.C04, Codes.C06, Codes.C91],
+    AccountNeedsPswAndIdReset: [Codes.C01, Codes.C02, Codes.C03, Codes.C04, Codes.C05, Codes.C92, Codes.C93, Codes.C95],
   },
 };

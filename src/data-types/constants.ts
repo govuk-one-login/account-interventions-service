@@ -97,3 +97,28 @@ export enum HistoryStringParts {
 }
 
 export const expectedHistoryStringLength = Object.keys(HistoryStringParts).length / 2;
+
+export enum PossibleAccountStatus {
+  AccountIsOkay = 'AccountIsOkay',
+  AccountIsBlocked = 'AccountIsBlocked',
+  AccountIsSuspended = 'AccountIsSuspended',
+  AccountNeedsPasswordReset = 'AccountNeedsPasswordReset', //pragma: allowlist secret
+  AccountNeedsIdReset = 'AccountNeedsIdReset',
+  AccountNeedsPswAndIdReset = 'AccountNeedsPswAndIdReset',
+}
+
+export enum Codes {
+  C01 = '01',
+  C02 = '02',
+  C03 = '03',
+  C04 = '04',
+  C05 = '05',
+  C06 = '06',
+  C07 = '07',
+  C90 = '90',
+  C91 = '91',
+  C92 = '92',
+  C93 = '93',
+  C94 = '94',
+  C95 = '95',
+}
