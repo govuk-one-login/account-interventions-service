@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Description: >-
@@ -31,7 +31,7 @@ Parameters:
   CSLSSubscriptionEndpointArn:
     Type: String
     Description: CSLS Subscription endpoint
-    Default: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2"
+    Default: 'arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2'
   CodeSigningConfigArn:
     Description: Asserts that lambdas are signed when deployed.
     Type: String
@@ -41,13 +41,13 @@ Parameters:
     Type: String
     Default: ais-core
   AlertingSNSLowAlertNotificationTopicARN:
-    Description: "The ARN of the Alerting SNS Low Alert Notification topic"
+    Description: 'The ARN of the Alerting SNS Low Alert Notification topic'
     Type: AWS::SSM::Parameter::Value<String>
-    Default: "/ais-infra-alerting/SNS/LowAlertNotificationTopic/ARN" #pragma: allowlist secret
+    Default: '/ais-infra-alerting/SNS/LowAlertNotificationTopic/ARN' #pragma: allowlist secret
   LambdaDeploymentPreference:
     Description: "Specifies the configuration to enable gradual Lambda deployments. It can be used to set deployment type and also allows skipping canary deployment by setting to 'AllAtOnce'"
     Type: String
-    Default: "Canary10Percent10Minutes"
+    Default: 'Canary10Percent10Minutes'
     AllowedValues:
       - AllAtOnce
       - Canary10Percent5Minutes
@@ -55,9 +55,9 @@ Parameters:
       - Canary10Percent15Minutes
       - Canary10Percent30Minutes
   RunBookURL:
-    Description: "A Link to the AIS Runbook"
+    Description: 'A Link to the AIS Runbook'
     Type: String
-    Default: "https://govukverify.atlassian.net/wiki/spaces/AIS/pages/4579595211/AIS+-+Alarms+Metrics+Monitoring"
+    Default: 'https://govukverify.atlassian.net/wiki/spaces/AIS/pages/4579595211/AIS+-+Alarms+Metrics+Monitoring'
   ProductTagValue:
     Description: Value for the Product Tag
     Type: String
@@ -77,9 +77,9 @@ Parameters:
 
 Conditions:
   IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
-  IsNotInternal: !Not [ Condition: IsInternal ]
-  UsePermissionsBoundary: !Not [ !Equals [ !Ref PermissionsBoundary, 'none' ] ]
-  UseCodeSigning: !Not [ !Equals [ !Ref CodeSigningConfigArn, 'none' ] ]
+  IsNotInternal: !Not [Condition: IsInternal]
+  UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, 'none']]
+  UseCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, 'none']]
   IsProd: !Or [!Equals [!Ref Environment, integration], !Equals [!Ref Environment, production]]
 
 Mappings:
@@ -87,9 +87,9 @@ Mappings:
     dev:
       LambdaLogLevel: DEBUG
       AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:985326104449:UserAccountDeletion
-      TxMAAccountID: "484907510598" # di-account-interventions-dev
-      TxMAIngressQueueARN: "Uses Internal TxMAIngressQueue"
-      TxMAIngressQueueKmsKeyARN: "Uses the SQSEncryptionKey with Internal TxMAIngressQueue"
+      TxMAAccountID: '484907510598' # di-account-interventions-dev
+      TxMAIngressQueueARN: 'Uses Internal TxMAIngressQueue'
+      TxMAIngressQueueKmsKeyARN: 'Uses the SQSEncryptionKey with Internal TxMAIngressQueue'
       OrchestrationVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       AuthenticationVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       OneLoginHomeVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
@@ -99,9 +99,9 @@ Mappings:
     build:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:301577035144:UserAccountDeletion
-      TxMAAccountID: "565393035754" # di-account-interventions-build
-      TxMAIngressQueueARN: "Uses Internal TxMAIngressQueue"
-      TxMAIngressQueueKmsKeyARN: "Uses the SQSEncryptionKey with Internal TxMAIngressQueue"
+      TxMAAccountID: '565393035754' # di-account-interventions-build
+      TxMAIngressQueueARN: 'Uses Internal TxMAIngressQueue'
+      TxMAIngressQueueKmsKeyARN: 'Uses the SQSEncryptionKey with Internal TxMAIngressQueue'
       OrchestrationVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
       AuthenticationVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
       OneLoginHomeVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
@@ -111,7 +111,7 @@ Mappings:
     staging:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:539729775994:UserAccountDeletion
-      TxMAAccountID: "178023842775" # di-txma-event-processing-staging
+      TxMAAccountID: '178023842775' # di-txma-event-processing-staging
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:178023842775:self-staging-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:178023842775:key/e388cb30-2d78-431f-b1a6-847549a815aa
       OrchestrationVPCID: vpc-0217499e2982d99ca # Orchestration Staging VPC ID
@@ -123,7 +123,7 @@ Mappings:
     integration:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:666500506359:UserAccountDeletion
-      TxMAAccountID: "729485541398" # di-txma-event-processing-integration
+      TxMAAccountID: '729485541398' # di-txma-event-processing-integration
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:729485541398:self-integration-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:729485541398:key/c360ee61-da3b-48de-998e-68cb91743414
       OrchestrationVPCID: vpc-09984eb16fa30fb55 # Orchestration Integration VPC ID
@@ -135,7 +135,7 @@ Mappings:
     production:
       LambdaLogLevel: INFO
       AccountDeletionProcessorSNSTopicARN: arn:aws:sns:eu-west-2:026991849909:UserAccountDeletion
-      TxMAAccountID: "451773080033" # di-txma-event-processing-prod
+      TxMAAccountID: '451773080033' # di-txma-event-processing-prod
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:451773080033:self-production-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:451773080033:key/5bbb4188-6774-4fe8-a78a-968f5e435295
       OrchestrationVPCID: vpc-058178adacb1c387a # Orchestration Production VPC ID
@@ -156,26 +156,26 @@ Globals:
     KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
     Environment:
       Variables:
-        POWERTOOLS_LOG_LEVEL: !FindInMap [ EnvConfig, !Ref Environment, LambdaLogLevel ]
+        POWERTOOLS_LOG_LEVEL: !FindInMap [EnvConfig, !Ref Environment, LambdaLogLevel]
         POWERTOOLS_SERVICE_NAME: !Ref AWS::StackName
         CLOUDWATCH_METRICS_NAMESPACE: !Ref SystemTagValue
         AWS_LAMBDA_EXEC_WRAPPER: /opt/dynatrace
         DT_CONNECTION_AUTH_TOKEN: !Sub
           - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_AUTH_TOKEN}}' # pragma: allowlist secret
-          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, DynatraceSecretArn ]
+          - SecretArn: !FindInMap [EnvConfig, !Ref Environment, DynatraceSecretArn]
         DT_CONNECTION_BASE_URL: !Sub
           - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CONNECTION_BASE_URL}}' # pragma: allowlist secret
-          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, DynatraceSecretArn ]
+          - SecretArn: !FindInMap [EnvConfig, !Ref Environment, DynatraceSecretArn]
         DT_CLUSTER_ID: !Sub
           - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_CLUSTER_ID}}' # pragma: allowlist secret
-          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, DynatraceSecretArn ]
+          - SecretArn: !FindInMap [EnvConfig, !Ref Environment, DynatraceSecretArn]
         DT_LOG_COLLECTION_AUTH_TOKEN: !Sub
           - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_LOG_COLLECTION_AUTH_TOKEN}}' # pragma: allowlist secret
-          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, DynatraceSecretArn ]
+          - SecretArn: !FindInMap [EnvConfig, !Ref Environment, DynatraceSecretArn]
         DT_TENANT: !Sub
           - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANT}}' # pragma: allowlist secret
-          - SecretArn: !FindInMap [ EnvConfig, !Ref Environment, DynatraceSecretArn ]
-        DT_OPEN_TELEMETRY_ENABLE_INTEGRATION: "true"
+          - SecretArn: !FindInMap [EnvConfig, !Ref Environment, DynatraceSecretArn]
+        DT_OPEN_TELEMETRY_ENABLE_INTEGRATION: 'true'
         AWS_XRAY_CONTEXT_MISSING: 'IGNORE_ERROR'
     VpcConfig:
       SubnetIds:
@@ -192,13 +192,13 @@ Resources:
   InterventionsProcessorFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "${AWS::StackName}-InterventionsProcessorFunction"
+      FunctionName: !Sub '${AWS::StackName}-InterventionsProcessorFunction'
       Description: "Processes intervention events and updates account's intervention status."
       DeploymentPreference:
         Type: !If
-            - IsProd
-            - !Ref LambdaDeploymentPreference
-            - AllAtOnce
+          - IsProd
+          - !Ref LambdaDeploymentPreference
+          - AllAtOnce
         Alarms:
           - !Ref InterventionsProcessorErrorsCanary
           - !Ref ErrorPublishingEventToTxMACanary
@@ -208,7 +208,7 @@ Resources:
       Handler: interventions-processor-handler.handler
       MemorySize: 512
       Role: !GetAtt InterventionsProcessorFunctionRole.Arn
-      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      CodeSigningConfigArn: !If [UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
       Events:
         SQSEvent:
           Type: SQS
@@ -220,9 +220,9 @@ Resources:
               - ReportBatchItemFailures
       Environment:
         Variables:
-          METRIC_SERVICE_NAME: "InterventionsProcessorFunction"
+          METRIC_SERVICE_NAME: 'InterventionsProcessorFunction'
           TABLE_NAME:
-            Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
+            Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableName'
           TXMA_QUEUE_URL: !Ref TxMAEgressQueue
           HISTORY_RETENTION_SECONDS: 63072000
       Tags:
@@ -236,11 +236,10 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: "es2022"
+        Target: 'es2022'
         Sourcemap: false
         EntryPoints:
           - interventions-processor-handler.ts
-
 
   InterventionsProcessorFunctionInvokePermission:
     DependsOn: InterventionsProcessorFunctionAliaslive
@@ -249,7 +248,7 @@ Resources:
       FunctionName: !Join
         - ':'
         - - 'function'
-          - !Select [ 6, !Split [ ':', !GetAtt InterventionsProcessorFunction.Arn ] ]
+          - !Select [6, !Split [':', !GetAtt InterventionsProcessorFunction.Arn]]
           - 'live'
       Action: lambda:InvokeFunction
       Principal: sqs.amazonaws.com
@@ -259,17 +258,17 @@ Resources:
   InterventionsProcessorFunctionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionRole"
-      Description: !Sub "The role assumed by ${AWS::StackName}-InterventionsProcessorFunction"
-      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      RoleName: !Sub '${AWS::StackName}-InterventionsProcessorFunctionRole'
+      Description: !Sub 'The role assumed by ${AWS::StackName}-InterventionsProcessorFunction'
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
               Service: lambda.amazonaws.com
             Action:
-              - "sts:AssumeRole"
+              - 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
@@ -288,15 +287,15 @@ Resources:
   InterventionsProcessorFunctionRolePolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionRolePolicy"
+      ManagedPolicyName: !Sub '${AWS::StackName}-InterventionsProcessorFunctionRolePolicy'
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
-              - "sqs:ReceiveMessage"
-              - "sqs:DeleteMessage"
-              - "sqs:GetQueueAttributes"
+              - 'sqs:ReceiveMessage'
+              - 'sqs:DeleteMessage'
+              - 'sqs:GetQueueAttributes'
             Resource: !GetAtt AccountInterventionEventsQueue.Arn
       Roles:
         - !Ref InterventionsProcessorFunctionRole
@@ -304,44 +303,44 @@ Resources:
   InterventionsProcessorFunctionManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionPolicy"
+      ManagedPolicyName: !Sub '${AWS::StackName}-InterventionsProcessorFunctionPolicy'
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
-              - "logs:CreateLogStream"
-              - "logs:PutLogEvents"
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
             Resource:
               - !GetAtt InterventionsProcessorFunctionLogGroup.Arn
           - Effect: Allow
             Action:
-              - "sqs:SendMessage"
+              - 'sqs:SendMessage'
             Resource: !GetAtt TxMAEgressQueue.Arn
           - Effect: Allow
             Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
+              - 'kms:Decrypt'
+              - 'kms:GenerateDataKey'
             Resource: !GetAtt SQSEncryptionKey.Arn
           - Effect: Allow
             Action:
-              - "dynamodb:UpdateItem"
-              - "dynamodb:Query"
+              - 'dynamodb:UpdateItem'
+              - 'dynamodb:Query'
             Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
-          - Effect: "Allow"
+              - Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableArn'
+          - Effect: 'Allow'
             Action:
-              - "cloudwatch:PutMetricData"
+              - 'cloudwatch:PutMetricData'
             Resource:
-              - "*"
+              - '*'
             Condition:
               StringEquals:
                 cloudwatch:namespace: !Ref SystemTagValue
           - Effect: Allow
             Action:
-              - "kms:decrypt"
+              - 'kms:decrypt'
             Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableEncryptionKeyArn"
+              - Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableEncryptionKeyArn'
       Roles:
         - !Ref InterventionsProcessorFunctionRole
 
@@ -349,22 +348,22 @@ Resources:
     Type: AWS::IAM::ManagedPolicy
     Condition: IsNotInternal
     Properties:
-      ManagedPolicyName: !Sub "${AWS::StackName}-InterventionsProcessorFunctionTxMAKeyPolicy"
+      ManagedPolicyName: !Sub '${AWS::StackName}-InterventionsProcessorFunctionTxMAKeyPolicy'
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueKmsKeyARN ]
+              - 'kms:Decrypt'
+              - 'kms:GenerateDataKey'
+            Resource: !FindInMap [EnvConfig, !Ref Environment, TxMAIngressQueueKmsKeyARN]
       Roles:
         - !Ref InterventionsProcessorFunctionRole
 
   InterventionsProcessorFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${AWS::StackName}-InterventionsProcessorFunction"
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-InterventionsProcessorFunction'
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
@@ -379,14 +378,14 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
         - Key: Name
-          Value: !Sub "/aws/lambda/${AWS::StackName}-InterventionsProcessorFunction"
+          Value: !Sub '/aws/lambda/${AWS::StackName}-InterventionsProcessorFunction'
 
   InterventionsProcessorFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
       LogGroupName: !Ref InterventionsProcessorFunctionLogGroup
-      FilterPattern: "{$.message != \"Sensitive info*\"}"
+      FilterPattern: '{$.message != "Sensitive info*"}'
 
   InterventionsProcessorLambdaErrorMetricFilter:
     Type: AWS::Logs::MetricFilter
@@ -399,13 +398,11 @@ Resources:
           MetricName: InterventionsProcessorLambdaError
           Unit: Count
 
-
-
   TxmaEventHandlerFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub '${AWS::StackName}-TxmaEventHandlerFunction'
-      Description: "Handles the deletion of user accounts."
+      Description: 'Handles the deletion of user accounts.'
       DeploymentPreference:
         Type: !If
           - IsProd
@@ -418,11 +415,11 @@ Resources:
       Handler: txma-handler.handler
       MemorySize: 128
       Role: !GetAtt TxmaEventHandlerFunctionRole.Arn
-      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      CodeSigningConfigArn: !If [UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
       Environment:
         Variables:
           TABLE_NAME:
-            Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
+            Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableName'
           DELETED_ACCOUNT_RETENTION_SECONDS: 63072000 #2 Years in Seconds
           METRIC_SERVICE_NAME: TxmaEventHandlerFunction
           ACCOUNT_DELETION_SQS_QUEUE: !Ref AccountDeletionEventQueue
@@ -441,7 +438,7 @@ Resources:
             Queue: !If
               - IsInternal
               - !GetAtt TxMAIngressQueue.Arn
-              - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
+              - !FindInMap [EnvConfig, !Ref Environment, TxMAIngressQueueARN]
             BatchSize: 1
             Enabled: true
             FunctionResponseTypes:
@@ -450,7 +447,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: "es2022"
+        Target: 'es2022'
         Sourcemap: false
         EntryPoints:
           - txma-handler.ts
@@ -462,34 +459,33 @@ Resources:
       FunctionName: !Join
         - ':'
         - - 'function'
-          - !Select [ 6, !Split [ ':', !GetAtt TxmaEventHandlerFunction.Arn ] ]
+          - !Select [6, !Split [':', !GetAtt TxmaEventHandlerFunction.Arn]]
           - 'live'
       Action: lambda:InvokeFunction
       Principal: sqs.amazonaws.com
       SourceAccount: !If
         - IsInternal
         - !Ref AWS::AccountId
-        - !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountID ]
+        - !FindInMap [EnvConfig, !Ref Environment, TxMAAccountID]
       SourceArn: !If
         - IsInternal
         - !GetAtt TxMAIngressQueue.Arn
-        - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
-
+        - !FindInMap [EnvConfig, !Ref Environment, TxMAIngressQueueARN]
 
   TxmaEventHandlerFunctionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName:  !Sub '${AWS::StackName}-TxmaEventHandlerFunctionRole'
-      Description: !Sub "The role assumed by ${AWS::StackName}-TxmaEventHandlerFunction"
-      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      RoleName: !Sub '${AWS::StackName}-TxmaEventHandlerFunctionRole'
+      Description: !Sub 'The role assumed by ${AWS::StackName}-TxmaEventHandlerFunction'
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
               Service: lambda.amazonaws.com
             Action:
-              - "sts:AssumeRole"
+              - 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
@@ -508,31 +504,31 @@ Resources:
   TxmaEventHandlerFunctionRolePolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AWS::StackName}-TxmaEventHandlerFunctionRolePolicy"
+      ManagedPolicyName: !Sub '${AWS::StackName}-TxmaEventHandlerFunctionRolePolicy'
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
-              - "sqs:ReceiveMessage"
-              - "sqs:DeleteMessage"
-              - "sqs:GetQueueAttributes"
+              - 'sqs:ReceiveMessage'
+              - 'sqs:DeleteMessage'
+              - 'sqs:GetQueueAttributes'
             Resource: !If
               - IsInternal
               - !GetAtt TxMAIngressQueue.Arn
-              - !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueARN ]
+              - !FindInMap [EnvConfig, !Ref Environment, TxMAIngressQueueARN]
           - Effect: Allow
             Action:
-              - "sqs:SendMessage"
+              - 'sqs:SendMessage'
             Resource: !GetAtt AccountDeletionEventQueue.Arn
           - Effect: Allow
             Action:
-              - "sqs:SendMessage"
+              - 'sqs:SendMessage'
             Resource: !GetAtt AccountInterventionEventsQueue.Arn
           - Effect: Allow
             Action:
-              - "logs:CreateLogStream"
-              - "logs:PutLogEvents"
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
             Resource: !GetAtt TxmaEventHandlerFunctionLogGroup.Arn
       Roles:
         - !Ref TxmaEventHandlerFunctionRole
@@ -540,44 +536,44 @@ Resources:
   TxmaEventHandlerFunctionManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AWS::StackName}-TxmaEventHandlerFunctionPolicy"
+      ManagedPolicyName: !Sub '${AWS::StackName}-TxmaEventHandlerFunctionPolicy'
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
-              - "logs:CreateLogStream"
-              - "logs:PutLogEvents"
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
             Resource:
               - !GetAtt TxmaEventHandlerFunctionLogGroup.Arn
           - Effect: Allow
             Action:
-              - "sqs:SendMessage"
+              - 'sqs:SendMessage'
             Resource: !GetAtt TxMAEgressQueue.Arn
           - Effect: Allow
             Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
+              - 'kms:Decrypt'
+              - 'kms:GenerateDataKey'
             Resource: !GetAtt SQSEncryptionKey.Arn
           - Effect: Allow
             Action:
-              - "dynamodb:UpdateItem"
-              - "dynamodb:Query"
+              - 'dynamodb:UpdateItem'
+              - 'dynamodb:Query'
             Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
-          - Effect: "Allow"
+              - Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableArn'
+          - Effect: 'Allow'
             Action:
-              - "cloudwatch:PutMetricData"
+              - 'cloudwatch:PutMetricData'
             Resource:
-              - "*"
+              - '*'
             Condition:
               StringEquals:
                 cloudwatch:namespace: !Ref SystemTagValue
           - Effect: Allow
             Action:
-              - "kms:decrypt"
+              - 'kms:decrypt'
             Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableEncryptionKeyArn"
+              - Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableEncryptionKeyArn'
       Roles:
         - !Ref TxmaEventHandlerFunctionRole
 
@@ -585,22 +581,22 @@ Resources:
     Type: AWS::IAM::ManagedPolicy
     Condition: IsNotInternal
     Properties:
-      ManagedPolicyName: !Sub "${AWS::StackName}-TxmaEventHandlerFunctionTxMAKeyPolicy"
+      ManagedPolicyName: !Sub '${AWS::StackName}-TxmaEventHandlerFunctionTxMAKeyPolicy'
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: !FindInMap [ EnvConfig, !Ref Environment, TxMAIngressQueueKmsKeyARN ]
+              - 'kms:Decrypt'
+              - 'kms:GenerateDataKey'
+            Resource: !FindInMap [EnvConfig, !Ref Environment, TxMAIngressQueueKmsKeyARN]
       Roles:
         - !Ref TxmaEventHandlerFunctionRole
 
   TxmaEventHandlerFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${AWS::StackName}-TxmaEventHandlerFunction"
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-TxmaEventHandlerFunction'
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
@@ -622,10 +618,10 @@ Resources:
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
     DependsOn:
-    - AccountDeletionProcessorFunctionRolePolicy
+      - AccountDeletionProcessorFunctionRolePolicy
     Properties:
       FunctionName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction'
-      Description: "Updates an account intervention status indicating that the account has been deleted."
+      Description: 'Updates an account intervention status indicating that the account has been deleted.'
       DeploymentPreference:
         Type: !If
           - IsProd
@@ -638,11 +634,11 @@ Resources:
       Handler: account-deletion-processor-handler.handler
       MemorySize: 128
       Role: !GetAtt AccountDeletionProcessorFunctionRole.Arn
-      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      CodeSigningConfigArn: !If [UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
       Environment:
         Variables:
           TABLE_NAME:
-            Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
+            Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableName'
           DELETED_ACCOUNT_RETENTION_SECONDS: 63072000 #2 Years in Seconds
           METRIC_SERVICE_NAME: AccountDeletionProcessorFunction
       Events:
@@ -665,26 +661,25 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: "es2022"
+        Target: 'es2022'
         Sourcemap: false
         EntryPoints:
           - account-deletion-processor-handler.ts
 
-
   AccountDeletionProcessorFunctionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName:  !Sub '${AWS::StackName}-AccountDeletionProcessorFunctionRole'
-      Description: !Sub "The role assumed by ${AWS::StackName}-AccountDeletionProcessorFunction"
-      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      RoleName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunctionRole'
+      Description: !Sub 'The role assumed by ${AWS::StackName}-AccountDeletionProcessorFunction'
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
               Service: lambda.amazonaws.com
             Action:
-              - "sts:AssumeRole"
+              - 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
@@ -703,63 +698,62 @@ Resources:
   AccountDeletionProcessorFunctionRolePolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionRolePolicy"
+      ManagedPolicyName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunctionRolePolicy'
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
-              - "sqs:ReceiveMessage"
-              - "sqs:DeleteMessage"
-              - "sqs:GetQueueAttributes"
+              - 'sqs:ReceiveMessage'
+              - 'sqs:DeleteMessage'
+              - 'sqs:GetQueueAttributes'
             Resource: !GetAtt AccountDeletionProcessorQueue.Arn
           - Effect: Allow
             Action:
-              - "sqs:ReceiveMessage"
-              - "sqs:DeleteMessage"
-              - "sqs:GetQueueAttributes"
+              - 'sqs:ReceiveMessage'
+              - 'sqs:DeleteMessage'
+              - 'sqs:GetQueueAttributes'
             Resource: !GetAtt AccountDeletionEventQueue.Arn
       Roles:
         - !Ref AccountDeletionProcessorFunctionRole
 
-
   AccountDeletionProcessorFunctionManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AWS::StackName}-AccountDeletionProcessorFunctionPolicy"
+      ManagedPolicyName: !Sub '${AWS::StackName}-AccountDeletionProcessorFunctionPolicy'
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
-              - "logs:CreateLogStream"
-              - "logs:PutLogEvents"
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
             Resource:
               - !GetAtt AccountDeletionProcessorFunctionLogGroup.Arn
           - Effect: Allow
             Action:
-              - "kms:GenerateDataKey"
-              - "kms:Decrypt"
+              - 'kms:GenerateDataKey'
+              - 'kms:Decrypt'
             Resource:
               - !GetAtt SQSEncryptionKey.Arn
               - !GetAtt AccountDeletionProcessorSNSKmsKey.Arn
           - Effect: Allow
             Action:
-              - "dynamodb:UpdateItem"
+              - 'dynamodb:UpdateItem'
             Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
+              - Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableArn'
           - Effect: Allow
             Action:
-              - "kms:decrypt"
+              - 'kms:decrypt'
             Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableEncryptionKeyArn"
+              - Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableEncryptionKeyArn'
       Roles:
         - !Ref AccountDeletionProcessorFunctionRole
 
   AccountDeletionProcessorFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${AccountDeletionProcessorFunction}"
+      LogGroupName: !Sub '/aws/lambda/${AccountDeletionProcessorFunction}'
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
@@ -774,19 +768,19 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
         - Key: Name
-          Value: !Sub "/aws/lambda/${AccountDeletionProcessorFunction}"
+          Value: !Sub '/aws/lambda/${AccountDeletionProcessorFunction}'
 
   AccountDeletionProcessorFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
       LogGroupName: !Ref AccountDeletionProcessorFunctionLogGroup
-      FilterPattern: "{$.message != \"Sensitive info*\"}"
+      FilterPattern: '{$.message != "Sensitive info*"}'
 
   AccountDeletionProcessorQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${AWS::StackName}-AccountDeletionProcessorQueue"
+      QueueName: !Sub '${AWS::StackName}-AccountDeletionProcessorQueue'
       MessageRetentionPeriod: 1209600
       KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
       RedriveAllowPolicy:
@@ -810,7 +804,7 @@ Resources:
   AccountDeletionEventQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${AWS::StackName}-AccountDeletionEventQueue"
+      QueueName: !Sub '${AWS::StackName}-AccountDeletionEventQueue'
       KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
       MessageRetentionPeriod: 1209600
       VisibilityTimeout: 30
@@ -834,15 +828,15 @@ Resources:
   AccountDeletionProcessorDLQ:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${AWS::StackName}-AccountDeletionProcessorDLQ"
+      QueueName: !Sub '${AWS::StackName}-AccountDeletionProcessorDLQ'
       KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
       VisibilityTimeout: 10
       MessageRetentionPeriod: 1209600
       RedriveAllowPolicy:
         redrivePermission: byQueue
         sourceQueueArns:
-          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorQueue"
-          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionEventQueue"
+          - !Sub 'arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionProcessorQueue'
+          - !Sub 'arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountDeletionEventQueue'
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -859,7 +853,7 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Description: The Name of the Account Deletion Processor Queue
-      Name: !Sub "/${AWS::StackName}/SQS/AccountDeletionProcessorQueue/Name"
+      Name: !Sub '/${AWS::StackName}/SQS/AccountDeletionProcessorQueue/Name'
       Type: String
       Value: !GetAtt AccountDeletionProcessorQueue.QueueName
       Tags:
@@ -873,7 +867,7 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Description: The Name of the Account Deletion Processor DLQ
-      Name: !Sub "/${AWS::StackName}/SQS/AccountDeletionProcessorDLQ/Name"
+      Name: !Sub '/${AWS::StackName}/SQS/AccountDeletionProcessorDLQ/Name'
       Type: String
       Value: !GetAtt AccountDeletionProcessorDLQ.QueueName
       Tags:
@@ -883,12 +877,12 @@ Resources:
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
 
- #### TxMA Queues ####
+  #### TxMA Queues ####
   TxMAIngressQueue:
     Type: AWS::SQS::Queue
     Condition: IsInternal
     Properties:
-      QueueName: !Sub "${AWS::StackName}-TxMAIngressQueue"
+      QueueName: !Sub '${AWS::StackName}-TxMAIngressQueue'
       MessageRetentionPeriod: 1209600
       KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
       RedriveAllowPolicy:
@@ -919,7 +913,7 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - "sqs:SendMessage"
+              - 'sqs:SendMessage'
             Resource: !GetAtt TxMAIngressQueue.Arn
             Principal:
               Service: sns.amazonaws.com
@@ -928,14 +922,14 @@ Resources:
     Type: AWS::SQS::Queue
     Condition: IsInternal
     Properties:
-      QueueName: !Sub "${AWS::StackName}-TxMAIngressDLQ"
+      QueueName: !Sub '${AWS::StackName}-TxMAIngressDLQ'
       KmsMasterKeyId: !Ref SQSEncryptionKeyAlias
       VisibilityTimeout: 0
       MessageRetentionPeriod: 1209600
       RedriveAllowPolicy:
         redrivePermission: byQueue
         sourceQueueArns:
-          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-TxMAIngressQueue"
+          - !Sub 'arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-TxMAIngressQueue'
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -951,7 +945,7 @@ Resources:
   TxMAEgressQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${AWS::StackName}-TxMAEgressQueue"
+      QueueName: !Sub '${AWS::StackName}-TxMAEgressQueue'
       KmsMasterKeyId: !Ref SQSEncryptionKeyAlias
       RedriveAllowPolicy:
         redrivePermission: denyAll
@@ -978,22 +972,22 @@ Resources:
       Queues:
         - !Ref TxMAEgressQueue
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
-          - Effect: "Allow"
+          - Effect: 'Allow'
             Action:
-              - "sqs:DeleteMessage"
-              - "sqs:GetQueueAttributes"
-              - "sqs:ChangeMessageVisibility"
-              - "sqs:ReceiveMessage"
+              - 'sqs:DeleteMessage'
+              - 'sqs:GetQueueAttributes'
+              - 'sqs:ChangeMessageVisibility'
+              - 'sqs:ReceiveMessage'
             Resource:
               - !GetAtt TxMAEgressQueue.Arn
             Principal:
               AWS:
-                - !Join [ "", [ "arn:aws:iam::", !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountID ], ":root"] ]
+                - !Join ['', ['arn:aws:iam::', !FindInMap [EnvConfig, !Ref Environment, TxMAAccountID], ':root']]
           - Effect: Allow
             Action:
-              - "sqs:SendMessage"
+              - 'sqs:SendMessage'
             Resource:
               - !GetAtt TxMAEgressQueue.Arn
             Principal:
@@ -1002,13 +996,13 @@ Resources:
             Condition:
               ArnEquals:
                 aws:SourceArn:
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-InterventionsProcessorFunction"
+                  - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-InterventionsProcessorFunction'
 
   TxMAEgressQueueNameSSM:
     Type: AWS::SSM::Parameter
     Properties:
       Description: The Name of the TxMA Egress Queue
-      Name: !Sub "/${AWS::StackName}/SQS/TxMAEgressQueue/Name"
+      Name: !Sub '/${AWS::StackName}/SQS/TxMAEgressQueue/Name'
       Type: String
       Value: !GetAtt TxMAEgressQueue.QueueName
       Tags:
@@ -1021,14 +1015,14 @@ Resources:
   TxMAEgressDLQ:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${AWS::StackName}-TxMAEgressDLQ"
+      QueueName: !Sub '${AWS::StackName}-TxMAEgressDLQ'
       KmsMasterKeyId: !Ref SQSEncryptionKey
       VisibilityTimeout: 0
       MessageRetentionPeriod: 1209600
       RedriveAllowPolicy:
         redrivePermission: byQueue
         sourceQueueArns:
-          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-TxMAEgressQueue"
+          - !Sub 'arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-TxMAEgressQueue'
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -1045,7 +1039,7 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Description: The Name of the TxMA Egress DLQ
-      Name: !Sub "/${AWS::StackName}/SQS/TxMAEgressDLQ/Name"
+      Name: !Sub '/${AWS::StackName}/SQS/TxMAEgressDLQ/Name'
       Type: String
       Value: !GetAtt TxMAEgressDLQ.QueueName
       Tags:
@@ -1055,12 +1049,11 @@ Resources:
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
 
-
   #### Account Intervention Events Queues ####
   AccountInterventionEventsQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${AWS::StackName}-AccountInterventionEventsQueue"
+      QueueName: !Sub '${AWS::StackName}-AccountInterventionEventsQueue'
       MessageRetentionPeriod: 1209600
       KmsMasterKeyId: !GetAtt SQSEncryptionKey.Arn
       RedriveAllowPolicy:
@@ -1090,7 +1083,7 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - "sqs:SendMessage"
+              - 'sqs:SendMessage'
             Resource: !GetAtt AccountInterventionEventsQueue.Arn
             Principal:
               Service: sns.amazonaws.com
@@ -1098,14 +1091,14 @@ Resources:
   AccountInterventionEventsDLQ:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${AWS::StackName}-AccountInterventionEventsDLQ"
+      QueueName: !Sub '${AWS::StackName}-AccountInterventionEventsDLQ'
       KmsMasterKeyId: !Ref SQSEncryptionKeyAlias
       VisibilityTimeout: 0
       MessageRetentionPeriod: 1209600
       RedriveAllowPolicy:
         redrivePermission: byQueue
         sourceQueueArns:
-          - !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountInterventionEventsQueue"
+          - !Sub 'arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-AccountInterventionEventsQueue'
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -1122,7 +1115,7 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Description: The Name of the Account Intervention Events Queue
-      Name: !Sub "/${AWS::StackName}/SQS/AccountInterventionEventsQueue/Name"
+      Name: !Sub '/${AWS::StackName}/SQS/AccountInterventionEventsQueue/Name'
       Type: String
       Value: !GetAtt AccountInterventionEventsQueue.QueueName
       Tags:
@@ -1136,7 +1129,7 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Description: The Name of the Account Intervention Events DLQ
-      Name: !Sub "/${AWS::StackName}/SQS/AccountInterventionEventsDLQ/Name"
+      Name: !Sub '/${AWS::StackName}/SQS/AccountInterventionEventsDLQ/Name'
       Type: String
       Value: !GetAtt AccountInterventionEventsDLQ.QueueName
       Tags:
@@ -1146,7 +1139,7 @@ Resources:
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
 
-### Encryption Key SQS & SNS ###
+  ### Encryption Key SQS & SNS ###
 
   AccountDeletionProcessorSNSKmsKey:
     Type: AWS::KMS::Key
@@ -1157,21 +1150,21 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            Action: "kms:*"
-            Resource: "*"
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
           - Effect: Allow
             Principal:
               Service:
-                - "sns.amazonaws.com"
+                - 'sns.amazonaws.com'
             Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: "*"
+              - 'kms:Decrypt'
+              - 'kms:GenerateDataKey'
+            Resource: '*'
             Condition:
               ArnEquals:
                 aws:SourceArn:
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-AccountDeletionProcessorFunction"
+                  - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-AccountDeletionProcessorFunction'
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -1187,32 +1180,32 @@ Resources:
   AccountDeletionProcessorSNSKmsKeyAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub "alias/${AWS::StackName}-AccountDeletionProcessorSNSKmsKey"
+      AliasName: !Sub 'alias/${AWS::StackName}-AccountDeletionProcessorSNSKmsKey'
       TargetKeyId: !GetAtt AccountDeletionProcessorSNSKmsKey.Arn
 
   LambdaEnvironmentVariableEncryptionKey:
     Type: AWS::KMS::Key
     Properties:
-      Description: "KMS key used to encrypt lambda environment variables"
+      Description: 'KMS key used to encrypt lambda environment variables'
       EnableKeyRotation: true
       KeyPolicy:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
             Action:
               - kms:*
-            Resource: "*"
-          - Effect: "Allow"
+            Resource: '*'
+          - Effect: 'Allow'
             Principal:
               Service: lambda.amazonaws.com
             Action:
-              - "kms:Decrypt"
-            Resource: "*"
+              - 'kms:Decrypt'
+            Resource: '*'
             Condition:
               ArnLike:
-                "aws:SourceArn": !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*"
+                'aws:SourceArn': !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*'
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -1225,12 +1218,12 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
         - Key: Name
-          Value: !Sub "${AWS::StackName}-LambdaEnvironmentVariableEncryptionKey"
+          Value: !Sub '${AWS::StackName}-LambdaEnvironmentVariableEncryptionKey'
 
   LambdaEnvironmentVariableEncryptionKeyAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub "alias/${AWS::StackName}-LambdaEnvironmentVariableEncryptionKey"
+      AliasName: !Sub 'alias/${AWS::StackName}-LambdaEnvironmentVariableEncryptionKey'
       TargetKeyId: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
 
   SQSEncryptionKey:
@@ -1239,38 +1232,38 @@ Resources:
       Description: AWS KMS key for encrypting the contents of messages in SQS queues
       EnableKeyRotation: true
       KeyPolicy:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
             Action:
-              - "kms:*"
-            Resource: "*"
+              - 'kms:*'
+            Resource: '*'
           - Effect: Allow
             Principal:
               Service: sqs.amazonaws.com
             Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: "*"
+              - 'kms:Decrypt'
+              - 'kms:GenerateDataKey'
+            Resource: '*'
             Condition:
               ArnLike:
-                aws:SourceArn: !Sub "arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:*"
+                aws:SourceArn: !Sub 'arn:aws:sqs:${AWS::Region}:${AWS::AccountId}:*'
           - Effect: Allow
             Principal:
               Service: sns.amazonaws.com
             Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: "*"
+              - 'kms:Decrypt'
+              - 'kms:GenerateDataKey'
+            Resource: '*'
           - Effect: Allow
             Principal:
-              AWS: !Join [ "", [ "arn:aws:iam::", !FindInMap [ EnvConfig, !Ref Environment, TxMAAccountID ], ":root"] ]
+              AWS: !Join ['', ['arn:aws:iam::', !FindInMap [EnvConfig, !Ref Environment, TxMAAccountID], ':root']]
             Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Resource: "*"
+              - 'kms:Decrypt'
+              - 'kms:GenerateDataKey'
+            Resource: '*'
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -1283,12 +1276,12 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
         - Key: Name
-          Value: !Sub "${AWS::StackName}-SQSEncryptionKey"
+          Value: !Sub '${AWS::StackName}-SQSEncryptionKey'
 
   SQSEncryptionKeyAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub "alias/${AWS::StackName}-SQSEncryptionKey"
+      AliasName: !Sub 'alias/${AWS::StackName}-SQSEncryptionKey'
       TargetKeyId: !GetAtt SQSEncryptionKey.Arn
 
   StatusRetrieverFunction:
@@ -1308,12 +1301,12 @@ Resources:
           - !Ref 5xxErrorsStatusRetrieverCanary
         Role: !GetAtt CodeDeployServiceRole.Arn
       MemorySize: 512
-      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      CodeSigningConfigArn: !If [UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
       Timeout: 10
       Environment:
         Variables:
           TABLE_NAME:
-            Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableName"
+            Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableName'
           METRIC_SERVICE_NAME: StatusRetrieverFunction
       Handler: status-retriever-handler.handle
       Role: !GetAtt StatusRetrieverFunctionRole.Arn
@@ -1328,7 +1321,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: "es2022"
+        Target: 'es2022'
         Sourcemap: false
         EntryPoints:
           - status-retriever-handler.ts
@@ -1336,17 +1329,17 @@ Resources:
   StatusRetrieverFunctionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName:  !Sub '${AWS::StackName}-StatusRetrieverFunctionRole'
-      Description: !Sub "The role assumed by the ${AWS::StackName}-StatusRetrieverFunction"
-      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      RoleName: !Sub '${AWS::StackName}-StatusRetrieverFunctionRole'
+      Description: !Sub 'The role assumed by the ${AWS::StackName}-StatusRetrieverFunction'
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
               Service: lambda.amazonaws.com
             Action:
-              - "sts:AssumeRole"
+              - 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
@@ -1365,33 +1358,33 @@ Resources:
   StatusRetrieverFunctionManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AWS::StackName}-StatusRetrieverFunctionPolicy"
+      ManagedPolicyName: !Sub '${AWS::StackName}-StatusRetrieverFunctionPolicy'
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
-              - "logs:CreateLogStream"
-              - "logs:PutLogEvents"
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
             Resource:
               - !GetAtt StatusRetrieverFunctionLogGroup.Arn
           - Effect: Allow
             Action:
-              - "dynamodb:Query"
+              - 'dynamodb:Query'
             Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableArn"
+              - Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableArn'
           - Effect: Allow
             Action:
-              - "kms:decrypt"
+              - 'kms:decrypt'
             Resource:
-              - Fn::ImportValue: !Sub "${CoreStackName}-AccountStatusTableEncryptionKeyArn"
+              - Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableEncryptionKeyArn'
       Roles:
         - !Ref StatusRetrieverFunctionRole
 
   StatusRetrieverFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${StatusRetrieverFunction}"
+      LogGroupName: !Sub '/aws/lambda/${StatusRetrieverFunction}'
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
@@ -1406,14 +1399,14 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
         - Key: Name
-          Value: !Sub "/aws/lambda/${StatusRetrieverFunction}"
+          Value: !Sub '/aws/lambda/${StatusRetrieverFunction}'
 
   StatusRetrieverFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
       LogGroupName: !Ref StatusRetrieverFunctionLogGroup
-      FilterPattern: "{$.message != \"Sensitive info*\"}"
+      FilterPattern: '{$.message != "Sensitive info*"}'
 
   ### Invoke API Gateway ###
   InvokePrivateAPIGatewayFunction:
@@ -1424,20 +1417,20 @@ Resources:
     Properties:
       FunctionName: !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunction'
       Description: 'Utility function to invoke the Private REST API (Non-Prod Only)'
-      CodeSigningConfigArn: !If [ UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue ]
+      CodeSigningConfigArn: !If [UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
       Timeout: 10
       MemorySize: 256
       Role: !GetAtt InvokePrivateAPIGatewayFunctionRole.Arn
       Environment:
         Variables:
-          USER_ID: ""
+          USER_ID: ''
           BASE_URL: !Join
-            - ""
+            - ''
             - - https://
               - !GetAtt PrivateRestApi.RestApiId
               - !Sub .execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}
           END_POINT: /ais
-          QUERY_PARAMETERS: ""
+          QUERY_PARAMETERS: ''
           HTTP_REQUEST_METHOD: GET
       Handler: invoke-private-api.handle
       VpcConfig:
@@ -1458,7 +1451,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: "es2022"
+        Target: 'es2022'
         Sourcemap: false
         EntryPoints:
           - invoke-private-api.ts
@@ -1467,17 +1460,17 @@ Resources:
     Condition: IsInternal
     Type: AWS::IAM::Role
     Properties:
-      RoleName:  !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunctionRole'
-      Description: !Sub "The role assumed by ${AWS::StackName}-InvokePrivateAPIGatewayFunction"
-      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      RoleName: !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunctionRole'
+      Description: !Sub 'The role assumed by ${AWS::StackName}-InvokePrivateAPIGatewayFunction'
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
               Service: lambda.amazonaws.com
             Action:
-              - "sts:AssumeRole"
+              - 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
         - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
@@ -1497,14 +1490,14 @@ Resources:
     Condition: IsInternal
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: !Sub "${AWS::StackName}-InvokePrivateAPIGatewayFunctionPolicy"
+      ManagedPolicyName: !Sub '${AWS::StackName}-InvokePrivateAPIGatewayFunctionPolicy'
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
-              - "logs:CreateLogStream"
-              - "logs:PutLogEvents"
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
             Resource:
               - !GetAtt InvokePrivateAPIGatewayFunctionLogGroup.Arn
       Roles:
@@ -1514,7 +1507,7 @@ Resources:
     Condition: IsInternal
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${InvokePrivateAPIGatewayFunction}"
+      LogGroupName: !Sub '/aws/lambda/${InvokePrivateAPIGatewayFunction}'
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
@@ -1529,31 +1522,31 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
         - Key: Name
-          Value: !Sub "/aws/lambda/${InvokePrivateAPIGatewayFunction}"
+          Value: !Sub '/aws/lambda/${InvokePrivateAPIGatewayFunction}'
 
   # Private API Gateway resources
   PrivateRestApi:
     Type: AWS::Serverless::Api
     Properties:
       # checkov:skip=CKV_AWS_120: API Gateway caching not enabled
-      Name: !Sub "${AWS::StackName}-PrivateRestApi"
+      Name: !Sub '${AWS::StackName}-PrivateRestApi'
       AlwaysDeploy: true
       DefinitionBody:
         Fn::Transform:
           Name: AWS::Include
           Parameters:
-            Location: "../../specs/api.yaml"
-      Description: "Private REST API that provides method to interact with the Account Interventions Services"
+            Location: '../../specs/api.yaml'
+      Description: 'Private REST API that provides method to interact with the Account Interventions Services'
       StageName: !Ref ApiStageName
       OpenApiVersion: 3.0.3
       PropagateTags: true
       Auth:
         ResourcePolicy:
           IntrinsicVpcWhitelist:
-            - !FindInMap [ EnvConfig, !Ref Environment, AuthenticationVPCID ]
-            - !FindInMap [ EnvConfig, !Ref Environment, OneLoginHomeVPCID ]
-            - !FindInMap [ EnvConfig, !Ref Environment, OrchestrationVPCID ]
-            - !FindInMap [ EnvConfig, !Ref Environment, IPVCoreVPCID ]
+            - !FindInMap [EnvConfig, !Ref Environment, AuthenticationVPCID]
+            - !FindInMap [EnvConfig, !Ref Environment, OneLoginHomeVPCID]
+            - !FindInMap [EnvConfig, !Ref Environment, OrchestrationVPCID]
+            - !FindInMap [EnvConfig, !Ref Environment, IPVCoreVPCID]
       AccessLogSetting:
         Format: >-
           {
@@ -1583,7 +1576,7 @@ Resources:
         Type: PRIVATE
         VpcEndpointIds: !If
           - IsNotInternal
-          - !Split [",",  !FindInMap [ EnvConfig, !Ref Environment, UniqueVPCEndpointIDs ] ]
+          - !Split [',', !FindInMap [EnvConfig, !Ref Environment, UniqueVPCEndpointIDs]]
           - []
       Tags:
         CheckovRulesToSkip: CKV_AWS_120
@@ -1601,7 +1594,7 @@ Resources:
       Description: PrivateRestApi Name
       Name: !Sub /${AWS::StackName}/PrivateRestApi/Name
       Type: String
-      Value: !Sub "${AWS::StackName}-PrivateRestApi" # No return value for Rest API name so please keep manual value same as the PrivateRestApi resource Name property
+      Value: !Sub '${AWS::StackName}-PrivateRestApi' # No return value for Rest API name so please keep manual value same as the PrivateRestApi resource Name property
       Tags:
         Environment: !Ref Environment
         Product: !Ref ProductTagValue
@@ -1612,7 +1605,7 @@ Resources:
   PrivateAPIGatewayAccessLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/apigateway/${PrivateRestApi}/${ApiStageName}"
+      LogGroupName: !Sub '/aws/apigateway/${PrivateRestApi}/${ApiStageName}'
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
@@ -1627,14 +1620,14 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
         - Key: Name
-          Value: !Sub "/aws/apigateway/${PrivateRestApi}/${ApiStageName}"
+          Value: !Sub '/aws/apigateway/${PrivateRestApi}/${ApiStageName}'
 
   PrivateAPIGatewayLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
       LogGroupName: !Ref PrivateAPIGatewayAccessLogGroup
-      FilterPattern: ""
+      FilterPattern: ''
 
   PrivateGatewayStatusRetrieverFunctionPermission:
     DependsOn: StatusRetrieverFunctionAliaslive
@@ -1643,12 +1636,12 @@ Resources:
       FunctionName: !Join
         - ':'
         - - 'function'
-          - !Select [ 6, !Split [ ':', !GetAtt StatusRetrieverFunction.Arn ] ]
+          - !Select [6, !Split [':', !GetAtt StatusRetrieverFunction.Arn]]
           - 'live'
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PrivateRestApi}/*/*" # allow any stage and any method to use status retriever
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PrivateRestApi}/*/*' # allow any stage and any method to use status retriever
 
   CloudWatchEncryptionKey:
     Type: AWS::KMS::Key
@@ -1656,26 +1649,26 @@ Resources:
       Description: AWS KMS key for encrypting CloudWatch logs
       EnableKeyRotation: true
       KeyPolicy:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            Action: "kms:*"
-            Resource: "*"
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
           - Effect: Allow
             Principal:
-              Service: !Sub "logs.${AWS::Region}.amazonaws.com"
+              Service: !Sub 'logs.${AWS::Region}.amazonaws.com'
             Action:
-              - "kms:Encrypt*"
-              - "kms:Decrypt*"
-              - "kms:ReEncrypt*"
-              - "kms:GenerateDataKey*"
-              - "kms:Describe*"
-            Resource: "*"
+              - 'kms:Encrypt*'
+              - 'kms:Decrypt*'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey*'
+              - 'kms:Describe*'
+            Resource: '*'
             Condition:
               ArnLike:
-                "kms:EncryptionContext:aws:logs:arn": !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+                'kms:EncryptionContext:aws:logs:arn': !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -1688,12 +1681,12 @@ Resources:
         - Key: Source
           Value: !Ref SourceTagValue
         - Key: Name
-          Value: !Sub "${AWS::StackName}-CloudWatchEncryptionKey"
+          Value: !Sub '${AWS::StackName}-CloudWatchEncryptionKey'
 
   CloudWatchEncryptionKeyAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Sub "alias/${AWS::StackName}-CloudWatchEncryptionKey"
+      AliasName: !Sub 'alias/${AWS::StackName}-CloudWatchEncryptionKey'
       TargetKeyId: !GetAtt CloudWatchEncryptionKey.Arn
 
   #
@@ -1706,11 +1699,11 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Errors returned from the StatusRetrieverFunction Lambda. ${RunBookURL}"
+      AlarmDescription: !Sub 'Errors returned from the StatusRetrieverFunction Lambda. ${RunBookURL}'
       MetricName: Errors
       Dimensions:
         - Name: Resource
-          Value: !Sub "${AWS::StackName}-StatusRetrieverFunction:live"
+          Value: !Sub '${AWS::StackName}-StatusRetrieverFunction:live'
         - Name: FunctionName
           Value: !Ref StatusRetrieverFunction
         - Name: ExecutedVersion
@@ -1730,12 +1723,12 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Lambda returning 5xx response. ${RunBookURL}"
+      AlarmDescription: !Sub 'Lambda returning 5xx response. ${RunBookURL}'
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
       Dimensions:
         - Name: ApiName
-          Value: !Sub "${AWS::StackName}-PrivateRestApi"
+          Value: !Sub '${AWS::StackName}-PrivateRestApi'
       Statistic: Sum
       Unit: Count
       Period: 60
@@ -1750,11 +1743,11 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Errors returned from the InterventionsProcessorFunction Lambda. ${RunBookURL}"
+      AlarmDescription: !Sub 'Errors returned from the InterventionsProcessorFunction Lambda. ${RunBookURL}'
       MetricName: Errors
       Dimensions:
         - Name: Resource
-          Value: !Sub "${AWS::StackName}-InterventionsProcessorFunction:live"
+          Value: !Sub '${AWS::StackName}-InterventionsProcessorFunction:live'
         - Name: FunctionName
           Value: !Ref InterventionsProcessorFunction
         - Name: ExecutedVersion
@@ -1774,7 +1767,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Publishing to TxMA has failed due to incorrect Lambda permissions. ${RunBookURL}"
+      AlarmDescription: !Sub 'Publishing to TxMA has failed due to incorrect Lambda permissions. ${RunBookURL}'
       MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
       Namespace: !Ref SystemTagValue
       Dimensions:
@@ -1794,7 +1787,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Interventions Processor Function Alarm for InterventionsProcessorLambdaErrorMetricFilter. ${RunBookURL}"
+      AlarmDescription: !Sub 'Interventions Processor Function Alarm for InterventionsProcessorLambdaErrorMetricFilter. ${RunBookURL}'
       MetricName: InterventionsProcessorLambdaError
       Namespace: !Ref SystemTagValue
       Statistic: Sum
@@ -1811,11 +1804,11 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub "Errors returned from the AccountDeletionProcessorFunction Lambda. ${RunBookURL}"
+      AlarmDescription: !Sub 'Errors returned from the AccountDeletionProcessorFunction Lambda. ${RunBookURL}'
       MetricName: Errors
       Dimensions:
         - Name: Resource
-          Value: !Sub "${AWS::StackName}-AccountDeletionProcessorFunction:live"
+          Value: !Sub '${AWS::StackName}-AccountDeletionProcessorFunction:live'
         - Name: FunctionName
           Value: !Ref AccountDeletionProcessorFunction
         - Name: ExecutedVersion
@@ -1837,7 +1830,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Action:
               - sts:AssumeRole
@@ -1847,18 +1840,18 @@ Resources:
                 - codedeploy.amazonaws.com
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda
-      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
 
 Outputs:
   PrivateApiEndpoint:
-    Description: "Private API Gateway endpoint URL for AIS methods"
-    Value: !Sub "https://${PrivateRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}"
+    Description: 'Private API Gateway endpoint URL for AIS methods'
+    Value: !Sub 'https://${PrivateRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}'
 
   TxMAEgressSqsQueueUrl:
-    Description: "Endpoint URL for TxMA Egress Queue"
+    Description: 'Endpoint URL for TxMA Egress Queue'
     Value: !Ref TxMAEgressQueue
 
   TxMAIngressSqsQueueUrl:
     Condition: IsInternal
-    Description: "Endpoint URL for TxMA Ingress Queue"
+    Description: 'Endpoint URL for TxMA Ingress Queue'
     Value: !Ref TxMAIngressQueue
