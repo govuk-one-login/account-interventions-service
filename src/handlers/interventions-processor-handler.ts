@@ -52,12 +52,12 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
 
   const itemFailures: SQSBatchItemFailure[] = [];
 
-  const promiseArray = event.Records.map((record: SQSRecord) => {
-    return processSQSRecord(record).catch(async (error: unknown) => {
+  const promiseArray = event.Records.map((record: SQSRecord) =>
+    processSQSRecord(record).catch(async (error: unknown) => {
       const itemIdentifier = await handleError(error, record);
       if (itemIdentifier) itemFailures.push({ itemIdentifier });
-    });
-  });
+    }),
+  );
   await Promise.allSettled(promiseArray);
   metric.publishStoredMetrics();
   logger.debug('returning items that failed processing: ' + JSON.stringify(itemFailures));
@@ -159,7 +159,8 @@ function getEventName(recordBody: TxMAIngressEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
   if (recordBody.event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION) {
     validateInterventionEvent(recordBody);
-    const interventionCode = recordBody.extensions?.intervention?.intervention_code as string;
+    const interventionCode = recordBody.extensions?.intervention?.intervention_code;
+    if (!interventionCode) throw new Error('Missing intervention code from TxMAIngressEvent');
     return accountStateEngine.getInterventionEnumFromCode(interventionCode);
   }
   return recordBody.event_name as unknown as EventsEnum;

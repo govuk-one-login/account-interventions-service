@@ -33,7 +33,7 @@ export function setupServer(port: number) {
   app.disable('x-powered-by');
 
   app.get('/V1/ais/:userId', async (request, response) => {
-    const apiGatewayEvent = createDefaultApiRequest(request.params['userId']);
+    const apiGatewayEvent = createDefaultApiRequest(request.params.userId);
     try {
       result = await handle(apiGatewayEvent, dummyContext);
       response.status(result.statusCode).json(JSON.parse(result.body));
