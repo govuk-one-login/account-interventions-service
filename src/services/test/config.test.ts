@@ -1,5 +1,5 @@
-import { transitionConfiguration } from "../account-states/config";
-import { compareStrings } from "../account-states/account-state-engine";
+import { transitionConfiguration } from '../account-states/config';
+import { compareStrings } from '../account-states/account-state-engine';
 
 const nodesValuesList = Object.values(transitionConfiguration.nodes);
 const nodesKeysList = Object.keys(transitionConfiguration.nodes);
@@ -14,23 +14,23 @@ const adjListKeys = Object.keys(transitionConfiguration.adjacency);
  */
 describe('Tests for account state engine configuration file', () => {
   it('no two nodes should have the same values', () => {
-    const hasDuplicates = (new Set(nodesValuesList.map((e) => JSON.stringify(e)))).size !== nodesValuesList.length
-    expect(hasDuplicates).toEqual(false)
-
-  })
+    const hasDuplicates = new Set(nodesValuesList.map((e) => JSON.stringify(e))).size !== nodesValuesList.length;
+    expect(hasDuplicates).toEqual(false);
+  });
   it('each node should have one adjacency list', () => {
     expect(adjListKeys.length === nodesKeysList.length).toEqual(true);
-    const equality = JSON.stringify(nodesKeysList.sort(compareStrings)) === JSON.stringify(adjListKeys.sort((compareStrings)));
+    const equality =
+      JSON.stringify(nodesKeysList.sort(compareStrings)) === JSON.stringify(adjListKeys.sort(compareStrings));
     expect(equality).toEqual(true);
-  })
+  });
   it('each edge should point to an existing node', () => {
     let allEdgesPointToExistingNodes = true;
-    for (const edge of edgesValuesList){
-      if (!nodesKeysList.includes(edge.to)){
+    for (const edge of edgesValuesList) {
+      if (!nodesKeysList.includes(edge.to)) {
         allEdgesPointToExistingNodes = false;
         break;
       }
     }
     expect(allEdgesPointToExistingNodes).toEqual(true);
-  })
-})
+  });
+});

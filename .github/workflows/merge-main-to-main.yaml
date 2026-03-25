@@ -1,20 +1,19 @@
 ---
-name: "Validate & Publish Main SAM Template"
+name: 'Validate & Publish Main SAM Template'
 
 on:
   push:
     branches:
       - main
     paths:
-      - "src/**"
-      - "!src/infra/core/**" # excluded with !"
-      - "package.json"
-      - "yarn.lock"
-      - ".node-version"
-      - "tsconfig.json"
-      - ".github/workflows/merge-main-to-main.yaml"
+      - 'src/**'
+      - '!src/infra/core/**' # excluded with !"
+      - 'package.json'
+      - 'yarn.lock'
+      - '.node-version'
+      - 'tsconfig.json'
+      - '.github/workflows/merge-main-to-main.yaml'
   workflow_dispatch:
-
 
 permissions:
   id-token: write
@@ -37,7 +36,7 @@ jobs:
       gitRef: ${{ inputs.gitRef }}
 
   publish_artifacts:
-    name: "Publish Image & Template"
+    name: 'Publish Image & Template'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     needs:
@@ -65,7 +64,7 @@ jobs:
           role-to-assume: ${{ secrets.MAIN_GH_ACTIONS_ROLE_ARN }}
           aws-region: eu-west-2
 
-      - name: "Deploy SAM app"
+      - name: 'Deploy SAM app'
         uses: govuk-one-login/devplatform-upload-action@b7bc01ed6e0b61d54f42e7f3d12dd3fdbb0f172a # pin@v3.13.0
         with:
           artifact-bucket-name: ${{ secrets.MAIN_ARTIFACT_BUCKET_NAME}}
@@ -73,5 +72,5 @@ jobs:
           working-directory: ./.aws-sam/build/
           template-file: template.yaml
 
-      - name: "Delegated Deployment via AWS CodeDeploy"
+      - name: 'Delegated Deployment via AWS CodeDeploy'
         run: echo "Deployment has been delegated to AWS CodeDeploy"

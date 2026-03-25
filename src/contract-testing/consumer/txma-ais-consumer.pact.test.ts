@@ -11,7 +11,7 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
     dir: path.resolve(process.cwd(), 'pacts'),
     pactfileWriteMode: 'update',
     provider: 'TxMAProvider',
-    logLevel: "error",
+    logLevel: 'error',
   });
 
   describe('Incoming event is received from TxMA', () => {
@@ -58,11 +58,11 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
             user_id: string('urn:fdc:gov.uk:2022:USER_ONE'),
             session_id: like('uOyXUiLAOlcty42HZw6Hgmrlvx7WVraU4JIOli8DHSM'),
             govuk_signin_journey_id: like('EKRb611GMsL_mOe7Yw8FU3fIaMw'),
-            ip_address: like('*.*.*.*')
+            ip_address: like('*.*.*.*'),
           },
           extensions: {
             type: like('reprove_identity'),
-            success: boolean(true)
+            success: boolean(true),
           },
         })
         .verify(synchronousBodyHandler(interventionMessageValidator));

@@ -3,18 +3,20 @@
 A tool to programmatically create and update Cloudformation stacks in AWS.
 
 The stack orchestration tool allows you to do the following from the command line:
-* Create a changeset for a Cloudformation stack
-* Update a Cloudformation stack using the created changeset
-* Create a stack if the stack hasn't already been created
+
+- Create a changeset for a Cloudformation stack
+- Update a Cloudformation stack using the created changeset
+- Create a stack if the stack hasn't already been created
 
 ## Technology:
 
-* Bash scripts
-* AWS CLI management of Cloudformation stacks
-* GDS CLI for authentication OR AWS SSO
-* The stack orchestration tool is currently only supported on macOs
+- Bash scripts
+- AWS CLI management of Cloudformation stacks
+- GDS CLI for authentication OR AWS SSO
+- The stack orchestration tool is currently only supported on macOs
 
 ## Instructions - how to use the script
+
 Create AWS profiles per AWS Account with the following convention:
 `<aws-account-name>-admin`
 
@@ -23,6 +25,7 @@ create a profile called `di-account-interventions-staging-admin`
 as the profile's name needs to match the folder name to acquire the appropriate parameter files for the appropriate stack.
 
 ### Required parameters
+
 1. AWS_ACCOUNT - `di-account-interventions-<env>-admin`
 2. STACK_NAME - `ais-main-pipeline`
 3. STACK_TEMPLATE - `sam-deploy-pipeline`
@@ -77,6 +80,7 @@ $ ./provisioner.sh {AWS_ACCOUNT} {STACK_NAME} {STACK_TEMPLATE} {TEMPLATE_VERSION
 ```
 
 Example:
+
 ```
 ./provisioner.sh di-account-interventions-dev-admin ais-core-pipeline sam-deploy-pipeline v2.5.0
 ```

@@ -290,16 +290,16 @@ describe('event-validation', () => {
         user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
         session_id: 'uOyXUiLAOlcty42HZw6Hgmrlvx7WVraU4JIOli8DHSM',
         govuk_signin_journey_id: 'EKRb611GMsL_mOe7Yw8FU3fIaMw',
-        ip_address: "123.123.123.123"
+        ip_address: '123.123.123.123',
       },
       extensions: {
         type: 'reprove_identity',
         success: false,
       },
     };
-    expect(() => validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEventWithoutSuccess)).toThrow(
-      new ValidationError('Received event that does not meet criteria to lift intervention.'),
-    );
+    expect(() =>
+      validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEventWithoutSuccess),
+    ).toThrow(new ValidationError('Received event that does not meet criteria to lift intervention.'));
     expect(addMetric).toHaveBeenCalledWith(MetricNames.IDENTITY_NOT_SUFFICIENTLY_PROVED);
   });
 
@@ -314,7 +314,7 @@ describe('event-validation', () => {
         user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
         session_id: 'uOyXUiLAOlcty42HZw6Hgmrlvx7WVraU4JIOli8DHSM',
         govuk_signin_journey_id: 'EKRb611GMsL_mOe7Yw8FU3fIaMw',
-        ip_address: "123.123.123.123"
+        ip_address: '123.123.123.123',
       },
       extensions: {
         type: 'reprove_identity',
@@ -336,15 +336,15 @@ describe('event-validation', () => {
         user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
         session_id: 'uOyXUiLAOlcty42HZw6Hgmrlvx7WVraU4JIOli8DHSM',
         govuk_signin_journey_id: 'EKRb611GMsL_mOe7Yw8FU3fIaMw',
-        ip_address: "123.123.123.123"
+        ip_address: '123.123.123.123',
       },
       extensions: {
         type: 'reprove_identity',
       },
     };
-    expect(() => validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEventLowConfidence)).toThrow(
-      new ValidationError('Received event that does not meet criteria to lift intervention.'),
-    );
+    expect(() =>
+      validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEventLowConfidence),
+    ).toThrow(new ValidationError('Received event that does not meet criteria to lift intervention.'));
     expect(addMetric).toHaveBeenCalledWith(MetricNames.IDENTITY_NOT_SUFFICIENTLY_PROVED);
   });
 });

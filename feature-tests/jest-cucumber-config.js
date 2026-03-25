@@ -2,5 +2,5 @@ const setJestCucumberConfiguration = require('jest-cucumber').setJestCucumberCon
 
 setJestCucumberConfiguration({
   tagFilter: process.env.tagFilter,
-  errorOnMissingScenariosAndSteps: false
+  errorOnMissingScenariosAndSteps: false,
 });

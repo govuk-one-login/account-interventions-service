@@ -9,7 +9,7 @@ const mockPublishStoredMetrics = Metrics.prototype.publishStoredMetrics as jest.
 const mockAddMetadata = Metrics.prototype.addMetadata as jest.Mock;
 const mockAddMetric = Metrics.prototype.addMetric as jest.Mock;
 const mockAddDimensions = Metrics.prototype.addDimensions as jest.Mock;
-mockSerialiseMetrics.mockReturnValue({ _aws: { CloudWatchMetrics : [ { Metrics : [ "some metrics "] } ] } } );
+mockSerialiseMetrics.mockReturnValue({ _aws: { CloudWatchMetrics: [{ Metrics: ['some metrics '] }] } });
 
 describe('metrics', () => {
   beforeEach(() => {
@@ -24,7 +24,7 @@ describe('metrics', () => {
     expect(mockAddMetadata).toHaveBeenCalledTimes(2);
     expect(mockAddMetric).toHaveBeenCalledTimes(1);
     expect(mockAddMetric).toHaveBeenCalledWith('testMetricName', 'Count', 1);
-    expect(mockPublishStoredMetrics).not.toHaveBeenCalled()
+    expect(mockPublishStoredMetrics).not.toHaveBeenCalled();
   });
 
   it('adds metric with no metadata and custom count value', () => {
@@ -32,15 +32,15 @@ describe('metrics', () => {
     expect(mockAddMetadata).toHaveBeenCalledTimes(0);
     expect(mockAddMetric).toHaveBeenCalledTimes(1);
     expect(mockAddMetric).toHaveBeenCalledWith('testMetricName', 'Count', 4);
-    expect(mockPublishStoredMetrics).not.toHaveBeenCalled()
+    expect(mockPublishStoredMetrics).not.toHaveBeenCalled();
   });
 
   it('adds metric with dimensions', () => {
-    addMetric('testMetricName', [], 1, { dimensionKey : 'dimensionValue' });
+    addMetric('testMetricName', [], 1, { dimensionKey: 'dimensionValue' });
     expect(mockAddMetadata).toHaveBeenCalledTimes(0);
     expect(mockAddMetric).toHaveBeenCalledTimes(1);
     expect(mockAddMetric).toHaveBeenCalledWith('testMetricName', 'Count', 1);
-    expect(mockAddDimensions).toHaveBeenCalledWith({ dimensionKey : 'dimensionValue' })
-    expect(mockPublishStoredMetrics).toHaveBeenCalledTimes(2)
-  })
+    expect(mockAddDimensions).toHaveBeenCalledWith({ dimensionKey: 'dimensionValue' });
+    expect(mockPublishStoredMetrics).toHaveBeenCalledTimes(2);
+  });
 });
