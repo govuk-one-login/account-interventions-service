@@ -173,10 +173,10 @@
     "@smithy/util-utf8" "^4.2.2"
     tslib "^2.6.2"
 
-"@aws-sdk/client-sso-oidc@^3.1015.0":
-  version "3.1015.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sso-oidc/-/client-sso-oidc-3.1015.0.tgz#f62d42ae3641b3b712b5d917d32a3e873103e2f2"
-  integrity sha512-oijjbiRFQGKGuek9ei/kLzzPxBTTB9YAGlDqc1FVwNmEfVL6p5OLCmOUGG+vXD+g54m92NJAtYopH7HR5FulJA==
+"@aws-sdk/client-sso-oidc@^3.1016.0":
+  version "3.1016.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sso-oidc/-/client-sso-oidc-3.1016.0.tgz#9d173d7a7de92e1812ea352108204cba27e17574"
+  integrity sha512-9njq3VWK11CjhzExrx0r7RFrZ89GCT28e8WxvRK9EadN7oDX+uFqmxPUKHnN3dV2M+PHLta5PmSsX014slJbFA==
   dependencies:
     "@aws-crypto/sha256-browser" "5.2.0"
     "@aws-crypto/sha256-js" "5.2.0"
@@ -218,10 +218,10 @@
     "@smithy/util-utf8" "^4.2.2"
     tslib "^2.6.2"
 
-"@aws-sdk/client-sts@^3.1015.0":
-  version "3.1015.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sts/-/client-sts-3.1015.0.tgz#5495df144bbc44c75ca928262f2c648d54ab38ce"
-  integrity sha512-ZCArjm1DEh7HmlD/xw2wZVU7tJ86APXFi+EuSS3uIYgv2Kn5TTOBDcuycE2yG7CpUpz98Vrb2wHuHskA8LtMQA==
+"@aws-sdk/client-sts@^3.1016.0":
+  version "3.1016.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sts/-/client-sts-3.1016.0.tgz#e17600647d30f9c00c3b21749f25e732093c0d9e"
+  integrity sha512-KrqsIs8MSYH5HWGKmIvmj6H+iFDDYRxPOHXIWUu0GXumhvBuGz0g0t5U+d7zWgG5UusIsbBWl7B+4IrNKcegOA==
   dependencies:
     "@aws-crypto/sha256-browser" "5.2.0"
     "@aws-crypto/sha256-js" "5.2.0"
