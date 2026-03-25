@@ -11,8 +11,11 @@ jest.mock('@aws-sdk/util-dynamodb');
 jest.mock('../../commons/logger');
 jest.mock('@aws-lambda-powertools/metrics');
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const mockDynamoDBServiceUpdateDeleteStatus = DynamoDatabaseService.prototype.updateDeleteStatus as jest.Mock;
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const mockPublishStoredMetric = Metrics.prototype.publishStoredMetrics as jest.Mock;
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const mockAddMetric = Metrics.prototype.addMetric as jest.Mock;
 const loggerErrorSpy = jest.spyOn(logger, 'error');
 const loggerWarnSpy = jest.spyOn(logger, 'warn');
@@ -30,9 +33,15 @@ describe('Account Deletion Processor', () => {
     invokedFunctionArn: 'arn:aws:lambda:eu-west-1:123456789012:function:foo-bar-function',
     awsRequestId: 'c6af9ac6-7b61-11e6-9a41-93e812345678',
     getRemainingTimeInMillis: () => 1234,
-    done: () => console.log('Done!'),
-    fail: () => console.log('Failed!'),
-    succeed: () => console.log('Succeeded!'),
+    done: () => {
+      console.log('Done!');
+    },
+    fail: () => {
+      console.log('Failed!');
+    },
+    succeed: () => {
+      console.log('Succeeded!');
+    },
   };
 
   beforeAll(() => {

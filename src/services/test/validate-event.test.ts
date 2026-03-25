@@ -17,13 +17,11 @@ jest.mock('../../commons/metrics');
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../send-audit-events');
 jest.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: jest.fn().mockImplementation(() => {
-    return {
-      milliseconds: 1_234_567_890,
-      isoString: 'today',
-      seconds: 1_234_567,
-    };
-  }),
+  getCurrentTimestamp: jest.fn().mockImplementation(() => ({
+    milliseconds: 1_234_567_890,
+    isoString: 'today',
+    seconds: 1_234_567,
+  })),
 }));
 
 const timestamp = getCurrentTimestamp();
@@ -80,11 +78,12 @@ describe('event-validation', () => {
         },
       },
     };
-    expect(() => validateEventAgainstSchema(TxMAEvent as TxMAEvent)).toThrow(
-      new ValidationError('Invalid intervention event.'),
-    );
+    expect(() => {
+      validateEventAgainstSchema(TxMAEvent as TxMAEvent);
+    }).toThrow(new ValidationError('Invalid intervention event.'));
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledWith('Sensitive info - Event has failed schema validation.', {
-      validationErrors: expect.anything(),
+      validationErrors: expect.anything() as unknown,
     });
     expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
@@ -101,12 +100,13 @@ describe('event-validation', () => {
         },
       },
     };
-    expect(() => validateEventAgainstSchema(TxMAEvent as TxMAEvent)).toThrow(
-      new ValidationError('Invalid intervention event.'),
-    );
-    expect(validateInterventionEvent(TxMAEvent as TxMAEvent)).toBeUndefined();
+    expect(() => {
+      validateEventAgainstSchema(TxMAEvent as TxMAEvent);
+    }).toThrow(new ValidationError('Invalid intervention event.'));
+    validateInterventionEvent(TxMAEvent as TxMAEvent);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledWith('Sensitive info - Event has failed schema validation.', {
-      validationErrors: expect.anything(),
+      validationErrors: expect.anything() as unknown,
     });
     expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
@@ -121,9 +121,12 @@ describe('event-validation', () => {
       event_id: '123',
       extensions: {},
     };
-    expect(() => validateEventAgainstSchema(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
+    expect(() => {
+      validateEventAgainstSchema(TxMAEvent);
+    }).toThrow(new ValidationError('Invalid intervention event.'));
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledWith('Sensitive info - Event has failed schema validation.', {
-      validationErrors: expect.anything(),
+      validationErrors: expect.anything() as unknown,
     });
     expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
@@ -146,7 +149,10 @@ describe('event-validation', () => {
       },
     };
     expect(validateEventAgainstSchema(TxMAEvent)).toBeUndefined();
-    expect(() => validateInterventionEvent(TxMAEvent)).toThrow(new ValidationError('Invalid intervention event.'));
+    expect(() => {
+      validateInterventionEvent(TxMAEvent);
+    }).toThrow(new ValidationError('Invalid intervention event.'));
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledWith('Invalid intervention request. Intervention code is NAN');
     expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
@@ -170,20 +176,19 @@ describe('event-validation', () => {
       },
     };
 
-    await expect(
-      async () =>
-        await validateEventIsNotStale(
-          EventsEnum.FRAUD_SUSPEND_ACCOUNT,
-          staleEvent,
-          {
-            blocked: false,
-            suspended: false,
-            resetPassword: false,
-            reproveIdentity: false,
-          },
-          dynamoDBResult,
-        ),
-    ).rejects.toThrow(new ValidationError('Event received predates last applied event for this user.'));
+    await expect(async () => {
+      await validateEventIsNotStale(
+        EventsEnum.FRAUD_SUSPEND_ACCOUNT,
+        staleEvent,
+        {
+          blocked: false,
+          suspended: false,
+          resetPassword: false,
+          reproveIdentity: false,
+        },
+        dynamoDBResult,
+      );
+    }).rejects.toThrow(new ValidationError('Event received predates last applied event for this user.'));
     expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
     expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent, {
       stateResult: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
@@ -297,9 +302,9 @@ describe('event-validation', () => {
         success: false,
       },
     };
-    expect(() =>
-      validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEventWithoutSuccess),
-    ).toThrow(new ValidationError('Received event that does not meet criteria to lift intervention.'));
+    expect(() => {
+      validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEventWithoutSuccess);
+    }).toThrow(new ValidationError('Received event that does not meet criteria to lift intervention.'));
     expect(addMetric).toHaveBeenCalledWith(MetricNames.IDENTITY_NOT_SUFFICIENTLY_PROVED);
   });
 
@@ -321,7 +326,9 @@ describe('event-validation', () => {
         success: true,
       },
     };
-    expect(() => validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEvent)).not.toThrow();
+    expect(() => {
+      validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEvent);
+    }).not.toThrow();
     expect(addMetric).not.toHaveBeenCalled();
   });
 
@@ -342,9 +349,9 @@ describe('event-validation', () => {
         type: 'reprove_identity',
       },
     };
-    expect(() =>
-      validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEventLowConfidence),
-    ).toThrow(new ValidationError('Received event that does not meet criteria to lift intervention.'));
+    expect(() => {
+      validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEventLowConfidence);
+    }).toThrow(new ValidationError('Received event that does not meet criteria to lift intervention.'));
     expect(addMetric).toHaveBeenCalledWith(MetricNames.IDENTITY_NOT_SUFFICIENTLY_PROVED);
   });
 });

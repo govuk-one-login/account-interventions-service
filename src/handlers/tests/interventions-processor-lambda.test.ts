@@ -20,13 +20,11 @@ jest.mock('../../services/send-audit-events');
 jest.mock('../../commons/metrics-helper');
 
 jest.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: jest.fn().mockImplementation(() => {
-    return {
-      milliseconds: 1_234_567_890,
-      isoString: 'today',
-      seconds: 1_234_567,
-    };
-  }),
+  getCurrentTimestamp: jest.fn().mockImplementation(() => ({
+    milliseconds: 1_234_567_890,
+    isoString: 'today',
+    seconds: 1_234_567,
+  })),
 }));
 
 const now = getCurrentTimestamp();
@@ -85,14 +83,14 @@ const resetPasswordEventBody = {
   },
 };
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const mockRetrieveRecords = DynamoDatabaseService.prototype.getAccountStateInformation as jest.Mock;
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const mockUpdateRecords = DynamoDatabaseService.prototype.updateUserStatus as jest.Mock;
 const mockValidateEventAgainstSchema = jest.spyOn(validationModule, 'validateEventAgainstSchema').mockReturnValue();
 
 const accountStateEngine = AccountStateEngine.getInstance();
-accountStateEngine.getInterventionEnumFromCode = jest.fn().mockImplementation(() => {
-  return EventsEnum.FRAUD_BLOCK_ACCOUNT;
-});
+accountStateEngine.getInterventionEnumFromCode = jest.fn().mockImplementation(() => EventsEnum.FRAUD_BLOCK_ACCOUNT);
 describe('intervention processor handler', () => {
   let mockEvent: SQSEvent;
   let mockRecord: SQSRecord;
@@ -106,9 +104,15 @@ describe('intervention processor handler', () => {
     invokedFunctionArn: 'arn:aws:lambda:eu-west-1:123456789012:function:foo-bar-function',
     awsRequestId: 'c6af9ac6-7b61-11e6-9a41-93e812345678',
     getRemainingTimeInMillis: () => 1234,
-    done: () => console.log('Done!'),
-    fail: () => console.log('Failed!'),
-    succeed: () => console.log('Succeeded!'),
+    done: () => {
+      console.log('Done!');
+    },
+    fail: () => {
+      console.log('Failed!');
+    },
+    succeed: () => {
+      console.log('Succeeded!');
+    },
   };
 
   beforeEach(() => {
@@ -157,6 +161,7 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.error).toHaveBeenCalledWith('Sensitive info - record body could not be parsed to valid JSON.', {
         error: new SyntaxError('Unexpected end of JSON input'),
       });
@@ -185,6 +190,7 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried.', {
         errorMessage: 'State transition Error',
       });
@@ -243,7 +249,7 @@ describe('intervention processor handler', () => {
     });
 
     it('should succeed when an intervention event is received for a non existing user', async () => {
-      mockRetrieveRecords.mockReturnValue(undefined);
+      mockRetrieveRecords.mockReturnValue();
       accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
         stateResult: {
           blocked: false,
@@ -330,6 +336,7 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
       expect(addMetric).toHaveBeenLastCalledWith(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.warn).toHaveBeenCalledTimes(2);
       expect((logger.warn as jest.Mock).mock.calls).toEqual([
         ['Sensitive info - user abc account has been deleted.'],
@@ -369,6 +376,7 @@ describe('intervention processor handler', () => {
         interventionEventBodyInTheFuture,
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.warn).toHaveBeenCalledWith('Event with timestamp in the future.', {
         currentTime: '1970-01-15T06:56:07.890Z',
         emittedAt: '1970-01-15T06:56:12.890Z',
@@ -398,6 +406,7 @@ describe('intervention processor handler', () => {
         ],
       });
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.error).toHaveBeenCalledWith('Error caught, message will be retried.', { errorMessage: 'Error' });
     });
 
@@ -414,6 +423,7 @@ describe('intervention processor handler', () => {
       expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
         batchItemFailures: [],
       });
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.warn).toHaveBeenCalledWith('Event received predates last applied event for this user.');
       expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
       expect(sendAuditEvent).toHaveBeenCalledWith(
@@ -491,6 +501,7 @@ describe('intervention processor handler', () => {
       expect(await handler(mockEvent, mockContext)).toEqual({
         batchItemFailures: [],
       });
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.warn).toHaveBeenCalledWith(
         'Too many records were returned from the database. Message will not be retried',
         { errorMessage: 'Too many records' },
@@ -529,6 +540,7 @@ describe('intervention processor handler', () => {
         batchItemFailures: [],
       });
       expect(addMetric).toHaveBeenCalledWith('IDENTITY_NOT_SUFFICIENTLY_PROVED');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.warn).toHaveBeenCalledWith('Received event that does not meet criteria to lift intervention.', {
         success: false,
         type: 'reprove_identity',
@@ -540,6 +552,7 @@ describe('intervention processor handler', () => {
       mockRetrieveRecords.mockRejectedValue(new Error('Error'));
       await handler(mockEvent, mockContext);
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.error).toHaveBeenCalledWith('Error caught, message will be retried.', { errorMessage: 'Error' });
     });
   });

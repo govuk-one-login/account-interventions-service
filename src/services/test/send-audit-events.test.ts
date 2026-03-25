@@ -19,13 +19,11 @@ import { TxMAIngressEvent } from '../../data-types/interfaces';
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
 jest.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: jest.fn().mockImplementation(() => {
-    return {
-      milliseconds: 1_234_567_890,
-      isoString: 'today',
-      seconds: 1_234_567,
-    };
-  }),
+  getCurrentTimestamp: jest.fn().mockImplementation(() => ({
+    milliseconds: 1_234_567_890,
+    isoString: 'today',
+    seconds: 1_234_567,
+  })),
 }));
 
 const ingressInterventionEvent: TxMAIngressEvent = {
@@ -286,6 +284,7 @@ describe('send-audit-events', () => {
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForUserAction);
@@ -305,6 +304,7 @@ describe('send-audit-events', () => {
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendIntervention);
@@ -324,6 +324,7 @@ describe('send-audit-events', () => {
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForBlockIntervention);
@@ -344,6 +345,7 @@ describe('send-audit-events', () => {
     expect(response).toBeUndefined();
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendIntervention);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledWith(
       'An error happened while trying to send the audit event to the TxMA queue.',
       { error: new Error('SomeSQSError') },
@@ -365,6 +367,7 @@ describe('send-audit-events', () => {
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForDeletedAccount);
@@ -384,6 +387,7 @@ describe('send-audit-events', () => {
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendIntervention);
@@ -403,6 +407,7 @@ describe('send-audit-events', () => {
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendUserAction);
@@ -422,6 +427,7 @@ describe('send-audit-events', () => {
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(
@@ -445,6 +451,7 @@ describe('send-audit-events', () => {
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsInputWithExtraFields);
@@ -477,6 +484,7 @@ describe('send-audit-events', () => {
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInput);
@@ -496,6 +504,7 @@ describe('send-audit-events', () => {
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForUnsuspendIntervention);
@@ -510,6 +519,7 @@ describe('send-audit-events', () => {
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
     expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForFutureInterventions);

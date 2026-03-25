@@ -484,7 +484,7 @@ defineFeature(feature, (test) => {
       await timeDelayForTestEnvironment(2000);
     });
 
-    when(/^I send a message  a delete event intervention to TxMA ingress SQS queue$/, async () => {
+    when(/^I send a message a delete event intervention to TxMA ingress SQS queue$/, async () => {
       await sendDeleteEvent(testUserId);
       console.log(`AIS Record Deleted via SQS Message Sent`);
     });

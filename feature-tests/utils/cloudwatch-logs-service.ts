@@ -51,7 +51,7 @@ class CloudWatchLogsService {
         );
 
         if (logs?.events) {
-          for (const log of logs?.events) {
+          for (const log of logs.events) {
             this.logs.push(this.parseMessage(log));
           }
         }

@@ -6,13 +6,11 @@ import { addMetric } from '../metrics';
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
 jest.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: jest.fn().mockImplementation(() => {
-    return {
+  getCurrentTimestamp: jest.fn().mockImplementation(() => ({
       milliseconds: 1_706_544_555_234,
       isoString: 'today',
       seconds: 1_706_544_555,
-    };
-  }),
+    })),
 }));
 const interventionEventBody: TxMAIngressEvent = {
   timestamp: 1000,

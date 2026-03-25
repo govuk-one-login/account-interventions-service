@@ -10,7 +10,7 @@ describe('currentTimestampInSeconds', () => {
     jest.useRealTimers();
   });
 
-  it('should return the Unix timestamp in seconds on 13 March 2023 00:00:00 UTC', async () => {
+  it('should return the Unix timestamp in seconds on 13 March 2023 00:00:00 UTC', () => {
     const response = getCurrentTimestamp();
     expect(response.seconds).toEqual(1_678_665_600);
     expect(response.milliseconds).toEqual(1_678_665_600_000);
