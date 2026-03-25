@@ -10,7 +10,7 @@ import globals from 'globals';
 export default defineConfig(
   eslintPluginUnicorn.configs.recommended,
   {
-    ignores: ['**/node_modules/**', '**/feature-tests/**', '**/*.test.ts', 'coverage/**', '**/.aws-sam/**'],
+    ignores: ['**/node_modules/**', '**/feature-tests/**', 'coverage/**', '**/.aws-sam/**'],
   },
   {
     files: ['**/*.ts'],
