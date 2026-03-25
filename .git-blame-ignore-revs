@@ -5,3 +5,6 @@
 
 # template.yaml style fixes
 0f21acad1186aef37676f75cbf2376052765476a
+
+# Style changes from running prettier against codebase
+66293639e2bec0ce22545e8fedf96df26affc526
