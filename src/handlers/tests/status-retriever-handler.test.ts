@@ -71,10 +71,17 @@ const mockConfig = {
   invokedFunctionArn: 'arn:aws:lambda:eu-west-1:123456789012:function:foo-bar-function',
   awsRequestId: 'c6af9ac6-7b61-11e6-9a41-93e812345678',
   getRemainingTimeInMillis: () => 1234,
-  done: () => console.log('Done!'),
-  fail: () => console.log('Failed!'),
-  succeed: () => console.log('Succeeded!'),
+  done: () => {
+    console.log('Done!');
+  },
+  fail: () => {
+    console.log('Failed!');
+  },
+  succeed: () => {
+    console.log('Succeeded!');
+  },
 };
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const mockDynamoDBServiceRetrieveRecords = DynamoDatabaseService.prototype.getFullAccountInformation as jest.Mock;
 
 describe('status-retriever-handler', () => {
@@ -128,7 +135,8 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(suspendedRecord);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    const payload = JSON.parse(response.body);
+
+    const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(suspendedAccount);
     expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
@@ -152,9 +160,10 @@ describe('status-retriever-handler', () => {
 
     mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
     const response = await handle(testEvent, mockConfig);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.info).toHaveBeenCalledWith('Query matched no records in DynamoDB.');
     expect(response.statusCode).toBe(200);
-    const payload = JSON.parse(response.body);
+    const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(accountNotFoundDefaultObject);
     expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
@@ -201,7 +210,7 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    const payload = JSON.parse(response.body);
+    const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(accountIsNotSuspended);
     expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
@@ -214,7 +223,7 @@ describe('status-retriever-handler', () => {
     const invalidTestEvent = { ...testEvent, pathParameters: invalidPathParameters };
     const response = await handle(invalidTestEvent, mockConfig);
     expect(response.statusCode).toBe(400);
-    const payload = JSON.parse(response.body);
+    const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual({ message: 'Invalid Request.' });
     expect(payload).toSatisfySchemaInApiSpec('Error');
   });
@@ -259,7 +268,7 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(suspendedRecord);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    const payload = JSON.parse(response.body);
+    const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(suspendedAccount);
     expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
@@ -287,10 +296,12 @@ describe('status-retriever-handler', () => {
     };
     const invalidTestEvent = { ...testEvent, pathParameters: invalidPathParameters };
     const response = await handle(invalidTestEvent, mockConfig);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.warn).toHaveBeenCalledTimes(1);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.warn).toHaveBeenCalledWith('Attribute invalid: user_id is empty.');
     expect(response.statusCode).toBe(200);
-    const payload = JSON.parse(response.body);
+    const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(accountNotFoundDefaultObject);
     expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
@@ -299,7 +310,7 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockRejectedValue('There was a problem with the query operation');
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(500);
-    const payload = JSON.parse(response.body);
+    const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual({ message: 'Internal Server Error.' });
     expect(payload).toSatisfySchemaInApiSpec('Error');
   });
@@ -343,7 +354,7 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(nullUpdatedAt);
     const response = await handle(testEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    const payload = JSON.parse(response.body);
+    const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(updatedTime);
     expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
@@ -371,7 +382,7 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
     const response = await handle(addedQueryParameterTestEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    const payload = JSON.parse(response.body);
+    const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(accountNotFoundDefaultObject);
     expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
@@ -419,7 +430,7 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
     const response = await handle(addedQueryParameterTestEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    const payload = JSON.parse(response.body);
+    const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(accountIsNotSuspended);
     expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
@@ -478,7 +489,7 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
     const response = await handle(addedQueryParameterTestEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    const payload = JSON.parse(response.body);
+    const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(accountIsNotSuspended);
     expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
@@ -554,9 +565,10 @@ describe('status-retriever-handler', () => {
     mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
     const response = await handle(addedQueryParameterTestEvent, mockConfig);
     expect(response.statusCode).toBe(200);
-    const payload = JSON.parse(response.body);
+    const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(accountIsNotSuspended);
     expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledWith('History string is malformed.', { error });
     expect(addMetric).toHaveBeenCalled();
   });

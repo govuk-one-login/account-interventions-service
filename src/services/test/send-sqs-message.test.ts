@@ -25,6 +25,7 @@ describe('sendSqsMessage', () => {
   it('throws an error if AWS_REGION environment variable is not set', async () => {
     delete process.env['AWS_REGION'];
     await expect(sendSqsMessage(messageBody, queueUrl)).rejects.toThrow('AWS_REGION environment variable not set');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledWith('AWS_REGION environment variable is not set');
   });
 
@@ -40,7 +41,7 @@ describe('sendSqsMessage', () => {
   it('throws an error if sending the message fails', async () => {
     process.env['AWS_REGION'] = 'eu-west-2';
     sendFn.mockImplementation(() => {
-      throw Error('Failed to send message');
+      throw new Error('Failed to send message');
     });
 
     await expect(sendSqsMessage(messageBody, queueUrl)).rejects.toThrow('Failed to send message');
@@ -52,8 +53,7 @@ describe('sendBatchSqsMessage', () => {
     Id: 0,
     MessageBody: 'Test message',
   };
-  const entries: any[] = [];
-  entries.push(entry);
+  const entries: SendMessageBatchRequestEntry[] = [entry];
   const queueUrl = 'queue';
 
   const sendFn = jest.fn();
@@ -71,6 +71,7 @@ describe('sendBatchSqsMessage', () => {
   it('throws an error if AWS_REGION environment variable is not set', async () => {
     delete process.env['AWS_REGION'];
     await expect(sendBatchSqsMessage(entries, queueUrl)).rejects.toThrow('AWS_REGION environment variable not set');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledWith('AWS_REGION environment variable is not set');
   });
 
@@ -86,7 +87,7 @@ describe('sendBatchSqsMessage', () => {
   it('throws an error if sending the message fails', async () => {
     process.env['AWS_REGION'] = 'eu-west-2';
     sendFn.mockImplementation(() => {
-      throw Error('Failed to send message');
+      throw new Error('Failed to send message');
     });
 
     await expect(sendBatchSqsMessage(entries, queueUrl)).rejects.toThrow('Failed to send message');

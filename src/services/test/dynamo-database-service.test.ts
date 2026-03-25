@@ -53,9 +53,9 @@ describe('Dynamo DB Service', () => {
         BOOL: false,
       },
     },
-  ] as any;
+  ];
 
-  const input: Record<string, any> = {
+  const input: Record<string, unknown> = {
     ExpressionAttributeNames: {
       '#B': 'blocked',
       '#S': 'suspended',
@@ -128,12 +128,13 @@ describe('Dynamo DB Service', () => {
         httpStatusCode: 200,
       },
     });
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.info).toHaveBeenCalledTimes(0);
   });
 
   it('should throw a TooManyRecordsError error if more than one record is retrieved for one user id.', async () => {
     queryCommandMock.resolves({ Items: [{ key: { S: 'valueOne' } }, { key: { S: 'valueTwo' } }] });
-    const service = await new DynamoDatabaseService('table_name');
+    const service = new DynamoDatabaseService('table_name');
     await expect(async () => await service.getAccountStateInformation('userId')).rejects.toThrow(
       new TooManyRecordsError('DynamoDB returned more than one element.'),
     );
@@ -142,7 +143,7 @@ describe('Dynamo DB Service', () => {
 
   it('should throw an error if Items field is undefined in response from DynamoDB.', async () => {
     queryCommandMock.resolves({ Items: undefined } as unknown as QueryCommandOutput);
-    const service = await new DynamoDatabaseService('table_name');
+    const service = new DynamoDatabaseService('table_name');
     await expect(async () => await service.getAccountStateInformation('userId')).rejects.toThrowWithMessage(
       Error,
       'DynamoDB may have failed to query, returned a null response.',
@@ -211,7 +212,7 @@ describe('Dynamo DB Service', () => {
 
   it('does not throw an error and logs an info when there is a Conditional Check Exception.', async () => {
     const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
-    const error = new Error();
+    const error = new Error('test');
     error.name = 'ConditionalCheckFailedException';
     mockedUpdateCommand.rejectsOnce(error);
     const loggerInfoSpy = jest.spyOn(logger, 'info');

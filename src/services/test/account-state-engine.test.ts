@@ -163,13 +163,11 @@ const idResetSuccessfulUpdateSuspended = {
 jest.mock('@aws-lambda-powertools/logger');
 jest.mock('../../commons/metrics');
 jest.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: jest.fn().mockImplementation(() => {
-    return {
-      milliseconds: 1_234_567_890,
-      isoString: 'today',
-      seconds: 1_234_567,
-    };
-  }),
+  getCurrentTimestamp: jest.fn().mockImplementation(() => ({
+    milliseconds: 1_234_567_890,
+    isoString: 'today',
+    seconds: 1_234_567,
+  })),
 }));
 describe('account-state-service', () => {
   describe('Successful state transitions', () => {
@@ -328,6 +326,7 @@ describe('account-state-service', () => {
               interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
             }),
           );
+          // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(logger.error).not.toHaveBeenCalled();
           expect(addMetric).not.toHaveBeenCalled();
         },
@@ -368,6 +367,7 @@ describe('account-state-service', () => {
               interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
             }),
           );
+          // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(logger.error).toHaveBeenCalledWith({ message: `${intervention} is not allowed from current state` });
           expect(addMetric).toHaveBeenLastCalledWith(MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED);
         },

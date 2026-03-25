@@ -15,8 +15,8 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
   });
 
   describe('Incoming event is received from TxMA', () => {
-    it('accepts a valid intervention event from TxMA', () => {
-      return messagePact
+    it('accepts a valid intervention event from TxMA', () =>
+      messagePact
         .given('AIS is healthy')
         .expectsToReceive('a valid intervention event')
         .withContent({
@@ -32,10 +32,9 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
             },
           },
         })
-        .verify(synchronousBodyHandler(interventionMessageValidator));
-    });
-    it('accepts a valid user action (reset password) event from TxMA', () => {
-      return messagePact
+        .verify(synchronousBodyHandler(interventionMessageValidator)));
+    it('accepts a valid user action (reset password) event from TxMA', () =>
+      messagePact
         .given('AIS is healthy')
         .expectsToReceive('a valid user action event - reset password')
         .withContent({
@@ -45,10 +44,9 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
             user_id: string('urn:fdc:gov.uk:2022:USER_ONE'),
           },
         })
-        .verify(synchronousBodyHandler(interventionMessageValidator));
-    });
-    it('accepts a valid user action (reset identity) event from TxMA', () => {
-      return messagePact
+        .verify(synchronousBodyHandler(interventionMessageValidator)));
+    it('accepts a valid user action (reset identity) event from TxMA', () =>
+      messagePact
         .given('AIS is healthy')
         .expectsToReceive('a valid user action event - reset password')
         .withContent({
@@ -65,17 +63,15 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
             success: boolean(true),
           },
         })
-        .verify(synchronousBodyHandler(interventionMessageValidator));
-    });
-    it('accepts a valid account deletion event', () => {
-      return messagePact
+        .verify(synchronousBodyHandler(interventionMessageValidator)));
+    it('accepts a valid account deletion event', () =>
+      messagePact
         .given('AIS is healthy')
         .expectsToReceive('a valid intervention event')
         .withContent({
           user_id: string('urn:fdc:gov.uk:2022:USER_ONE'),
         })
-        .verify(synchronousBodyHandler(deleteAccountEventValidator));
-    });
+        .verify(synchronousBodyHandler(deleteAccountEventValidator)));
   });
 });
 
