@@ -173,10 +173,10 @@
     "@smithy/util-utf8" "^4.2.2"
     tslib "^2.6.2"
 
-"@aws-sdk/client-sso-oidc@^3.1016.0":
-  version "3.1016.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sso-oidc/-/client-sso-oidc-3.1016.0.tgz#9d173d7a7de92e1812ea352108204cba27e17574"
-  integrity sha512-9njq3VWK11CjhzExrx0r7RFrZ89GCT28e8WxvRK9EadN7oDX+uFqmxPUKHnN3dV2M+PHLta5PmSsX014slJbFA==
+"@aws-sdk/client-sso-oidc@^3.1017.0":
+  version "3.1017.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sso-oidc/-/client-sso-oidc-3.1017.0.tgz#a2b0e3f5df4a606f58db89a4826eabd388e68269"
+  integrity sha512-zqrBBJOV37b7Z2dVrwCYXuMwL+2r17fkCfIoO4rRcDcUw3VDQthuZ433f8LM9CDiyhtFqHEsx9hMJpVSIryg2Q==
   dependencies:
     "@aws-crypto/sha256-browser" "5.2.0"
     "@aws-crypto/sha256-js" "5.2.0"
@@ -218,10 +218,10 @@
     "@smithy/util-utf8" "^4.2.2"
     tslib "^2.6.2"
 
-"@aws-sdk/client-sts@^3.1016.0":
-  version "3.1016.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sts/-/client-sts-3.1016.0.tgz#e17600647d30f9c00c3b21749f25e732093c0d9e"
-  integrity sha512-KrqsIs8MSYH5HWGKmIvmj6H+iFDDYRxPOHXIWUu0GXumhvBuGz0g0t5U+d7zWgG5UusIsbBWl7B+4IrNKcegOA==
+"@aws-sdk/client-sts@^3.1017.0":
+  version "3.1017.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sts/-/client-sts-3.1017.0.tgz#29f44b3d0e7091a90c9c458abea59e17dd7b5459"
+  integrity sha512-lrd2roBBni5kdCpOKO/iQ9SyFFWZhBa1Dc0V2qxQFKHZeN91i4I4ijr+wXQan/jHqTU4qrypANgoT+jG8vd9Ew==
   dependencies:
     "@aws-crypto/sha256-browser" "5.2.0"
     "@aws-crypto/sha256-js" "5.2.0"
@@ -3407,10 +3407,10 @@ available-typed-arrays@^1.0.7:
   dependencies:
     possible-typed-array-names "^1.0.0"
 
-aws-crt@^1.29.0:
-  version "1.29.1"
-  resolved "https://registry.yarnpkg.com/aws-crt/-/aws-crt-1.29.1.tgz#c0413d05a14433146321af35c5bad555409cb029"
-  integrity sha512-YeuwHbh9SjRkMpaY6hXi8NzNn2yjuwEen8Vg/Wasg4hOoqiwxINwX3g7LZEc+mMCOoxQWOQfTJcaOAbU24HroQ==
+aws-crt@^1.30.0:
+  version "1.30.0"
+  resolved "https://registry.yarnpkg.com/aws-crt/-/aws-crt-1.30.0.tgz#f81e6fffc00a8a15119579100640d6301d169abe"
+  integrity sha512-PSbNf2HdLT5orB91SaAR9cARBRTaYznPJIVWDeNlsr//xlcdqYywPAOJQ6L5nBwZnTDArvk7awt6RpL4SIqWsQ==
   dependencies:
     "@aws-sdk/util-utf8-browser" "^3.259.0"
     "@httptoolkit/websocket-stream" "^6.0.1"
