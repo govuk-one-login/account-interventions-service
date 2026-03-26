@@ -78,10 +78,10 @@
     "@aws-lambda-powertools/commons" "2.32.0"
     aws-xray-sdk-core "^3.12.0"
 
-"@aws-sdk/client-dynamodb@^3.1016.0":
-  version "3.1016.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-dynamodb/-/client-dynamodb-3.1016.0.tgz#994da88c7d82b731e11373e874ba8ca3c36dd0a3"
-  integrity sha512-Owy1wQEJuLQ1WAc7QUQQ+3vSPWY6/JWBsPEDn9GM2F3+vDAtPL/HrZlfpY2BMeo6lxhm3/PfTg9wGy/TmK6buw==
+"@aws-sdk/client-dynamodb@^3.1017.0":
+  version "3.1017.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-dynamodb/-/client-dynamodb-3.1017.0.tgz#f7eb310c14044d8f4137c52de74770ddb637a956"
+  integrity sha512-qHP8f3MKTZTW13EknRzQZ9K14FLziSOWgymJNRyBLyzerBqeJN9xJII+dHmphQ9+yEo9zISZEzGyI2LbE4Smnw==
   dependencies:
     "@aws-crypto/sha256-browser" "5.2.0"
     "@aws-crypto/sha256-js" "5.2.0"
@@ -126,10 +126,10 @@
     "@smithy/util-waiter" "^4.2.13"
     tslib "^2.6.2"
 
-"@aws-sdk/client-sqs@^3.1016.0":
-  version "3.1016.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sqs/-/client-sqs-3.1016.0.tgz#013433feaddae5c68fbf5308fee5585955191c46"
-  integrity sha512-31OP7m98ZXuHF7DbOapmjp2hJyrduwwNaZPYrPyDcSTZ+60Qg+F/AUA6snw+QpOPfVnxFqkofhxyBKPPbaQWig==
+"@aws-sdk/client-sqs@^3.1017.0":
+  version "3.1017.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-sqs/-/client-sqs-3.1017.0.tgz#3b7b7638059b9563d3bbf5053c01a789ca90a1a0"
+  integrity sha512-Y5FRcAo1lkeOMp6+q7bGSAP3NUdR61VLYzW9J+ksz1KhHLQfCQEzNaTzjwIJyEW2FjJ8w08b/tcScG0Fde0NiA==
   dependencies:
     "@aws-crypto/sha256-browser" "5.2.0"
     "@aws-crypto/sha256-js" "5.2.0"
