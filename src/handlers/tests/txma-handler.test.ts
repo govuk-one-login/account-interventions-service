@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/numeric-separators-style */
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { handler } from '../txma-handler';
 import { sendBatchSqsMessage } from '../../services/send-sqs-message';
@@ -77,6 +78,7 @@ describe('TxMA Handler', () => {
       [
         {
           Id: '0',
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           MessageBody: expect.stringMatching(
             /^{"Message":"{\\"event_name\\":\\"AUTH_DELETE_ACCOUNT\\",\\"component_id\\":\\"ACCOUNT_INTERVENTION_SERVICE\\",\\"timestamp\\":\d+,\\"event_timestamp_ms\\":\d+,\\"user\\":{\\"user_id\\":\\"urn:fdc:gov\.uk:2022:USER_ONE\\"}}"}$/,
           ),
