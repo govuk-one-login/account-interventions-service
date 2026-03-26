@@ -5,7 +5,7 @@ import { sendBatchSqsMessage } from '../services/send-sqs-message';
 import { addMetric, metric } from '../commons/metrics';
 import { MetricNames } from '../data-types/constants';
 
-export const handler = async (event: SQSEvent, context: Context): Promise<void> => {
+export async function handler(event: SQSEvent, context: Context): Promise<void> {
   logger.addContext(context);
 
   if (!process.env['ACCOUNT_DELETION_SQS_QUEUE']) {
@@ -58,4 +58,4 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
   }
 
   metric.publishStoredMetrics();
-};
+}

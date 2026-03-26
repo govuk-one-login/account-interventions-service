@@ -17,7 +17,7 @@ const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableN
  * @param context - This object provides methods and properties that provide information about the invocation, function, and execution environment.
  * @returns - The status of the account when matched with the User ID. Returns a default object if unable to do so. Also returns the relevant status code.
  */
-export const handle = async (event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> => {
+export async function handle(event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> {
   logger.addContext(context);
 
   if (!event.pathParameters?.['userId']) {
@@ -71,7 +71,7 @@ export const handle = async (event: APIGatewayEvent, context: Context): Promise<
     statusCode: 500,
     body: JSON.stringify({ message: 'Internal Server Error.' }),
   };
-};
+}
 
 /**
  * Helper function to remove whitespace from the user id and to validate that the event contains a valid user id
