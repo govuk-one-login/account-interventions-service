@@ -18,14 +18,14 @@ type DeepRequiredKey<T, K extends keyof T> = Omit<T, K> & {
  * @param interventionName - optional intervention name if the event was a fraud intervention
  * @param historyList - list of history items
  */
-export const buildPartialUpdateAccountStateCommand = (
+export function buildPartialUpdateAccountStateCommand(
   finalState: StateDetails,
   eventName: EventsEnum,
   currentTimestamp: number,
   interventionEvent: TxMAIngressEvent,
   historyList: string[],
   interventionName?: AISInterventionTypes,
-): Partial<UpdateItemCommandInput> => {
+): Partial<UpdateItemCommandInput> {
   const eventTimestamp = interventionEvent.event_timestamp_ms ?? interventionEvent.timestamp * 1000;
 
   const baseUpdateItemCommandInput: DeepRequiredKey<
@@ -96,7 +96,7 @@ export const buildPartialUpdateAccountStateCommand = (
   baseUpdateItemCommandInput.UpdateExpression += buildRemoveExpression(finalState);
 
   return baseUpdateItemCommandInput;
-};
+}
 
 /**
  * Helper function to build the Remove Expression for DynamoDB update

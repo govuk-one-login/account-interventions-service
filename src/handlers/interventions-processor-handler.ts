@@ -38,7 +38,7 @@ const accountStateEngine = AccountStateEngine.getInstance();
  * @param context - context object
  * @returns - Promise of SQS Partial Batch Response
  */
-export const handler = async (event: SQSEvent, context: Context): Promise<SQSBatchResponse> => {
+export async function handler(event: SQSEvent, context: Context): Promise<SQSBatchResponse> {
   logger.addContext(context);
 
   if (event.Records.length === 0) {
@@ -64,7 +64,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<SQSBat
   return {
     batchItemFailures: itemFailures,
   };
-};
+}
 
 /**
  * Main worker function. It receives an SQS record and processes it according to business logic

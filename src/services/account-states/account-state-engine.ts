@@ -4,6 +4,7 @@ import {
   AISInterventionTypes,
   Codes,
   EventsEnum,
+  isCode,
   MetricNames,
   PossibleAccountStatus,
   userLedActionList,
@@ -157,8 +158,6 @@ export class AccountStateEngine {
     return newStateObject;
   }
 }
-
-export const isCode = (value: string): value is Codes => Object.values(Codes).includes(value as Codes);
 
 /**
  * Helper method to build a StateTransitionError and log relevant information when this type of error is to be thrown

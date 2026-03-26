@@ -9,10 +9,10 @@ import {
 } from '@aws-sdk/client-sqs';
 import logger from '../commons/logger';
 
-export const sendSqsMessage = async (
+export async function sendSqsMessage(
   messageBody: string,
   queueUrl: string | undefined,
-): Promise<SendMessageCommandOutput> => {
+): Promise<SendMessageCommandOutput> {
   if (!process.env['AWS_REGION']) {
     logger.error('AWS_REGION environment variable is not set');
     throw new Error('AWS_REGION environment variable not set');
@@ -24,12 +24,12 @@ export const sendSqsMessage = async (
     MessageBody: messageBody,
   };
   return client.send(new SendMessageCommand(message));
-};
+}
 
-export const sendBatchSqsMessage = async (
+export async function sendBatchSqsMessage(
   messages: SendMessageBatchRequestEntry[],
   queueUrl: string | undefined,
-): Promise<SendMessageBatchCommandOutput> => {
+): Promise<SendMessageBatchCommandOutput> {
   if (!process.env['AWS_REGION']) {
     logger.error('AWS_REGION environment variable is not set');
     throw new Error('AWS_REGION environment variable not set');
@@ -42,4 +42,4 @@ export const sendBatchSqsMessage = async (
   };
   const command = new SendMessageBatchCommand(parameters);
   return client.send(command);
-};
+}

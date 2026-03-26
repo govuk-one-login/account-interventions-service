@@ -9,7 +9,7 @@ interface CustomEvent {
   headers?: Record<string, string>;
 }
 
-export const handle = async (event: CustomEvent) => {
+export async function handle(event: CustomEvent) {
   const baseUrl = event.baseUrl ?? getBaseUrl();
   const endpoint = event.endpoint ?? getEndpoint();
   const userId = encodeURI(event.userId ?? getUserId());
@@ -34,7 +34,7 @@ export const handle = async (event: CustomEvent) => {
     statusCode: response.status,
     body: JSON.stringify(response),
   };
-};
+}
 
 function getUserId() {
   return getEnvOrThrow('USER_ID');

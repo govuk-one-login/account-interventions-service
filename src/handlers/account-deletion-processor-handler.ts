@@ -15,7 +15,7 @@ const ddbService = new DynamoDatabaseService(appConfig.tableName);
  * @param context -  This object provides methods and properties that provide information about the invocation, function, and execution environment.
  * @returns - Void. Sends off response to DynamoDB.
  */
-export const handler = async (event: SQSEvent, context: Context): Promise<void> => {
+export async function handler(event: SQSEvent, context: Context): Promise<void> {
   logger.addContext(context);
   if (!event.Records[0]) {
     logger.error('The event does not contain any records.');
@@ -28,7 +28,7 @@ export const handler = async (event: SQSEvent, context: Context): Promise<void> 
   }).filter((prom) => prom !== undefined);
   await Promise.all(updateRecordsByIdPromises);
   metric.publishStoredMetrics();
-};
+}
 
 /**
  * Function to take the User ID from the SQS Record.

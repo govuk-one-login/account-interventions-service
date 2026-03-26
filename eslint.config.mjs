@@ -32,6 +32,15 @@ export default defineConfig(
       '@typescript-eslint/switch-exhaustiveness-check': ['error'],
       'arrow-body-style': ['error', 'as-needed'],
       'keyword-spacing': ['error', { after: true }],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            'ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression[body.type="BlockStatement"]',
+          message:
+            "Top-level exported functions should use the 'function' keyword for better readability and hoisting.",
+        },
+      ],
       'space-before-blocks': ['error', 'always'],
       'space-before-function-paren': ['error', { anonymous: 'always', named: 'never', asyncArrow: 'always' }],
       'object-curly-spacing': ['error', 'always'],
