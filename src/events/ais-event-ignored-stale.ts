@@ -3,7 +3,7 @@ import { InterventionStateEnum } from '@govuk-one-login/event-catalogue/AIS_EVEN
 /**
  * AIS Event Ignored Stale
  */
-export interface AIS_EVENT_IGNORED_STALE {
+export interface AIS_EVENT_IGNORED_STALE { //NOSONAR
   /**
    * Links the transaction to the client (Relying Party) that initiated the journey.
    *
