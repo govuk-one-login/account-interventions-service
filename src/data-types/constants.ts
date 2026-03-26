@@ -122,3 +122,5 @@ export enum Codes {
   C94 = '94',
   C95 = '95',
 }
+
+export const isCode = (value: string): value is Codes => Object.values(Codes).includes(value as Codes);

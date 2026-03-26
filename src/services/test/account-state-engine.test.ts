@@ -1,9 +1,4 @@
-import {
-  AccountStateEngine,
-  areAccountStatesTheSame,
-  compareStrings,
-  isCode,
-} from '../account-states/account-state-engine';
+import { AccountStateEngine, areAccountStatesTheSame, compareStrings } from '../account-states/account-state-engine';
 import {
   AISInterventionTypes,
   Codes,
@@ -620,19 +615,5 @@ describe('account-state-service', () => {
       expect(compareStrings(strTwo, strOne)).toEqual(1);
       expect(compareStrings(strTwo, strThree)).toEqual(0);
     });
-  });
-});
-
-describe('isCode', () => {
-  it('Valid code', () => {
-    expect(isCode(Codes.C01)).toBe(true);
-  });
-
-  it('Valid code string', () => {
-    expect(isCode(Codes.C01.toString())).toBe(true);
-  });
-
-  it('Invalid code', () => {
-    expect(isCode('C123')).toBe(false);
   });
 });
