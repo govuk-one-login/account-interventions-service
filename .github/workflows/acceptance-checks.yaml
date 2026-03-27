@@ -63,6 +63,9 @@ jobs:
       - name: Run yarn lint
         run: yarn lint
 
+      - name: Check typescript types
+        run: yarn test:types
+
       - name: Run unit tests with coverage report
         run: yarn test:unit
 

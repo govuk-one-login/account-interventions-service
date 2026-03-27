@@ -4,6 +4,7 @@ import { sendAuditEvent } from '../send-audit-events';
 import {
   ActiveStateActions,
   AISInterventionTypes,
+  Codes,
   COMPONENT_ID,
   EventsEnum,
   State,
@@ -297,7 +298,7 @@ describe('send-audit-events', () => {
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
       {
-        nextAllowableInterventions: ['01'],
+        nextAllowableInterventions: [Codes.C01],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
         stateResult: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: false },
       },
@@ -337,7 +338,7 @@ describe('send-audit-events', () => {
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
       {
-        nextAllowableInterventions: ['01'],
+        nextAllowableInterventions: [Codes.C01],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
         stateResult: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: false },
       },
@@ -380,7 +381,7 @@ describe('send-audit-events', () => {
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
       {
-        nextAllowableInterventions: ['01', '91'],
+        nextAllowableInterventions: [Codes.C01, Codes.C91],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
         stateResult: { blocked: false, suspended: true, reproveIdentity: false, resetPassword: false },
       },
@@ -497,7 +498,7 @@ describe('send-audit-events', () => {
       EventsEnum.FRAUD_UNSUSPEND_ACCOUNT,
       ingressInterventionEvent,
       {
-        nextAllowableInterventions: ['01'],
+        nextAllowableInterventions: [Codes.C01],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
         stateResult: { blocked: false, suspended: false, reproveIdentity: false, resetPassword: false },
       },
@@ -532,6 +533,7 @@ describe('send-audit-events', () => {
       EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
       ingressUserActionEvent,
       {
+        interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
         stateResult: {
           blocked: false,
           suspended: false,

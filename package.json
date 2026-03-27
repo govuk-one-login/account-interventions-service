@@ -11,6 +11,7 @@
   "scripts": {
     "test": "yarn test:unit --runInBand",
     "test:unit": "jest --group=unit --coverage --runInBand --testPathIgnorePatterns \"src/contract-testing/*\"",
+    "test:types": "tsc --noEmit",
     "test:pact:provider": "jest --group=contract --runInBand --testPathPatterns=\"src/contract-testing/provider/*\"",
     "test:pact:consumer": "jest --group=contract --runInBand --testPathPatterns=\"src/contract-testing/consumer/*\"",
     "connect:pact:broker": "tsc --esModuleInterop src/contract-testing/test-helpers/connect-to-pact-broker.ts && node src/contract-testing/test-helpers/connect-to-pact-broker.js",
