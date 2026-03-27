@@ -8,8 +8,10 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
-      interval: daily
-      time: '03:00'
+      interval: 'weekly'
+      day: 'monday'
+      time: '06:00'
+      timezone: 'Europe/London'
     target-branch: main
     labels:
       - dependabot
@@ -31,8 +33,10 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/feature-tests'
     schedule:
-      interval: daily
-      time: '03:00'
+      interval: 'weekly'
+      day: 'monday'
+      time: '06:00'
+      timezone: 'Europe/London'
     target-branch: main
     labels:
       - dependabot
@@ -40,13 +44,7 @@ updates:
     commit-message:
       prefix: BAU-FT
     groups:
-      production-dependencies:
-        dependency-type: 'production'
-        update-types:
-          - 'minor'
-          - 'patch'
-      dev-dependencies:
-        dependency-type: 'development'
+      dependencies:
         update-types:
           - 'minor'
           - 'patch'
