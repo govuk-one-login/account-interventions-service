@@ -11,3 +11,6 @@
 
 # ESLint fixes
 7f12fd1cde19f67b346ac85d0f11d6ac5f1900f9
+
+# .pre-commit-config style fixes
+1dfc3e888c21b5e460e74087a1f7cb1101587a9d
