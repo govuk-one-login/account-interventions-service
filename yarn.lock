@@ -1112,6 +1112,11 @@
     "@eslint/core" "^1.1.1"
     levn "^0.4.1"
 
+"@govuk-one-login/event-catalogue@^43.2.3":
+  version "43.2.3"
+  resolved "https://npm.pkg.github.com/download/@govuk-one-login/event-catalogue/43.2.3/6c424d3f582a32ced1f06deab047ea0edade5f24#6c424d3f582a32ced1f06deab047ea0edade5f24"
+  integrity sha512-wc77hsavBQzVcwhSpmZh4GOCh2R4wdhKDQOu4f28rG3Dxuf6HT6BV1iY7vhjiv6m4/yNebXhGI062Q8ygg6DTQ==
+
 "@httptoolkit/websocket-stream@^6.0.1":
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/@httptoolkit/websocket-stream/-/websocket-stream-6.0.1.tgz#8d732f1509860236276f6b0759db4cc9859bbb62"

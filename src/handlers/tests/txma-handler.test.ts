@@ -1,28 +1,30 @@
+/* eslint-disable unicorn/numeric-separators-style */
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { handler } from '../txma-handler';
 import { sendBatchSqsMessage } from '../../services/send-sqs-message';
+import { AUTH_DELETE_ACCOUNT } from '@govuk-one-login/event-catalogue/AUTH_DELETE_ACCOUNT';
 
 jest.mock('../../services/send-sqs-message');
 
 const mockSendBatchSqsMessage = sendBatchSqsMessage as jest.Mock;
 
 const createMockRecord = (eventDetails: unknown) => ({
-    messageId: '',
-    receiptHandle: '',
-    body: JSON.stringify(eventDetails),
+  messageId: '',
+  receiptHandle: '',
+  body: JSON.stringify(eventDetails),
 
-    attributes: {
-      ApproximateReceiveCount: '',
-      SentTimestamp: '',
-      SenderId: '',
-      ApproximateFirstReceiveTimestamp: '',
-    },
-    messageAttributes: {},
-    md5OfBody: '',
-    eventSource: '',
-    eventSourceARN: '',
-    awsRegion: '',
-  });
+  attributes: {
+    ApproximateReceiveCount: '',
+    SentTimestamp: '',
+    SenderId: '',
+    ApproximateFirstReceiveTimestamp: '',
+  },
+  messageAttributes: {},
+  md5OfBody: '',
+  eventSource: '',
+  eventSourceARN: '',
+  awsRegion: '',
+});
 
 describe('TxMA Handler', () => {
   const OLD_ENV = process.env;
@@ -38,9 +40,15 @@ describe('TxMA Handler', () => {
     invokedFunctionArn: 'arn:aws:lambda:eu-west-1:123456789012:function:foo-bar-function',
     awsRequestId: 'c6af9ac6-7b61-11e6-9a41-93e812345678',
     getRemainingTimeInMillis: () => 1234,
-    done: () => { console.log('Done!'); },
-    fail: () => { console.log('Failed!'); },
-    succeed: () => { console.log('Succeeded!'); },
+    done: () => {
+      console.log('Done!');
+    },
+    fail: () => {
+      console.log('Failed!');
+    },
+    succeed: () => {
+      console.log('Succeeded!');
+    },
   };
 
   beforeEach(() => {
@@ -53,10 +61,12 @@ describe('TxMA Handler', () => {
   });
 
   it('Sends an SQS message to the delete queue', async () => {
-    const deleteEvent = {
+    const deleteEvent: AUTH_DELETE_ACCOUNT = {
       event_name: 'AUTH_DELETE_ACCOUNT',
-      user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
-      txma: { configVersion: '1.0.4' },
+      user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
+      component_id: 'ACCOUNT_INTERVENTION_SERVICE',
+      timestamp: 1774450963,
+      event_timestamp_ms: 1722953808667,
     };
     mockRecord = createMockRecord(deleteEvent);
     mockEvent = { Records: [mockRecord] };
@@ -68,8 +78,10 @@ describe('TxMA Handler', () => {
       [
         {
           Id: '0',
-          MessageBody:
-            '{"Message":"{\\"event_name\\":\\"AUTH_DELETE_ACCOUNT\\",\\"user_id\\":\\"urn:fdc:gov.uk:2022:USER_ONE\\"}"}',
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          MessageBody: expect.stringMatching(
+            /^{"Message":"{\\"event_name\\":\\"AUTH_DELETE_ACCOUNT\\",\\"component_id\\":\\"ACCOUNT_INTERVENTION_SERVICE\\",\\"timestamp\\":\d+,\\"event_timestamp_ms\\":\d+,\\"user\\":{\\"user_id\\":\\"urn:fdc:gov\.uk:2022:USER_ONE\\"}}"}$/,
+          ),
         },
       ],
       'delete_queue',

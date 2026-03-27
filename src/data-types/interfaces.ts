@@ -1,12 +1,11 @@
+import { AUTH_DELETE_ACCOUNT } from '@govuk-one-login/event-catalogue/AUTH_DELETE_ACCOUNT';
 import {
-  EventsEnum,
-  AISInterventionTypes,
-  TriggerEventsEnum,
-  PossibleAccountStatus,
-  ActiveStateActions,
-  State,
-  Codes,
-} from './constants';
+  AIS_EVENT_TRANSITION_APPLIED,
+  InterventionCodeEnum1,
+} from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_APPLIED';
+import { EventsEnum, AISInterventionTypes, TriggerEventsEnum, PossibleAccountStatus, Codes } from './constants';
+import { AIS_EVENT_IGNORED_STALE } from '../events/ais-event-ignored-stale';
+import { AIS_EVENT_TRANSITION_IGNORED } from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_IGNORED';
 
 export interface StateDetails {
   blocked: boolean;
@@ -57,44 +56,12 @@ export type TxMAEgressInterventionEventName =
   | 'AIS_EVENT_IGNORED_IN_FUTURE'
   | 'AIS_EVENT_IGNORED_ACCOUNT_DELETED';
 
-interface TxMAEgressInterventionEvent {
-  event_name: TxMAEgressInterventionEventName;
-  timestamp: number;
-  event_timestamp_ms?: number;
-  component_id?: string;
-  user: TxmaUser;
-  extensions: TxMAEgressExtensions | TxMAEgressBasicExtensions;
-}
+export type TxMAEgressEvent =
+  | AIS_EVENT_TRANSITION_APPLIED
+  | AIS_EVENT_TRANSITION_IGNORED
+  | AIS_EVENT_IGNORED_STALE
+  | AUTH_DELETE_ACCOUNT;
 
-export interface TxMAEgressDeletionEvent {
-  event_name: 'AUTH_DELETE_ACCOUNT';
-  user_id: string;
-}
-
-interface TxMAIngressDeletionEvent {
-  event_name: 'AUTH_DELETE_ACCOUNT';
-  user_id: string;
-  txma: Txmaconfig;
-}
-
-interface Txmaconfig {
-  configVersion: string;
-}
-
-export type TxMAEgressEvent = TxMAEgressInterventionEvent | TxMAIngressDeletionEvent;
-
-export interface TxMAEgressExtensions extends TxMAEgressBasicExtensions {
-  description: string | AISInterventionTypes;
-  allowable_interventions: string[];
-  state: State | undefined;
-  action: ActiveStateActions | undefined;
-}
-export interface TxMAEgressBasicExtensions {
-  trigger_event_id: string;
-  trigger_event: string;
-  intervention_code?: string;
-  [key: string | number]: unknown;
-}
 export interface TxMAIngressEvent {
   event_name: TriggerEventsEnum;
   event_id: string | undefined;
@@ -116,7 +83,7 @@ interface IngressEventExtension {
 }
 
 interface Intervention {
-  intervention_code: string;
+  intervention_code: InterventionCodeEnum1;
   intervention_reason: string;
   requester_id?: string;
   originating_component_id?: string;
