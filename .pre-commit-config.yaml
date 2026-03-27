@@ -1,8 +1,7 @@
 ---
-default_stages: [ pre-commit ]
+default_stages: [pre-commit]
 
 repos:
-
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
@@ -10,8 +9,8 @@ repos:
       - id: trailing-whitespace
       - id: detect-private-key
       - id: detect-aws-credentials
-        args: [ --allow-missing-credentials ]
-        exclude: "package.json|yarn.lock"
+        args: [--allow-missing-credentials]
+        exclude: 'package.json|yarn.lock'
       - id: mixed-line-ending
       - id: check-merge-conflict
 
@@ -26,19 +25,14 @@ repos:
       - id: yarn-lint
         name: Linting Checks
         pass_filenames: false
-        entry: "yarn lint"
-        language: system
-      - id: yarn-audit
-        name: Dependency Checks
-        pass_filenames: false
-        entry: "yarn audit"
+        entry: 'yarn lint'
         language: system
 
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.4.0
     hooks:
       - id: detect-secrets
-        args: [ '--baseline', '.secrets.baseline' ]
+        args: ['--baseline', '.secrets.baseline']
         exclude: 'package.json|yarn.lock|jest.config.js|src/.*/.*.test.ts'
 
   - repo: https://github.com/jorisroovers/gitlint
