@@ -44,6 +44,11 @@ Parameters:
     Description: 'The ARN of the Alerting SNS Low Alert Notification topic'
     Type: AWS::SSM::Parameter::Value<String>
     Default: '/ais-infra-alerting/SNS/LowAlertNotificationTopic/ARN' #pragma: allowlist secret
+  DisableAlarms:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: "Set to 'true' to disable all CloudWatch Alarm actions."
   LambdaDeploymentPreference:
     Description: "Specifies the configuration to enable gradual Lambda deployments. It can be used to set deployment type and also allows skipping canary deployment by setting to 'AllAtOnce'"
     Type: String
@@ -81,6 +86,7 @@ Conditions:
   UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, 'none']]
   UseCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, 'none']]
   IsProd: !Or [!Equals [!Ref Environment, integration], !Equals [!Ref Environment, production]]
+  AreAlarmsEnabled: !Not [!Equals [!Ref DisableAlarms, 'true']]
 
 Mappings:
   EnvConfig:
@@ -1698,7 +1704,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !If [AreAlarmsEnabled, !Ref AlertingSNSLowAlertNotificationTopicARN, !Ref 'AWS::NoValue']
       AlarmDescription: !Sub 'Errors returned from the StatusRetrieverFunction Lambda. ${RunBookURL}'
       MetricName: Errors
       Dimensions:
@@ -1722,7 +1728,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !If [AreAlarmsEnabled, !Ref AlertingSNSLowAlertNotificationTopicARN, !Ref 'AWS::NoValue']
       AlarmDescription: !Sub 'Lambda returning 5xx response. ${RunBookURL}'
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
@@ -1742,7 +1748,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !If [AreAlarmsEnabled, !Ref AlertingSNSLowAlertNotificationTopicARN, !Ref 'AWS::NoValue']
       AlarmDescription: !Sub 'Errors returned from the InterventionsProcessorFunction Lambda. ${RunBookURL}'
       MetricName: Errors
       Dimensions:
@@ -1766,7 +1772,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !If [AreAlarmsEnabled, !Ref AlertingSNSLowAlertNotificationTopicARN, !Ref 'AWS::NoValue']
       AlarmDescription: !Sub 'Publishing to TxMA has failed due to incorrect Lambda permissions. ${RunBookURL}'
       MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
       Namespace: !Ref SystemTagValue
@@ -1786,7 +1792,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !If [AreAlarmsEnabled, !Ref AlertingSNSLowAlertNotificationTopicARN, !Ref 'AWS::NoValue']
       AlarmDescription: !Sub 'Interventions Processor Function Alarm for InterventionsProcessorLambdaErrorMetricFilter. ${RunBookURL}'
       MetricName: InterventionsProcessorLambdaError
       Namespace: !Ref SystemTagValue
@@ -1803,7 +1809,7 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - !If [AreAlarmsEnabled, !Ref AlertingSNSLowAlertNotificationTopicARN, !Ref 'AWS::NoValue']
       AlarmDescription: !Sub 'Errors returned from the AccountDeletionProcessorFunction Lambda. ${RunBookURL}'
       MetricName: Errors
       Dimensions:
