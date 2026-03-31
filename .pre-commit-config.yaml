@@ -6,6 +6,7 @@ repos:
     rev: v4.4.0
     hooks:
       - id: end-of-file-fixer
+        exclude: 'package.json|yarn.lock'
       - id: trailing-whitespace
       - id: detect-private-key
       - id: detect-aws-credentials
