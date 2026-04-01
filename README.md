@@ -33,14 +33,14 @@ $ yarn postinstall
 
 ### Setup access to private repositories
 
-In order to install private packages, such as @govuk-one-login/event-catalog, an npmrc file is required. This `.npmrc` file must contain a Personal Access Token (PAT) with `read:packages` permissions in the following format:
+In order to install private packages, such as @govuk-one-login/event-catalog, an npmrc file is required. This `~/.npmrc` file must contain a Personal Access Token (PAT) with `read:packages` permissions in the following format:
 
 ```text
 @govuk-one-login:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=<generated-token>
 ```
 
-For guidance on generating a PAT, refer to the documentation: [Managing Your Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
+For guidance on generating a PAT, refer to the documentation: [Configuring Node package managers](https://team-manual.account.gov.uk/development-standards-processes/coding-practices-and-processes/configure-node-package-managers/#for-yarn-v1) and [Managing Your Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
 
 ### Install Project Dependencies
 
