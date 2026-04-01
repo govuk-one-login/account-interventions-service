@@ -2,6 +2,7 @@
 name: 'Build & Test'
 permissions:
   contents: read
+  packages: read
 
 # Triggered when:
 #   - a file, listed below, is pushed to any branch other than `main`, i.e. a feature branch.
@@ -53,9 +54,15 @@ jobs:
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # pin@v6.3.0
         with:
           node-version-file: '.node-version'
+          registry-url: 'https://npm.pkg.github.com/'
+          scope: '@govuk-one-login'
+          cache: yarn
+          always-auth: true
 
       - name: Run yarn install
         run: yarn install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
 
       - name: Run yarn build
         run: yarn build

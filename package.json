@@ -46,6 +46,7 @@
     "@aws-sdk/client-sso-oidc": "^3.1019.0",
     "@aws-sdk/client-sts": "^3.1019.0",
     "@eslint/js": "^10.0.1",
+    "@govuk-one-login/event-catalogue": "^43.2.3",
     "@pact-foundation/pact": "^16.3.0",
     "@pact-foundation/pact-cli": "^16.1.6",
     "@stoplight/spectral-cli": "^6.15.0",

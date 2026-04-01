@@ -18,6 +18,7 @@ on:
 permissions:
   id-token: write
   contents: read
+  packages: read
 
 jobs:
   validate_deployment:
@@ -51,9 +52,15 @@ jobs:
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # pin@v6.3.0
         with:
           node-version-file: '.node-version'
+          registry-url: 'https://npm.pkg.github.com/'
+          scope: '@govuk-one-login'
+          cache: yarn
+          always-auth: true
 
       - name: Run yarn install
         run: yarn install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
 
       - name: Run yarn package
         run: yarn package

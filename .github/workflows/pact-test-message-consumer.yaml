@@ -44,6 +44,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   contract-testing:
@@ -57,10 +58,15 @@ jobs:
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # pin@v6.3.0
         with:
           node-version-file: '.node-version'
-          cache: 'yarn'
+          registry-url: 'https://npm.pkg.github.com/'
+          scope: '@govuk-one-login'
+          cache: yarn
+          always-auth: true
 
       - name: Run yarn install
         run: yarn install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
 
       - name: Run Pact Tests for Message Consumers
         run: yarn test:pact:consumer
