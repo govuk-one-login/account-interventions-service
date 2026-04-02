@@ -53,7 +53,7 @@ describe('Account Deletion Processor', () => {
     mockRecord = {
       messageId: '',
       receiptHandle: '',
-      body: JSON.stringify({ Message: JSON.stringify({ user_id: 'hello' }) }),
+      body: JSON.stringify({ Message: JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user_id: 'hello' }) }),
       attributes: {
         ApproximateReceiveCount: '',
         SentTimestamp: '',
@@ -99,7 +99,7 @@ describe('Account Deletion Processor', () => {
   });
 
   it("does not process the SQS Record when the message doesn't contain user id", async () => {
-    const mockBody = JSON.stringify({ Message: JSON.stringify({}) });
+    const mockBody = JSON.stringify({ Message: JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT' }) });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
@@ -107,7 +107,7 @@ describe('Account Deletion Processor', () => {
   });
 
   it('does not process the SQS Record when user_id is an empty string in the SNS Event', async () => {
-    const mockBody = JSON.stringify({ Message: JSON.stringify({ user_id: '' }) });
+    const mockBody = JSON.stringify({ Message: JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user_id: '' }) });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
@@ -115,7 +115,7 @@ describe('Account Deletion Processor', () => {
   });
 
   it('does not process the SQS Record when user_id is a string with whitespaces in the SNS Event and tests the trim function', async () => {
-    const mockBody = JSON.stringify({ Message: JSON.stringify({ user_id: '   ' }) });
+    const mockBody = JSON.stringify({ Message: JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user_id: '   ' }) });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
@@ -123,16 +123,20 @@ describe('Account Deletion Processor', () => {
   });
 
   it('does not process the SQS Record when user_id is not a string', async () => {
-    const mockBody = JSON.stringify({ Message: JSON.stringify({ user_id: 123 }) });
+    const mockBody = JSON.stringify({ Message: JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user_id: 123 }) });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
-    expect(loggerWarnSpy).toHaveBeenCalledWith('Attribute invalid: user_id is not a string.');
+    expect(loggerErrorSpy).toHaveBeenCalledWith(
+      `The SQS message can not be parsed. ✖ Invalid input: expected string, received number\n  → at user_id`,
+    );
   });
 
   it('it successfully process the message when the user id passed contains trailing spaces', async () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockReturnValueOnce(['1']);
-    const mockBody = JSON.stringify({ Message: JSON.stringify({ user_id: 'abcdef ' }) });
+    const mockBody = JSON.stringify({
+      Message: JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user_id: 'abcdef ' }),
+    });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
@@ -142,7 +146,9 @@ describe('Account Deletion Processor', () => {
 
   it('throws an error when it fails to update the delete status', async () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockRejectedValue('Error');
-    const mockBody = JSON.stringify({ Message: JSON.stringify({ user_id: 'hello' }) });
+    const mockBody = JSON.stringify({
+      Message: JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user_id: 'hello' }),
+    });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await expect(handler(mockEvent, mockContext)).rejects.toThrow('Failed to update the account status.');
@@ -163,7 +169,9 @@ describe('Account Deletion Processor', () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
     const mockRecord2 = {
       ...mockRecord,
-      body: JSON.stringify({ Message: JSON.stringify({ user_id: 'other_user_id' }) }),
+      body: JSON.stringify({
+        Message: JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user_id: 'other_user_id' }),
+      }),
     };
     const mockEvent = { Records: [mockRecord, mockRecord2] };
     await handler(mockEvent, mockContext);
@@ -176,7 +184,9 @@ describe('Account Deletion Processor', () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockRejectedValue('Error');
     const mockRecord2 = {
       ...mockRecord,
-      body: JSON.stringify({ Message: JSON.stringify({ user_id: 'other_user_id' }) }),
+      body: JSON.stringify({
+        Message: JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user_id: 'other_user_id' }),
+      }),
     };
     const mockEvent = { Records: [mockRecord, mockRecord2] };
     await expect(handler(mockEvent, mockContext)).rejects.toThrow('Failed to update the account status.');

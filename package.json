@@ -40,7 +40,8 @@
     "@smithy/node-http-handler": "^4.5.0",
     "axios": "^1.13.5",
     "fast-xml-parser": "^5.5.9",
-    "tar": "^7.5.8"
+    "tar": "^7.5.8",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@aws-sdk/client-sso-oidc": "^3.1019.0",
