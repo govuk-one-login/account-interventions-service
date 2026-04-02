@@ -1,0 +1,27 @@
+name: PR Checks - Run Feature Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  id-token: write
+  contents: read
+  packages: read
+
+jobs:
+  run-feature-tests-action:
+    if: ${{ github.event.pull_request.draft == false }}
+    name: Run Feature Tests
+    uses: ./.github/workflows/run-feature-tests.yaml
+    permissions:
+      id-token: write
+      contents: read
+      packages: read
+      checks: write
+    with:
+      TEST_ENVIRONMENT: development
+      AWS_REGION: ${{ inputs.AWS_REGION }}
+      SAM_STACK_NAME: ais-main
+    secrets:
+      aws-role-arn: ${{ secrets.DEV_MAIN_GH_ACTIONS_ROLE_ARN }}
