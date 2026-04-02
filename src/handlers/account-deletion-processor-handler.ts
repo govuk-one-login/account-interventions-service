@@ -9,8 +9,16 @@ import { snsMessageSchema } from '../contracts/sns-message';
 import { prettifyError } from 'zod';
 import jsonSafeParse from '../commons/json-safe-parse';
 
+enum ErrorSeverity {
+  error = 'error',
+  warn = 'warn',
+}
+
 class ParserError extends Error {
-  constructor(message?: string) {
+  constructor(
+    message?: string,
+    public readonly severity: ErrorSeverity = ErrorSeverity.error,
+  ) {
     super(message ?? 'The SQS message can not be parsed.');
     this.name = 'ParserError';
   }
@@ -62,18 +70,13 @@ function getUserId(record: SQSRecord) {
 
     // Check userId
     const userId = result.data.user_id;
-    if (userId === undefined) {
-      logger.warn('Attribute missing: user_id.');
-      return;
-    }
-    if (userId.trim() === '') {
-      logger.warn('Attribute invalid: user_id is empty.');
-      return;
-    }
+    if (userId === undefined) throw new ParserError('Attribute missing: user_id.', ErrorSeverity.warn);
+    if (userId.trim() === '') throw new ParserError('Attribute invalid: user_id is empty.', ErrorSeverity.warn);
+
     return userId.trim();
   } catch (error) {
     if (error instanceof ParserError) {
-      logger.error(error.message);
+      logger[error.severity](error.message);
       return;
     }
 
