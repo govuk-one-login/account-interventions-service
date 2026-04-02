@@ -33,6 +33,10 @@ Parameters:
     Description: 'The name of the Account Deletion Processor queue'
     Type: AWS::SSM::Parameter::Value<String>
     Default: '/ais-main/SQS/AccountDeletionProcessorQueue/Name' #pragma: allowlist secret
+  AccountDeletionEventQueueName:
+    Description: 'The name of the Account Deletion Event queue'
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: '/ais-main/SQS/AccountDeletionEventQueue/Name' #pragma: allowlist secret
   AccountDeletionProcessorDLQName:
     Description: 'The name of the Account Deletion Processor DLQ'
     Type: AWS::SSM::Parameter::Value<String>
@@ -293,6 +297,46 @@ Resources:
       Dimensions:
         - Name: QueueName
           Value: !Ref AccountDeletionProcessorQueueName
+      MetricName: ApproximateAgeOfOldestMessage
+      Namespace: AWS/SQS
+      Period: 60
+      Statistic: Maximum
+      Unit: Count
+
+  AccountDeletionEventQueueProcessingSlowly:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub 'Account Deletion Event Queue processing slowly. ${RunBookURL}'
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 60
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref AccountDeletionEventQueueName
+      MetricName: ApproximateAgeOfOldestMessage
+      Namespace: AWS/SQS
+      Period: 60
+      Statistic: Maximum
+      Unit: Count
+
+  AccountDeletionEventQueueProcessingTooSlow:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: !Sub 'Account Deletion Event Queue processing too slow. ${RunBookURL}'
+      ComparisonOperator: GreaterThanThreshold
+      Threshold: 600
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: QueueName
+          Value: !Ref AccountDeletionEventQueueName
       MetricName: ApproximateAgeOfOldestMessage
       Namespace: AWS/SQS
       Period: 60
