@@ -8,6 +8,11 @@ on:
       SAM_STACK_NAME: { required: true, type: string }
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+  packages: read
+
 jobs:
   run-feature-tests:
     name: 'Run Feature Tests'
