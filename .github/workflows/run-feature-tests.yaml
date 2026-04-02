@@ -1,0 +1,46 @@
+name: Run Feature Tests at PR time
+
+on:
+  workflow_call:
+    inputs:
+      TEST_ENVIRONMENT: { required: true, type: string }
+      AWS_REGION: { required: true, type: string }
+      SAM_STACK_NAME: { required: true, type: string }
+  workflow_dispatch:
+
+jobs:
+  run-feature-tests:
+    name: 'Run Feature Tests'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6.0.2
+        with:
+          ref: ${{ inputs.gitRef || github.ref }}
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # pin@v6.3.0
+        with:
+          node-version-file: '.node-version'
+
+      - name: Run yarn install
+        working-directory: feature-tests/
+        run: yarn install --frozen-lockfile
+
+      - name: Run yarn build
+        working-directory: feature-tests/
+        run: yarn build
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # pin@6.0.0
+        with:
+          role-to-assume: ${{ secrets.DEV_MAIN_GH_ACTIONS_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: Run feature tests
+        working-directory: feature-tests/
+        env:
+          TEST_ENVIRONMENT: ${{ inputs.TEST_ENVIRONMENT }}
+          SAM_STACK_NAME: ${{ inputs.SAM_STACK_NAME}}
+          AWS_REGION: ${{ inputs.AWS_REGION }}
+        run: yarn test
+
