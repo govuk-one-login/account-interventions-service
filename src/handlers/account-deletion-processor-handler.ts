@@ -9,6 +9,31 @@ import { snsMessageSchema } from '../contracts/sns-message';
 import { prettifyError } from 'zod';
 import jsonSafeParse from '../commons/json-safe-parse';
 
+enum ErrorSeverity {
+  error = 'error',
+  warn = 'warn',
+}
+
+enum ParserErrorType {
+  BODY_JSON_PARSER_ERROR = 'BODY_JSON_PARSER_ERROR',
+  BODY_FORMAT_PARSER_ERROR = 'BODY_FORMAT_PARSER_ERROR',
+  MESSAGE_JSON_PARSER_ERROR = 'MESSAGE_JSON_PARSER_ERROR',
+  MESSAGE_FORMAT_PARSER_ERROR = 'MESSAGE_FORMAT_PARSER_ERROR',
+  MISSING_USER_ID = 'MISSING_USER_ID',
+  EMPTY_USER_ID = 'EMPTY_USER_ID',
+}
+
+class ParserError extends Error {
+  constructor(
+    public readonly errorType: ParserErrorType,
+    message?: string,
+    public readonly severity: ErrorSeverity = ErrorSeverity.error,
+  ) {
+    super(message ?? 'The SQS message can not be parsed.');
+    this.name = 'ParserError';
+  }
+}
+
 const appConfig = AppConfigService.getInstance();
 const ddbService = new DynamoDatabaseService(appConfig.tableName);
 
@@ -39,41 +64,47 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
  * @returns - User ID as a string, with whitespace removed.
  */
 function getUserId(record: SQSRecord) {
-  // Parse record.body
-  const recordBodyResult = jsonSafeParse(record.body);
-  if (!recordBodyResult.success) {
-    logger.error('The SQS message can not be parsed.');
-    return;
-  }
-  const recordBodyParse = snsMessageSchema.safeParse(recordBodyResult.data);
-  if (!recordBodyParse.success) {
-    logger.error(`The SQS message can not be parsed. ${prettifyError(recordBodyParse.error)}`);
-    return;
-  }
+  try {
+    // Parse record.body
+    const recordBodyResult = jsonSafeParse(record.body);
+    if (!recordBodyResult.success) throw new ParserError(ParserErrorType.BODY_JSON_PARSER_ERROR);
+    const recordBodyParse = snsMessageSchema.safeParse(recordBodyResult.data);
+    if (!recordBodyParse.success)
+      throw new ParserError(
+        ParserErrorType.BODY_FORMAT_PARSER_ERROR,
+        `The SQS message can not be parsed. ${prettifyError(recordBodyParse.error)}`,
+      );
 
-  // Parse body.data.Message
-  const messageBodyResult = jsonSafeParse(recordBodyParse.data.Message);
-  if (!messageBodyResult.success) {
-    logger.error('The SQS message can not be parsed.');
-    return;
-  }
-  const result = accountDeleteMessageSchema.safeParse(messageBodyResult.data);
-  if (!result.success) {
-    logger.error(`The SQS message can not be parsed. ${prettifyError(result.error)}`);
-    return;
-  }
+    // Parse body.data.Message
+    const messageBodyResult = jsonSafeParse(recordBodyParse.data.Message);
+    if (!messageBodyResult.success) throw new ParserError(ParserErrorType.MESSAGE_JSON_PARSER_ERROR);
+    const result = accountDeleteMessageSchema.safeParse(messageBodyResult.data);
+    if (!result.success)
+      throw new ParserError(
+        ParserErrorType.MESSAGE_FORMAT_PARSER_ERROR,
+        `The SQS message can not be parsed. ${prettifyError(result.error)}`,
+      );
 
-  // Check userId
-  const userId = result.data.user_id;
-  if (userId === undefined) {
-    logger.warn('Attribute missing: user_id.');
-    return;
+    // Check userId
+    const userId = result.data.user_id;
+    if (userId === undefined)
+      throw new ParserError(ParserErrorType.MISSING_USER_ID, 'Attribute missing: user_id.', ErrorSeverity.warn);
+    if (userId.trim() === '')
+      throw new ParserError(ParserErrorType.EMPTY_USER_ID, 'Attribute invalid: user_id is empty.', ErrorSeverity.warn);
+
+    return userId.trim();
+  } catch (error) {
+    if (error instanceof ParserError) {
+      logger[error.severity](error.message);
+      addMetric(MetricNames.DELETE_EVENT_PARSER_ERROR, undefined, undefined, {
+        ERROR: error.errorType,
+      });
+      metric.publishStoredMetrics();
+      return;
+    }
+
+    throw error;
   }
-  if (userId.trim() === '') {
-    logger.warn('Attribute invalid: user_id is empty.');
-    return;
-  }
-  return userId.trim();
 }
 
 /**
