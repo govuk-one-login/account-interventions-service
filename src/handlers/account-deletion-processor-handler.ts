@@ -2,9 +2,12 @@ import logger from '../commons/logger';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
 import { AppConfigService } from '../services/app-config-service';
-import type { Context, SNSMessage, SQSEvent, SQSRecord } from 'aws-lambda';
-import { DeleteStatusUpdateSNSMessage } from '../data-types/interfaces';
+import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { addMetric, metric } from '../commons/metrics';
+import { accountDeleteMessageSchema } from '../contracts/account-delete-message';
+import { snsMessageSchema } from '../contracts/sns-message';
+import { prettifyError } from 'zod';
+import jsonSafeParse from '../commons/json-safe-parse';
 
 const appConfig = AppConfigService.getInstance();
 const ddbService = new DynamoDatabaseService(appConfig.tableName);
@@ -36,26 +39,36 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
  * @returns - User ID as a string, with whitespace removed.
  */
 function getUserId(record: SQSRecord) {
-  let message: DeleteStatusUpdateSNSMessage;
-  try {
-    const messageBody = JSON.parse(record.body) as SNSMessage;
-    message = JSON.parse(messageBody.Message) as DeleteStatusUpdateSNSMessage;
-  } catch {
+  // Parse record.body
+  const recordBodyResult = jsonSafeParse(record.body);
+  if (!recordBodyResult.success) {
     logger.error('The SQS message can not be parsed.');
     return;
   }
-  if ((message.user_id as unknown) == undefined) {
+  const recordBodyParse = snsMessageSchema.safeParse(recordBodyResult.data);
+  if (!recordBodyParse.success) {
+    logger.error(`The SQS message can not be parsed. ${prettifyError(recordBodyParse.error)}`);
+    return;
+  }
+
+  // Parse body.data.Message
+  const messageBodyResult = jsonSafeParse(recordBodyParse.data.Message);
+  if (!messageBodyResult.success) {
+    logger.error('The SQS message can not be parsed.');
+    return;
+  }
+  const result = accountDeleteMessageSchema.safeParse(messageBodyResult.data);
+  if (!result.success) {
+    logger.error(`The SQS message can not be parsed. ${prettifyError(result.error)}`);
+    return;
+  }
+
+  // Check userId
+  const userId = result.data.user_id;
+  if (userId === undefined) {
     logger.warn('Attribute missing: user_id.');
     return;
   }
-
-  const userId = message.user_id;
-
-  if (typeof userId !== 'string') {
-    logger.warn('Attribute invalid: user_id is not a string.');
-    return;
-  }
-
   if (userId.trim() === '') {
     logger.warn('Attribute invalid: user_id is empty.');
     return;

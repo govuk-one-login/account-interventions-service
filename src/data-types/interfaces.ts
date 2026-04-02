@@ -1,4 +1,3 @@
-import { AUTH_DELETE_ACCOUNT } from '@govuk-one-login/event-catalogue/AUTH_DELETE_ACCOUNT';
 import {
   AIS_EVENT_TRANSITION_APPLIED,
   InterventionCodeEnum1,
@@ -60,7 +59,12 @@ export type TxMAEgressEvent =
   | AIS_EVENT_TRANSITION_APPLIED
   | AIS_EVENT_TRANSITION_IGNORED
   | AIS_EVENT_IGNORED_STALE
-  | AUTH_DELETE_ACCOUNT;
+  | TxMAEgressDeletionEvent; // Should be AUTH_DELETE_ACCOUNT;
+
+export interface TxMAEgressDeletionEvent {
+  event_name: 'AUTH_DELETE_ACCOUNT';
+  user_id: string;
+}
 
 export interface TxMAIngressEvent {
   event_name: TriggerEventsEnum;

@@ -1,8 +1,6 @@
-/* eslint-disable unicorn/numeric-separators-style */
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { handler } from '../txma-handler';
 import { sendBatchSqsMessage } from '../../services/send-sqs-message';
-import { AUTH_DELETE_ACCOUNT } from '@govuk-one-login/event-catalogue/AUTH_DELETE_ACCOUNT';
 
 jest.mock('../../services/send-sqs-message');
 
@@ -61,12 +59,10 @@ describe('TxMA Handler', () => {
   });
 
   it('Sends an SQS message to the delete queue', async () => {
-    const deleteEvent: AUTH_DELETE_ACCOUNT = {
+    const deleteEvent = {
       event_name: 'AUTH_DELETE_ACCOUNT',
-      user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
-      component_id: 'ACCOUNT_INTERVENTION_SERVICE',
-      timestamp: 1774450963,
-      event_timestamp_ms: 1722953808667,
+      user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
+      txma: { configVersion: '1.0.4' },
     };
     mockRecord = createMockRecord(deleteEvent);
     mockEvent = { Records: [mockRecord] };
@@ -78,10 +74,8 @@ describe('TxMA Handler', () => {
       [
         {
           Id: '0',
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          MessageBody: expect.stringMatching(
-            /^{"Message":"{\\"event_name\\":\\"AUTH_DELETE_ACCOUNT\\",\\"component_id\\":\\"ACCOUNT_INTERVENTION_SERVICE\\",\\"timestamp\\":\d+,\\"event_timestamp_ms\\":\d+,\\"user\\":{\\"user_id\\":\\"urn:fdc:gov\.uk:2022:USER_ONE\\"}}"}$/,
-          ),
+          MessageBody:
+            '{"Message":"{\\"event_name\\":\\"AUTH_DELETE_ACCOUNT\\",\\"user_id\\":\\"urn:fdc:gov.uk:2022:USER_ONE\\"}"}',
         },
       ],
       'delete_queue',

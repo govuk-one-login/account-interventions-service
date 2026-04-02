@@ -1,11 +1,10 @@
 import { SQSEvent, Context } from 'aws-lambda';
 import logger from '../commons/logger';
-import { TxMAEgressEvent } from '../data-types/interfaces';
+import { TxMAEgressDeletionEvent, TxMAEgressEvent } from '../data-types/interfaces';
 import { sendBatchSqsMessage } from '../services/send-sqs-message';
 import { addMetric, metric } from '../commons/metrics';
-import { COMPONENT_ID, MetricNames } from '../data-types/constants';
-import { AUTH_DELETE_ACCOUNT } from '@govuk-one-login/event-catalogue/AUTH_DELETE_ACCOUNT';
-import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { MetricNames } from '../data-types/constants';
+import { AccountDeleteMessage } from '../contracts/account-delete-message';
 
 export async function handler(event: SQSEvent, context: Context): Promise<void> {
   logger.addContext(context);
@@ -34,14 +33,10 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
     const body = JSON.parse(record.body) as TxMAEgressEvent;
     if (body.event_name === 'AUTH_DELETE_ACCOUNT') {
       addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_DELETE);
-      const timestamp = getCurrentTimestamp();
 
-      const deletionEvent: AUTH_DELETE_ACCOUNT = {
+      const deletionEvent: AccountDeleteMessage = {
         event_name: 'AUTH_DELETE_ACCOUNT',
-        component_id: COMPONENT_ID,
-        timestamp: timestamp.seconds,
-        event_timestamp_ms: timestamp.milliseconds,
-        ...(body.user?.user_id && { user: { user_id: body.user.user_id } }),
+        user_id: (body as TxMAEgressDeletionEvent).user_id,
       };
       const messageBody = {
         Message: JSON.stringify(deletionEvent),
