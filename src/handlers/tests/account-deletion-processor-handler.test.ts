@@ -17,6 +17,11 @@ const mockDynamoDBServiceUpdateDeleteStatus = DynamoDatabaseService.prototype.up
 const mockPublishStoredMetric = Metrics.prototype.publishStoredMetrics as jest.Mock;
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const mockAddMetric = Metrics.prototype.addMetric as jest.Mock;
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const mockAddDimensions = Metrics.prototype.addDimensions as jest.Mock;
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const mockSerializeMetrics = Metrics.prototype.serializeMetrics as jest.Mock;
+
 const loggerErrorSpy = jest.spyOn(logger, 'error');
 const loggerWarnSpy = jest.spyOn(logger, 'warn');
 
@@ -68,6 +73,9 @@ describe('Account Deletion Processor', () => {
     };
     mockEvent = { Records: [mockRecord] };
     mockDynamoDBServiceUpdateDeleteStatus.mockReturnValue(['1', '2']);
+    mockSerializeMetrics.mockReturnValue({
+      _aws: { CloudWatchMetrics: [] },
+    });
   });
 
   afterEach(() => {
@@ -88,6 +96,12 @@ describe('Account Deletion Processor', () => {
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
     expect(loggerErrorSpy).toHaveBeenCalledWith('The SQS message can not be parsed.');
+
+    expect(mockAddMetric).toHaveBeenCalledTimes(1);
+    expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.DELETE_EVENT_PARSER_ERROR, 'Count', 1);
+    expect(mockAddDimensions).toHaveBeenCalledTimes(1);
+    expect(mockAddDimensions).toHaveBeenCalledWith({ ERROR: 'BODY_JSON_PARSER_ERROR' });
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(3);
   });
 
   it('does not process the SQS Record when the message body is not a valid JSON', async () => {
