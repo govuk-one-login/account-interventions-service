@@ -5,6 +5,7 @@ import {
 import { EventsEnum, AISInterventionTypes, TriggerEventsEnum, PossibleAccountStatus, Codes } from './constants';
 import { AIS_EVENT_IGNORED_STALE } from '../events/ais-event-ignored-stale';
 import { AIS_EVENT_TRANSITION_IGNORED } from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_IGNORED';
+import { AUTH_DELETE_ACCOUNT } from '@govuk-one-login/event-catalogue/AUTH_DELETE_ACCOUNT';
 
 export interface StateDetails {
   blocked: boolean;
@@ -59,7 +60,8 @@ export type TxMAEgressEvent =
   | AIS_EVENT_TRANSITION_APPLIED
   | AIS_EVENT_TRANSITION_IGNORED
   | AIS_EVENT_IGNORED_STALE
-  | TxMAEgressDeletionEvent; // Should be AUTH_DELETE_ACCOUNT;
+  | AUTH_DELETE_ACCOUNT
+  | TxMAEgressDeletionEvent; // Custom type with user_id at top level;
 
 export interface TxMAEgressDeletionEvent {
   event_name: 'AUTH_DELETE_ACCOUNT';
