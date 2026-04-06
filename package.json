@@ -56,7 +56,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.12.0",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
-    "@typescript-eslint/parser": "^7.18.0",
+    "@typescript-eslint/parser": "^8.57.2",
     "aws-crt": "^1.30.0",
     "aws-sdk-client-mock": "^4.1.0",
     "aws-sdk-client-mock-jest": "^4.1.0",
