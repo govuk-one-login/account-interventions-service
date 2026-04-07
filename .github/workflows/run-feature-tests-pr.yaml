@@ -23,4 +23,4 @@ jobs:
       AWS_REGION: ${{ inputs.AWS_REGION }}
       SAM_STACK_NAME: ais-main
     secrets:
-      aws-role-arn: ${{ secrets.DEV_MAIN_GH_ACTIONS_ROLE_ARN }}
+      githubActionsRoleARN: ${{ secrets.DEV_MAIN_GH_ACTIONS_ROLE_ARN }}
