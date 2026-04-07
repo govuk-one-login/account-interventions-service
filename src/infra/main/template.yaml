@@ -863,6 +863,20 @@ Resources:
         Owner: !Ref OwnerTagValue
         Source: !Ref SourceTagValue
 
+  AccountDeletionEventQueueNameSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: The Name of the Account Deletion Processor Queue
+      Name: !Sub '/${AWS::StackName}/SQS/AccountDeletionEventQueue/Name'
+      Type: String
+      Value: !GetAtt AccountDeletionEventQueue.QueueName
+      Tags:
+        Environment: !Ref Environment
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
   AccountDeletionProcessorDLQNameSSM:
     Type: AWS::SSM::Parameter
     Properties:
