@@ -10,7 +10,7 @@ Supertest allows for HTTP assertions.
 - Cucumber-Jest
 - Supertest
 - Typescript
-- yarn
+- npm
 - docker
 
 ## Command to run tests
@@ -19,7 +19,7 @@ Set up the following env vars.
 
 ```shell
 cd feature-tests
-yarn install && yarn build
+npm install && npm run build
 export TEST_ENVIRONMENT=dev
 export SAM_STACK_NAME=ais-main
 export AWS_REGION=eu-west-2
@@ -36,7 +36,7 @@ aws sso login --profile $AWS_PROFILE
 To run all API tests locally in Jest via Jest.
 
 ```shell
-yarn test
+npm test
 ```
 
 To run all API tests locally as the Test Container would do.

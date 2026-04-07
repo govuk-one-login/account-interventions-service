@@ -28,7 +28,7 @@ cd account-interventions-service
 pip install gitlint
 pre-commit install -f
 $ pre-commit install --hook-type commit-msg
-$ yarn postinstall
+$ npm run postinstall
 ```
 
 ### Setup access to private repositories
@@ -40,12 +40,12 @@ In order to install private packages, such as @govuk-one-login/event-catalog, an
 //npm.pkg.github.com/:_authToken=<generated-token>
 ```
 
-For guidance on generating a PAT, refer to the documentation: [Configuring Node package managers](https://team-manual.account.gov.uk/development-standards-processes/coding-practices-and-processes/configure-node-package-managers/#for-yarn-v1) and [Managing Your Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
+For guidance on generating a PAT, refer to the documentation: [Configuring Node package managers](https://team-manual.account.gov.uk/development-standards-processes/coding-practices-and-processes/configure-node-package-managers/#enabling-ignore-scripts-for-your-user) and [Managing Your Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens).
 
 ### Install Project Dependencies
 
 ```bash
-$ yarn install
+$ npm install
 ```
 
 ### Test Project
@@ -53,7 +53,7 @@ $ yarn install
 To fully test the application, try the test command below
 
 ```bash
-$ yarn test
+$ npm test
 ```
 
 ### Build & deploy **main** application manually stack for development
@@ -63,7 +63,7 @@ Make sure NOT to pass a --template / -t flag to the `sam deploy` command. By sim
 Ensure you have logged into AWS and obtained credentials before attempting to deploy manually
 
 ```bash
-$ yarn package
+$ npm run package
 $ sam deploy --guided
 ```
 
@@ -88,30 +88,26 @@ $ sam deploy --guided -t src/infra/core/template.yaml
 ### Lints Code, SAM Template & Open API Spec
 
 ```bash
-$ yarn lint
+$ npm run lint
 ```
 
-- `yarn lint:code` - TypeScript is linted by [ESLint](.eslintrc.js)
-- `yarn lint:iac` - SAM template is linted by [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/validate-cfn-lint.html)
-- `yarn lint:spec:oas` - OpenAPI specification is linted by [Spectral](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/validate-cfn-lint.html)
+- `npm run lint:code` - TypeScript is linted by [ESLint](.eslintrc.js)
+- `npm run lint:iac` - SAM template is linted by [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/validate-cfn-lint.html)
+- `npm run lint:spec:oas` - OpenAPI specification is linted by [Spectral](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/validate-cfn-lint.html)
 
 #### Fix ES Lint Issues
 
 ```shell
-$ yarn lint:code:fix
+$ npm run lint:code:fix
 ```
 
 ### Check For Vulnerable Dependencies
 
 ```shell
-$ yarn audit
+$ npm audit
 ```
 
 #### Fix Vulnerable Dependencies
-
-```shell
-$ yarn audit:fix
-```
 
 ## Architecture Diagram
 

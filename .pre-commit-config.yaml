@@ -6,12 +6,12 @@ repos:
     rev: v4.4.0
     hooks:
       - id: end-of-file-fixer
-        exclude: 'package.json|yarn.lock'
+        exclude: 'package.json|package-lock.json'
       - id: trailing-whitespace
       - id: detect-private-key
       - id: detect-aws-credentials
         args: [--allow-missing-credentials]
-        exclude: 'package.json|yarn.lock'
+        exclude: 'package.json|package-lock.json'
       - id: mixed-line-ending
       - id: check-merge-conflict
 
@@ -23,10 +23,10 @@ repos:
 
   - repo: local
     hooks:
-      - id: yarn-lint
+      - id: npm-lint
         name: Linting Checks
         pass_filenames: false
-        entry: 'yarn lint'
+        entry: 'npm run lint'
         language: system
 
   - repo: https://github.com/Yelp/detect-secrets
@@ -34,7 +34,7 @@ repos:
     hooks:
       - id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
-        exclude: 'package.json|yarn.lock|jest.config.js|src/.*/.*.test.ts'
+        exclude: 'package.json|package-lock.json|jest.config.js|src/.*/.*.test.ts'
 
   - repo: https://github.com/jorisroovers/gitlint
     rev: v0.19.1

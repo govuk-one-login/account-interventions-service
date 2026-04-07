@@ -56,16 +56,16 @@ jobs:
           node-version-file: '.node-version'
           registry-url: 'https://npm.pkg.github.com/'
           scope: '@govuk-one-login'
-          cache: yarn
+          cache: npm
           always-auth: true
 
-      - name: Run yarn install
-        run: yarn install --frozen-lockfile
+      - name: Run npm install
+        run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ github.token }}
 
-      - name: Run yarn package
-        run: yarn package
+      - name: Run npm package
+        run: npm run package
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # pin@6.0.0

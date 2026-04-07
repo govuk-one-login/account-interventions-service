@@ -12,7 +12,7 @@ on:
     paths:
       - src/**
       - package.json
-      - yarn.lock
+      - package-lock.json
       - tsconfig.json
       - eslint.config.mjs
       - .node-version
@@ -23,7 +23,7 @@ on:
     paths:
       - src/**
       - package.json
-      - yarn.lock
+      - package-lock.json
       - tsconfig.json
       - .node-version
       - .github/workflows/acceptance-checks.yaml
@@ -56,25 +56,25 @@ jobs:
           node-version-file: '.node-version'
           registry-url: 'https://npm.pkg.github.com/'
           scope: '@govuk-one-login'
-          cache: yarn
+          cache: npm
           always-auth: true
 
-      - name: Run yarn install
-        run: yarn install --frozen-lockfile
+      - name: Run npm install
+        run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ github.token }}
 
-      - name: Run yarn build
-        run: yarn build
+      - name: Run npm build
+        run: npm run build
 
-      - name: Run yarn lint
-        run: yarn lint
+      - name: Run npm lint
+        run: npm run lint
 
       - name: Check typescript types
-        run: yarn test:types
+        run: npm run test:types
 
       - name: Run unit tests with coverage report
-        run: yarn test:unit
+        run: npm run test:unit
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9 # pin@v7.0.0

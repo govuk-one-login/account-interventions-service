@@ -5,12 +5,15 @@
       "service-tag": "account-interventions-service",
       "quality-gates": [
         {
-          "check-types": ["code quality", "code style and linting"],
+          "check-types": [
+            "code quality",
+            "code style and linting"
+          ],
           "provider": "GitHub",
           "phase": "pre-merge",
           "config": {
             "file": ".github/workflows/acceptance-checks.yaml",
-            "name": "Run yarn lint",
+            "name": "Run npm lint",
             "path": "jobs.acceptance-checks"
           }
         }
@@ -20,7 +23,10 @@
       "service-tag": "account-interventions-service",
       "quality-gates": [
         {
-          "check-types": ["unit", "unit test coverage"],
+          "check-types": [
+            "unit",
+            "unit test coverage"
+          ],
           "provider": "GitHub",
           "phase": "pre-merge",
           "config": {
@@ -35,7 +41,12 @@
       "service-tag": "account-interventions-service",
       "quality-gates": [
         {
-          "check-types": ["code quality", "code style and linting", "unit test coverage", "vulnerability detection"],
+          "check-types": [
+            "code quality",
+            "code style and linting",
+            "unit test coverage",
+            "vulnerability detection"
+          ],
           "provider": "GitHub",
           "phase": "pre-merge",
           "config": {
@@ -50,7 +61,9 @@
       "service-tag": "account-interventions-service",
       "quality-gates": [
         {
-          "check-types": ["contract"],
+          "check-types": [
+            "contract"
+          ],
           "provider": "GitHub",
           "phase": "pre-merge",
           "config": {
@@ -65,7 +78,9 @@
       "service-tag": "account-interventions-service",
       "quality-gates": [
         {
-          "check-types": ["contract"],
+          "check-types": [
+            "contract"
+          ],
           "provider": "GitHub",
           "phase": "pre-merge",
           "config": {

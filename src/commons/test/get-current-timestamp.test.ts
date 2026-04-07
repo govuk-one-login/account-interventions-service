@@ -3,7 +3,7 @@ import { getCurrentTimestamp } from '../get-current-timestamp';
 describe('currentTimestampInSeconds', () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date(Date.UTC(2023, 2, 13)));
+    jest.setSystemTime(new Date(Date.UTC(2023, 2, 13)).getTime());
   });
 
   afterAll(() => {
