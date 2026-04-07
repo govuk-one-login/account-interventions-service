@@ -14,7 +14,7 @@ on:
     paths:
       - src/**
       - package.json
-      - yarn.lock
+      - package-lock.json
       - tsconfig.json
       - .node-version
       - .github/workflows/pact-test-api-provider.yaml
@@ -24,7 +24,7 @@ on:
     paths:
       - src/**
       - package.json
-      - yarn.lock
+      - package-lock.json
       - tsconfig.json
       - .node-version
       - .github/workflows/pact-test-api-provider.yaml
@@ -61,11 +61,11 @@ jobs:
           node-version-file: '.node-version'
           registry-url: 'https://npm.pkg.github.com/'
           scope: '@govuk-one-login'
-          cache: yarn
+          cache: npm
           always-auth: true
 
-      - name: Run yarn install
-        run: yarn install --frozen-lockfile
+      - name: Run npm install
+        run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ github.token }}
 
@@ -75,5 +75,5 @@ jobs:
 
       - name: Run pact tests for provider API
         run: |
-          yarn connect:pact:broker
-          yarn test:pact:provider
+          npm run connect:pact:broker
+          npm run test:pact:provider

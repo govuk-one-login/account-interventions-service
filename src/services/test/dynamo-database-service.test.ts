@@ -27,7 +27,7 @@ const updateCommandMock = ddbMock.on(UpdateItemCommand);
 describe('Dynamo DB Service', () => {
   beforeAll(() => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date(Date.UTC(2023, 4, 30)));
+    jest.setSystemTime(new Date(Date.UTC(2023, 4, 30)).getTime());
   });
 
   beforeEach(() => {
