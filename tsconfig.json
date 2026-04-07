@@ -23,7 +23,10 @@
     "verbatimModuleSyntax": false,
     "allowJs": true,
     "checkJs": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "rootDir": "",
+    "ignoreDeprecations": "6.0",
+    "types": ["jest", "node"]
   },
   "exclude": ["feature-tests", "coverage"]
 }

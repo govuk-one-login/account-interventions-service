@@ -14,8 +14,8 @@
     "test:types": "tsc --noEmit",
     "test:pact:provider": "jest --group=contract --runInBand --testPathPatterns=\"src/contract-testing/provider/*\"",
     "test:pact:consumer": "jest --group=contract --runInBand --testPathPatterns=\"src/contract-testing/consumer/*\"",
-    "connect:pact:broker": "tsc --esModuleInterop src/contract-testing/test-helpers/connect-to-pact-broker.ts && node src/contract-testing/test-helpers/connect-to-pact-broker.js",
-    "pact:publish:contracts": "tsc --esModuleInterop src/contract-testing/test-helpers/publish-pacts.ts && node src/contract-testing/test-helpers/publish-pacts.js",
+    "connect:pact:broker": "tsx src/contract-testing/test-helpers/connect-to-pact-broker.ts",
+    "pact:publish:contracts": "tsx src/contract-testing/test-helpers/publish-pacts.ts",
     "lint": "yarn lint:code && yarn lint:spec && yarn lint:iac",
     "lint:code": "eslint --ext .ts .",
     "lint:code:fix": "yarn lint:code --fix",
@@ -41,6 +41,7 @@
     "axios": "^1.13.5",
     "fast-xml-parser": "^5.5.9",
     "tar": "^7.5.8",
+    "tsx": "^4.21.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -75,7 +76,7 @@
     "rimraf": "^6.1.3",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "typescript-eslint": "^8.57.2",
     "yarn-audit-fix": "^10.0.9"
   },
