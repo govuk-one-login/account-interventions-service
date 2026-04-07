@@ -146,10 +146,23 @@ describe('Account Deletion Processor', () => {
     );
   });
 
-  it('it successfully process the message when the user id passed contains trailing spaces', async () => {
+  it('successfully processes the message when the user id passed contains trailing spaces', async () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockReturnValueOnce(['1']);
     const mockBody = JSON.stringify({
       Message: JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user_id: 'abcdef ' }),
+    });
+    mockRecord = { ...mockRecord, body: mockBody };
+    mockEvent = { Records: [mockRecord] };
+    await handler(mockEvent, mockContext);
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledWith('abcdef');
+  });
+
+  it('successfully processes the message when the message is not wrapped', async () => {
+    mockDynamoDBServiceUpdateDeleteStatus.mockReturnValueOnce(['1']);
+    const mockBody = JSON.stringify({
+      event_name: 'AUTH_DELETE_ACCOUNT',
+      user_id: 'abcdef',
     });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
