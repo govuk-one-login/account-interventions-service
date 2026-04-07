@@ -6,6 +6,8 @@ on:
       TEST_ENVIRONMENT: { required: true, type: string }
       AWS_REGION: { required: true, type: string }
       SAM_STACK_NAME: { required: true, type: string }
+    secrets:
+      githubActionsRoleARN: { required: true }
   workflow_dispatch:
 
 permissions:
