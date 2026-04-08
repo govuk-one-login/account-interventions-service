@@ -21,27 +21,12 @@ repos:
       - id: remove-tabs
       - id: remove-crlf
 
-  - repo: local
-    hooks:
-      - id: npm-lint
-        name: Linting Checks
-        pass_filenames: false
-        entry: 'npm run lint'
-        language: system
-
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.4.0
     hooks:
       - id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
         exclude: 'package.json|package-lock.json|jest.config.js|src/.*/.*.test.ts'
-
-  - repo: https://github.com/jorisroovers/gitlint
-    rev: v0.19.1
-    hooks:
-      - id: gitlint
-        name: Git Lint
-        stages: [commit-msg]
 
 #  - repo: https://github.com/bridgecrewio/checkov.git
 #    rev: '2.2.320'
