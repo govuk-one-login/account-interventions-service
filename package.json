@@ -1,6 +1,6 @@
 {
   "name": "account-interventions-service",
-  "description": "Account interventions service",
+  "description": "Account Interventions Service",
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
@@ -8,7 +8,7 @@
     "node": ">=24.14.0 <25"
   },
   "scripts": {
-    "test": "npm run test:unit --runInBand",
+    "test": "npm run test:unit -- --runInBand",
     "test:unit": "jest --group=unit --coverage --runInBand --testPathIgnorePatterns \"src/contract-testing/*\"",
     "test:types": "tsc --noEmit",
     "test:pact:provider": "jest --group=contract --runInBand --testPathPatterns=\"src/contract-testing/provider/*\"",
@@ -17,7 +17,7 @@
     "pact:publish:contracts": "tsx src/contract-testing/test-helpers/publish-pacts.ts",
     "lint": "npm run lint:code && npm run lint:spec && npm run lint:iac",
     "lint:code": "eslint --ext .ts .",
-    "lint:code:fix": "npm run lint:code --fix",
+    "lint:code:fix": "npm run lint:code -- --fix",
     "lint:iac": "for f in src/infra/**/template.yaml; do (sam validate --lint -t $f) || exit 1; done",
     "lint:spec:oas": "spectral lint src/specs/api.yaml",
     "lint:spec": "npm run lint:spec:oas",
