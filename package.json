@@ -35,7 +35,6 @@
     "@aws-sdk/util-dynamodb": "^3.996.0",
     "@babel/helpers": "^7.26.10",
     "@smithy/node-http-handler": "^4.5.0",
-    "axios": "^1.13.5",
     "fast-xml-parser": "^5.5.9",
     "tar": "^7.5.8",
     "tsx": "^4.21.0",
@@ -77,7 +76,6 @@
   },
   "overrides": {
     "@babel/helpers": "^7.26.10",
-    "axios": "^1.13.5",
     "cross-spawn": "^7.0.5",
     "eslint-visitor-keys": "^4.2.0",
     "fast-xml-parser": "^5.5.9",
