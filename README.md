@@ -22,7 +22,7 @@ git clone git@github.com:govuk-one-login/account-interventions-service.git
 cd account-interventions-service
 ```
 
-### Setup Pre-Commit for Husky and GitLint
+### Setup Pre-Commit
 
 ```shell
 pre-commit install -f
