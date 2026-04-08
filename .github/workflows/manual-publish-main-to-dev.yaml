@@ -3,12 +3,16 @@ name: 'Validate & Publish Main SAM Template to Dev Env'
 
 on:
   push:
-    paths:
-      - 'src/**'
-      - '!src/infra/core/**' # excluded with !
-      - '.github/workflows/manual-publish-main-to-dev.yaml'
     branches:
       - main
+    paths:
+      - 'src/**'
+      - '!src/infra/core/**' # excluded with !"
+      - 'package.json'
+      - 'package-lock.json'
+      - '.node-version'
+      - 'tsconfig.json'
+      - '.github/workflows/manual-publish-main-to-dev.yaml'
   workflow_dispatch:
     inputs:
       gitRef:
