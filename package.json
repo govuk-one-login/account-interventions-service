@@ -24,8 +24,7 @@
     "clean": "rimraf .aws-sam coverage",
     "build": "sam build -t src/infra/main/template.yaml",
     "package": "npm run clean && npm run build",
-    "precommit": "pre-commit run",
-    "postinstall": "husky"
+    "precommit": "pre-commit run"
   },
   "dependencies": {
     "@aws-lambda-powertools/logger": "^2.32.0",

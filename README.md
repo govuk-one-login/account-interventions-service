@@ -25,10 +25,7 @@ cd account-interventions-service
 ### Setup Pre-Commit for Husky and GitLint
 
 ```shell
-pip install gitlint
 pre-commit install -f
-$ pre-commit install --hook-type commit-msg
-$ npm run postinstall
 ```
 
 ### Setup access to private repositories

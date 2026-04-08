@@ -36,13 +36,6 @@ repos:
         args: ['--baseline', '.secrets.baseline']
         exclude: 'package.json|package-lock.json|jest.config.js|src/.*/.*.test.ts'
 
-  - repo: https://github.com/jorisroovers/gitlint
-    rev: v0.19.1
-    hooks:
-      - id: gitlint
-        name: Git Lint
-        stages: [commit-msg]
-
 #  - repo: https://github.com/bridgecrewio/checkov.git
 #    rev: '2.2.320'
 #    hooks:
