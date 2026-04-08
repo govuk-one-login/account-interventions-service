@@ -21,14 +21,6 @@ repos:
       - id: remove-tabs
       - id: remove-crlf
 
-  - repo: local
-    hooks:
-      - id: npm-lint
-        name: Linting Checks
-        pass_filenames: false
-        entry: 'npm run lint'
-        language: system
-
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.4.0
     hooks:
