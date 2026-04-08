@@ -76,6 +76,7 @@
   },
   "overrides": {
     "@babel/helpers": "^7.26.10",
+    "axios": "^1.14.0",
     "cross-spawn": "^7.0.5",
     "eslint-visitor-keys": "^4.2.0",
     "fast-xml-parser": "^5.5.9",
