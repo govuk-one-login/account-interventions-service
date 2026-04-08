@@ -90,6 +90,9 @@ function parseMessage(record: SQSRecord): string | undefined {
       `The SQS message can not be parsed. ${prettifyError(result.error)}`,
     );
 
+  addMetric(MetricNames.DELETE_EVENT_WRAPPED);
+  metric.publishStoredMetrics();
+
   return result.data.user_id;
 }
 

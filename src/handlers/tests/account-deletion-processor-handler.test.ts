@@ -154,7 +154,7 @@ describe('Account Deletion Processor', () => {
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
-    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(2);
     expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledWith('abcdef');
   });
 
@@ -179,16 +179,16 @@ describe('Account Deletion Processor', () => {
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await expect(handler(mockEvent, mockContext)).rejects.toThrow('Failed to update the account status.');
-    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(2);
     expect(loggerErrorSpy).toHaveBeenCalledWith(`Sensitive info - Error updating account hello`, { error: 'Error' });
-    expect(mockAddMetric).toHaveBeenCalledTimes(1);
+    expect(mockAddMetric).toHaveBeenCalledTimes(2);
     expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.MARK_AS_DELETED_FAILED, 'Count', 1);
   });
 
   it('successfully process the message when it contains a single record', async () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
     await handler(mockEvent, mockContext);
-    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(2);
     expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(1);
   });
 
@@ -202,7 +202,7 @@ describe('Account Deletion Processor', () => {
     };
     const mockEvent = { Records: [mockRecord, mockRecord2] };
     await handler(mockEvent, mockContext);
-    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(3);
     expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(2);
   });
 
@@ -217,8 +217,8 @@ describe('Account Deletion Processor', () => {
     };
     const mockEvent = { Records: [mockRecord, mockRecord2] };
     await expect(handler(mockEvent, mockContext)).rejects.toThrow('Failed to update the account status.');
-    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
-    expect(mockAddMetric).toHaveBeenCalledTimes(1);
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(3);
+    expect(mockAddMetric).toHaveBeenCalledTimes(3);
     expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.MARK_AS_DELETED_FAILED, 'Count', 1);
   });
 });
