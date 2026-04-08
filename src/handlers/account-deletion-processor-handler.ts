@@ -59,34 +59,49 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
 }
 
 /**
+ * Function to parse the JSON message from the SQS Record.
+ * @param record - The record passed in from the event.
+ * @returns - User ID or undefined
+ */
+function parseMessage(record: SQSRecord): string | undefined {
+  // Parse record.body
+  const recordBodyResult = jsonSafeParse(record.body);
+  if (!recordBodyResult.success) throw new ParserError(ParserErrorType.BODY_JSON_PARSER_ERROR);
+
+  // Check if unwrapped
+  const firstResult = accountDeleteMessageSchema.safeParse(recordBodyResult.data);
+  if (firstResult.success) return firstResult.data.user_id;
+
+  // Handle wrapped JSON message
+  const recordBodyParse = snsMessageSchema.safeParse(recordBodyResult.data);
+  if (!recordBodyParse.success)
+    throw new ParserError(
+      ParserErrorType.BODY_FORMAT_PARSER_ERROR,
+      `The SQS message can not be parsed. ${prettifyError(recordBodyParse.error)}`,
+    );
+
+  // Parse body.data.Message
+  const messageBodyResult = jsonSafeParse(recordBodyParse.data.Message);
+  if (!messageBodyResult.success) throw new ParserError(ParserErrorType.MESSAGE_JSON_PARSER_ERROR);
+  const result = accountDeleteMessageSchema.safeParse(messageBodyResult.data);
+  if (!result.success)
+    throw new ParserError(
+      ParserErrorType.MESSAGE_FORMAT_PARSER_ERROR,
+      `The SQS message can not be parsed. ${prettifyError(result.error)}`,
+    );
+
+  return result.data.user_id;
+}
+
+/**
  * Function to take the User ID from the SQS Record.
  * @param record - The record passed in from the event.
  * @returns - User ID as a string, with whitespace removed.
  */
 function getUserId(record: SQSRecord) {
   try {
-    // Parse record.body
-    const recordBodyResult = jsonSafeParse(record.body);
-    if (!recordBodyResult.success) throw new ParserError(ParserErrorType.BODY_JSON_PARSER_ERROR);
-    const recordBodyParse = snsMessageSchema.safeParse(recordBodyResult.data);
-    if (!recordBodyParse.success)
-      throw new ParserError(
-        ParserErrorType.BODY_FORMAT_PARSER_ERROR,
-        `The SQS message can not be parsed. ${prettifyError(recordBodyParse.error)}`,
-      );
+    const userId = parseMessage(record);
 
-    // Parse body.data.Message
-    const messageBodyResult = jsonSafeParse(recordBodyParse.data.Message);
-    if (!messageBodyResult.success) throw new ParserError(ParserErrorType.MESSAGE_JSON_PARSER_ERROR);
-    const result = accountDeleteMessageSchema.safeParse(messageBodyResult.data);
-    if (!result.success)
-      throw new ParserError(
-        ParserErrorType.MESSAGE_FORMAT_PARSER_ERROR,
-        `The SQS message can not be parsed. ${prettifyError(result.error)}`,
-      );
-
-    // Check userId
-    const userId = result.data.user_id;
     if (userId === undefined)
       throw new ParserError(ParserErrorType.MISSING_USER_ID, 'Attribute missing: user_id.', ErrorSeverity.warn);
     if (userId.trim() === '')
