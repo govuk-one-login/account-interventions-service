@@ -38,12 +38,9 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
         event_name: 'AUTH_DELETE_ACCOUNT',
         user_id: getUserId(body),
       };
-      const messageBody = {
-        Message: JSON.stringify(deletionEvent),
-      };
       deletionMessages.push({
         Id: String(id),
-        MessageBody: JSON.stringify(messageBody),
+        MessageBody: JSON.stringify(deletionEvent),
       });
     } else {
       addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_INTERVENTION);
