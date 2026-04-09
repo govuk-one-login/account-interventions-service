@@ -53,6 +53,7 @@ describe('update-account-state-metrics', () => {
     });
     it('should decrement ACCOUNTS_SUSPENDED and increment ACCOUNTS_BLOCKED', () => {
       updateAccountStateCountMetric(accountIsSuspended, accountIsBlocked);
+      expect(addMetric).toHaveBeenCalledWith('ACCOUNTS_SUSPENDED', [], -1);
     });
     it('should decrement ACCOUNTS_BLOCKED', () => {
       updateAccountStateCountMetric(accountIsBlocked, accountIsOkay);

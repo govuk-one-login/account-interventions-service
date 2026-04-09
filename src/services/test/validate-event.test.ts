@@ -59,8 +59,12 @@ describe('event-validation', () => {
         },
       },
     };
+    expect(() => {
     validateEventAgainstSchema(TxMAEvent);
+    }).not.toThrow();
+    expect(() => {
     validateInterventionEvent(TxMAEvent);
+    }).not.toThrow();
   });
 
   it('should return an error as intervention is invalid', () => {
