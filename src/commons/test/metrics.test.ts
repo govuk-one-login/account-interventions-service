@@ -1,21 +1,22 @@
+import { Mock } from 'vitest';
 import { addMetric } from '../metrics';
 import { Metrics } from '@aws-lambda-powertools/metrics';
 
-jest.mock('@aws-lambda-powertools/metrics');
-jest.mock('@aws-lambda-powertools/logger');
+vi.mock('@aws-lambda-powertools/metrics');
+vi.mock('@aws-lambda-powertools/logger');
 
 /* eslint-disable @typescript-eslint/unbound-method */
-const mockSerialiseMetrics = Metrics.prototype.serializeMetrics as jest.Mock;
-const mockPublishStoredMetrics = Metrics.prototype.publishStoredMetrics as jest.Mock;
-const mockAddMetadata = Metrics.prototype.addMetadata as jest.Mock;
-const mockAddMetric = Metrics.prototype.addMetric as jest.Mock;
-const mockAddDimensions = Metrics.prototype.addDimensions as jest.Mock;
+const mockSerialiseMetrics = Metrics.prototype.serializeMetrics as Mock;
+const mockPublishStoredMetrics = Metrics.prototype.publishStoredMetrics as Mock;
+const mockAddMetadata = Metrics.prototype.addMetadata as Mock;
+const mockAddMetric = Metrics.prototype.addMetric as Mock;
+const mockAddDimensions = Metrics.prototype.addDimensions as Mock;
 /* eslint-enable @typescript-eslint/unbound-method */
 mockSerialiseMetrics.mockReturnValue({ _aws: { CloudWatchMetrics: [{ Metrics: ['some metrics '] }] } });
 
 describe('metrics', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('adds metric with given metadata and default count', () => {

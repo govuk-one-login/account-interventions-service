@@ -6,7 +6,7 @@ import {
   UpdateItemCommandInput,
 } from '@aws-sdk/client-dynamodb';
 import { DynamoDatabaseService } from '../dynamo-database-service';
-import 'aws-sdk-client-mock-jest';
+import 'aws-sdk-client-mock-vitest/extend';
 import { mockClient } from 'aws-sdk-client-mock';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import logger from '../../commons/logger';
@@ -15,10 +15,10 @@ import { addMetric } from '../../commons/metrics';
 import { MetricNames } from '../../data-types/constants';
 import { updateAccountStateCountMetricAfterDeletion } from '../../commons/metrics-helper';
 
-jest.mock('@aws-lambda-powertools/logger');
-jest.mock('../../commons/metrics');
-jest.mock('../../commons/metrics-helper');
-jest.mock('@smithy/node-http-handler');
+vi.mock('@aws-lambda-powertools/logger');
+vi.mock('../../commons/metrics');
+vi.mock('../../commons/metrics-helper');
+vi.mock('@smithy/node-http-handler');
 
 const ddbMock = mockClient(DynamoDBClient);
 const queryCommandMock = ddbMock.on(QueryCommand);
@@ -26,16 +26,16 @@ const updateCommandMock = ddbMock.on(UpdateItemCommand);
 
 describe('Dynamo DB Service', () => {
   beforeAll(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(Date.UTC(2023, 4, 30)).getTime());
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(Date.UTC(2023, 4, 30)).getTime());
   });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const items = [
@@ -168,7 +168,7 @@ describe('Dynamo DB Service', () => {
         },
       },
     });
-    const commandInput: UpdateItemCommandInput = {
+    const commandInput: UpdateItemCommandInput & Record<string, unknown> = {
       TableName: 'table_name',
       Key: { pk: { S: 'hello' } },
       UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',
@@ -197,10 +197,10 @@ describe('Dynamo DB Service', () => {
     const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
     const error = new Error('InternalServerError');
     mockedUpdateCommand.rejectsOnce(error);
-    const loggerErrorSpy = jest.spyOn(logger, 'error');
+    const loggerErrorSpy = vi.spyOn(logger, 'error');
     const dynamoDBService = new DynamoDatabaseService('table_name');
     await expect(async () => await dynamoDBService.updateDeleteStatus('hello')).rejects.toThrow(
-      new Error('Error was not a Conditional Check Failed Exception.', { cause: { message: 'InternalServerError' } }),
+      new Error('Error was not a Conditional Check Failed Exception.', { cause: new Error('InternalServerError') }),
     );
     expect(loggerErrorSpy).toHaveBeenCalledWith('Sensitive info - Error updating Dynamo DB.', {
       error: error,
@@ -214,7 +214,7 @@ describe('Dynamo DB Service', () => {
     const error = new Error('test');
     error.name = 'ConditionalCheckFailedException';
     mockedUpdateCommand.rejectsOnce(error);
-    const loggerInfoSpy = jest.spyOn(logger, 'info');
+    const loggerInfoSpy = vi.spyOn(logger, 'info');
     const dynamoDBService = new DynamoDatabaseService('table_name');
     await dynamoDBService.updateDeleteStatus('hello');
     expect(loggerInfoSpy).toHaveBeenCalledWith('Sensitive info - No intervention exists for this account.', {

@@ -155,10 +155,10 @@ const idResetSuccessfulUpdateSuspended = {
   nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '94'],
 };
 
-jest.mock('@aws-lambda-powertools/logger');
-jest.mock('../../commons/metrics');
-jest.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: jest.fn().mockImplementation(() => ({
+vi.mock('@aws-lambda-powertools/logger');
+vi.mock('../../commons/metrics');
+vi.mock('../../commons/get-current-timestamp', () => ({
+  getCurrentTimestamp: vi.fn().mockImplementation(() => ({
     milliseconds: 1_234_567_890,
     isoString: 'today',
     seconds: 1_234_567,
@@ -305,7 +305,7 @@ describe('account-state-service', () => {
   describe('Unsuccessful state transitions', () => {
     describe('received intervention is not allowed on current account state', () => {
       beforeEach(() => {
-        jest.resetAllMocks();
+        vi.resetAllMocks();
       });
       it.each([
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsOkay],

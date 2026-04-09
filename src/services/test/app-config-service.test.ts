@@ -1,17 +1,16 @@
 import { AppConfigService } from '../app-config-service';
 import { InvalidEnvironmentVariableError } from '../../data-types/errors';
-import 'jest-extended';
 import logger from '../../commons/logger';
 import { LOGS_PREFIX_INVALID_CONFIG } from '../../data-types/constants';
 
-jest.mock('@aws-lambda-powertools/logger');
+vi.mock('@aws-lambda-powertools/logger');
 
 describe('AppConfigService', () => {
   const OLD_ENV = process.env;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.resetModules();
+    vi.clearAllMocks();
+    vi.resetModules();
     process.env = { ...OLD_ENV };
     delete process.env['NODE_ENV'];
   });

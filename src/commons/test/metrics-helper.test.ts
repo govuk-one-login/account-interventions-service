@@ -5,8 +5,8 @@ import {
 } from '../metrics-helper';
 import { addMetric } from '../metrics';
 
-jest.mock('@aws-lambda-powertools/logger');
-jest.mock('../../commons/metrics');
+vi.mock('@aws-lambda-powertools/logger');
+vi.mock('../../commons/metrics');
 const accountIsSuspended = {
   blocked: false,
   suspended: true,
@@ -41,7 +41,7 @@ const accountIsBlocked = {
 describe('update-account-state-metrics', () => {
   describe('updateAccountStateMetric', () => {
     beforeEach(() => {
-      jest.resetAllMocks();
+      vi.resetAllMocks();
     });
     it('should increment ACCOUNTS_BLOCKED', () => {
       updateAccountStateCountMetric(accountIsOkay, accountIsBlocked);
@@ -71,7 +71,7 @@ describe('update-account-state-metrics', () => {
 
   describe('updateAccountStateCountMetricAfterDeletion', () => {
     beforeEach(() => {
-      jest.resetAllMocks();
+      vi.resetAllMocks();
     });
     it('should decrement ACCOUNTS_BLOCKED', () => {
       updateAccountStateCountMetricAfterDeletion(true, false);
@@ -89,7 +89,7 @@ describe('update-account-state-metrics', () => {
 
   describe('publishTimeToResolveMetrics', () => {
     beforeEach(() => {
-      jest.resetAllMocks();
+      vi.resetAllMocks();
     });
 
     describe('should publish TimeToResolve metric', () => {

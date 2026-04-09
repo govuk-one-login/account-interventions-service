@@ -2,12 +2,12 @@ import { getCurrentTimestamp } from '../get-current-timestamp';
 
 describe('currentTimestampInSeconds', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(Date.UTC(2023, 2, 13)).getTime());
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(Date.UTC(2023, 2, 13)).getTime());
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('should return the Unix timestamp in seconds on 13 March 2023 00:00:00 UTC', () => {

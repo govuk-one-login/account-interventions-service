@@ -14,11 +14,11 @@ import { sendAuditEvent } from '../send-audit-events';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { InterventionCodeEnum1 } from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_APPLIED';
 
-jest.mock('../../commons/metrics');
-jest.mock('@aws-lambda-powertools/logger');
-jest.mock('../send-audit-events');
-jest.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: jest.fn().mockImplementation(() => ({
+vi.mock('../../commons/metrics');
+vi.mock('@aws-lambda-powertools/logger');
+vi.mock('../send-audit-events');
+vi.mock('../../commons/get-current-timestamp', () => ({
+  getCurrentTimestamp: vi.fn().mockImplementation(() => ({
     milliseconds: 1_234_567_890,
     isoString: 'today',
     seconds: 1_234_567,
@@ -39,7 +39,7 @@ const dynamoDBResult: DynamoDBStateResult = {
 };
 describe('event-validation', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should not return anything as event is valid', () => {
@@ -60,10 +60,10 @@ describe('event-validation', () => {
       },
     };
     expect(() => {
-    validateEventAgainstSchema(TxMAEvent);
+      validateEventAgainstSchema(TxMAEvent);
     }).not.toThrow();
     expect(() => {
-    validateInterventionEvent(TxMAEvent);
+      validateInterventionEvent(TxMAEvent);
     }).not.toThrow();
   });
 

@@ -1,4 +1,3 @@
-// send-sqs-message.test.ts
 import { sendBatchSqsMessage, sendSqsMessage } from '../send-sqs-message';
 import {
   SQSClient,
@@ -8,30 +7,32 @@ import {
 } from '@aws-sdk/client-sqs';
 import logger from '../../commons/logger';
 
-jest.mock('@aws-sdk/client-sqs');
-jest.mock('../../commons/logger');
+const sendFn = vi.fn();
+
+vi.mock('@aws-sdk/client-sqs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@aws-sdk/client-sqs')>();
+  return {
+    ...actual,
+    SQSClient: vi.fn(function () {
+      return { send: sendFn };
+    }),
+  };
+});
+vi.mock('../../commons/logger');
 
 describe('sendSqsMessage', () => {
   const messageBody = 'Test message';
   const queueUrl = 'queue';
 
-  const sendFn = jest.fn();
-
-  beforeEach(() => {
-    (SQSClient as jest.Mock).mockImplementation(() => ({
-      send: sendFn,
-    }));
-  });
-
   afterEach(() => {
-    jest.clearAllMocks();
+    sendFn.mockReset();
   });
 
   it('throws an error if AWS_REGION environment variable is not set', async () => {
     delete process.env['AWS_REGION'];
     await expect(sendSqsMessage(messageBody, queueUrl)).rejects.toThrow('AWS_REGION environment variable not set');
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(logger.error).toHaveBeenCalledWith('AWS_REGION environment variable is not set');
+    expect(vi.mocked(logger.error)).toHaveBeenCalledWith('AWS_REGION environment variable is not set');
   });
 
   it('sends a message successfully when AWS_REGION and parameters are set', async () => {
@@ -61,23 +62,15 @@ describe('sendBatchSqsMessage', () => {
   const entries: SendMessageBatchRequestEntry[] = [entry];
   const queueUrl = 'queue';
 
-  const sendFn = jest.fn();
-
-  beforeEach(() => {
-    (SQSClient as jest.Mock).mockImplementation(() => ({
-      send: sendFn,
-    }));
-  });
-
   afterEach(() => {
-    jest.clearAllMocks();
+    sendFn.mockReset();
   });
 
   it('throws an error if AWS_REGION environment variable is not set', async () => {
     delete process.env['AWS_REGION'];
     await expect(sendBatchSqsMessage(entries, queueUrl)).rejects.toThrow('AWS_REGION environment variable not set');
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(logger.error).toHaveBeenCalledWith('AWS_REGION environment variable is not set');
+    expect(vi.mocked(logger.error)).toHaveBeenCalledWith('AWS_REGION environment variable is not set');
   });
 
   it('sends a message successfully when AWS_REGION and parameters are set', async () => {
