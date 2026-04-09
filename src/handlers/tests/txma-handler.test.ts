@@ -1,3 +1,4 @@
+import { Mock } from 'vitest';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
 import { getUserId, handler } from '../txma-handler';
 import { sendBatchSqsMessage } from '../../services/send-sqs-message';
@@ -5,19 +6,19 @@ import { TxMAEgressEvent } from '../../data-types/interfaces';
 import { Metrics } from '@aws-lambda-powertools/metrics';
 import { MetricNames } from '../../data-types/constants';
 
-jest.mock('../../services/send-sqs-message');
-jest.mock('@aws-lambda-powertools/metrics');
+vi.mock('../../services/send-sqs-message');
+vi.mock('@aws-lambda-powertools/metrics');
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const mockPublishStoredMetric = Metrics.prototype.publishStoredMetrics as jest.Mock;
+const mockPublishStoredMetric = Metrics.prototype.publishStoredMetrics as Mock;
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const mockAddMetric = Metrics.prototype.addMetric as jest.Mock;
+const mockAddMetric = Metrics.prototype.addMetric as Mock;
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const mockAddDimensions = Metrics.prototype.addDimensions as jest.Mock;
+const mockAddDimensions = Metrics.prototype.addDimensions as Mock;
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const mockSerializeMetrics = Metrics.prototype.serializeMetrics as jest.Mock;
+const mockSerializeMetrics = Metrics.prototype.serializeMetrics as Mock;
 
-const mockSendBatchSqsMessage = sendBatchSqsMessage as jest.Mock;
+const mockSendBatchSqsMessage = sendBatchSqsMessage as Mock;
 
 const createMockRecord = (eventDetails: unknown) => ({
   messageId: '',
@@ -38,7 +39,7 @@ const createMockRecord = (eventDetails: unknown) => ({
 });
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   mockSerializeMetrics.mockReturnValue({
     _aws: { CloudWatchMetrics: [] },
   });
@@ -75,7 +76,7 @@ describe('TxMA Handler', () => {
 
   afterEach(() => {
     process.env = OLD_ENV;
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('Sends an SQS message to the delete queue', async () => {

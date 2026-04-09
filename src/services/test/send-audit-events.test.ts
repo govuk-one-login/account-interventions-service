@@ -14,13 +14,13 @@ import { addMetric } from '../../commons/metrics';
 import logger from '../../commons/logger';
 import { AppConfigService } from '../app-config-service';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
-import 'aws-sdk-client-mock-jest';
+import 'aws-sdk-client-mock-vitest/extend';
 import { TxMAIngressEvent } from '../../data-types/interfaces';
 
-jest.mock('@aws-lambda-powertools/logger');
-jest.mock('../../commons/metrics');
-jest.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: jest.fn().mockImplementation(() => ({
+vi.mock('@aws-lambda-powertools/logger');
+vi.mock('../../commons/metrics');
+vi.mock('../../commons/get-current-timestamp', () => ({
+  getCurrentTimestamp: vi.fn().mockImplementation(() => ({
     milliseconds: 1_234_567_890,
     isoString: 'today',
     seconds: 1_234_567,
@@ -267,7 +267,7 @@ const sqsInputWithExtraFields = {
 
 describe('send-audit-events', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     sqsMock.resetHistory();
   });
 

@@ -14,11 +14,11 @@ import { sendAuditEvent } from '../send-audit-events';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { InterventionCodeEnum1 } from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_APPLIED';
 
-jest.mock('../../commons/metrics');
-jest.mock('@aws-lambda-powertools/logger');
-jest.mock('../send-audit-events');
-jest.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: jest.fn().mockImplementation(() => ({
+vi.mock('../../commons/metrics');
+vi.mock('@aws-lambda-powertools/logger');
+vi.mock('../send-audit-events');
+vi.mock('../../commons/get-current-timestamp', () => ({
+  getCurrentTimestamp: vi.fn().mockImplementation(() => ({
     milliseconds: 1_234_567_890,
     isoString: 'today',
     seconds: 1_234_567,
@@ -39,7 +39,7 @@ const dynamoDBResult: DynamoDBStateResult = {
 };
 describe('event-validation', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should not return anything as event is valid', () => {
@@ -59,8 +59,12 @@ describe('event-validation', () => {
         },
       },
     };
-    validateEventAgainstSchema(TxMAEvent);
-    validateInterventionEvent(TxMAEvent);
+    expect(() => {
+      validateEventAgainstSchema(TxMAEvent);
+    }).not.toThrow();
+    expect(() => {
+      validateInterventionEvent(TxMAEvent);
+    }).not.toThrow();
   });
 
   it('should return an error as intervention is invalid', () => {
@@ -252,7 +256,7 @@ describe('event-validation', () => {
     };
     await expect(async () => {
       await validateEventIsNotInFuture(EventsEnum.FRAUD_SUSPEND_ACCOUNT, eventInTheFuture);
-    }).rejects.toThrow(new Error('Event has timestamp that is in the future.'));
+    }).rejects.toThrow('Event has timestamp that is in the future.');
     expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
     expect(sendAuditEvent).toHaveBeenCalledWith(
       'AIS_EVENT_IGNORED_IN_FUTURE',

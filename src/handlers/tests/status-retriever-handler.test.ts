@@ -1,4 +1,5 @@
 /* eslint-disable unicorn/no-null, unicorn/numeric-separators-style */
+import { Mock } from 'vitest';
 import type { APIGatewayEvent, APIGatewayProxyEventQueryStringParameters } from 'aws-lambda';
 import { handle } from '../status-retriever-handler';
 import logger from '../../commons/logger';
@@ -8,10 +9,10 @@ import jestOpenAPI from 'jest-openapi';
 
 jestOpenAPI(`${__dirname}/../../specs/api.yaml`);
 
-jest.mock('../../commons/logger.ts');
-jest.mock('../../commons/metrics');
-jest.mock('../../services/dynamo-database-service');
-jest.mock('@smithy/node-http-handler');
+vi.mock('../../commons/logger.ts');
+vi.mock('../../commons/metrics');
+vi.mock('../../services/dynamo-database-service');
+vi.mock('@smithy/node-http-handler');
 
 const testEvent: APIGatewayEvent = {
   body: null,
@@ -82,17 +83,17 @@ const mockConfig = {
   },
 };
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const mockDynamoDBServiceRetrieveRecords = DynamoDatabaseService.prototype.getFullAccountInformation as jest.Mock;
+const mockDynamoDBServiceRetrieveRecords = DynamoDatabaseService.prototype.getFullAccountInformation as Mock;
 
 describe('status-retriever-handler', () => {
   beforeAll(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(Date.UTC(2023, 4, 30)).getTime());
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(Date.UTC(2023, 4, 30)).getTime());
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.resetAllMocks();
+    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('will return the correct response from the database if the user ID matches', async () => {

@@ -2,8 +2,8 @@ import logger from '../logger';
 import { compileSchema } from '../compile-schema';
 import { metric } from '../metrics';
 
-jest.mock('@aws-lambda-powertools/logger');
-jest.mock('@aws-lambda-powertools/metrics');
+vi.mock('@aws-lambda-powertools/logger');
+vi.mock('@aws-lambda-powertools/metrics');
 
 describe('compile schema', () => {
   it('should throw if schema is not valid', () => {

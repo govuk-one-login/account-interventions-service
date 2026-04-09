@@ -1,29 +1,30 @@
+import { Mock } from 'vitest';
 import { handler } from '../account-deletion-processor-handler';
 import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import logger from '../../commons/logger';
-import 'aws-sdk-client-mock-jest';
+import 'aws-sdk-client-mock-vitest/extend';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { Metrics } from '@aws-lambda-powertools/metrics';
 import { MetricNames } from '../../data-types/constants';
 
-jest.mock('../../services/dynamo-database-service');
-jest.mock('@aws-sdk/util-dynamodb');
-jest.mock('../../commons/logger');
-jest.mock('@aws-lambda-powertools/metrics');
+vi.mock('../../services/dynamo-database-service');
+vi.mock('@aws-sdk/util-dynamodb');
+vi.mock('../../commons/logger');
+vi.mock('@aws-lambda-powertools/metrics');
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const mockDynamoDBServiceUpdateDeleteStatus = DynamoDatabaseService.prototype.updateDeleteStatus as jest.Mock;
+const mockDynamoDBServiceUpdateDeleteStatus = DynamoDatabaseService.prototype.updateDeleteStatus as Mock;
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const mockPublishStoredMetric = Metrics.prototype.publishStoredMetrics as jest.Mock;
+const mockPublishStoredMetric = Metrics.prototype.publishStoredMetrics as Mock;
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const mockAddMetric = Metrics.prototype.addMetric as jest.Mock;
+const mockAddMetric = Metrics.prototype.addMetric as Mock;
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const mockAddDimensions = Metrics.prototype.addDimensions as jest.Mock;
+const mockAddDimensions = Metrics.prototype.addDimensions as Mock;
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const mockSerializeMetrics = Metrics.prototype.serializeMetrics as jest.Mock;
+const mockSerializeMetrics = Metrics.prototype.serializeMetrics as Mock;
 
-const loggerErrorSpy = jest.spyOn(logger, 'error');
-const loggerWarnSpy = jest.spyOn(logger, 'warn');
+const loggerErrorSpy = vi.spyOn(logger, 'error');
+const loggerWarnSpy = vi.spyOn(logger, 'warn');
 
 describe('Account Deletion Processor', () => {
   let mockEvent: SQSEvent;
@@ -50,8 +51,8 @@ describe('Account Deletion Processor', () => {
   };
 
   beforeAll(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(Date.UTC(2023, 4, 30)).getTime());
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(Date.UTC(2023, 4, 30)).getTime());
   });
 
   beforeEach(() => {
@@ -79,7 +80,7 @@ describe('Account Deletion Processor', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('does nothing if SQS event contains no record', async () => {

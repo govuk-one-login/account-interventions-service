@@ -3,14 +3,14 @@ import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from
 import { buildPartialUpdateAccountStateCommand } from '../build-partial-update-state-command';
 import { addMetric } from '../metrics';
 
-jest.mock('@aws-lambda-powertools/logger');
-jest.mock('../../commons/metrics');
-jest.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: jest.fn().mockImplementation(() => ({
-      milliseconds: 1_706_544_555_234,
-      isoString: 'today',
-      seconds: 1_706_544_555,
-    })),
+vi.mock('@aws-lambda-powertools/logger');
+vi.mock('../../commons/metrics');
+vi.mock('../../commons/get-current-timestamp', () => ({
+  getCurrentTimestamp: vi.fn().mockImplementation(() => ({
+    milliseconds: 1_706_544_555_234,
+    isoString: 'today',
+    seconds: 1_706_544_555,
+  })),
 }));
 const interventionEventBody: TxMAIngressEvent = {
   timestamp: 1000,

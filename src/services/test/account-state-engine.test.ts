@@ -155,10 +155,10 @@ const idResetSuccessfulUpdateSuspended = {
   nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '94'],
 };
 
-jest.mock('@aws-lambda-powertools/logger');
-jest.mock('../../commons/metrics');
-jest.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: jest.fn().mockImplementation(() => ({
+vi.mock('@aws-lambda-powertools/logger');
+vi.mock('../../commons/metrics');
+vi.mock('../../commons/get-current-timestamp', () => ({
+  getCurrentTimestamp: vi.fn().mockImplementation(() => ({
     milliseconds: 1_234_567_890,
     isoString: 'today',
     seconds: 1_234_567,
@@ -305,7 +305,7 @@ describe('account-state-service', () => {
   describe('Unsuccessful state transitions', () => {
     describe('received intervention is not allowed on current account state', () => {
       beforeEach(() => {
-        jest.resetAllMocks();
+        vi.resetAllMocks();
       });
       it.each([
         [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsOkay],
@@ -316,7 +316,7 @@ describe('account-state-service', () => {
         (intervention, retrievedAccountState) => {
           expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(
             new StateTransitionError(`${intervention} is not allowed from current state`, intervention, {
-              nextAllowableInterventions: [],
+              nextAllowableInterventions: [Codes.C01, Codes.C03, Codes.C04, Codes.C05, Codes.C06],
               stateResult: retrievedAccountState,
               interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
             }),
@@ -328,36 +328,72 @@ describe('account-state-service', () => {
       );
 
       it.each([
-        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsOkay],
-        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsOkay],
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsOkay, [Codes.C01, Codes.C03, Codes.C04, Codes.C05, Codes.C06]],
+        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsOkay, [Codes.C01, Codes.C03, Codes.C04, Codes.C05, Codes.C06]],
 
-        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsSuspended],
-        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsSuspended],
-        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT, accountIsSuspended],
-        [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountIsSuspended],
+        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsSuspended, [Codes.C02, Codes.C03, Codes.C04, Codes.C05, Codes.C06]],
+        [
+          EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+          accountIsSuspended,
+          [Codes.C02, Codes.C03, Codes.C04, Codes.C05, Codes.C06],
+        ],
+        [
+          EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
+          accountIsSuspended,
+          [Codes.C02, Codes.C03, Codes.C04, Codes.C05, Codes.C06],
+        ],
+        [
+          EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
+          accountIsSuspended,
+          [Codes.C02, Codes.C03, Codes.C04, Codes.C05, Codes.C06],
+        ],
 
-        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsPswReset],
-        [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountNeedsPswReset],
+        [
+          EventsEnum.FRAUD_UNBLOCK_ACCOUNT,
+          accountNeedsPswReset,
+          [Codes.C01, Codes.C02, Codes.C03, Codes.C05, Codes.C06, Codes.C90, Codes.C94],
+        ],
+        [
+          EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
+          accountNeedsPswReset,
+          [Codes.C01, Codes.C02, Codes.C03, Codes.C05, Codes.C06, Codes.C90, Codes.C94],
+        ],
 
-        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsIDReset],
-        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountNeedsIDReset],
-        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT, accountNeedsIDReset],
+        [
+          EventsEnum.FRAUD_UNBLOCK_ACCOUNT,
+          accountNeedsIDReset,
+          [Codes.C01, Codes.C02, Codes.C03, Codes.C04, Codes.C06, Codes.C91],
+        ],
+        [
+          EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+          accountNeedsIDReset,
+          [Codes.C01, Codes.C02, Codes.C03, Codes.C04, Codes.C06, Codes.C91],
+        ],
+        [
+          EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
+          accountNeedsIDReset,
+          [Codes.C01, Codes.C02, Codes.C03, Codes.C04, Codes.C06, Codes.C91],
+        ],
 
-        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountNeedsIDResetAdnPswReset],
+        [
+          EventsEnum.FRAUD_UNBLOCK_ACCOUNT,
+          accountNeedsIDResetAdnPswReset,
+          [Codes.C01, Codes.C02, Codes.C03, Codes.C04, Codes.C05, Codes.C92, Codes.C93, Codes.C95],
+        ],
 
-        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsBlocked],
-        [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountIsBlocked],
-        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsBlocked],
-        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountIsBlocked],
-        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsBlocked],
-        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsBlocked],
-        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountIsBlocked],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsBlocked, [Codes.C07]],
+        [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountIsBlocked, [Codes.C07]],
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsBlocked, [Codes.C07]],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountIsBlocked, [Codes.C07]],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsBlocked, [Codes.C07]],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsBlocked, [Codes.C07]],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountIsBlocked, [Codes.C07]],
       ])(
         'when is %p applied on account state: %p it should throw StateTransitionError and add a STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED metric',
-        (intervention, retrievedAccountState) => {
+        (intervention, retrievedAccountState, expectedAllowable) => {
           expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(
             new StateTransitionError(`${intervention} is not allowed from current state`, intervention, {
-              nextAllowableInterventions: [],
+              nextAllowableInterventions: expectedAllowable,
               stateResult: retrievedAccountState,
               interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
             }),

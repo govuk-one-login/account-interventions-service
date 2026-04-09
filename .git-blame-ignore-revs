@@ -14,3 +14,6 @@
 
 # .pre-commit-config style fixes
 1dfc3e888c21b5e460e74087a1f7cb1101587a9d
+
+# move to vitest
+56b815bd0656373bda2e4d37607c209cc366413c

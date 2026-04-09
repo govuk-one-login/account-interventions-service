@@ -1,3 +1,4 @@
+import { Mock } from 'vitest';
 import { handler } from '../interventions-processor-handler';
 import logger from '../../commons/logger';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
@@ -12,15 +13,15 @@ import { sendAuditEvent } from '../../services/send-audit-events';
 import { TxMAIngressEvent } from '../../data-types/interfaces';
 import { publishTimeToResolveMetrics } from '../../commons/metrics-helper';
 
-jest.mock('@aws-lambda-powertools/logger');
-jest.mock('../../commons/metrics');
-jest.mock('@aws-sdk/util-dynamodb');
-jest.mock('../../services/dynamo-database-service');
-jest.mock('../../services/send-audit-events');
-jest.mock('../../commons/metrics-helper');
+vi.mock('@aws-lambda-powertools/logger');
+vi.mock('../../commons/metrics');
+vi.mock('@aws-sdk/util-dynamodb');
+vi.mock('../../services/dynamo-database-service');
+vi.mock('../../services/send-audit-events');
+vi.mock('../../commons/metrics-helper');
 
-jest.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: jest.fn().mockImplementation(() => ({
+vi.mock('../../commons/get-current-timestamp', () => ({
+  getCurrentTimestamp: vi.fn().mockImplementation(() => ({
     milliseconds: 1_234_567_890,
     isoString: 'today',
     seconds: 1_234_567,
@@ -84,13 +85,13 @@ const resetPasswordEventBody = {
 };
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const mockRetrieveRecords = DynamoDatabaseService.prototype.getAccountStateInformation as jest.Mock;
+const mockRetrieveRecords = DynamoDatabaseService.prototype.getAccountStateInformation as Mock;
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const mockUpdateRecords = DynamoDatabaseService.prototype.updateUserStatus as jest.Mock;
-const mockValidateEventAgainstSchema = jest.spyOn(validationModule, 'validateEventAgainstSchema').mockReturnValue();
+const mockUpdateRecords = DynamoDatabaseService.prototype.updateUserStatus as Mock;
+const mockValidateEventAgainstSchema = vi.spyOn(validationModule, 'validateEventAgainstSchema').mockReturnValue();
 
 const accountStateEngine = AccountStateEngine.getInstance();
-accountStateEngine.getInterventionEnumFromCode = jest.fn().mockImplementation(() => EventsEnum.FRAUD_BLOCK_ACCOUNT);
+accountStateEngine.getInterventionEnumFromCode = vi.fn().mockImplementation(() => EventsEnum.FRAUD_BLOCK_ACCOUNT);
 describe('intervention processor handler', () => {
   let mockEvent: SQSEvent;
   let mockRecord: SQSRecord;
@@ -116,7 +117,7 @@ describe('intervention processor handler', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockRecord = {
       messageId: '123',
       receiptHandle: '',
@@ -149,7 +150,7 @@ describe('intervention processor handler', () => {
 
   describe('handle', () => {
     it('does nothing if SQS event contains no record', async () => {
-      const loggerWarnSpy = jest.spyOn(logger, 'warn');
+      const loggerWarnSpy = vi.spyOn(logger, 'warn');
       await handler({ Records: [] }, mockContext);
       expect(loggerWarnSpy).toHaveBeenCalledWith('Received no records.');
       expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
@@ -175,7 +176,7 @@ describe('intervention processor handler', () => {
         resetPassword: false,
         suspended: false,
       });
-      accountStateEngine.applyEventTransition = jest.fn().mockImplementationOnce(() => {
+      accountStateEngine.applyEventTransition = vi.fn().mockImplementationOnce(() => {
         throw new StateTransitionError('State transition Error', EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, {
           nextAllowableInterventions: [],
           stateResult: {
@@ -213,7 +214,7 @@ describe('intervention processor handler', () => {
     });
 
     it('should succeed when a valid intervention event is received', async () => {
-      accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
+      accountStateEngine.applyEventTransition = vi.fn().mockReturnValueOnce({
         stateResult: {
           blocked: false,
           suspended: true,
@@ -250,7 +251,7 @@ describe('intervention processor handler', () => {
 
     it('should succeed when an intervention event is received for a non existing user', async () => {
       mockRetrieveRecords.mockReturnValue([]);
-      accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
+      accountStateEngine.applyEventTransition = vi.fn().mockReturnValueOnce({
         stateResult: {
           blocked: false,
           suspended: true,
@@ -286,7 +287,7 @@ describe('intervention processor handler', () => {
     });
 
     it('should succeed when a valid user action event is received', async () => {
-      accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
+      accountStateEngine.applyEventTransition = vi.fn().mockReturnValueOnce({
         stateResult: {
           blocked: false,
           suspended: false,
@@ -338,7 +339,7 @@ describe('intervention processor handler', () => {
       expect(addMetric).toHaveBeenLastCalledWith(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.warn).toHaveBeenCalledTimes(2);
-      expect((logger.warn as jest.Mock).mock.calls).toEqual([
+      expect((logger.warn as Mock).mock.calls).toEqual([
         ['Sensitive info - user abc account has been deleted.'],
         ['ValidationError caught, message will not be retried.', { errorMessage: 'Account is marked as deleted.' }],
       ]);
@@ -480,7 +481,7 @@ describe('intervention processor handler', () => {
         eventSourceARN: '',
         awsRegion: '',
       };
-      accountStateEngine.applyEventTransition = jest.fn().mockReturnValueOnce({
+      accountStateEngine.applyEventTransition = vi.fn().mockReturnValueOnce({
         stateResult: {
           blocked: false,
           suspended: false,

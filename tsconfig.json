@@ -26,7 +26,7 @@
     "resolveJsonModule": true,
     "rootDir": "",
     "ignoreDeprecations": "6.0",
-    "types": ["jest", "node"]
+    "types": ["node", "vitest/globals"]
   },
   "exclude": ["feature-tests", "coverage"]
 }

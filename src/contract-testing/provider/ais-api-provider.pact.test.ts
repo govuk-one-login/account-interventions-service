@@ -6,8 +6,8 @@ import { AISInterventionTypes } from '../../data-types/constants';
 import { StateDetails } from '../../data-types/interfaces';
 import getEnvOrThrow from '../../commons/get-env-or-throw';
 
-jest.mock('@aws-lambda-powertools/metrics');
-jest.mock('@aws-lambda-powertools/logger');
+vi.mock('@aws-lambda-powertools/metrics');
+vi.mock('@aws-lambda-powertools/logger');
 const port = 8080;
 const ddbMock = mockClient(DynamoDBClient);
 const queryCommandMock = ddbMock.on(QueryCommand);
