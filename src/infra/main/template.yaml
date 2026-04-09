@@ -200,9 +200,12 @@ Resources:
           - !Ref LambdaDeploymentPreference
           - AllAtOnce
         Alarms:
-          - !Ref InterventionsProcessorErrorsCanary
-          - !Ref ErrorPublishingEventToTxMACanary
-          - !Ref InterventionsProcessorMetricErrorsCanary
+          Fn::If:
+            - IsNotInternal
+            - - !Ref InterventionsProcessorErrorsCanary
+              - !Ref ErrorPublishingEventToTxMACanary
+              - !Ref InterventionsProcessorMetricErrorsCanary
+            - - !Ref 'AWS::NoValue'
         Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 5
       Handler: interventions-processor-handler.handler
@@ -409,7 +412,10 @@ Resources:
           - !Ref LambdaDeploymentPreference
           - AllAtOnce
         Alarms:
-          - !Ref AccountDeletionProcessorErrorsCanary
+          Fn::If:
+            - IsNotInternal
+            - - !Ref AccountDeletionProcessorErrorsCanary
+            - - !Ref 'AWS::NoValue'
         Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 5
       Handler: txma-handler.handler
@@ -628,7 +634,10 @@ Resources:
           - !Ref LambdaDeploymentPreference
           - AllAtOnce
         Alarms:
-          - !Ref AccountDeletionProcessorErrorsCanary
+          Fn::If:
+            - IsNotInternal
+            - - !Ref AccountDeletionProcessorErrorsCanary
+            - - !Ref 'AWS::NoValue'
         Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 10
       Handler: account-deletion-processor-handler.handler
@@ -1311,8 +1320,11 @@ Resources:
           - !Ref LambdaDeploymentPreference
           - AllAtOnce
         Alarms:
-          - !Ref StatusRetrieverErrorsCanary
-          - !Ref 5xxErrorsStatusRetrieverCanary
+          Fn::If:
+            - IsNotInternal
+            - - !Ref StatusRetrieverErrorsCanary
+              - !Ref 5xxErrorsStatusRetrieverCanary
+            - - !Ref 'AWS::NoValue'
         Role: !GetAtt CodeDeployServiceRole.Arn
       MemorySize: 512
       CodeSigningConfigArn: !If [UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
