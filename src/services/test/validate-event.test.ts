@@ -256,7 +256,7 @@ describe('event-validation', () => {
     };
     await expect(async () => {
       await validateEventIsNotInFuture(EventsEnum.FRAUD_SUSPEND_ACCOUNT, eventInTheFuture);
-    }).rejects.toThrow(new Error('Event has timestamp that is in the future.'));
+    }).rejects.toThrow('Event has timestamp that is in the future.');
     expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
     expect(sendAuditEvent).toHaveBeenCalledWith(
       'AIS_EVENT_IGNORED_IN_FUTURE',

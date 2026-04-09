@@ -24,7 +24,7 @@ describe('AppConfigService', () => {
     process.env['AWS_REGION'] = undefined;
     const appConfig = AppConfigService.getInstance();
     const expectedMessage = 'Invalid configuration - Environment variable AWS_REGION is not defined.';
-    expect(() => appConfig.awsRegion).toThrowWithMessage(InvalidEnvironmentVariableError, expectedMessage);
+    expect(() => appConfig.awsRegion).toThrow(new InvalidEnvironmentVariableError(expectedMessage));
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledTimes(1);
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -35,7 +35,7 @@ describe('AppConfigService', () => {
     process.env['TABLE_NAME'] = '';
     const appConfig = AppConfigService.getInstance();
     const expectedMessage = 'Invalid configuration - Environment variable TABLE_NAME is not defined.';
-    expect(() => appConfig.tableName).toThrowWithMessage(InvalidEnvironmentVariableError, expectedMessage);
+    expect(() => appConfig.tableName).toThrow(new InvalidEnvironmentVariableError(expectedMessage));
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledTimes(1);
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -47,7 +47,7 @@ describe('AppConfigService', () => {
     const appConfig = AppConfigService.getInstance();
     const expectedMessage =
       'Invalid configuration - Environment variable DELETED_ACCOUNT_RETENTION_SECONDS is not defined.';
-    expect(() => appConfig.maxRetentionSeconds).toThrowWithMessage(InvalidEnvironmentVariableError, expectedMessage);
+    expect(() => appConfig.maxRetentionSeconds).toThrow(new InvalidEnvironmentVariableError(expectedMessage));
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledTimes(1);
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -58,10 +58,7 @@ describe('AppConfigService', () => {
     process.env['CLOUDWATCH_METRICS_NAMESPACE'] = '';
     const appConfig = AppConfigService.getInstance();
     const expectedMessage = 'Invalid configuration - Environment variable CLOUDWATCH_METRICS_NAMESPACE is not defined.';
-    expect(() => appConfig.cloudWatchMetricsWorkSpace).toThrowWithMessage(
-      InvalidEnvironmentVariableError,
-      expectedMessage,
-    );
+    expect(() => appConfig.cloudWatchMetricsWorkSpace).toThrow(new InvalidEnvironmentVariableError(expectedMessage));
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledTimes(1);
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -95,7 +92,7 @@ describe('AppConfigService', () => {
     const expectedMessage =
       'Invalid configuration - Environment variable DELETED_ACCOUNT_RETENTION_SECONDS is not a number.';
     const appConfig = AppConfigService.getInstance();
-    expect(() => appConfig.maxRetentionSeconds).toThrowWithMessage(InvalidEnvironmentVariableError, expectedMessage);
+    expect(() => appConfig.maxRetentionSeconds).toThrow(new InvalidEnvironmentVariableError(expectedMessage));
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledTimes(1);
     // eslint-disable-next-line @typescript-eslint/unbound-method

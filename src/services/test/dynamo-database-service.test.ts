@@ -144,8 +144,7 @@ describe('Dynamo DB Service', () => {
   it('should throw an error if Items field is undefined in response from DynamoDB.', async () => {
     queryCommandMock.resolves({ Items: undefined } as unknown as QueryCommandOutput);
     const service = new DynamoDatabaseService('table_name');
-    await expect(async () => await service.getAccountStateInformation('userId')).rejects.toThrowWithMessage(
-      Error,
+    await expect(async () => await service.getAccountStateInformation('userId')).rejects.toThrow(
       'DynamoDB may have failed to query, returned a null response.',
     );
     expect(addMetric).toHaveBeenLastCalledWith(MetricNames.DB_QUERY_ERROR_NO_RESPONSE);
