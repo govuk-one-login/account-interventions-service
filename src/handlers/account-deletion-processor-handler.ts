@@ -5,7 +5,6 @@ import { AppConfigService } from '../services/app-config-service';
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { addMetric, metric } from '../commons/metrics';
 import { accountDeleteMessageSchema } from '../contracts/account-delete-message';
-import { snsMessageSchema } from '../contracts/sns-message';
 import { prettifyError } from 'zod';
 import jsonSafeParse from '../commons/json-safe-parse';
 
@@ -17,8 +16,6 @@ enum ErrorSeverity {
 enum ParserErrorType {
   BODY_JSON_PARSER_ERROR = 'BODY_JSON_PARSER_ERROR',
   BODY_FORMAT_PARSER_ERROR = 'BODY_FORMAT_PARSER_ERROR',
-  MESSAGE_JSON_PARSER_ERROR = 'MESSAGE_JSON_PARSER_ERROR',
-  MESSAGE_FORMAT_PARSER_ERROR = 'MESSAGE_FORMAT_PARSER_ERROR',
   MISSING_USER_ID = 'MISSING_USER_ID',
   EMPTY_USER_ID = 'EMPTY_USER_ID',
 }
@@ -69,29 +66,12 @@ function parseMessage(record: SQSRecord): string | undefined {
   if (!recordBodyResult.success) throw new ParserError(ParserErrorType.BODY_JSON_PARSER_ERROR);
 
   // Check if unwrapped
-  const firstResult = accountDeleteMessageSchema.safeParse(recordBodyResult.data);
-  if (firstResult.success) return firstResult.data.user_id;
-
-  // Handle wrapped JSON message
-  const recordBodyParse = snsMessageSchema.safeParse(recordBodyResult.data);
-  if (!recordBodyParse.success)
-    throw new ParserError(
-      ParserErrorType.BODY_FORMAT_PARSER_ERROR,
-      `The SQS message can not be parsed. ${prettifyError(recordBodyParse.error)}`,
-    );
-
-  // Parse body.data.Message
-  const messageBodyResult = jsonSafeParse(recordBodyParse.data.Message);
-  if (!messageBodyResult.success) throw new ParserError(ParserErrorType.MESSAGE_JSON_PARSER_ERROR);
-  const result = accountDeleteMessageSchema.safeParse(messageBodyResult.data);
+  const result = accountDeleteMessageSchema.safeParse(recordBodyResult.data);
   if (!result.success)
     throw new ParserError(
-      ParserErrorType.MESSAGE_FORMAT_PARSER_ERROR,
+      ParserErrorType.BODY_FORMAT_PARSER_ERROR,
       `The SQS message can not be parsed. ${prettifyError(result.error)}`,
     );
-
-  addMetric(MetricNames.DELETE_EVENT_WRAPPED);
-  metric.publishStoredMetrics();
 
   return result.data.user_id;
 }
