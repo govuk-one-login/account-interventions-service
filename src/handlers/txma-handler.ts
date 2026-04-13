@@ -1,10 +1,10 @@
 import { SQSEvent, Context } from 'aws-lambda';
 import logger from '../commons/logger';
 import { TxMAEgressEvent } from '../data-types/interfaces';
-import { sendBatchSqsMessage } from '../services/send-sqs-message';
 import { addMetric, metric } from '../commons/metrics';
 import { MetricNames } from '../data-types/constants';
 import { AccountDeleteMessage } from '../contracts/account-delete-message';
+import { getSqsClient } from '../services/stub-service/get-sqs-client';
 
 export async function handler(event: SQSEvent, context: Context): Promise<void> {
   logger.addContext(context);
@@ -54,12 +54,14 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
     }
     id = id + 1;
   }
-
+  const sqsClient = getSqsClient();
   if (deletionMessages.length > 0) {
-    await sendBatchSqsMessage(deletionMessages, accountDeletionSqsQueue);
+    await sqsClient.sendBatchMessage(accountDeletionSqsQueue, deletionMessages);
+    // await sendBatchSqsMessage(deletionMessages, accountDeletionSqsQueue);
   }
   if (interventionMessages.length > 0) {
-    await sendBatchSqsMessage(interventionMessages, accountInterventionEventsQueue);
+    await sqsClient.sendBatchMessage(accountInterventionEventsQueue, interventionMessages);
+    // await sendBatchSqsMessage(interventionMessages, accountInterventionEventsQueue);
   }
 
   metric.publishStoredMetrics();
