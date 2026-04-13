@@ -4,6 +4,7 @@ import EndPoints from '../apiEndpoints/endpoints';
 import { CurrentTimeDescriptor, timeDelayForTestEnvironment, attemptParseJSON } from '../utils/utility';
 import { invalidAisEvents } from './invalid-ais-events';
 import { aisEventsWithEnhancedFields } from './enhanced-ais-events';
+import { SQSEvent } from 'aws-lambda';
 
 export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeof aisEvents) {
   const currentTime = getCurrentTimestamp();
@@ -150,4 +151,25 @@ export async function filterUserIdInMessages(testUserId: string) {
     return messageBody.user.user_id === testUserId;
   });
   return filteredMessageByUserId;
+}
+
+export function convertToSqsEvent(messages: string[], queueName: string): SQSEvent {
+  return {
+    Records: messages.map((body, i) => ({
+      messageId: String(i),
+      receiptHandle: "handle",
+      body,
+      attributes: {
+        ApproximateReceiveCount: "1",
+        SentTimestamp: "0",
+        SenderId: "sender",
+        ApproximateFirstReceiveTimestamp: "0",
+      },
+      messageAttributes: {},
+      md5OfBody: "",
+      eventSource: "aws:sqs",
+      eventSourceARN: `arn:aws:sqs:eu-west-2:123456789:${queueName}`,
+      awsRegion: "eu-west-2",
+    })),
+  }
 }
