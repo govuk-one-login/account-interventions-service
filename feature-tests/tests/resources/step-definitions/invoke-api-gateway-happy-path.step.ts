@@ -6,6 +6,7 @@ import {
   filterUserIdInMessages,
   sendEnhancedSQSEvent,
   sendDeleteEvent,
+  convertToSqsEvent,
 } from '../../../utils/send-sqs-message';
 import { invokeGetAccountState } from '../../../utils/invoke-apigateway-lambda';
 import {
@@ -14,11 +15,15 @@ import {
   timeDelayForTestEnvironment,
   getPastTimestamp,
 } from '../../../utils/utility';
+import { aisEvents } from '../../../utils/ais-events';
 import { aisEventResponse } from '../../../utils/ais-events-responses';
 import { updateItemInTable, getRecordFromTable } from '../../../utils/dynamo-database-methods';
 import { cloudwatchLogs, LogEvent } from '../../../utils/cloudwatch-logs-service';
 import { aisEventsWithEnhancedFields } from '../../../utils/enhanced-ais-events';
 import { AisResponseType } from '../../../utils/ais-events-responses';
+import { getSqsClient, getStubSqsClient, resetStubSqsClient } from '../../../../src/services/stub-service/get-sqs-client';
+import { handler } from '../../../../src/handlers/txma-handler';
+import { Context, SQSEvent } from 'aws-lambda';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
@@ -32,11 +37,17 @@ defineFeature(feature, (test) => {
   let events: LogEvent[];
 
   beforeAll(async () => {
+    //env vars will be passed in to github workflow/action?
+    process.env['AWS_STUB'] = 'true'; //for testing locally !
+    process.env['ACCOUNT_DELETION_SQS_QUEUE'] = 'deletion_queue'
+    process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'] = 'interventino_queue'
+    getSqsClient();
     await purgeEgressQueue();
   });
 
   beforeEach(() => {
     testUserId = generateRandomTestUserId();
+    resetStubSqsClient();
   });
 
   test('Happy Path - Get Request to /ais/userId - Returns Expected allowable intervention codes from Egress Queue <aisEventType>', ({
@@ -44,15 +55,41 @@ defineFeature(feature, (test) => {
     when,
     then,
   }) => {
+    const isStub = (): boolean => !!process.env['AWS_STUB'];
     given(/^I send an (.*) intervention to the TxMA ingress SQS queue$/, async (aisEventType) => {
-      await sendSQSEvent(testUserId, aisEventType);
+      if (isStub()) {
+        console.log('STUB STUB STUB ', aisEventType)
+        const stub = getStubSqsClient();
+        stub.addMessage('test-queue', JSON.stringify({ key: "test-value" }))
+      } else {
+        console.log('real')
+        await sendSQSEvent(testUserId, aisEventType);
+      }
     });
 
     when(
-      /^I invoke an API to retrieve the intervention status of the user's account. With history (.*)$/,
-      async (historyValue) => {
-        await timeDelayForTestEnvironment(4000);
-        response = await invokeGetAccountState(testUserId, historyValue);
+      /^I invoke an API to retrieve the intervention status of the user's account. With history (.*) and (.*)$/,
+      async (historyValue, aisEventType) => {
+        if (isStub()) {
+          //invoke TxMA lambda first
+          // const stub = getStubSqsClient();
+          // const ingressQueueMessages = stub.getMessages('test-queue');
+          // console.log('ingress queue messages: ', ingressQueueMessages);
+          console.log('invoke manually with event type ', aisEventType)
+          const mockContext = {} as Context;
+          const messageArray: string[] = [];
+          const event = { ...aisEvents[aisEventType] };
+          console.log('event: ', event)
+          const messageBody = JSON.stringify(event);
+          messageArray.push(messageBody);
+          const sqsEvent = convertToSqsEvent(messageArray, 'test');
+          //invoke txma handler
+          await handler(sqsEvent, mockContext)
+        } else {
+          console.log('invoke real')
+          await timeDelayForTestEnvironment(4000);
+          response = await invokeGetAccountState(testUserId, historyValue);
+        }
       },
     );
 
