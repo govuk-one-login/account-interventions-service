@@ -54,9 +54,13 @@ Parameters:
     Type: String
     Default: ais-main
   RunBookURL:
-    Description: 'A Link to the AIS Runbook'
+    Description: 'A Link to the partially deprecated Confluence AIS Runbook'
     Type: String
     Default: 'https://govukverify.atlassian.net/wiki/spaces/AIS/pages/4579595211/AIS+-+Alarms+Metrics+Monitoring'
+  TeamManualPlaybookUrl:
+    Description: 'A link to the AIS playbook in the team manual'
+    Type: String
+    Default: 'https://team-manual.account.gov.uk/teams/fraud-platforms-and-delivery-team/fraud-neptune-team/ais/account-interventions-service-playbook'
 
 Resources:
   #
@@ -718,7 +722,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: !Sub 'Interventions Processor Function Lambda errors over 10 minutes. ${RunBookURL}'
+      AlarmDescription: !Sub 'Interventions Processor Function Lambda errors over 10 minutes. ${TeamManualPlaybookUrl}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 10
