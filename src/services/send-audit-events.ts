@@ -1,7 +1,5 @@
 import { AppConfigService } from './app-config-service';
-import tracer from '../commons/tracer';
-import { NodeHttpHandler } from '@smithy/node-http-handler';
-import { SendMessageCommand, SendMessageCommandOutput, SQSClient } from '@aws-sdk/client-sqs';
+import { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
 import {
   AccountStateEngineOutput,
   TxMAEgressEvent,
@@ -21,16 +19,11 @@ import {
 import { addMetric } from '../commons/metrics';
 import { transitionConfiguration } from './account-states/config';
 import { AisEventIgnoredStaleBasicExtensions, AisEventIgnoredStaleExtensions } from '../events/ais-event-ignored-stale';
+import { getSqsClient } from './stub-service/get-sqs-client';
 
 const appConfig = AppConfigService.getInstance();
 
-const sqsClient = tracer.captureAWSv3Client(
-  new SQSClient({
-    region: appConfig.awsRegion,
-    maxAttempts: 2,
-    requestHandler: new NodeHttpHandler({ requestTimeout: 5000 }),
-  }),
-);
+const sqsClient = getSqsClient();
 
 /**
  * Function that sends Audit Events to the TxMA Egress queue.
@@ -61,11 +54,9 @@ export async function sendAuditEvent(
     extensions: buildExtensions(ingressTxMAEvent, ingressEventName, egressEventName, accountStateEngineOutput),
   };
 
-  const input = { MessageBody: JSON.stringify(txmaEvent), QueueUrl: appConfig.txmaEgressQueueUrl };
-
   try {
     logger.debug('Attempting to send TxMA event to the queue.');
-    const response = await sqsClient.send(new SendMessageCommand(input));
+    const response = await sqsClient.send(appConfig.txmaEgressQueueUrl, JSON.stringify(txmaEvent) );
     addMetric(MetricNames.PUBLISHED_EVENT_TO_TXMA);
     return response;
   } catch (error) {
