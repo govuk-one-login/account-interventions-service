@@ -75,7 +75,7 @@ class CloudWatchLogsService {
   }
 
   filterMessagesBy(key: string) {
-    return this.logs.filter((log) => log.message && log[key] !== undefined);
+    return this.logs.filter((log) => log.message && (log as unknown as Record<string, unknown>)[key] !== undefined);
   }
 }
 
