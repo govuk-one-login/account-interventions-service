@@ -71,14 +71,18 @@ export class AccountStateEngine {
    * @param event - EventEnum representation of event received
    * @param initialState - optional state object representation the current state of the account, it defaults to account unsuspended if nothing is passed
    */
-  applyEventTransition(event: EventsEnum, initialState: StateDetails): AccountStateEngineOutput {
+  applyEventTransition(
+    event: EventsEnum,
+    initialState: StateDetails,
+    interventionName: string | undefined,
+  ): AccountStateEngineOutput {
     const allowedTransitions = this.determineNextAllowableInterventions(initialState);
-    const transition = this.getTransition(allowedTransitions, event, initialState);
+    const transition = this.getTransition(allowedTransitions, event, initialState, interventionName);
     const newStateObject = this.getNewStateObject(transition);
     if (areAccountStatesTheSame(newStateObject, initialState))
       throw buildConfigurationError(
         MetricNames.TRANSITION_SAME_AS_CURRENT_STATE,
-        'Computed new state is the same as the current state.',
+        `Computed new state is the same as the current state. Current state: ${interventionName ?? '(empty)'}; Event: ${event}`,
       );
     return {
       stateResult: newStateObject,
@@ -135,13 +139,18 @@ export class AccountStateEngine {
    * @param transition - EventsEnum representation of the proposed transition
    * @param initialState - initial state of the account
    */
-  private getTransition(allowedTransition: Codes[], transition: EventsEnum, initialState: StateDetails) {
+  private getTransition(
+    allowedTransition: Codes[],
+    transition: EventsEnum,
+    initialState: StateDetails,
+    interventionName: string | undefined,
+  ) {
     for (const edge of allowedTransition) {
       if (AccountStateEngine.configuration.edges[edge].name.toString() === transition.toString()) return edge;
     }
     throw buildStateTransitionError(
       MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED,
-      `${transition} is not allowed from current state`,
+      `${transition} is not allowed from current state. Current state: ${interventionName ?? '(empty)'}`,
       transition,
       initialState,
     );
