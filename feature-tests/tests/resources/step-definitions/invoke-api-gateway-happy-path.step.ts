@@ -22,8 +22,12 @@ import { cloudwatchLogs, LogEvent } from '../../../utils/cloudwatch-logs-service
 import { aisEventsWithEnhancedFields } from '../../../utils/enhanced-ais-events';
 import { AisResponseType } from '../../../utils/ais-events-responses';
 import { getSqsClient, getStubSqsClient, resetStubSqsClient } from '../../../../src/services/stub-service/get-sqs-client';
-import { handler } from '../../../../src/handlers/txma-handler';
+import { handler as txmaHandler } from '../../../../src/handlers/txma-handler';
+import { handler as interventionHandler } from '../../../../src/handlers/interventions-processor-handler';
+import { handler as deletionHandler } from '../../../../src/handlers/account-deletion-processor-handler';
 import { Context, SQSEvent } from 'aws-lambda';
+import { StubSqsClient } from '../../../../src/services/stub-service/sqs-queue-client';
+import { stubTriggers } from '../../../utils/stub-triggers';
 
 const feature = loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
@@ -37,11 +41,18 @@ defineFeature(feature, (test) => {
   let events: LogEvent[];
 
   beforeAll(async () => {
-    //env vars will be passed in to github workflow/action?
-    process.env['AWS_STUB'] = 'true'; //for testing locally !
+    //Below environment variables are set here temporarily for local testing purposes
+    process.env['AWS_STUB'] = 'true';
     process.env['ACCOUNT_DELETION_SQS_QUEUE'] = 'deletion_queue'
-    process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'] = 'interventino_queue'
-    getSqsClient();
+    process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'] = 'intervention_queue'
+    process.env['TABLE_NAME'] = 'test-table'
+    const client = getSqsClient();
+    if (client instanceof StubSqsClient) {
+      stubTriggers(client as StubSqsClient, {
+        'intervention_queue': interventionHandler,
+        'deletion_queue': deletionHandler
+      });
+    }
     await purgeEgressQueue();
   });
 
@@ -71,22 +82,15 @@ defineFeature(feature, (test) => {
       /^I invoke an API to retrieve the intervention status of the user's account. With history (.*) and (.*)$/,
       async (historyValue, aisEventType) => {
         if (isStub()) {
-          //invoke TxMA lambda first
-          // const stub = getStubSqsClient();
-          // const ingressQueueMessages = stub.getMessages('test-queue');
-          // console.log('ingress queue messages: ', ingressQueueMessages);
-          console.log('invoke manually with event type ', aisEventType)
           const mockContext = {} as Context;
           const messageArray: string[] = [];
           const event = { ...aisEvents[aisEventType] };
-          console.log('event: ', event)
           const messageBody = JSON.stringify(event);
           messageArray.push(messageBody);
           const sqsEvent = convertToSqsEvent(messageArray, 'test');
-          //invoke txma handler
-          await handler(sqsEvent, mockContext)
+          //invoke txma handler to start process
+          await txmaHandler(sqsEvent, mockContext)
         } else {
-          console.log('invoke real')
           await timeDelayForTestEnvironment(4000);
           response = await invokeGetAccountState(testUserId, historyValue);
         }
