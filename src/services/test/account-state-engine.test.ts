@@ -155,6 +155,8 @@ const idResetSuccessfulUpdateSuspended = {
   nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '94'],
 };
 
+const interventionName: string | undefined = undefined;
+
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
 vi.mock('../../commons/get-current-timestamp', () => ({
@@ -178,7 +180,11 @@ describe('account-state-service', () => {
           pswAndIdResetRequiredUpdate,
         ],
       ])('%p', (intervention, retrievedAccountState, command) => {
-        const partialCommand = accountStateEngine.applyEventTransition(intervention, retrievedAccountState);
+        const partialCommand = accountStateEngine.applyEventTransition(
+          intervention,
+          retrievedAccountState,
+          interventionName,
+        );
         expect(partialCommand).toEqual(command);
       });
     });
@@ -195,7 +201,11 @@ describe('account-state-service', () => {
           pswAndIdResetRequiredUpdate,
         ],
       ])('%p', (intervention, retrievedAccountState, command) => {
-        const partialCommand = accountStateEngine.applyEventTransition(intervention, retrievedAccountState);
+        const partialCommand = accountStateEngine.applyEventTransition(
+          intervention,
+          retrievedAccountState,
+          interventionName,
+        );
         expect(partialCommand).toEqual(command);
       });
     });
@@ -212,7 +222,11 @@ describe('account-state-service', () => {
         ],
         [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsSuspended, blockAccountUpdate],
       ])('%p', (intervention, retrievedAccountState, command) => {
-        const partialCommand = accountStateEngine.applyEventTransition(intervention, retrievedAccountState);
+        const partialCommand = accountStateEngine.applyEventTransition(
+          intervention,
+          retrievedAccountState,
+          interventionName,
+        );
         expect(addMetric).not.toHaveBeenCalled();
         expect(partialCommand).toEqual(command);
       });
@@ -236,7 +250,11 @@ describe('account-state-service', () => {
           pswAndIdResetRequiredUpdate,
         ],
       ])('%p', (intervention, retrievedAccountState, command) => {
-        const partialCommand = accountStateEngine.applyEventTransition(intervention, retrievedAccountState);
+        const partialCommand = accountStateEngine.applyEventTransition(
+          intervention,
+          retrievedAccountState,
+          interventionName,
+        );
         expect(partialCommand).toEqual(command);
       });
     });
@@ -254,7 +272,11 @@ describe('account-state-service', () => {
         [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountNeedsIDReset, idResetSuccessfulUpdateUnsuspended],
         [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountNeedsIDReset, blockAccountUpdate],
       ])('%p', (intervention, retrievedAccountState, command) => {
-        const partialCommand = accountStateEngine.applyEventTransition(intervention, retrievedAccountState);
+        const partialCommand = accountStateEngine.applyEventTransition(
+          intervention,
+          retrievedAccountState,
+          interventionName,
+        );
         expect(partialCommand).toEqual(command);
       });
     });
@@ -274,7 +296,11 @@ describe('account-state-service', () => {
         [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsIDResetAdnPswReset, unsuspendAccountUpdate],
         [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsIDResetAdnPswReset, suspendAccountUpdate],
       ])('%p', (intervention, retrievedAccountState, command) => {
-        const partialCommand = accountStateEngine.applyEventTransition(intervention, retrievedAccountState);
+        const partialCommand = accountStateEngine.applyEventTransition(
+          intervention,
+          retrievedAccountState,
+          interventionName,
+        );
         expect(partialCommand).toEqual(command);
       });
     });
@@ -283,7 +309,11 @@ describe('account-state-service', () => {
       it.each([[EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsBlocked, unblockAccountUpdate]])(
         '%p',
         (intervention, retrievedAccountState, command) => {
-          const partialCommand = accountStateEngine.applyEventTransition(intervention, retrievedAccountState);
+          const partialCommand = accountStateEngine.applyEventTransition(
+            intervention,
+            retrievedAccountState,
+            interventionName,
+          );
           expect(partialCommand).toEqual(command);
         },
       );
@@ -314,12 +344,18 @@ describe('account-state-service', () => {
       ])(
         'when is %p applied on account state: %p it should throw a StateTransitionError',
         (intervention, retrievedAccountState) => {
-          expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(
-            new StateTransitionError(`${intervention} is not allowed from current state`, intervention, {
-              nextAllowableInterventions: [Codes.C01, Codes.C03, Codes.C04, Codes.C05, Codes.C06],
-              stateResult: retrievedAccountState,
-              interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-            }),
+          expect(() =>
+            accountStateEngine.applyEventTransition(intervention, retrievedAccountState, interventionName),
+          ).toThrow(
+            new StateTransitionError(
+              `${intervention} is not allowed from current state. Current state: (empty)`,
+              intervention,
+              {
+                nextAllowableInterventions: [Codes.C01, Codes.C03, Codes.C04, Codes.C05, Codes.C06],
+                stateResult: retrievedAccountState,
+                interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+              },
+            ),
           );
           // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(logger.error).not.toHaveBeenCalled();
@@ -391,15 +427,23 @@ describe('account-state-service', () => {
       ])(
         'when is %p applied on account state: %p it should throw StateTransitionError and add a STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED metric',
         (intervention, retrievedAccountState, expectedAllowable) => {
-          expect(() => accountStateEngine.applyEventTransition(intervention, retrievedAccountState)).toThrow(
-            new StateTransitionError(`${intervention} is not allowed from current state`, intervention, {
-              nextAllowableInterventions: expectedAllowable,
-              stateResult: retrievedAccountState,
-              interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-            }),
+          expect(() =>
+            accountStateEngine.applyEventTransition(intervention, retrievedAccountState, interventionName),
+          ).toThrow(
+            new StateTransitionError(
+              `${intervention} is not allowed from current state. Current state: (empty)`,
+              intervention,
+              {
+                nextAllowableInterventions: expectedAllowable,
+                stateResult: retrievedAccountState,
+                interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+              },
+            ),
           );
           // eslint-disable-next-line @typescript-eslint/unbound-method
-          expect(logger.error).toHaveBeenCalledWith({ message: `${intervention} is not allowed from current state` });
+          expect(logger.error).toHaveBeenCalledWith({
+            message: `${intervention} is not allowed from current state. Current state: (empty)`,
+          });
           expect(addMetric).toHaveBeenLastCalledWith(MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED);
         },
       );
@@ -413,7 +457,11 @@ describe('account-state-service', () => {
           resetPassword: true,
         };
         expect(() =>
-          accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, unexpectedAccountState),
+          accountStateEngine.applyEventTransition(
+            EventsEnum.FRAUD_BLOCK_ACCOUNT,
+            unexpectedAccountState,
+            interventionName,
+          ),
         ).toThrow(new StateEngineConfigurationError('Account state does not exists in current configuration.'));
         expect(addMetric).toHaveBeenLastCalledWith(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
       });
@@ -466,11 +514,13 @@ describe('account-state-service', () => {
         value: invalidConfig,
       });
 
-      const expectedError = new StateEngineConfigurationError('Computed new state is the same as the current state.');
-
-      expect(() => accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay)).toThrow(
-        expectedError,
+      const expectedError = new StateEngineConfigurationError(
+        'Computed new state is the same as the current state. Current state: (empty); Event: FRAUD_BLOCK_ACCOUNT',
       );
+
+      expect(() =>
+        accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay, interventionName),
+      ).toThrow(expectedError);
       expect(addMetric).toHaveBeenLastCalledWith(MetricNames.TRANSITION_SAME_AS_CURRENT_STATE);
     });
 
@@ -513,7 +563,9 @@ describe('account-state-service', () => {
         value: invalidConfig,
       });
 
-      expect(() => accountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsBlocked)).toThrow(
+      expect(() =>
+        accountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsBlocked, interventionName),
+      ).toThrow(
         new StateEngineConfigurationError(
           'There are no allowed transitions from state AccountIsBlocked in current configurations',
         ),

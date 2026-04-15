@@ -88,14 +88,18 @@ async function processSQSRecord(record: SQSRecord) {
 
   const itemFromDB = await service.getAccountStateInformation(userId);
 
-  const currentAccountState: StateDetails = formCurrentAccountStateObject(itemFromDB);
+  const currentAccountState = formCurrentAccountStateObject(itemFromDB);
 
   if (itemFromDB) {
     await validateAccountIsNotDeleted(eventName, userId, recordBody, currentAccountState, itemFromDB);
     await validateEventIsNotStale(eventName, recordBody, currentAccountState, itemFromDB);
   }
 
-  const statusResult = accountStateEngine.applyEventTransition(eventName, currentAccountState);
+  const statusResult = accountStateEngine.applyEventTransition(
+    eventName,
+    currentAccountState,
+    itemFromDB?.intervention,
+  );
   const partialCommandInput = buildPartialUpdateAccountStateCommand(
     statusResult.stateResult,
     eventName,
@@ -198,11 +202,19 @@ async function validateAccountIsNotDeleted(
  * @param itemFromDB - query result from database
  * @returns - Object representing the account state
  */
-function formCurrentAccountStateObject(itemFromDB?: DynamoDBStateResult) {
+function formCurrentAccountStateObject(itemFromDB?: DynamoDBStateResult): StateDetails {
+  if (!itemFromDB)
+    return {
+      blocked: false,
+      suspended: false,
+      resetPassword: false,
+      reproveIdentity: false,
+    };
+
   return {
-    blocked: itemFromDB ? itemFromDB.blocked : false,
-    suspended: itemFromDB ? itemFromDB.suspended : false,
-    resetPassword: itemFromDB ? itemFromDB.resetPassword : false,
-    reproveIdentity: itemFromDB ? itemFromDB.reproveIdentity : false,
+    blocked: itemFromDB.blocked,
+    suspended: itemFromDB.suspended,
+    resetPassword: itemFromDB.resetPassword,
+    reproveIdentity: itemFromDB.reproveIdentity,
   };
 }

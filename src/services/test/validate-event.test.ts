@@ -9,7 +9,7 @@ import {
 import logger from '../../commons/logger';
 import { addMetric } from '../../commons/metrics';
 import { ValidationError } from '../../data-types/errors';
-import { EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
+import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { sendAuditEvent } from '../send-audit-events';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { InterventionCodeEnum1 } from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_APPLIED';
@@ -36,6 +36,7 @@ const dynamoDBResult: DynamoDBStateResult = {
   appliedAt: timestamp.milliseconds - 5000,
   isAccountDeleted: false,
   history: [],
+  intervention: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
 };
 describe('event-validation', () => {
   afterEach(() => {

@@ -19,6 +19,7 @@ export interface DynamoDBStateResult extends StateDetails {
   appliedAt?: number;
   isAccountDeleted?: boolean;
   history: string[];
+  intervention: string;
 }
 
 export interface FullAccountInformation {
