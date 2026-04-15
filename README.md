@@ -53,6 +53,22 @@ To fully test the application, try the test command below
 $ npm test
 ```
 
+### Run mutation tests
+
+We have [Stryker](https://stryker-mutator.io/) installed on the project for [mutation testing](https://en.wikipedia.org/wiki/Mutation_testing). You can run Stryker via npm script:
+
+```sh
+npm run test:mutation
+```
+
+or manually:
+
+```sh
+npx stryker run
+```
+
+These commands are equivalent and running either will run the mutation tests, then produce an html report in the `/reports` directory. This report can be opened in the browser and shows where in the code the mutation tests failed, i.e. where Stryker made meaningful changes to the code and the tests still passed.
+
 ### Build & deploy **main** application manually stack for development
 
 To build the application code and deploy the ais-main stack use the following commands **from project root directory**.
