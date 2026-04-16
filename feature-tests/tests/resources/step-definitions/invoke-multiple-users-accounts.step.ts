@@ -21,7 +21,7 @@ describeFeature(feature, ({ ScenarioOutline }) => {
       Given(
         'I invoke an API to retrieve the <aisEventType> status to the <numberOfUsers> accounts. With history <historyValue>',
         async () => {
-          for (let index = 0; index < numberOfUsers; index++) {
+          for (const _ of Array.from({ length: numberOfUsers })) {
             const testUserId = generateRandomTestUserId();
             await sendSQSEvent(testUserId, aisEventType);
             await timeDelayForTestEnvironment();
@@ -29,7 +29,6 @@ describeFeature(feature, ({ ScenarioOutline }) => {
             expect(response.intervention.description).toBe('AIS_ACCOUNT_SUSPENDED');
             listOfUsers.push(testUserId);
           }
-          await Promise.allSettled(listOfUsers);
         },
       );
 
@@ -64,7 +63,7 @@ describeFeature(feature, ({ ScenarioOutline }) => {
       });
 
       Then('the expected response <interventionType> is returned for the requested number of users', async () => {
-        for (let index = 0; index < listOfUsers.length; index++) {
+        for (const _ of listOfUsers) {
           expect(response.intervention.description).toBe(interventionType);
           expect(response.state.blocked).toBe(false);
           expect(response.state.suspended).toBe(true);
