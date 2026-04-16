@@ -9,7 +9,7 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
       reportsDirectory: './coverage',
     },
-    exclude: ['**/node_modules/**', 'src/contract-testing/**'],
+    exclude: ['**/node_modules/**', 'src/contract-testing/**', '.stryker-tmp/**'],
     env: {
       CLOUDWATCH_METRICS_NAMESPACE: 'test_namespace',
       METRIC_SERVICE_NAME: 'test',
