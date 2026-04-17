@@ -21,7 +21,7 @@ import { updateAccountStateCountMetricAfterDeletion } from '../commons/metrics-h
 
 const appConfig = AppConfigService.getInstance();
 export class DynamoDatabaseService {
-  private dynamoClient: DynamoDBClient;
+  private readonly dynamoClient: DynamoDBClient;
   private readonly tableName: string;
 
   public constructor(tableName: string) {
