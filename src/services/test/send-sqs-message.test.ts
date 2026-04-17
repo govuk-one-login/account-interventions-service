@@ -29,14 +29,14 @@ describe('sendSqsMessage', () => {
   });
 
   it('throws an error if AWS_REGION environment variable is not set', async () => {
-    delete process.env['AWS_REGION'];
+    vi.stubEnv('AWS_REGION', '');
     await expect(sendSqsMessage(messageBody, queueUrl)).rejects.toThrow('AWS_REGION environment variable not set');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(vi.mocked(logger.error)).toHaveBeenCalledWith('AWS_REGION environment variable is not set');
   });
 
   it('sends a message successfully when AWS_REGION and parameters are set', async () => {
-    process.env['AWS_REGION'] = 'eu-west-2';
+    vi.stubEnv('AWS_REGION', 'eu-west-2');
 
     await sendSqsMessage(messageBody, queueUrl);
 
@@ -50,7 +50,7 @@ describe('sendSqsMessage', () => {
   });
 
   it('throws an error if sending the message fails', async () => {
-    process.env['AWS_REGION'] = 'eu-west-2';
+    vi.stubEnv('AWS_REGION', 'eu-west-2');
     sendFn.mockImplementation(() => {
       throw new Error('Failed to send message');
     });
@@ -72,14 +72,14 @@ describe('sendBatchSqsMessage', () => {
   });
 
   it('throws an error if AWS_REGION environment variable is not set', async () => {
-    delete process.env['AWS_REGION'];
+    vi.stubEnv('AWS_REGION', '');
     await expect(sendBatchSqsMessage(entries, queueUrl)).rejects.toThrow('AWS_REGION environment variable not set');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(vi.mocked(logger.error)).toHaveBeenCalledWith('AWS_REGION environment variable is not set');
   });
 
   it('sends a message successfully when AWS_REGION and parameters are set', async () => {
-    process.env['AWS_REGION'] = 'eu-west-2';
+    vi.stubEnv('AWS_REGION', 'eu-west-2');
 
     await sendBatchSqsMessage(entries, queueUrl);
 
@@ -93,7 +93,7 @@ describe('sendBatchSqsMessage', () => {
   });
 
   it('throws an error if sending the message fails', async () => {
-    process.env['AWS_REGION'] = 'eu-west-2';
+    vi.stubEnv('AWS_REGION', 'eu-west-2');
     sendFn.mockImplementation(() => {
       throw new Error('Failed to send message');
     });

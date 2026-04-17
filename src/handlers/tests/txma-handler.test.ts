@@ -46,7 +46,6 @@ beforeEach(() => {
 });
 
 describe('TxMA Handler', () => {
-  const OLD_ENV = process.env;
   let mockEvent: SQSEvent;
   let mockRecord: SQSRecord;
   const mockContext = {
@@ -70,12 +69,8 @@ describe('TxMA Handler', () => {
     },
   };
 
-  beforeEach(() => {
-    process.env = { ...OLD_ENV };
-  });
-
   afterEach(() => {
-    process.env = OLD_ENV;
+    vi.unstubAllEnvs();
     vi.clearAllMocks();
   });
 
@@ -88,8 +83,8 @@ describe('TxMA Handler', () => {
     mockRecord = createMockRecord(deleteEvent);
     mockEvent = { Records: [mockRecord] };
 
-    process.env['ACCOUNT_DELETION_SQS_QUEUE'] = 'delete_queue';
-    process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'] = 'intervention_queue';
+    vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'delete_queue');
+    vi.stubEnv('ACCOUNT_INTERVENTION_SQS_QUEUE', 'intervention_queue');
     await handler(mockEvent, mockContext);
     expect(mockSendBatchSqsMessage).toHaveBeenCalledWith(
       [
@@ -109,8 +104,8 @@ describe('TxMA Handler', () => {
     };
     mockRecord = createMockRecord(otherInterventionEvent);
     mockEvent = { Records: [mockRecord] };
-    process.env['ACCOUNT_DELETION_SQS_QUEUE'] = 'delete_queue';
-    process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'] = 'intervention_queue';
+    vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'delete_queue');
+    vi.stubEnv('ACCOUNT_INTERVENTION_SQS_QUEUE', 'intervention_queue');
     await handler(mockEvent, mockContext);
     expect(mockSendBatchSqsMessage).toHaveBeenCalledWith(
       [
@@ -124,7 +119,7 @@ describe('TxMA Handler', () => {
   });
 
   it('Sends throw an error if delete queue not configured', async () => {
-    process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'] = 'intervention_queue';
+    vi.stubEnv('ACCOUNT_INTERVENTION_SQS_QUEUE', 'intervention_queue');
     try {
       await handler(mockEvent, mockContext);
     } catch (error) {
@@ -134,7 +129,7 @@ describe('TxMA Handler', () => {
   });
 
   it('Sends throw an error if intervention queue not configured', async () => {
-    process.env['ACCOUNT_DELETION_SQS_QUEUE'] = 'queue';
+    vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'queue');
     try {
       await handler(mockEvent, mockContext);
     } catch (error) {
