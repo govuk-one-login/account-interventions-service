@@ -149,7 +149,7 @@ export const TxMAIngress = {
               $id: '#root/event/user_id',
               title: 'User_Id',
               type: 'string',
-              pattern: '^[^\\s,]+$',
+              pattern: String.raw`^[^\s,]+$`,
               minLength: 3,
             },
           },
