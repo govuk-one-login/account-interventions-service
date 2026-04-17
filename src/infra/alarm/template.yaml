@@ -1252,7 +1252,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: !Sub 'Status Retriever Function Lambda throttled over 10 minutes. ${RunBookURL}'
+      AlarmDescription: !Sub 'Status Retriever Function Lambda throttled over 10 minutes. ${TeamManualPlaybookUrl}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 10
