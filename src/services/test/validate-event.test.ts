@@ -5,6 +5,7 @@ import {
   validateEventIsNotStale,
   validateInterventionEvent,
   validateIfIdentityAcquired,
+  attemptToParseJson,
 } from '../validate-event';
 import logger from '../../commons/logger';
 import { addMetric } from '../../commons/metrics';
@@ -203,6 +204,46 @@ describe('event-validation', () => {
     });
   });
 
+  it('should throw an error if event is stale', async () => {
+    const staleEvent = {
+      timestamp: timestamp.seconds - 5000,
+      event_timestamp_ms: timestamp.milliseconds - 5000,
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+      event_id: '123',
+      component_id: 'TICF_CRI',
+      user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
+      extensions: {
+        intervention: {
+          intervention_code: '01' as InterventionCodeEnum1,
+          intervention_reason: 'something',
+          originating_component_id: 'CMS',
+          originator_reference_id: '1234567',
+          requester_id: '1234567',
+        },
+      },
+    };
+
+    await expect(async () => {
+      await validateEventIsNotStale(
+        EventsEnum.FRAUD_SUSPEND_ACCOUNT,
+        staleEvent,
+        {
+          blocked: false,
+          suspended: false,
+          resetPassword: false,
+          reproveIdentity: false,
+        },
+        dynamoDBResult,
+      );
+    }).rejects.toThrow(new ValidationError('Event received predates last applied event for this user.'));
+    expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
+    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent, {
+      stateResult: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
+      interventionName: 'AIS_NO_INTERVENTION',
+      nextAllowableInterventions: ['01', '03', '04', '05', '06'],
+    });
+  });
+
   it('should not throw if event is not stale', async () => {
     const nonStaleEvent = {
       timestamp: timestamp.seconds,
@@ -359,5 +400,18 @@ describe('event-validation', () => {
       validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEventLowConfidence);
     }).toThrow(new ValidationError('Received event that does not meet criteria to lift intervention.'));
     expect(addMetric).toHaveBeenCalledWith(MetricNames.IDENTITY_NOT_SUFFICIENTLY_PROVED);
+  });
+});
+
+describe('attemptToParseJson', () => {
+  it('should parse valid JSON', () => {
+    const jsonString = '{"key": "value"}';
+    const result = attemptToParseJson(jsonString);
+    expect(result).toEqual({ key: 'value' });
+  });
+
+  it('should return null for invalid JSON', () => {
+    const jsonString = '{"key": "value"';
+    expect(() => attemptToParseJson(jsonString)).toThrow('record body could not be parsed to valid JSON.');
   });
 });

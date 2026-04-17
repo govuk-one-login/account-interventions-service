@@ -42,6 +42,11 @@ describe('sendSqsMessage', () => {
 
     expect(SQSClient).toHaveBeenCalledWith({ region: 'eu-west-2' });
     expect(sendFn).toHaveBeenCalledWith(expect.any(SendMessageCommand));
+    expect(sendFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input: { QueueUrl: queueUrl, MessageBody: messageBody },
+      }),
+    );
   });
 
   it('throws an error if sending the message fails', async () => {
@@ -80,6 +85,11 @@ describe('sendBatchSqsMessage', () => {
 
     expect(SQSClient).toHaveBeenCalledWith({ region: 'eu-west-2' });
     expect(sendFn).toHaveBeenCalledWith(expect.any(SendMessageBatchCommand));
+    expect(sendFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input: { QueueUrl: queueUrl, Entries: entries },
+      }),
+    );
   });
 
   it('throws an error if sending the message fails', async () => {
