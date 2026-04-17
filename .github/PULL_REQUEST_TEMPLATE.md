@@ -4,7 +4,7 @@
 
 ## Why
 
-## Notes
+## Notes
 
 ### Issue tracking
 
