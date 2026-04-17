@@ -6,21 +6,17 @@ import { LOGS_PREFIX_INVALID_CONFIG } from '../../data-types/constants';
 vi.mock('@aws-lambda-powertools/logger');
 
 describe('AppConfigService', () => {
-  const OLD_ENV = process.env;
-
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
-    process.env = { ...OLD_ENV };
-    delete process.env['NODE_ENV'];
   });
 
   afterEach(() => {
-    process.env = OLD_ENV;
+    vi.unstubAllEnvs();
   });
 
   it('should throw an error if the environment variable AWS_REGION is undefined', () => {
-    process.env['AWS_REGION'] = undefined;
+    vi.stubEnv('AWS_REGION', '');
     const appConfig = AppConfigService.getInstance();
     const expectedMessage = 'Invalid configuration - Environment variable AWS_REGION is not defined.';
     expect(() => appConfig.awsRegion).toThrow(new InvalidEnvironmentVariableError(expectedMessage));
@@ -31,7 +27,7 @@ describe('AppConfigService', () => {
   });
 
   it('should throw an error if the environment variable TABLE_NAME is equal to an empty string', () => {
-    process.env['TABLE_NAME'] = '';
+    vi.stubEnv('TABLE_NAME', '');
     const appConfig = AppConfigService.getInstance();
     const expectedMessage = 'Invalid configuration - Environment variable TABLE_NAME is not defined.';
     expect(() => appConfig.tableName).toThrow(new InvalidEnvironmentVariableError(expectedMessage));
@@ -42,7 +38,7 @@ describe('AppConfigService', () => {
   });
 
   it('should throw an error if the environment variable DELETED_ACCOUNT_RETENTION_SECONDS is equal to an empty string', () => {
-    process.env['DELETED_ACCOUNT_RETENTION_SECONDS'] = '';
+    vi.stubEnv('DELETED_ACCOUNT_RETENTION_SECONDS', '');
     const appConfig = AppConfigService.getInstance();
     const expectedMessage =
       'Invalid configuration - Environment variable DELETED_ACCOUNT_RETENTION_SECONDS is not defined.';
@@ -54,7 +50,7 @@ describe('AppConfigService', () => {
   });
 
   it('should throw an error if the environment variable CLOUDWATCH_METRICS_NAMESPACE is equal to an empty string', () => {
-    process.env['CLOUDWATCH_METRICS_NAMESPACE'] = '';
+    vi.stubEnv('CLOUDWATCH_METRICS_NAMESPACE', '');
     const appConfig = AppConfigService.getInstance();
     const expectedMessage = 'Invalid configuration - Environment variable CLOUDWATCH_METRICS_NAMESPACE is not defined.';
     expect(() => appConfig.cloudWatchMetricsWorkSpace).toThrow(new InvalidEnvironmentVariableError(expectedMessage));
@@ -65,7 +61,7 @@ describe('AppConfigService', () => {
   });
 
   it('should throw an error if the environment variable TXMA_QUEUE_URL is not a url', () => {
-    process.env['TXMA_QUEUE_URL'] = 'notAURL';
+    vi.stubEnv('TXMA_QUEUE_URL', 'notAURL');
     const appConfig = AppConfigService.getInstance();
     const expectedMessage = `${LOGS_PREFIX_INVALID_CONFIG} Environment variable TXMA_QUEUE_URL is not a valid HTTPS URL (notAURL).`;
     expect(() => appConfig.txmaEgressQueueUrl).toThrow(new InvalidEnvironmentVariableError(expectedMessage));
@@ -87,7 +83,7 @@ describe('AppConfigService', () => {
   });
 
   it('should throw an error if the environmental variable is not a number', () => {
-    process.env['DELETED_ACCOUNT_RETENTION_SECONDS'] = 'string';
+    vi.stubEnv('DELETED_ACCOUNT_RETENTION_SECONDS', 'string');
     const expectedMessage =
       'Invalid configuration - Environment variable DELETED_ACCOUNT_RETENTION_SECONDS is not a number.';
     const appConfig = AppConfigService.getInstance();
