@@ -29,10 +29,6 @@ Parameters:
     Description: 'The name of the Private API Gateway'
     Type: AWS::SSM::Parameter::Value<String>
     Default: '/ais-main/PrivateRestApi/Name'
-  AccountDeletionProcessorQueueName:
-    Description: 'The name of the Account Deletion Processor queue'
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: '/ais-main/SQS/AccountDeletionProcessorQueue/Name' #pragma: allowlist secret
   AccountDeletionEventQueueName:
     Description: 'The name of the Account Deletion Event queue'
     Type: AWS::SSM::Parameter::Value<String>
@@ -262,46 +258,6 @@ Resources:
         - Name: QueueName
           Value: !Ref AccountInterventionEventsDLQName
       MetricName: ApproximateNumberOfMessagesVisible
-      Namespace: AWS/SQS
-      Period: 60
-      Statistic: Maximum
-      Unit: Count
-
-  AccountDeletionProcessorQueueProcessingSlowly:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub 'Account Deletion Processor Queue processing slowly. ${RunBookURL}'
-      ComparisonOperator: GreaterThanThreshold
-      Threshold: 60
-      EvaluationPeriods: 1
-      TreatMissingData: notBreaching
-      Dimensions:
-        - Name: QueueName
-          Value: !Ref AccountDeletionProcessorQueueName
-      MetricName: ApproximateAgeOfOldestMessage
-      Namespace: AWS/SQS
-      Period: 60
-      Statistic: Maximum
-      Unit: Count
-
-  AccountDeletionProcessorQueueProcessingTooSlow:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
-      AlarmDescription: !Sub 'Account Deletion Processor Queue processing too slow. ${RunBookURL}'
-      ComparisonOperator: GreaterThanThreshold
-      Threshold: 600
-      EvaluationPeriods: 1
-      TreatMissingData: notBreaching
-      Dimensions:
-        - Name: QueueName
-          Value: !Ref AccountDeletionProcessorQueueName
-      MetricName: ApproximateAgeOfOldestMessage
       Namespace: AWS/SQS
       Period: 60
       Statistic: Maximum
