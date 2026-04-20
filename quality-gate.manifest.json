@@ -90,6 +90,24 @@
           }
         }
       ]
+    },
+    {
+      "service-tag": "account-interventions-service",
+      "quality-gates": [
+        {
+          "check-types": [
+            "code quality",
+            "code style and linting"
+          ],
+          "provider": "GitHub",
+          "phase": "pre-merge",
+          "config": {
+            "file": ".github/workflows/code-quality.yaml",
+            "name": "Run npm lint",
+            "path": "jobs.code-quality"
+          }
+        }
+      ]
     }
   ]
 }
