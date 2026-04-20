@@ -1,0 +1,71 @@
+name: Check Code Quality
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}-code-quality
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+permissions: {}
+
+jobs:
+  run-pre-commit:
+    name: Run pre-commit Job
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PRECOMMIT_OUTPUT: precommit.output
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: '0'
+
+      - name: Set up Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version-file: '.node-version'
+          registry-url: 'https://npm.pkg.github.com/'
+          scope: '@govuk-one-login'
+          cache: npm
+          always-auth: true
+
+      - name: Install Node dev dependencies
+        run: npm ci --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.11.6'
+          cache-dependency-path: ./.github/workflows
+          cache: 'pip'
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run pre-commit
+        id: run-pre-commit
+        env:
+          OUTPUT_FILE: ${{ runner.temp }}/${{ env.PRECOMMIT_OUTPUT }}
+        run: |
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          echo "Linting changes from $BASE_SHA to $HEAD_SHA"
+          pre-commit run --hook-stage pre-push --from-ref "$BASE_SHA" --to-ref "$HEAD_SHA" | tee "$OUTPUT_FILE"
+
+      - name: Report pre-commit results
+        if: ${{ failure() && steps.run-pre-commit.outcome == 'failure' }}
+        uses: govuk-one-login/github-actions/report-step-result/print-file@ac71be4023195de11f6cbcd07d56e6ab964e4e9e
+        with:
+          file-path: ${{ runner.temp }}/${{ env.PRECOMMIT_OUTPUT }}
