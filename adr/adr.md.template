@@ -1,0 +1,18 @@
+# ADR title
+
+## What
+
+The decision itself.
+
+## Why
+
+The justification for the decision. For detailed notes and breakdown of options, use the Notes section.
+
+## Consequences
+
+A bullet pointed list of immediately foreseeable consequences.
+No need to separate into good and bad.
+
+## Notes
+
+Detailed notes on the ADR context, options that were considered, etc.
