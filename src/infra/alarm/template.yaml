@@ -918,7 +918,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: !Sub 'The query to DynamoDB has provided the no response error twice within a minute. ${RunBookURL}'
+      AlarmDescription: !Sub 'The query to DynamoDB has provided the no response error twice within a minute. ${TeamManualPlaybookUrl}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       DatapointsToAlarm: 1
       Threshold: 2
