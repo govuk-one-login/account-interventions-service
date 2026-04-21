@@ -1,3 +1,5 @@
+/* istanbul ignore: not production */
+// Stryker disable all: Not used in production
 import getEnvOrThrow from '../commons/get-env-or-throw';
 import logger from '../commons/logger';
 

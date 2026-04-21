@@ -1,3 +1,4 @@
+// Stryker disable StringLiteral: Testing against the name of an exception class is just a change-detector test
 import { EventsEnum } from './constants';
 import { AccountStateEngineOutput } from './interfaces';
 
