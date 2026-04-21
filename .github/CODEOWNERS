@@ -1,2 +1,2 @@
-- @govuk-one-login/fraud-neptune-team @govuk-one-login/fraud-platform-team
-  /.github/CODEOWNERS @govuk-one-login/fraud-platform-leads
+* @govuk-one-login/fraud-neptune-team
+/.github/CODEOWNERS @govuk-one-login/fraud-platform-leads
