@@ -191,11 +191,11 @@ Feature: Invoke-APIGateway-HappyPath.feature
         And I send an another <allowableEventType> event and then invoke the API
         Then I expect response with <allowableEventInterventionType> and only the latest transition history
         Examples:
-            | aisEventType     | aisEventInterventionType       | allowableEventType | allowableEventInterventionType |
-            | pswResetRequired | AIS_FORCED_USER_PASSWORD_RESET | block              | AIS_ACCOUNT_BLOCKED            |
-            | suspendNoAction  | AIS_ACCOUNT_SUSPENDED          | unSuspendAction    | AIS_ACCOUNT_UNSUSPENDED        |
-            | block            | AIS_ACCOUNT_BLOCKED            | unblock            | AIS_ACCOUNT_UNBLOCKED          |
-            | pswResetRequired | AIS_FORCED_USER_PASSWORD_RESET | suspendNoAction    | AIS_ACCOUNT_SUSPENDED          |
+            | aisEventType     | aisEventInterventionType       | allowableEventType | historyValue | allowableEventInterventionType |
+            | pswResetRequired | AIS_FORCED_USER_PASSWORD_RESET | block              | true         | AIS_ACCOUNT_BLOCKED            |
+            | suspendNoAction  | AIS_ACCOUNT_SUSPENDED          | unSuspendAction    | true         | AIS_ACCOUNT_UNSUSPENDED        |
+            | block            | AIS_ACCOUNT_BLOCKED            | unblock            | true         | AIS_ACCOUNT_UNBLOCKED          |
+            | pswResetRequired | AIS_FORCED_USER_PASSWORD_RESET | suspendNoAction    | true         | AIS_ACCOUNT_SUSPENDED          |
 
     @regression
     Scenario: Happy Path - Logs Validation

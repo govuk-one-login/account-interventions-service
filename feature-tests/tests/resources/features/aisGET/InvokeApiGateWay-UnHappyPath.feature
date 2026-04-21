@@ -20,12 +20,12 @@ Feature: Invoke-APIGateway-UnHappyPath.feature
 
     @regression
     Scenario Outline: UnHappy Path - Get Request to /ais/userId - Field Validation - Returns Expected Data for <aisEventType> with specific field validation
-        Given I send a invalid request to sqs queue with no userId and <aisEventType>, <userId> data
+        Given I send a invalid request to sqs queue with no userId and <aisEventType>, <testUserId> data
         When I invoke apiGateway to retreive the status of the invalid userId with <historyValue>
         Then I should receive the appropriate <interventionType> for the ais endpoint
         Examples:
-            | aisEventType    | historyValue | interventionType    | userId |
-            | suspendNoAction | false        | AIS_NO_INTERVENTION |        |
+            | aisEventType    | historyValue | interventionType    | testUserId |
+            | suspendNoAction | false        | AIS_NO_INTERVENTION |            |
 
 
     @regression

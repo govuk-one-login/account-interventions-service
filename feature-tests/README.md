@@ -1,14 +1,13 @@
-# DI Accounts - VC Storage Tests - Vitest Supertest API Test Framework
+# DI Accounts - VC Storage Tests - JEST Supertest API Test Framework
 
-Vitest is a JavaScript Testing Framework with a focus on simplicity, which can also be used with TypeScript.
+Jest is a JavaScript Testing Framework with a focus on simplicity, which can also be used with TypeScript.
 Supertest allows for HTTP assertions.
 
-#### The purpose of this project is automate API functionality of the VC Storage Solution.
+#### The purpose of this project is automate API functionality of the VC Storage Solution. The framework configurations can be found in jest-cucumber-config.js file in the feature-tests folder of the project.
 
 ## This project uses:
 
-- Cucumber
-- Vitest
+- Cucumber-Jest
 - Supertest
 - Typescript
 - npm
@@ -34,7 +33,7 @@ Then sign-in into AWS account.
 aws sso login --profile $AWS_PROFILE
 ```
 
-To run all API tests locally in Vitest via Vitest.
+To run all API tests locally in Jest via Jest.
 
 ```shell
 npm test
