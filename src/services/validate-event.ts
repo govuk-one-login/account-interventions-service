@@ -3,13 +3,15 @@ import logger from '../commons/logger';
 import { addMetric } from '../commons/metrics';
 import { AISInterventionTypes, EventsEnum, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
 import { RetryEventError, ValidationError } from '../data-types/errors';
-import { compileSchema } from '../commons/compile-schema';
+import { compileSchema, compileSchema2019 } from '../commons/compile-schema';
 import { TxMAIngress } from '../data-types/schemas';
+import { EventCatalogueCombinedSchema } from '../data-types/event-catalogue-combined-schema';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { sendAuditEvent } from './send-audit-events';
 import { AccountStateEngine } from './account-states/account-state-engine';
 
 const validateInterventionDataInput = compileSchema(TxMAIngress);
+const validateEventCatalogue = compileSchema2019(EventCatalogueCombinedSchema);
 
 /**
  * A function to check the event has the necessary fields to continue with the processing.
@@ -23,6 +25,17 @@ export function validateEventAgainstSchema(interventionRequest: TxMAIngressEvent
     });
     addMetric(MetricNames.INVALID_EVENT_RECEIVED);
     throw new ValidationError('Invalid intervention event.');
+  }
+
+  const eventName = interventionRequest.event_name;
+
+  if (!validateEventCatalogue(interventionRequest)) {
+    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Event has failed event catalogue schema validation.`, {
+      validationErrors: validateEventCatalogue.errors,
+    });
+    addMetric(MetricNames.INVALID_EVENT_RECEIVED_EVENT_CATALOGUE, undefined, undefined, {
+      EVENT_NAME: eventName,
+    });
   }
 }
 
