@@ -61,11 +61,11 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
  * @returns - User ID or undefined
  */
 function parseMessage(record: SQSRecord): string | undefined {
-  // Parse record.body
+  // JSON parse record.body
   const recordBodyResult = jsonSafeParse(record.body);
   if (!recordBodyResult.success) throw new ParserError(ParserErrorType.BODY_JSON_PARSER_ERROR);
 
-  // Check if unwrapped
+  // Validate against zod schema
   const result = accountDeleteMessageSchema.safeParse(recordBodyResult.data);
   if (!result.success)
     throw new ParserError(
