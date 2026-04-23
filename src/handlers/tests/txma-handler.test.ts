@@ -94,6 +94,7 @@ describe('TxMA Handler', () => {
         },
       ],
       'delete_queue',
+      undefined,
     );
   });
 
@@ -115,6 +116,7 @@ describe('TxMA Handler', () => {
         },
       ],
       'intervention_queue',
+      undefined,
     );
   });
 

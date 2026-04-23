@@ -1,7 +1,7 @@
 import { SQSEvent, Context } from 'aws-lambda';
 import logger from '../commons/logger';
 import { TxMAEgressEvent } from '../data-types/interfaces';
-import { sendBatchSqsMessage } from '../services/send-sqs-message';
+import { createSqsClient, sendBatchSqsMessage } from '../services/send-sqs-message';
 import { addMetric, metric } from '../commons/metrics';
 import { MetricNames } from '../data-types/constants';
 import { AccountDeleteMessage } from '../contracts/account-delete-message';
@@ -28,9 +28,10 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
 
   const deletionMessages = [];
   const interventionMessages = [];
-  let id = 0;
-  for (const record of event.Records) {
+
+  for (const [id, record] of event.Records.entries()) {
     const body = JSON.parse(record.body) as TxMAEgressEvent;
+
     if (body.event_name === 'AUTH_DELETE_ACCOUNT') {
       addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_DELETE);
 
@@ -49,15 +50,18 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
         MessageBody: record.body,
       });
     }
-    id = id + 1;
   }
 
-  if (deletionMessages.length > 0) {
-    await sendBatchSqsMessage(deletionMessages, accountDeletionSqsQueue);
-  }
-  if (interventionMessages.length > 0) {
-    await sendBatchSqsMessage(interventionMessages, accountInterventionEventsQueue);
-  }
+  const sqsClient = createSqsClient();
+
+  const promiseList = [];
+
+  if (deletionMessages.length > 0)
+    promiseList.push(sendBatchSqsMessage(deletionMessages, accountDeletionSqsQueue, sqsClient));
+  if (interventionMessages.length > 0)
+    promiseList.push(sendBatchSqsMessage(interventionMessages, accountInterventionEventsQueue, sqsClient));
+
+  await Promise.all(promiseList);
 
   metric.publishStoredMetrics();
 }
