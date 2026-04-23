@@ -1020,7 +1020,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: !Sub 'Schema is invalid. ${RunBookURL}'
+      AlarmDescription: !Sub 'Schema is invalid. ${TeamManualPlaybookUrl}'
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_SCHEMA
       ComparisonOperator: GreaterThanOrEqualToThreshold
