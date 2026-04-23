@@ -1,7 +1,7 @@
 import { SQSEvent, Context } from 'aws-lambda';
 import logger from '../commons/logger';
 import { TxMAEgressEvent } from '../data-types/interfaces';
-import { sendBatchSqsMessage } from '../services/send-sqs-message';
+import { createSqsClient, sendBatchSqsMessage } from '../services/send-sqs-message';
 import { addMetric, metric } from '../commons/metrics';
 import { MetricNames } from '../data-types/constants';
 import { AccountDeleteMessage } from '../contracts/account-delete-message';
@@ -52,11 +52,14 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
     }
   }
 
+  const sqsClient = createSqsClient();
+
   const promiseList = [];
 
-  if (deletionMessages.length > 0) promiseList.push(sendBatchSqsMessage(deletionMessages, accountDeletionSqsQueue));
+  if (deletionMessages.length > 0)
+    promiseList.push(sendBatchSqsMessage(deletionMessages, accountDeletionSqsQueue, sqsClient));
   if (interventionMessages.length > 0)
-    promiseList.push(sendBatchSqsMessage(interventionMessages, accountInterventionEventsQueue));
+    promiseList.push(sendBatchSqsMessage(interventionMessages, accountInterventionEventsQueue, sqsClient));
 
   await Promise.all(promiseList);
 

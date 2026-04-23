@@ -30,9 +30,9 @@ describe('sendSqsMessage', () => {
 
   it('throws an error if AWS_REGION environment variable is not set', async () => {
     vi.stubEnv('AWS_REGION', '');
-    await expect(sendSqsMessage(messageBody, queueUrl)).rejects.toThrow('AWS_REGION environment variable not set');
+    await expect(sendSqsMessage(messageBody, queueUrl)).rejects.toThrow('Environment variable AWS_REGION not found');
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(vi.mocked(logger.error)).toHaveBeenCalledWith('AWS_REGION environment variable is not set');
+    expect(vi.mocked(logger.error)).toHaveBeenCalledWith('Environment variable AWS_REGION not found');
   });
 
   it('sends a message successfully when AWS_REGION and parameters are set', async () => {
@@ -73,9 +73,9 @@ describe('sendBatchSqsMessage', () => {
 
   it('throws an error if AWS_REGION environment variable is not set', async () => {
     vi.stubEnv('AWS_REGION', '');
-    await expect(sendBatchSqsMessage(entries, queueUrl)).rejects.toThrow('AWS_REGION environment variable not set');
+    await expect(sendBatchSqsMessage(entries, queueUrl)).rejects.toThrow('Environment variable AWS_REGION not found');
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(vi.mocked(logger.error)).toHaveBeenCalledWith('AWS_REGION environment variable is not set');
+    expect(vi.mocked(logger.error)).toHaveBeenCalledWith('Environment variable AWS_REGION not found');
   });
 
   it('sends a message successfully when AWS_REGION and parameters are set', async () => {
