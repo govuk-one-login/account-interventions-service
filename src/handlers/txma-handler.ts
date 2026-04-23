@@ -28,9 +28,10 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
 
   const deletionMessages = [];
   const interventionMessages = [];
-  let id = 0;
-  for (const record of event.Records) {
+
+  for (const [id, record] of event.Records.entries()) {
     const body = JSON.parse(record.body) as TxMAEgressEvent;
+
     if (body.event_name === 'AUTH_DELETE_ACCOUNT') {
       addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_DELETE);
 
@@ -49,15 +50,15 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
         MessageBody: record.body,
       });
     }
-    id = id + 1;
   }
 
-  if (deletionMessages.length > 0) {
-    await sendBatchSqsMessage(deletionMessages, accountDeletionSqsQueue);
-  }
-  if (interventionMessages.length > 0) {
-    await sendBatchSqsMessage(interventionMessages, accountInterventionEventsQueue);
-  }
+  const promiseList = [];
+
+  if (deletionMessages.length > 0) promiseList.push(sendBatchSqsMessage(deletionMessages, accountDeletionSqsQueue));
+  if (interventionMessages.length > 0)
+    promiseList.push(sendBatchSqsMessage(interventionMessages, accountInterventionEventsQueue));
+
+  await Promise.all(promiseList);
 
   metric.publishStoredMetrics();
 }
