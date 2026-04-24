@@ -419,7 +419,7 @@ Resources:
         Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 5
       Handler: txma-handler.handler
-      MemorySize: 128
+      MemorySize: 256
       Role: !GetAtt TxmaEventHandlerFunctionRole.Arn
       CodeSigningConfigArn: !If [UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
       Environment:
