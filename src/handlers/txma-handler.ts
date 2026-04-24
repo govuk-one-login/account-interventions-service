@@ -63,15 +63,7 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
 }
 
 export function getUserId(event: TxMAEgressEvent): string | undefined {
-  if ('user' in event) return event.user.user_id;
-
-  if ('user_id' in event) {
-    addMetric(MetricNames.DELETE_EVENT_USER_ID_ISSUE, undefined, undefined, {
-      ISSUE: 'USER_ID_ON_TOP_LEVEL',
-    });
-
-    return event.user_id;
-  }
+  if (event.user) return event.user.user_id;
 
   addMetric(MetricNames.DELETE_EVENT_USER_ID_ISSUE, undefined, undefined, {
     ISSUE: 'NO_USER_ID',

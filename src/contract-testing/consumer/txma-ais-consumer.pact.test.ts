@@ -71,7 +71,7 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
         .given('AIS is healthy')
         .expectsToReceive('a valid intervention event')
         .withContent({
-          user_id: string('urn:fdc:gov.uk:2022:USER_ONE'),
+          user: { user_id: string('urn:fdc:gov.uk:2022:USER_ONE') },
         })
         .verify(synchronousBodyHandler(deleteAccountEventValidator)));
   });
@@ -83,7 +83,7 @@ function interventionMessageValidator(event: AnyJson | Buffer) {
 }
 
 function deleteAccountEventValidator(event: AnyJson | Buffer) {
-  const userId = (event as unknown as { user_id?: string }).user_id;
+  const userId = (event as unknown as { user?: { user_id?: string } }).user?.user_id;
   if (!userId || typeof userId !== 'string' || userId.trim() === '') {
     throw new Error('Invalid Message');
   }

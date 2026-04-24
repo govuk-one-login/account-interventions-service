@@ -77,7 +77,7 @@ describe('TxMA Handler', () => {
   it('Sends an SQS message to the delete queue', async () => {
     const deleteEvent = {
       event_name: 'AUTH_DELETE_ACCOUNT',
-      user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
+      user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       txma: { configVersion: '1.0.4' },
     };
     mockRecord = createMockRecord(deleteEvent);
@@ -156,21 +156,6 @@ describe('getUserId', () => {
         },
       }),
     ).toBe('1234');
-  });
-
-  it('top level', () => {
-    expect(
-      getUserId({
-        event_name: 'AUTH_DELETE_ACCOUNT',
-        user_id: '1234',
-      }),
-    ).toBe('1234');
-
-    expect(mockAddMetric).toHaveBeenCalledTimes(1);
-    expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.DELETE_EVENT_USER_ID_ISSUE, 'Count', 1);
-    expect(mockAddDimensions).toHaveBeenCalledTimes(1);
-    expect(mockAddDimensions).toHaveBeenCalledWith({ ISSUE: 'USER_ID_ON_TOP_LEVEL' });
-    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
   });
 
   it('missing', () => {

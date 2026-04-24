@@ -61,13 +61,7 @@ export type TxMAEgressEvent =
   | AIS_EVENT_TRANSITION_APPLIED
   | AIS_EVENT_TRANSITION_IGNORED
   | AIS_EVENT_IGNORED_STALE
-  | AUTH_DELETE_ACCOUNT
-  | TxMAEgressDeletionEvent; // Custom type with user_id at top level;
-
-export interface TxMAEgressDeletionEvent {
-  event_name: 'AUTH_DELETE_ACCOUNT';
-  user_id: string;
-}
+  | AUTH_DELETE_ACCOUNT;
 
 export interface TxMAIngressEvent {
   event_name: TriggerEventsEnum;
