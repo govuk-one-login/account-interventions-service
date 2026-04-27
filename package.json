@@ -28,11 +28,11 @@
     "precommit": "pre-commit run"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "^2.32.0",
-    "@aws-lambda-powertools/metrics": "^2.32.0",
-    "@aws-lambda-powertools/tracer": "^2.32.0",
-    "@aws-sdk/client-dynamodb": "^3.1029.0",
-    "@aws-sdk/client-sqs": "^3.1029.0",
+    "@aws-lambda-powertools/logger": "^2.33.0",
+    "@aws-lambda-powertools/metrics": "^2.33.0",
+    "@aws-lambda-powertools/tracer": "^2.33.0",
+    "@aws-sdk/client-dynamodb": "^3.1032.0",
+    "@aws-sdk/client-sqs": "^3.1032.0",
     "@aws-sdk/util-dynamodb": "^3.996.0",
     "@babel/helpers": "^7.26.10",
     "@govuk-one-login/event-catalogue-schemas": "^44.0.22",
