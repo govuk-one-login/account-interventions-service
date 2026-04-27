@@ -8,6 +8,7 @@ import {
   SendMessageBatchRequestEntry,
 } from '@aws-sdk/client-sqs';
 import logger from '../commons/logger';
+import tracer from '../commons/tracer';
 
 export async function sendSqsMessage(
   messageBody: string,
@@ -18,7 +19,7 @@ export async function sendSqsMessage(
     throw new Error('AWS_REGION environment variable not set');
   }
   const region = process.env['AWS_REGION'];
-  const client = new SQSClient({ region });
+  const client = tracer.captureAWSv3Client(new SQSClient({ region }));
   const message: SendMessageRequest = {
     QueueUrl: queueUrl,
     MessageBody: messageBody,
