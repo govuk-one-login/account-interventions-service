@@ -999,7 +999,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: !Sub 'Publishing to TxMA failed once every minute for two periods over a span of 10 minutes. ${RunBookURL}'
+      AlarmDescription: !Sub 'Publishing to TxMA failed once every minute for two periods over a span of 10 minutes. ${TeamManualPlaybookUrl}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 10
