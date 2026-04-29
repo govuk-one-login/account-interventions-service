@@ -13,10 +13,35 @@ import {
 const ajv = new Ajv({ allErrors: true });
 const ajv2019 = new Ajv2019({ allErrors: true });
 
-ajv2019.addSchema(TICF_ACCOUNT_INTERVENTIONSchema);
-ajv2019.addSchema(AUTH_PASSWORD_RESET_SUCCESSFULSchema);
-ajv2019.addSchema(AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENTSchema);
-ajv2019.addSchema(IPV_ACCOUNT_INTERVENTION_ENDSchema);
+interface Schema {
+  properties: Record<string, unknown>;
+  required: string[];
+}
+
+const addEventMetadataToSchema = (schema: Schema, eventName: string) => ({
+  ...schema,
+  required: [...schema.required, 'event_id'],
+  properties: {
+    ...schema.properties,
+    event_name: {
+      type: 'string',
+      const: eventName,
+    },
+    event_id: {
+      type: 'string',
+    },
+  },
+});
+
+ajv2019.addSchema(addEventMetadataToSchema(TICF_ACCOUNT_INTERVENTIONSchema, 'TICF_ACCOUNT_INTERVENTION'));
+ajv2019.addSchema(addEventMetadataToSchema(AUTH_PASSWORD_RESET_SUCCESSFULSchema, 'AUTH_PASSWORD_RESET_SUCCESSFUL'));
+ajv2019.addSchema(
+  addEventMetadataToSchema(
+    AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENTSchema,
+    'AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT',
+  ),
+);
+ajv2019.addSchema(addEventMetadataToSchema(IPV_ACCOUNT_INTERVENTION_ENDSchema, 'IPV_ACCOUNT_INTERVENTION_END'));
 
 /**
  * Helper function to verify if the schema is valid
