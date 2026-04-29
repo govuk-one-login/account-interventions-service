@@ -1,7 +1,6 @@
 {
   "exclude": [
     "./coverage",
-    "./jest-stare",
     "./dist",
     "__tests__",
     "/node_modules/",
@@ -13,7 +12,7 @@
     "transpileOnly": true,
     "files": true
   },
-  "include": ["tests", "apiEndpoints", "jest.config.ts", "utils", "jest-cucumber-config.js"],
+  "include": ["tests", "apiEndpoints", "utils"],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */
 
@@ -43,7 +42,7 @@
     // "moduleDetection": "auto",                        /* Control what method is used to detect module-format JS files. */
 
     /* Modules */
-    "module": "node16" /* Specify what module code is generated. */,
+    "module": "es2022" /* Specify what module code is generated. */,
     // "rootDir": "./",                                  /* Specify the root folder within your source files. */
     // "moduleResolution": "",                           /* Specify how TypeScript looks up a file from a given module specifier. */
     // "baseUrl": "./",                                  /* Specify the base directory to resolve non-relative module names. */
@@ -52,7 +51,7 @@
     // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */
     "types": [
       "node",
-      "jest"
+      "vitest/globals"
     ] /* Specify type package names to be included without being referenced in a source file. */,
     // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */
     // "moduleSuffixes": [],                             /* List of file name suffixes to search when resolving a module. */
