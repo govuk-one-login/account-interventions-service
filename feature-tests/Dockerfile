@@ -15,8 +15,7 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 COPY package.json /package.json
 COPY package-lock.json /package-lock.json
 COPY tsconfig.json /tsconfig.json
-COPY jest.config.ts /jest.config.ts
-COPY jest-cucumber-config.js /jest-cucumber-config.js
+COPY vitest.config.ts /vitest.config.ts
 COPY tests/ /tests
 COPY apiEndpoints/ /apiEndpoints
 COPY utils/ /utils
