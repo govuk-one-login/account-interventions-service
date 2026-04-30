@@ -110,9 +110,7 @@ describe('Account Deletion Processor', () => {
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
-    expect(loggerErrorSpy).toHaveBeenCalledWith(
-      'The SQS message can not be parsed. ✖ Invalid input: expected "AUTH_DELETE_ACCOUNT"\n  → at event_name',
-    );
+    expect(loggerErrorSpy).toHaveBeenCalledWith('The SQS message can not be parsed. ✖ Invalid input');
   });
 
   it("does not process the SQS Record when the message doesn't contain user id", async () => {
@@ -144,9 +142,7 @@ describe('Account Deletion Processor', () => {
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
-    expect(loggerErrorSpy).toHaveBeenCalledWith(
-      `The SQS message can not be parsed. ✖ Invalid input: expected string, received number\n  → at user_id`,
-    );
+    expect(loggerErrorSpy).toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ Invalid input`);
   });
 
   it('successfully processes the message when the user id passed contains trailing spaces', async () => {
@@ -178,6 +174,21 @@ describe('Account Deletion Processor', () => {
   });
 
   it('successfully process the message when it contains a single record', async () => {
+    mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
+    await handler(mockEvent, mockContext);
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it('successfully process the message when it contains a single record, wrapped user', async () => {
+    mockRecord = {
+      ...mockRecord,
+      body: JSON.stringify({
+        event_name: 'AUTH_DELETE_ACCOUNT',
+        user: { user_id: 'other_user_id' },
+      }),
+    };
+    const mockEvent = { Records: [mockRecord] };
     mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
     await handler(mockEvent, mockContext);
     expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
