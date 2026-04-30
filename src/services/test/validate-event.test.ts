@@ -14,6 +14,7 @@ import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from
 import { sendAuditEvent } from '../send-audit-events';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { InterventionCodeEnum1 } from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_APPLIED';
+import { TICF_ACCOUNT_INTERVENTION } from '@govuk-one-login/event-catalogue/TICF_ACCOUNT_INTERVENTION';
 
 vi.mock('../../commons/metrics');
 vi.mock('@aws-lambda-powertools/logger');
@@ -39,12 +40,13 @@ const dynamoDBResult: DynamoDBStateResult = {
   history: [],
   intervention: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
 };
-describe('event-validation', () => {
+
+describe('validateEventAgainstSchema', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should not return anything as event is valid', () => {
+  it('Successfully validate AUTH_PASSWORD_RESET_SUCCESSFUL event', () => {
     const TxMAEvent: TxMAEvent = {
       event_timestamp_ms: timestamp.milliseconds - 5000,
       component_id: 'AUTH',
@@ -54,6 +56,25 @@ describe('event-validation', () => {
       },
       event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
       event_id: '123',
+    };
+    expect(() => {
+      validateEventAgainstSchema(TxMAEvent);
+    }).not.toThrow();
+    expect(addMetric).not.toHaveBeenCalledWith('INVALID_EVENT_RECEIVED_EVENT_CATALOGUE', undefined, undefined, {
+      EVENT_NAME: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+    });
+  });
+
+  it('Successfully validate TICF_ACCOUNT_INTERVENTION event', () => {
+    const TxMAEvent: TICF_ACCOUNT_INTERVENTION & { event_id: string } = {
+      event_timestamp_ms: timestamp.milliseconds - 5000,
+      component_id: 'AUTH',
+      timestamp: timestamp.seconds - 5,
+      user: {
+        user_id: 'abc',
+      },
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+      event_id: '123',
       extensions: {
         intervention: {
           intervention_code: '01',
@@ -62,11 +83,30 @@ describe('event-validation', () => {
       },
     };
     expect(() => {
-      validateEventAgainstSchema(TxMAEvent);
+      validateEventAgainstSchema(TxMAEvent as TxMAEvent);
     }).not.toThrow();
+    expect(addMetric).not.toHaveBeenCalledWith('INVALID_EVENT_RECEIVED_EVENT_CATALOGUE', undefined, undefined, {
+      EVENT_NAME: 'TICF_ACCOUNT_INTERVENTION',
+    });
+  });
+
+  it('Send metric for event that fails event catalogue validation', () => {
+    const TxMAEvent = {
+      event_timestamp_ms: timestamp.milliseconds - 5000,
+      component_id: 'AUTH',
+      timestamp: timestamp.seconds - 5,
+      user: {
+        user_id: 'abc',
+      },
+      event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+      // event_id: '123',
+    };
     expect(() => {
-      validateInterventionEvent(TxMAEvent);
+      validateEventAgainstSchema(TxMAEvent as TxMAEvent);
     }).not.toThrow();
+    expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED_EVENT_CATALOGUE', undefined, undefined, {
+      EVENT_NAME: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
+    });
   });
 
   it('should return an error as intervention is invalid', () => {
@@ -135,32 +175,6 @@ describe('event-validation', () => {
     expect(logger.debug).toHaveBeenCalledWith('Sensitive info - Event has failed schema validation.', {
       validationErrors: expect.anything() as unknown,
     });
-    expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
-  });
-
-  it('should return an error as intervention code is NAN', () => {
-    const TxMAEvent: TxMAEvent = {
-      event_timestamp_ms: timestamp.milliseconds - 5000,
-      component_id: 'AUTH',
-      timestamp: timestamp.seconds - 5,
-      user: {
-        user_id: 'abc',
-      },
-      event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
-      event_id: '123',
-      extensions: {
-        intervention: {
-          intervention_code: 'nan' as InterventionCodeEnum1,
-          intervention_reason: 'reason',
-        },
-      },
-    };
-    validateEventAgainstSchema(TxMAEvent);
-    expect(() => {
-      validateInterventionEvent(TxMAEvent);
-    }).toThrow(new ValidationError('Invalid intervention event.'));
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(logger.debug).toHaveBeenCalledWith('Invalid intervention request. Intervention code is NAN');
     expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
 
@@ -400,6 +414,55 @@ describe('event-validation', () => {
       validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEventLowConfidence);
     }).toThrow(new ValidationError('Received event that does not meet criteria to lift intervention.'));
     expect(addMetric).toHaveBeenCalledWith(MetricNames.IDENTITY_NOT_SUFFICIENTLY_PROVED);
+  });
+});
+
+describe('validateInterventionEvent', () => {
+  it('Successfully validate TICF_ACCOUNT_INTERVENTION event', () => {
+    const TxMAEvent: TICF_ACCOUNT_INTERVENTION & { event_id: string } = {
+      event_timestamp_ms: timestamp.milliseconds - 5000,
+      component_id: 'AUTH',
+      timestamp: timestamp.seconds - 5,
+      user: {
+        user_id: 'abc',
+      },
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+      event_id: '123',
+      extensions: {
+        intervention: {
+          intervention_code: '01',
+          intervention_reason: 'reason',
+        },
+      },
+    };
+    expect(() => {
+      validateInterventionEvent(TxMAEvent as TxMAEvent);
+    }).not.toThrow();
+  });
+
+  it('should return an error as intervention code is NAN', () => {
+    const TxMAEvent: TxMAEvent = {
+      event_timestamp_ms: timestamp.milliseconds - 5000,
+      component_id: 'AUTH',
+      timestamp: timestamp.seconds - 5,
+      user: {
+        user_id: 'abc',
+      },
+      event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+      event_id: '123',
+      extensions: {
+        intervention: {
+          intervention_code: 'nan' as InterventionCodeEnum1,
+          intervention_reason: 'reason',
+        },
+      },
+    };
+    expect(() => {
+      validateInterventionEvent(TxMAEvent);
+    }).toThrow(new ValidationError('Invalid intervention event.'));
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(logger.debug).toHaveBeenCalledWith('Invalid intervention request. Intervention code is NAN');
+    expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
 });
 
