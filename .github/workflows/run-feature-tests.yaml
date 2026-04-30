@@ -11,6 +11,7 @@ on:
         default: main
 
 permissions:
+  id-token: write
   contents: read
 
 jobs:
@@ -36,9 +37,15 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # pin@6.0.0
         with:
-          role-to-assume: ${{ secrets.DEV_MAIN_GH_ACTIONS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.DEV_MAIN_GH_ACTIONS_FEATURE_TESTS_ROLE_ARN }}
           aws-region: eu-west-2
 
       - name: 'Run tests'
         working-directory: feature-tests
         run: npm test
+        env:
+          TEST_ENVIRONMENT: dev
+          SAM_STACK_NAME: ais-main
+          AWS_REGION: eu-west-2
+          tagFilter: '@regression'
+          USE_PRIVATE_API_GATEWAY: true
