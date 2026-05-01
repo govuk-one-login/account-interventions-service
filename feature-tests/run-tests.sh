@@ -6,8 +6,7 @@ set -u
 cp /package.json . 2>/dev/null || :
 cp /package-lock.json . 2>/dev/null || :
 cp /tsconfig.json . 2>/dev/null || :
-cp /jest.config.ts . 2>/dev/null || :
-cp /jest-cucumber-config.js . 2>/dev/null || :
+cp /vitest.config.ts . 2>/dev/null || :
 cp -R /tests . 2>/dev/null || :
 cp -R /apiEndpoints . 2>/dev/null || :
 cp -R /node_modules . 2>/dev/null || :
@@ -17,7 +16,7 @@ cp -R /utils . 2>/dev/null || :
 declare test_run_result
 export tagFilter=@regression
 echo 'Beginning Tests-rollup-qs'
-npm test 1>/dev/null
+npm run test:once # 1>/dev/null
 test_run_result=$?
 
 # store report to dir where pipeline will export from
