@@ -959,7 +959,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: !Sub 'DynamoDB query too many items error once within a minute. ${RunBookURL}'
+      AlarmDescription: !Sub 'DynamoDB query too many items error once within a minute. ${TeamManualPlaybookUrl}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 1
@@ -1148,7 +1148,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: !Sub 'Status Retriever Function Lambda errors over 10 minutes. ${RunBookURL}'
+      AlarmDescription: !Sub 'Status Retriever Function Lambda errors over 10 minutes. ${TeamManualPlaybookUrl}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 10
