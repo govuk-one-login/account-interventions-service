@@ -1375,7 +1375,7 @@ Resources:
       ActionsEnabled: true
       AlarmActions:
         - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: !Sub 'Significant proportion of 5XX errors on the API Gateway. ${RunBookURL}'
+      AlarmDescription: !Sub 'Significant proportion of 5XX errors on the API Gateway. ${TeamManualPlaybookUrl}'
       Threshold: 80
       EvaluationPeriods: 5
       DatapointsToAlarm: 2
