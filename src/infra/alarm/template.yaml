@@ -958,8 +958,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: !Sub 'DynamoDB query too many items error once within a minute. ${TeamManualPlaybookUrl}'
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: DynamoDB query too many items error once within a minute.
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
       EvaluationPeriods: 1
@@ -1019,8 +1019,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
-      AlarmDescription: !Sub 'Schema is invalid. ${TeamManualPlaybookUrl}'
+        - !Ref AlertingSNSLowAlertNotificationTopicARN
+      AlarmDescription: Schema is invalid.
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_SCHEMA
       ComparisonOperator: GreaterThanOrEqualToThreshold
