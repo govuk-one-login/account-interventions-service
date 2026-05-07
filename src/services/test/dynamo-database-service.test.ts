@@ -1,10 +1,4 @@
-import {
-  DynamoDBClient,
-  QueryCommand,
-  QueryCommandOutput,
-  UpdateItemCommand,
-  UpdateItemCommandInput,
-} from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, QueryCommand, UpdateItemCommand, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { DynamoDatabaseService } from '../dynamo-database-service';
 import 'aws-sdk-client-mock-vitest/extend';
 import { mockClient } from 'aws-sdk-client-mock';
@@ -142,7 +136,7 @@ describe('Dynamo DB Service', () => {
   });
 
   it('should throw an error if Items field is undefined in response from DynamoDB.', async () => {
-    queryCommandMock.resolves({ Items: undefined } as unknown as QueryCommandOutput);
+    queryCommandMock.resolves({ Items: undefined });
     const service = new DynamoDatabaseService('table_name');
     await expect(async () => await service.getAccountStateInformation('userId')).rejects.toThrow(
       'DynamoDB may have failed to query, returned a null response.',
