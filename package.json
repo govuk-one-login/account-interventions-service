@@ -44,8 +44,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@aws-sdk/client-sso-oidc": "^3.1038.0",
-    "@aws-sdk/client-sts": "^3.1038.0",
+    "@aws-sdk/client-sso-oidc": "^3.1041.0",
+    "@aws-sdk/client-sts": "^3.1041.0",
     "@eslint/js": "^10.0.1",
     "@govuk-one-login/event-catalogue": "^44.0.22",
     "@pact-foundation/pact": "^16.3.1",
@@ -64,7 +64,7 @@
     "aws-sdk-client-mock": "^4.1.0",
     "aws-sdk-client-mock-vitest": "^7.0.1",
     "esbuild": "^0.28.0",
-    "eslint": "^10.2.1",
+    "eslint": "^10.3.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-tsdoc": "^0.5.0",
