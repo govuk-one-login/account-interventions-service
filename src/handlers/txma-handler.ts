@@ -37,7 +37,7 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
 
       const deletionEvent: AccountDeleteMessage = {
         event_name: 'AUTH_DELETE_ACCOUNT',
-        user_id: getUserId(body),
+        user: { user_id: getUserId(body) },
       };
       deletionMessages.push({
         Id: String(id),
