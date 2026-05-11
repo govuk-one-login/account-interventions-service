@@ -1,17 +1,11 @@
 import { StateDetails, TxMAIngressEvent } from '../../data-types/interfaces';
-import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
+import { AISInterventionTypes, EventsEnum, TriggerEventsEnum } from '../../data-types/constants';
 import { buildPartialUpdateAccountStateCommand } from '../build-partial-update-state-command';
-import { addMetric } from '../metrics';
 
-vi.mock('@aws-lambda-powertools/logger');
-vi.mock('../../commons/metrics');
-vi.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: vi.fn().mockImplementation(() => ({
-    milliseconds: 1_706_544_555_234,
-    isoString: 'today',
-    seconds: 1_706_544_555,
-  })),
-}));
+const historyRetentionSeconds = 5;
+const currentTimestamp = 10_000;
+const currentTimestampString = currentTimestamp.toString();
+
 const interventionEventBody: TxMAIngressEvent = {
   timestamp: 1000,
   event_timestamp_ms: 123_456,
@@ -19,7 +13,7 @@ const interventionEventBody: TxMAIngressEvent = {
     user_id: 'abc',
   },
   component_id: 'TICF_CRI',
-  event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+  event_name: 'nothing' as unknown as TriggerEventsEnum,
   event_id: '123',
   extensions: {
     intervention: {
@@ -32,7 +26,7 @@ const interventionEventBody: TxMAIngressEvent = {
   },
 };
 const resetPasswordEventBody = {
-  event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+  event_name: 'nothing' as unknown as TriggerEventsEnum,
   event_id: '123',
   timestamp: 10_000,
   event_timestamp_ms: 10_000_000,
@@ -50,38 +44,47 @@ const resetPasswordEventBody = {
 };
 
 describe('build-partial-update-state-command', () => {
-  it('should return a partial update command given Auth successful password reset is applied', () => {
-    const state: StateDetails = {
-      blocked: false,
-      suspended: false,
-      resetPassword: true,
-      reproveIdentity: true,
-    };
-    const userAction = EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL;
-    const expectedOutput = {
-      ExpressionAttributeNames: {
-        '#B': 'blocked',
-        '#H': 'history',
-        '#S': 'suspended',
-        '#RP': 'resetPassword',
-        '#RI': 'reproveIdentity',
-        '#UA': 'updatedAt',
-        '#RPswdA': 'resetPasswordAt',
-      },
-      ExpressionAttributeValues: {
-        ':b': { BOOL: false },
-        ':h': { L: [] },
-        ':s': { BOOL: false },
-        ':rp': { BOOL: true },
-        ':ri': { BOOL: true },
-        ':ua': { N: '4444' },
-        ':rpswda': { N: '10000000' },
-      },
-      UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda, #H = :h',
-    };
-    const command = buildPartialUpdateAccountStateCommand(state, userAction, 4444, resetPasswordEventBody, []);
-    expect(command).toEqual(expectedOutput);
-  });
+  it.each([EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT])(
+    'given a password reset with event name %s',
+    (userAction) => {
+      const state: StateDetails = {
+        blocked: false,
+        suspended: false,
+        resetPassword: true,
+        reproveIdentity: true,
+      };
+      const expectedOutput = {
+        ExpressionAttributeNames: {
+          '#B': 'blocked',
+          '#H': 'history',
+          '#S': 'suspended',
+          '#RP': 'resetPassword',
+          '#RI': 'reproveIdentity',
+          '#UA': 'updatedAt',
+          '#RPswdA': 'resetPasswordAt',
+        },
+        ExpressionAttributeValues: {
+          ':b': { BOOL: false },
+          ':h': { L: [] },
+          ':s': { BOOL: false },
+          ':rp': { BOOL: true },
+          ':ri': { BOOL: true },
+          ':ua': { N: currentTimestampString },
+          ':rpswda': { N: '10000000' },
+        },
+        UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda, #H = :h',
+      };
+      const command = buildPartialUpdateAccountStateCommand(
+        state,
+        userAction,
+        currentTimestamp,
+        resetPasswordEventBody,
+        [],
+        historyRetentionSeconds,
+      );
+      expect(command).toEqual(expectedOutput);
+    },
+  );
 
   it('should return a partial update command given IPV successful id reset is applied', () => {
     const state: StateDetails = {
@@ -107,12 +110,19 @@ describe('build-partial-update-state-command', () => {
         ':s': { BOOL: false },
         ':rp': { BOOL: true },
         ':ri': { BOOL: true },
-        ':ua': { N: '4444' },
+        ':ua': { N: currentTimestampString },
         ':rida': { N: '10000000' },
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida, #H = :h',
     };
-    const command = buildPartialUpdateAccountStateCommand(state, userAction, 4444, resetPasswordEventBody, []);
+    const command = buildPartialUpdateAccountStateCommand(
+      state,
+      userAction,
+      currentTimestamp,
+      resetPasswordEventBody,
+      [],
+      historyRetentionSeconds,
+    );
     expect(command).toEqual(expectedOutput);
   });
 
@@ -141,9 +151,9 @@ describe('build-partial-update-state-command', () => {
         ':s': { BOOL: true },
         ':rp': { BOOL: true },
         ':ri': { BOOL: false },
-        ':ua': { N: '4444' },
+        ':ua': { N: currentTimestampString },
         ':sa': { N: '123456' },
-        ':aa': { N: '4444' },
+        ':aa': { N: currentTimestampString },
         ':h': { L: [{ S: '123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' }] },
         ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET' },
       },
@@ -153,9 +163,10 @@ describe('build-partial-update-state-command', () => {
     const command = buildPartialUpdateAccountStateCommand(
       state,
       intervention,
-      4444,
+      currentTimestamp,
       interventionEventBody,
       [],
+      historyRetentionSeconds,
       AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
     );
     expect(command).toEqual(expectedOutput);
@@ -185,9 +196,9 @@ describe('build-partial-update-state-command', () => {
         ':s': { BOOL: false },
         ':rp': { BOOL: false },
         ':ri': { BOOL: false },
-        ':ua': { N: '4444' },
+        ':ua': { N: currentTimestampString },
         ':sa': { N: '123456' },
-        ':aa': { N: '4444' },
+        ':aa': { N: currentTimestampString },
         ':h': { L: [{ S: '123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' }] },
         ':int': { S: 'AIS_ACCOUNT_UNSUSPENDED' },
       },
@@ -197,9 +208,10 @@ describe('build-partial-update-state-command', () => {
     const command = buildPartialUpdateAccountStateCommand(
       state,
       intervention,
-      4444,
+      currentTimestamp,
       interventionEventBody,
       [],
+      historyRetentionSeconds,
       AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
     );
     expect(command).toEqual(expectedOutput);
@@ -230,9 +242,9 @@ describe('build-partial-update-state-command', () => {
         ':s': { BOOL: true },
         ':rp': { BOOL: false },
         ':ri': { BOOL: true },
-        ':ua': { N: '4444' },
+        ':ua': { N: currentTimestampString },
         ':sa': { N: '123456' },
-        ':aa': { N: '4444' },
+        ':aa': { N: currentTimestampString },
         ':h': { L: [{ S: '123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' }] },
         ':int': { S: 'AIS_FORCED_USER_IDENTITY_VERIFY' },
       },
@@ -242,9 +254,10 @@ describe('build-partial-update-state-command', () => {
     const command = buildPartialUpdateAccountStateCommand(
       state,
       intervention,
-      4444,
+      currentTimestamp,
       interventionEventBody,
       [],
+      historyRetentionSeconds,
       AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
     );
     expect(command).toEqual(expectedOutput);
@@ -274,9 +287,9 @@ describe('build-partial-update-state-command', () => {
         ':s': { BOOL: true },
         ':rp': { BOOL: true },
         ':ri': { BOOL: true },
-        ':ua': { N: '4444' },
+        ':ua': { N: currentTimestampString },
         ':sa': { N: '1000000' },
-        ':aa': { N: '4444' },
+        ':aa': { N: currentTimestampString },
         ':h': {
           L: [{ S: '1000000|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' }],
         },
@@ -292,16 +305,72 @@ describe('build-partial-update-state-command', () => {
     const command = buildPartialUpdateAccountStateCommand(
       state,
       intervention,
-      4444,
+      currentTimestamp,
       interventionEventBodyNoMsTimestamp as unknown as TxMAIngressEvent,
-      ['1706544554234|TICF_CRI|02|reason|originating_component_id|originator_reference_id|requester_id'],
+      ['5000|TICF_CRI|02|reason|originating_component_id|originator_reference_id|requester_id'],
+      historyRetentionSeconds,
       AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
     );
     expectedOutput.ExpressionAttributeValues[':h'] = {
       L: [
-        { S: '1706544554234|TICF_CRI|02|reason|originating_component_id|originator_reference_id|requester_id' },
+        { S: '5000|TICF_CRI|02|reason|originating_component_id|originator_reference_id|requester_id' },
         { S: '1000000|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' },
       ],
+    };
+    expect(command).toEqual(expectedOutput);
+  });
+
+  it('removes history if retention period is over', () => {
+    const state: StateDetails = {
+      blocked: false,
+      suspended: true,
+      resetPassword: true,
+      reproveIdentity: true,
+    };
+    const intervention = EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION;
+    const expectedOutput = {
+      ExpressionAttributeNames: {
+        '#B': 'blocked',
+        '#S': 'suspended',
+        '#RP': 'resetPassword',
+        '#RI': 'reproveIdentity',
+        '#UA': 'updatedAt',
+        '#SA': 'sentAt',
+        '#AA': 'appliedAt',
+        '#H': 'history',
+        '#INT': 'intervention',
+      },
+      ExpressionAttributeValues: {
+        ':b': { BOOL: false },
+        ':s': { BOOL: true },
+        ':rp': { BOOL: true },
+        ':ri': { BOOL: true },
+        ':ua': { N: currentTimestampString },
+        ':sa': { N: '1000000' },
+        ':aa': { N: currentTimestampString },
+        ':h': {
+          L: [{ S: '1000000|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' }],
+        },
+        ':int': { S: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY' },
+      },
+      UpdateExpression:
+        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = :h REMOVE resetPasswordAt, reprovedIdentityAt',
+    };
+    const interventionEventBodyNoMsTimestamp = {
+      ...interventionEventBody,
+      event_timestamp_ms: undefined,
+    };
+    const command = buildPartialUpdateAccountStateCommand(
+      state,
+      intervention,
+      currentTimestamp,
+      interventionEventBodyNoMsTimestamp as unknown as TxMAIngressEvent,
+      ['4999|TICF_CRI|02|reason|originating_component_id|originator_reference_id|requester_id'],
+      historyRetentionSeconds,
+      AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
+    );
+    expectedOutput.ExpressionAttributeValues[':h'] = {
+      L: [{ S: '1000000|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' }],
     };
     expect(command).toEqual(expectedOutput);
   });
@@ -314,9 +383,15 @@ describe('build-partial-update-state-command', () => {
       reproveIdentity: true,
     };
     const intervention = EventsEnum.FRAUD_BLOCK_ACCOUNT;
-    expect(() => buildPartialUpdateAccountStateCommand(state, intervention, 4444, interventionEventBody, [])).toThrow(
-      new Error('The intervention received did not have an interventionName field.'),
-    );
-    expect(addMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
+    expect(() =>
+      buildPartialUpdateAccountStateCommand(
+        state,
+        intervention,
+        currentTimestamp,
+        interventionEventBody,
+        [],
+        historyRetentionSeconds,
+      ),
+    ).toThrow(new Error('The intervention received did not have an interventionName field.'));
   });
 });

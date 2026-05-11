@@ -3,7 +3,6 @@ import { UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { AISInterventionTypes, EventsEnum, MetricNames } from '../data-types/constants';
 import { addMetric } from './metrics';
 import { HistoryStringBuilder } from './history-string-builder';
-import { AppConfigService } from '../services/app-config-service';
 
 type DeepRequiredKey<T, K extends keyof T> = Omit<T, K> & {
   [P in K]-?: Exclude<T[P], undefined>;
@@ -24,6 +23,7 @@ export function buildPartialUpdateAccountStateCommand(
   currentTimestamp: number,
   interventionEvent: TxMAIngressEvent,
   historyList: string[],
+  historyRetentionSeconds: number,
   interventionName?: AISInterventionTypes,
 ): Partial<UpdateItemCommandInput> {
   const eventTimestamp = interventionEvent.event_timestamp_ms ?? interventionEvent.timestamp * 1000;
@@ -54,7 +54,7 @@ export function buildPartialUpdateAccountStateCommand(
     baseUpdateItemCommandInput.ExpressionAttributeValues[':rida'] = { N: eventTimestamp.toString() };
     baseUpdateItemCommandInput.ExpressionAttributeNames['#H'] = 'history';
     baseUpdateItemCommandInput.ExpressionAttributeValues[':h'] = {
-      L: extractValidHistoryItems(historyList, currentTimestamp),
+      L: extractValidHistoryItems(historyList, currentTimestamp, historyRetentionSeconds),
     };
     baseUpdateItemCommandInput.UpdateExpression += ', #RIdA = :rida, #H = :h';
     return baseUpdateItemCommandInput;
@@ -68,7 +68,7 @@ export function buildPartialUpdateAccountStateCommand(
     baseUpdateItemCommandInput.ExpressionAttributeValues[':rpswda'] = { N: eventTimestamp.toString() };
     baseUpdateItemCommandInput.ExpressionAttributeNames['#H'] = 'history';
     baseUpdateItemCommandInput.ExpressionAttributeValues[':h'] = {
-      L: extractValidHistoryItems(historyList, currentTimestamp),
+      L: extractValidHistoryItems(historyList, currentTimestamp, historyRetentionSeconds),
     };
     baseUpdateItemCommandInput.UpdateExpression += ', #RPswdA = :rpswda, #H = :h';
     return baseUpdateItemCommandInput;
@@ -88,7 +88,7 @@ export function buildPartialUpdateAccountStateCommand(
   baseUpdateItemCommandInput.ExpressionAttributeNames['#H'] = 'history';
   baseUpdateItemCommandInput.ExpressionAttributeValues[':h'] = {
     L: [
-      ...extractValidHistoryItems(historyList, currentTimestamp),
+      ...extractValidHistoryItems(historyList, currentTimestamp, historyRetentionSeconds),
       { S: stringBuilder.getHistoryString(interventionEvent, eventTimestamp) },
     ],
   };
@@ -124,13 +124,13 @@ function buildRemoveExpression(finalState: StateDetails) {
  * @param historyList - list of history items
  * @param currentTimestampMs - current timestamp in milliseconds
  */
-function extractValidHistoryItems(historyList: string[], currentTimestampMs: number) {
+function extractValidHistoryItems(historyList: string[], currentTimestampMs: number, historyRetentionSeconds: number) {
   const historyStringBuilder = new HistoryStringBuilder();
 
   return historyList.reduce((validHistoryItems: { S: string }[], historyItem: string) => {
     const historyObject = historyStringBuilder.getHistoryObject(historyItem);
     const sendAtMs = new Date(historyObject.sentAt).getTime();
-    if (sendAtMs + AppConfigService.getInstance().historyRetentionSeconds * 1000 >= currentTimestampMs) {
+    if (sendAtMs + historyRetentionSeconds * 1000 >= currentTimestampMs) {
       validHistoryItems.push({ S: historyItem });
     }
 

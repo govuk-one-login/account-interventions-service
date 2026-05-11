@@ -19,7 +19,7 @@ import {
   validateInterventionEvent,
   validateIfIdentityAcquired,
 } from '../services/validate-event';
-import { AppConfigService } from '../services/app-config-service';
+import { AppConfigService, ConfigService, getSingletonAppConfigService } from '../services/app-config-service';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
@@ -27,7 +27,7 @@ import { sendAuditEvent } from '../services/send-audit-events';
 import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
 import { publishTimeToResolveMetrics, updateAccountStateCountMetric } from '../commons/metrics-helper';
 
-const appConfig = AppConfigService.getInstance();
+const appConfig = getSingletonAppConfigService();
 const service = new DynamoDatabaseService(appConfig.tableName);
 const accountStateEngine = AccountStateEngine.getInstance();
 
@@ -38,7 +38,11 @@ const accountStateEngine = AccountStateEngine.getInstance();
  * @param context - context object
  * @returns - Promise of SQS Partial Batch Response
  */
-export async function handler(event: SQSEvent, context: Context): Promise<SQSBatchResponse> {
+export async function handler(
+  event: SQSEvent,
+  context: Context,
+  config: ConfigService = appConfig,
+): Promise<SQSBatchResponse> {
   logger.addContext(context);
 
   if (event.Records.length === 0) {
@@ -53,7 +57,7 @@ export async function handler(event: SQSEvent, context: Context): Promise<SQSBat
   const itemFailures: SQSBatchItemFailure[] = [];
 
   const promiseArray = event.Records.map((record: SQSRecord) =>
-    processSQSRecord(record).catch(async (error: unknown) => {
+    processSQSRecord(record, config.historyRetentionSeconds).catch(async (error: unknown) => {
       const itemIdentifier = await handleError(error, record);
       if (itemIdentifier) itemFailures.push({ itemIdentifier });
     }),
@@ -72,7 +76,10 @@ export async function handler(event: SQSEvent, context: Context): Promise<SQSBat
  * it updates the user record in the database, it sends a notification upon completion
  * @param record - SQS Record polled from the queue
  */
-async function processSQSRecord(record: SQSRecord) {
+async function processSQSRecord(
+  record: SQSRecord,
+  historyRetentionSeconds: number = appConfig.historyRetentionSeconds,
+) {
   const currentTimestamp = getCurrentTimestamp();
   const recordBody = attemptToParseJson(record.body);
   validateEventAgainstSchema(recordBody);
@@ -106,6 +113,7 @@ async function processSQSRecord(record: SQSRecord) {
     currentTimestamp.milliseconds,
     recordBody,
     itemFromDB?.history ?? [],
+    historyRetentionSeconds,
     statusResult.interventionName,
   );
   logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Updating user status`, { userId, partialCommandInput });

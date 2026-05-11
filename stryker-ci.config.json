@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "_comment": "This configuration is for running Stryker in CI. For running Stryker manually, use `stryker.config.json`.",
+  "packageManager": "npm",
+  "reporters": [
+    "html"
+  ],
+  "testRunner": "vitest",
+  "testRunner_comment": "Take a look at https://stryker-mutator.io/docs/stryker-js/vitest-runner for information about the vitest plugin.",
+  "coverageAnalysis": "perTest",
+  "ignorePatterns": [
+    "src/contract-testing/**"
+  ],
+  "ignorers": [
+    "logger"
+  ],
+  "plugins": [
+    "@stryker-mutator/*",
+    "./.stryker/logger-ignorer.js"
+  ],
+  "clearTextReporter": {
+    "allowColor": false,
+    "allowEmojis": false,
+    "logTests": false,
+    "maxTestsToLog": 3,
+    "reportTests": false,
+    "reportMutants": false,
+    "reportScoreTable": true,
+    "skipFull": false
+  }
+}

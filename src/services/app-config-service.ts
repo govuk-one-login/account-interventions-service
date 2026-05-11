@@ -5,7 +5,50 @@ import { LOGS_PREFIX_INVALID_CONFIG } from '../data-types/constants';
 /**
  * A service for setting the app configuration.
  */
-export class AppConfigService {
+export interface ConfigService {
+  readonly metricServiceName: string;
+  readonly tableName: string;
+  readonly cloudWatchMetricsWorkSpace: string;
+  readonly awsRegion: string;
+  readonly maxRetentionSeconds: number;
+  readonly txmaEgressQueueUrl: string;
+  readonly historyRetentionSeconds: number;
+}
+
+export class InMemoryConfigService implements ConfigService {
+  constructor(private readonly config: Partial<ConfigService> = {}) {}
+
+  private get<K extends keyof ConfigService>(key: K): ConfigService[K] {
+    if (this.config[key] === undefined) {
+      throw new InvalidEnvironmentVariableError(`${key} has not been configured`);
+    }
+    return this.config[key];
+  }
+
+  public get metricServiceName() {
+    return this.get('metricServiceName');
+  }
+  public get tableName() {
+    return this.get('tableName');
+  }
+  public get cloudWatchMetricsWorkSpace() {
+    return this.get('cloudWatchMetricsWorkSpace');
+  }
+  public get awsRegion() {
+    return this.get('awsRegion');
+  }
+  public get maxRetentionSeconds() {
+    return this.get('maxRetentionSeconds');
+  }
+  public get txmaEgressQueueUrl() {
+    return this.get('txmaEgressQueueUrl');
+  }
+  public get historyRetentionSeconds() {
+    return this.get('historyRetentionSeconds');
+  }
+}
+
+export class AppConfigService implements ConfigService {
   private static instance: AppConfigService;
 
   /**
@@ -83,4 +126,15 @@ export class AppConfigService {
     }
     return url;
   }
+}
+
+export function createAppConfigService() {
+  return new AppConfigService();
+}
+
+let appConfigSingleton: undefined | AppConfigService;
+
+export function getSingletonAppConfigService() {
+  appConfigSingleton ??= createAppConfigService();
+  return appConfigSingleton;
 }
