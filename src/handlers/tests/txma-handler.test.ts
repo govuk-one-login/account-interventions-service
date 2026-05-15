@@ -90,7 +90,7 @@ describe('TxMA Handler', () => {
       [
         {
           Id: '0',
-          MessageBody: '{"event_name":"AUTH_DELETE_ACCOUNT","user_id":"urn:fdc:gov.uk:2022:USER_ONE"}',
+          MessageBody: '{"event_name":"AUTH_DELETE_ACCOUNT","user":{"user_id":"urn:fdc:gov.uk:2022:USER_ONE"}}',
         },
       ],
       'delete_queue',
