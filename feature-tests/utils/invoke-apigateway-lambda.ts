@@ -4,7 +4,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 
 export async function invokeGetAccountState(testUserId: string, historyValue: boolean) {
-  if (process.platform === 'darwin') {
+  if (process.platform === 'darwin' || process.env['USE_PRIVATE_API_GATEWAY']) {
     const client = new LambdaClient({});
     const command = new InvokeCommand({
       FunctionName: EndPoints.INVOKE_PRIVATE_API_GATEWAY,

@@ -17,8 +17,8 @@ export default defineConfig({
       TEST_ENVIRONMENT: 'dev',
       SAM_STACK_NAME: 'ais-main',
       AWS_REGION: 'eu-west-2',
-      AWS_PROFILE: 'dev',
       tagFilter: '@regression',
     },
+    dir: 'tests/resources',
   },
 });

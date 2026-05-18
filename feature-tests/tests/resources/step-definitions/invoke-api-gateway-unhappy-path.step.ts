@@ -65,13 +65,13 @@ describeFeature(feature, ({ ScenarioOutline, BeforeEachScenario }) => {
     'UnHappy Path - Get Request to /ais/userId - Invalid Base URL - Returns Expected Data for <aisEventType>',
     ({ Given, When, Then }, { aisEventType, message }) => {
       Given('I send a valid request to sqs queue with userId and <aisEventType>', async function () {
-        if (process.platform === 'linux') {
+        if (process.platform === 'linux' && !process.env['USE_PRIVATE_API_GATEWAY']) {
           await sendSQSEvent(testUserId, aisEventType);
         }
       });
 
       When('I invoke apiGateway with invalid base url to retreive the status of the userId', async () => {
-        if (process.platform === 'linux') {
+        if (process.platform === 'linux' && !process.env['USE_PRIVATE_API_GATEWAY']) {
           const resultFromAPI = await request((EndPoints.AIS_BASE_URL + '/k') as unknown as App)
             .get(EndPoints.PATH_AIS + testUserId)
             .query({ history: false })
@@ -82,7 +82,7 @@ describeFeature(feature, ({ ScenarioOutline, BeforeEachScenario }) => {
       });
 
       Then('I should receive the response with <message> for the invalid base url', async () => {
-        if (process.platform === 'linux') {
+        if (process.platform === 'linux' && !process.env['USE_PRIVATE_API_GATEWAY']) {
           expect(response.message).toBe(message);
         }
       });
@@ -93,13 +93,13 @@ describeFeature(feature, ({ ScenarioOutline, BeforeEachScenario }) => {
     'UnHappy Path - Get Request to /ais/userId - Invalid Endpoint - Returns Expected Data for <aisEventType>',
     ({ Given, When, Then }, { aisEventType, message }) => {
       Given('I send a valid request to sqs queue with <aisEventType>', async () => {
-        if (process.platform === 'linux') {
+        if (process.platform === 'linux' && !process.env['USE_PRIVATE_API_GATEWAY']) {
           await sendSQSEvent(testUserId, aisEventType);
         }
       });
 
       When('I invoke apiGateway with invalid endpoint to retreive the status of the userId', async () => {
-        if (process.platform === 'linux') {
+        if (process.platform === 'linux' && !process.env['USE_PRIVATE_API_GATEWAY']) {
           const resultFromAPI = await request(EndPoints.AIS_BASE_URL as unknown as App)
             .get(EndPoints.PATH_AIS + '/' + testUserId)
             .query({ history: false })
@@ -110,7 +110,7 @@ describeFeature(feature, ({ ScenarioOutline, BeforeEachScenario }) => {
       });
 
       Then('I should receive response with <message> for the ais endpoint', async () => {
-        if (process.platform === 'linux') {
+        if (process.platform === 'linux' && !process.env['USE_PRIVATE_API_GATEWAY']) {
           expect(response.message).toBe(message);
         }
       });
@@ -121,7 +121,7 @@ describeFeature(feature, ({ ScenarioOutline, BeforeEachScenario }) => {
     'UnHappy Path - Get Request to /ais/userId - Invalid Content-Type & Accept - Returns Expected Data for <aisEventType>',
     ({ Given, When, Then }, { aisEventType, contentType, accept, message }) => {
       Given('I send an valid request to sqs queue with <aisEventType>', async () => {
-        if (process.platform === 'linux') {
+        if (process.platform === 'linux' && !process.env['USE_PRIVATE_API_GATEWAY']) {
           await sendSQSEvent(testUserId, aisEventType);
         }
       });
@@ -129,7 +129,7 @@ describeFeature(feature, ({ ScenarioOutline, BeforeEachScenario }) => {
       When(
         'I invoke apiGateway with invalid <contentType> and <accept> to retreive the status of the userId',
         async () => {
-          if (process.platform === 'linux') {
+          if (process.platform === 'linux' && !process.env['USE_PRIVATE_API_GATEWAY']) {
             const resultFromAPI = await request(EndPoints.AIS_BASE_URL as unknown as App)
               .get(EndPoints.PATH_AIS + '/' + testUserId)
               .query({ history: false })
@@ -141,7 +141,7 @@ describeFeature(feature, ({ ScenarioOutline, BeforeEachScenario }) => {
       );
 
       Then('I should receive the response with <message>', async () => {
-        if (process.platform === 'linux') {
+        if (process.platform === 'linux' && !process.env['USE_PRIVATE_API_GATEWAY']) {
           expect(response.message).toBe(message);
         }
       });

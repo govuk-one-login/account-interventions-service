@@ -61,6 +61,22 @@ once the docker image is built, run the following the execute the dockerfile
 docker run account-intervention-service-feature-tests-image:latest
 ```
 
+To run the feature tests with the correct environment variables and using the AWS profile from your local machine
+
+```shell
+docker run --rm -it \
+  -v ~/.aws:/root/.aws:ro \
+  -e AWS_PROFILE=default \
+  -e TEST_ENVIRONMENT=dev \
+  -e SAM_STACK_NAME=ais-main \
+  -e AWS_REGION=eu-west-2 \
+  -e AWS_PROFILE=dev \
+  -e tagFilter=@regression \
+  -e USE_PRIVATE_API_GATEWAY=true \
+  --dns 25.25.25.25 \
+  account-intervention-service-feature-tests-image
+```
+
 ## Environment configuration
 
 If new values are added to **endpoints.ts**, associated values will then need to be added to the main template
