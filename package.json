@@ -44,8 +44,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@aws-sdk/client-sso-oidc": "^3.1043.0",
-    "@aws-sdk/client-sts": "^3.1043.0",
+    "@aws-sdk/client-sso-oidc": "^3.1045.0",
+    "@aws-sdk/client-sts": "^3.1045.0",
     "@eslint/js": "^10.0.1",
     "@govuk-one-login/event-catalogue": "^44.0.22",
     "@pact-foundation/pact": "^16.4.0",
