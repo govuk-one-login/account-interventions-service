@@ -59,7 +59,7 @@ describe('Account Deletion Processor', () => {
     mockRecord = {
       messageId: '',
       receiptHandle: '',
-      body: JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user_id: 'hello' }),
+      body: JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user: { user_id: 'hello' } }),
       attributes: {
         ApproximateReceiveCount: '',
         SentTimestamp: '',
@@ -162,7 +162,9 @@ describe('Account Deletion Processor', () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockRejectedValue('Error');
     const mockBody = JSON.stringify({
       event_name: 'AUTH_DELETE_ACCOUNT',
-      user_id: 'hello',
+      user: {
+        user_id: 'hello',
+      },
     });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
@@ -217,7 +219,9 @@ describe('Account Deletion Processor', () => {
       ...mockRecord,
       body: JSON.stringify({
         event_name: 'AUTH_DELETE_ACCOUNT',
-        user_id: 'other_user_id',
+        user: {
+          user_id: 'other_user_id',
+        },
       }),
     };
     const mockEvent = { Records: [mockRecord, mockRecord2] };

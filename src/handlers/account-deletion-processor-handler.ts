@@ -73,7 +73,11 @@ function parseMessage(record: SQSRecord): string | undefined {
       `The SQS message can not be parsed. ${prettifyError(result.error)}`,
     );
 
-  return 'user' in result.data ? result.data.user.user_id : result.data.user_id;
+  if ('user' in result.data) return result.data.user.user_id;
+
+  addMetric(MetricNames.DELETE_EVENT_UNWRAPPED);
+
+  return result.data.user_id;
 }
 
 /**
