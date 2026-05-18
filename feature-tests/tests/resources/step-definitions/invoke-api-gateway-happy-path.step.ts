@@ -349,7 +349,7 @@ describeFeature(feature, ({ Scenario, ScenarioOutline, BeforeEachScenario }) => 
       When(
         "I invoke the API to retrieve the allowable intervention status of the user's account with <historyValue>",
         async () => {
-          await timeDelayForTestEnvironment();
+          await timeDelayForTestEnvironment(1000);
           response = await invokeGetAccountState(testUserId, historyValue);
         },
       );
