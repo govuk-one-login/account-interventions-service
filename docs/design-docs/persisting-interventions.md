@@ -5,16 +5,15 @@
 AIS currently maintains account state in a single DynamoDB record per user (the `AccountStatusTable`).
 That record is a mutable snapshot of account state: when a new intervention arrives, the previous state is overwritten.
 Each account has a JSON object storing the states it's moved through and some data about the relevant interventions, but no data about the states of the interventions themselvesn
-There is no durable log of what interventions were applied, when, or by whom.
 Without a more complete intervention history we cannot:
 
 - Support multiple interventions simultaneously on a single account without having `~O(n^2)` specific states for `n` interventions.
 - Add new interventions without adding `n` new states as above, and having a model for how that new intervention is applied.
-- Audit which interventions were applied to an account and in what order.
 - Report on intervention volumes, durations, and outcomes across the estate.
 - Support event-driven consumers — if AIS ever does need to act as a smart event bus, downstream services need a reliable ordered log of interventions to subscribe to.
 - Record if an intervention was removed due to it being `superseded`, `mitigated`, or `removed`.
-This document proposes persisting interventions immutably in a new DynamoDB table, written by the existing `InterventionsProcessorFunction` at the point a state transition is successfully applied.
+
+This document proposes persisting interventions in a new DynamoDB table, written by the existing `InterventionsProcessorFunction` at the point a state transition is successfully applied.
 
 ---
 
@@ -60,7 +59,7 @@ Secondary access patterns (e.g. reporting across all accounts) should be served 
 
 ##### Why `createdAt` (write time) as sort key?
 `createdAt` is set by AIS at write time and is always increasing within a partition, giving a reliable ordering of_when AIS processed each intervention.
-`sentAt` is controlled by the upstream system and is not guaranteed to be monotonically increasing. 
+`sentAt` is controlled by the upstream system and is not guaranteed to be monotonically increasing.
 Events can arrive out of order or be replayed, in which case AIS might already have taken action before the "first" of two events arrives.
 This means for ordering purposes we should rely on when AIS receives an event, which most of the time will provide the same ordering as `sentAt`
 `sentAt` is preserved as a separate attribute for audit purposes.
@@ -151,7 +150,7 @@ An alternative is making the writes idempotent - this requires a read for every 
 
 ### Interfaces
 
-We aim to have all persisted data strictly parsed at write time. 
+We aim to have all persisted data strictly parsed at write time.
 Because this data is entirely under our control (i.e. it's not part of the event catalogue and the schema isn't consumed by other components of DI) we can do this using Zod.
 We should consider taking the opportunity to refactor how we communicate with DynamoDB to be re-usable and more in line with a ports-and-adapters approach, for increased flexibility and testability.
 
