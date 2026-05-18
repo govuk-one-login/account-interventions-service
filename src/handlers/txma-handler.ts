@@ -4,7 +4,6 @@ import { TxMAEgressEvent } from '../data-types/interfaces';
 import { createSqsClient, sendBatchSqsMessage } from '../services/send-sqs-message';
 import { addMetric, metric } from '../commons/metrics';
 import { MetricNames } from '../data-types/constants';
-import { AccountDeleteMessage } from '../contracts/account-delete-message';
 
 export async function handler(event: SQSEvent, context: Context): Promise<void> {
   logger.addContext(context);
@@ -34,14 +33,9 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
 
     if (body.event_name === 'AUTH_DELETE_ACCOUNT') {
       addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_DELETE);
-
-      const deletionEvent: AccountDeleteMessage = {
-        event_name: 'AUTH_DELETE_ACCOUNT',
-        user: { user_id: getUserId(body) },
-      };
       deletionMessages.push({
         Id: String(id),
-        MessageBody: JSON.stringify(deletionEvent),
+        MessageBody: record.body,
       });
     } else {
       addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_INTERVENTION);
@@ -64,14 +58,4 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
   await Promise.all(promiseList);
 
   metric.publishStoredMetrics();
-}
-
-export function getUserId(event: TxMAEgressEvent): string | undefined {
-  if (event.user) return event.user.user_id;
-
-  addMetric(MetricNames.DELETE_EVENT_USER_ID_ISSUE, undefined, undefined, {
-    ISSUE: 'NO_USER_ID',
-  });
-
-  return undefined;
 }

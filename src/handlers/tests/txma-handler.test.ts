@@ -1,20 +1,12 @@
 import { Mock } from 'vitest';
 import { SQSEvent, SQSRecord } from 'aws-lambda';
-import { getUserId, handler } from '../txma-handler';
+import { handler } from '../txma-handler';
 import { sendBatchSqsMessage } from '../../services/send-sqs-message';
-import { TxMAEgressEvent } from '../../data-types/interfaces';
 import { Metrics } from '@aws-lambda-powertools/metrics';
-import { MetricNames } from '../../data-types/constants';
 
 vi.mock('../../services/send-sqs-message');
 vi.mock('@aws-lambda-powertools/metrics');
 
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const mockPublishStoredMetric = Metrics.prototype.publishStoredMetrics as Mock;
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const mockAddMetric = Metrics.prototype.addMetric as Mock;
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const mockAddDimensions = Metrics.prototype.addDimensions as Mock;
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const mockSerializeMetrics = Metrics.prototype.serializeMetrics as Mock;
 
@@ -90,7 +82,8 @@ describe('TxMA Handler', () => {
       [
         {
           Id: '0',
-          MessageBody: '{"event_name":"AUTH_DELETE_ACCOUNT","user":{"user_id":"urn:fdc:gov.uk:2022:USER_ONE"}}',
+          MessageBody:
+            '{"event_name":"AUTH_DELETE_ACCOUNT","user":{"user_id":"urn:fdc:gov.uk:2022:USER_ONE"},"txma":{"configVersion":"1.0.4"}}',
         },
       ],
       'delete_queue',
@@ -138,39 +131,5 @@ describe('TxMA Handler', () => {
       expect((error as Error).message).toEqual('ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set');
     }
     expect(mockSendBatchSqsMessage).not.toHaveBeenCalled();
-  });
-});
-
-describe('getUserId', () => {
-  const baseEvent = {
-    event_name: 'AUTH_DELETE_ACCOUNT',
-    component_id: 'ANY',
-    timestamp: 1234,
-    event_timestamp_ms: 1234,
-  };
-
-  it('correct', () => {
-    expect(
-      getUserId({
-        ...baseEvent,
-        user: {
-          user_id: '1234',
-        },
-      }),
-    ).toBe('1234');
-  });
-
-  it('missing', () => {
-    expect(
-      getUserId({
-        event_name: 'AUTH_DELETE_ACCOUNT',
-      } as TxMAEgressEvent),
-    ).toBe(undefined);
-
-    expect(mockAddMetric).toHaveBeenCalledTimes(1);
-    expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.DELETE_EVENT_USER_ID_ISSUE, 'Count', 1);
-    expect(mockAddDimensions).toHaveBeenCalledTimes(1);
-    expect(mockAddDimensions).toHaveBeenCalledWith({ ISSUE: 'NO_USER_ID' });
-    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
   });
 });
