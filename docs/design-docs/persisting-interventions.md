@@ -14,7 +14,7 @@ Without a more complete intervention history we cannot:
 - Report on intervention volumes, durations, and outcomes across the estate.
 - Support event-driven consumers — if AIS ever does need to act as a smart event bus, downstream services need a reliable ordered log of interventions to subscribe to.
 - Record if an intervention was removed due to it being `superseded`, `mitigated`, or `removed`.
-This document proposes persisting interventions immutably in new DynamoDB, written by the existing `InterventionsProcessorFunction` at the point a state transition is successfully applied.
+This document proposes persisting interventions immutably in a new DynamoDB table, written by the existing `InterventionsProcessorFunction` at the point a state transition is successfully applied.
 
 ---
 
