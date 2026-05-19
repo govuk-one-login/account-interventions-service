@@ -15,7 +15,7 @@ cp -R /utils . 2>/dev/null || :
 # run tests and save the exit code
 declare test_run_result
 export tagFilter=@regression
-echo 'Beginning Tests-rollup-qs'
+echo 'Beginning Tests-rollup-qs vitest'
 npm run test:once # 1>/dev/null
 test_run_result=$?
 
