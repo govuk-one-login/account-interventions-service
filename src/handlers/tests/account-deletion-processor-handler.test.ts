@@ -197,6 +197,44 @@ describe('Account Deletion Processor', () => {
     expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(1);
   });
 
+  it('successfully process the message when it contains a single txma message', async () => {
+    mockRecord = {
+      ...mockRecord,
+      body: JSON.stringify({
+        client_id: 'client_id',
+        event_name: 'AUTH_DELETE_ACCOUNT',
+        component_id: 'AUTH',
+        // eslint-disable-next-line unicorn/numeric-separators-style
+        event_timestamp_ms: 1722953808667,
+        extensions: {
+          account_deletion_reason: 'USER_INITIATED',
+          phone_number_country_code: '44',
+        },
+        restricted: {
+          device_information: {
+            encoded: 'encoded_data',
+          },
+        },
+        // eslint-disable-next-line unicorn/numeric-separators-style
+        timestamp: 1722953808,
+        user: {
+          user_id: 'other_user_id',
+          email: 'email',
+          govuk_signin_journey_id: 'govuk_signin_journey_id',
+          ip_address: '0.0.0.0',
+          persistent_session_id: 'persistent_session_id',
+          phone: 'phone',
+          session_id: 'session_id',
+        },
+      }),
+    };
+    const mockEvent = { Records: [mockRecord] };
+    mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
+    await handler(mockEvent, mockContext);
+    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(1);
+  });
+
   it('successfully process the message when it contains multiple records', async () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
     const mockRecord2 = {
