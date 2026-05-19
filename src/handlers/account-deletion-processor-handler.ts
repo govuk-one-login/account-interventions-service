@@ -8,11 +8,6 @@ import { accountDeleteMessageSchema } from '../contracts/account-delete-message'
 import { prettifyError } from 'zod';
 import jsonSafeParse from '../commons/json-safe-parse';
 
-enum ErrorSeverity {
-  error = 'error',
-  warn = 'warn',
-}
-
 enum ParserErrorType {
   BODY_JSON_PARSER_ERROR = 'BODY_JSON_PARSER_ERROR',
   BODY_FORMAT_PARSER_ERROR = 'BODY_FORMAT_PARSER_ERROR',
@@ -24,7 +19,6 @@ class ParserError extends Error {
   constructor(
     public readonly errorType: ParserErrorType,
     message?: string,
-    public readonly severity: ErrorSeverity = ErrorSeverity.error,
   ) {
     super(message ?? 'The SQS message can not be parsed.');
     this.name = 'ParserError';
@@ -60,7 +54,7 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
  * @param record - The record passed in from the event.
  * @returns - User ID or undefined
  */
-function parseMessage(record: SQSRecord): string | undefined {
+function parseMessage(record: SQSRecord): string {
   // JSON parse record.body
   const recordBodyResult = jsonSafeParse(record.body);
   if (!recordBodyResult.success) throw new ParserError(ParserErrorType.BODY_JSON_PARSER_ERROR);
@@ -73,11 +67,7 @@ function parseMessage(record: SQSRecord): string | undefined {
       `The SQS message can not be parsed. ${prettifyError(result.error)}`,
     );
 
-  if ('user' in result.data) return result.data.user.user_id;
-
-  addMetric(MetricNames.DELETE_EVENT_UNWRAPPED);
-
-  return result.data.user_id;
+  return result.data.user.user_id;
 }
 
 /**
@@ -87,17 +77,10 @@ function parseMessage(record: SQSRecord): string | undefined {
  */
 function getUserId(record: SQSRecord) {
   try {
-    const userId = parseMessage(record);
-
-    if (userId === undefined)
-      throw new ParserError(ParserErrorType.MISSING_USER_ID, 'Attribute missing: user_id.', ErrorSeverity.warn);
-    if (userId.trim() === '')
-      throw new ParserError(ParserErrorType.EMPTY_USER_ID, 'Attribute invalid: user_id is empty.', ErrorSeverity.warn);
-
-    return userId.trim();
+    return parseMessage(record);
   } catch (error) {
     if (error instanceof ParserError) {
-      logger[error.severity](error.message);
+      logger.error(error.message);
       addMetric(MetricNames.DELETE_EVENT_PARSER_ERROR, undefined, undefined, {
         ERROR: error.errorType,
       });

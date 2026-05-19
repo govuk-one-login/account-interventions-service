@@ -24,7 +24,6 @@ const mockAddDimensions = Metrics.prototype.addDimensions as Mock;
 const mockSerializeMetrics = Metrics.prototype.serializeMetrics as Mock;
 
 const loggerErrorSpy = vi.spyOn(logger, 'error');
-const loggerWarnSpy = vi.spyOn(logger, 'warn');
 
 describe('Account Deletion Processor', () => {
   let mockEvent: SQSEvent;
@@ -110,7 +109,11 @@ describe('Account Deletion Processor', () => {
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
-    expect(loggerErrorSpy).toHaveBeenCalledWith('The SQS message can not be parsed. ✖ Invalid input');
+    expect(loggerErrorSpy)
+      .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ Invalid input: expected "AUTH_DELETE_ACCOUNT"
+  → at event_name
+✖ Invalid input: expected object, received undefined
+  → at user`);
   });
 
   it("does not process the SQS Record when the message doesn't contain user id", async () => {
@@ -118,38 +121,46 @@ describe('Account Deletion Processor', () => {
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
-    expect(loggerWarnSpy).toHaveBeenCalledWith('Attribute missing: user_id.');
+    expect(loggerErrorSpy)
+      .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ Invalid input: expected object, received undefined
+  → at user`);
   });
 
   it('does not process the SQS Record when user_id is an empty string in the SNS Event', async () => {
-    const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user_id: '' });
+    const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user: { user_id: '' } });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
-    expect(loggerWarnSpy).toHaveBeenCalledWith('Attribute invalid: user_id is empty.');
+    expect(loggerErrorSpy)
+      .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ String cannot be empty or just spaces
+  → at user.user_id`);
   });
 
   it('does not process the SQS Record when user_id is a string with whitespaces in the SNS Event and tests the trim function', async () => {
-    const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user_id: '   ' });
+    const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user: { user_id: '   ' } });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
-    expect(loggerWarnSpy).toHaveBeenCalledWith('Attribute invalid: user_id is empty.');
+    expect(loggerErrorSpy)
+      .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ String cannot be empty or just spaces
+  → at user.user_id`);
   });
 
   it('does not process the SQS Record when user_id is not a string', async () => {
-    const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user_id: 123 });
+    const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user: { user_id: 123 } });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
-    expect(loggerErrorSpy).toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ Invalid input`);
+    expect(loggerErrorSpy)
+      .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ Invalid input: expected string, received number
+  → at user.user_id`);
   });
 
   it('successfully processes the message when the user id passed contains trailing spaces', async () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockReturnValueOnce(['1']);
     const mockBody = JSON.stringify({
       event_name: 'AUTH_DELETE_ACCOUNT',
-      user_id: 'abcdef ',
+      user: { user_id: 'abcdef ' },
     });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
@@ -241,7 +252,9 @@ describe('Account Deletion Processor', () => {
       ...mockRecord,
       body: JSON.stringify({
         event_name: 'AUTH_DELETE_ACCOUNT',
-        user_id: 'other_user_id',
+        user: {
+          user_id: 'other_user_id',
+        },
       }),
     };
     const mockEvent = { Records: [mockRecord, mockRecord2] };
