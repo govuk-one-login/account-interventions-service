@@ -9,6 +9,7 @@ import { EventCatalogueCombinedSchema } from '../data-types/event-catalogue-comb
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { sendAuditEvent } from './send-audit-events';
 import { AccountStateEngine } from './account-states/account-state-engine';
+import jsonSafeParse from '../commons/json-safe-parse';
 
 const validateInterventionDataInput = compileSchema(TxMAIngress);
 const validateEventCatalogue = compileSchema2019(EventCatalogueCombinedSchema);
@@ -138,11 +139,13 @@ function isEventAfterLastEvent(eventTimeStamp: number, sentAt?: number, appliedA
  * @returns TxMAIngressEvent - event parsed from string
  */
 export function attemptToParseJson(jsonString: string) {
-  try {
-    return JSON.parse(jsonString) as TxMAIngressEvent;
-  } catch (error) {
-    logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} record body could not be parsed to valid JSON.`, { error });
-    addMetric(MetricNames.INVALID_EVENT_RECEIVED);
-    throw new ValidationError('record body could not be parsed to valid JSON.');
-  }
+  const parseResult = jsonSafeParse(jsonString);
+
+  if (parseResult.success) return parseResult.data;
+
+  logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} record body could not be parsed to valid JSON.`, {
+    error: parseResult.error,
+  });
+  addMetric(MetricNames.INVALID_EVENT_RECEIVED);
+  throw new ValidationError('record body could not be parsed to valid JSON.');
 }

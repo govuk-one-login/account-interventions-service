@@ -74,7 +74,7 @@ export async function handler(event: SQSEvent, context: Context): Promise<SQSBat
  */
 async function processSQSRecord(record: SQSRecord) {
   const currentTimestamp = getCurrentTimestamp();
-  const recordBody = attemptToParseJson(record.body);
+  const recordBody = attemptToParseJson(record.body) as TxMAIngressEvent;
   validateEventAgainstSchema(recordBody);
   const eventName = getEventName(recordBody);
   logger.debug('Intervention received.', { intervention: eventName });
