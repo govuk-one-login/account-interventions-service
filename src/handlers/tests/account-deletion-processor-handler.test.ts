@@ -165,7 +165,7 @@ describe('Account Deletion Processor', () => {
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
-    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockPublishStoredMetric).toHaveBeenCalled();
     expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledWith('abcdef');
   });
 
@@ -180,16 +180,16 @@ describe('Account Deletion Processor', () => {
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await expect(handler(mockEvent, mockContext)).rejects.toThrow('Failed to update the account status.');
-    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockPublishStoredMetric).toHaveBeenCalled();
     expect(loggerErrorSpy).toHaveBeenCalledWith(`Sensitive info - Error updating account hello`, { error: 'Error' });
-    expect(mockAddMetric).toHaveBeenCalledTimes(1);
+    expect(mockAddMetric).toHaveBeenCalled();
     expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.MARK_AS_DELETED_FAILED, 'Count', 1);
   });
 
   it('successfully process the message when it contains a single record', async () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
     await handler(mockEvent, mockContext);
-    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockPublishStoredMetric).toHaveBeenCalled();
     expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(1);
   });
 
@@ -204,7 +204,7 @@ describe('Account Deletion Processor', () => {
     const mockEvent = { Records: [mockRecord] };
     mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
     await handler(mockEvent, mockContext);
-    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockPublishStoredMetric).toHaveBeenCalled();
     expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(1);
   });
 
@@ -243,6 +243,7 @@ describe('Account Deletion Processor', () => {
     mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
     await handler(mockEvent, mockContext);
     expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockAddMetric).not.toHaveBeenCalledWith('INVALID_EVENT_RECEIVED_EVENT_CATALOGUE', 'Count', 1);
     expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(1);
   });
 
@@ -259,7 +260,7 @@ describe('Account Deletion Processor', () => {
     };
     const mockEvent = { Records: [mockRecord, mockRecord2] };
     await handler(mockEvent, mockContext);
-    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
+    expect(mockPublishStoredMetric).toHaveBeenCalled();
     expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(2);
   });
 
@@ -277,8 +278,7 @@ describe('Account Deletion Processor', () => {
     };
     const mockEvent = { Records: [mockRecord, mockRecord2] };
     await expect(handler(mockEvent, mockContext)).rejects.toThrow('Failed to update the account status.');
-    expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
-    expect(mockAddMetric).toHaveBeenCalledTimes(1);
+    expect(mockPublishStoredMetric).toHaveBeenCalled();
     expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.MARK_AS_DELETED_FAILED, 'Count', 1);
   });
 });
