@@ -1,13 +1,14 @@
-# DI Accounts - VC Storage Tests - JEST Supertest API Test Framework
+# DI Accounts - VC Storage Tests - Vitest Supertest API Test Framework
 
-Jest is a JavaScript Testing Framework with a focus on simplicity, which can also be used with TypeScript.
+Vitest is a JavaScript Testing Framework with a focus on simplicity, which can also be used with TypeScript.
 Supertest allows for HTTP assertions.
 
-#### The purpose of this project is automate API functionality of the VC Storage Solution. The framework configurations can be found in jest-cucumber-config.js file in the feature-tests folder of the project.
+#### The purpose of this project is automate API functionality of the VC Storage Solution.
 
 ## This project uses:
 
-- Cucumber-Jest
+- Cucumber
+- Vitest
 - Supertest
 - Typescript
 - npm
@@ -33,7 +34,7 @@ Then sign-in into AWS account.
 aws sso login --profile $AWS_PROFILE
 ```
 
-To run all API tests locally in Jest via Jest.
+To run all API tests locally in Vitest via Vitest.
 
 ```shell
 npm test
@@ -58,6 +59,22 @@ once the docker image is built, run the following the execute the dockerfile
 
 ```shell
 docker run account-intervention-service-feature-tests-image:latest
+```
+
+To run the feature tests with the correct environment variables and using the AWS profile from your local machine
+
+```shell
+docker run --rm -it \
+  -v ~/.aws:/root/.aws:ro \
+  -e AWS_PROFILE=default \
+  -e TEST_ENVIRONMENT=dev \
+  -e SAM_STACK_NAME=ais-main \
+  -e AWS_REGION=eu-west-2 \
+  -e AWS_PROFILE=dev \
+  -e tagFilter=@regression \
+  -e USE_PRIVATE_API_GATEWAY=true \
+  --dns 25.25.25.25 \
+  account-intervention-service-feature-tests-image
 ```
 
 ## Environment configuration
