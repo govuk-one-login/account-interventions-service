@@ -14,7 +14,6 @@ export default defineConfig({
     hideSkippedTests: true,
     testTimeout: 60_000,
     env: {
-      TEST_ENVIRONMENT: 'dev',
       SAM_STACK_NAME: 'ais-main',
       AWS_REGION: 'eu-west-2',
       tagFilter: '@regression',
