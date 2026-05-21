@@ -1,5 +1,8 @@
 # Persisting Interventions
 
+Author: Ed Evans (ed.evans@digital.cabinet-office.gov.uk)
+Published: 2026-05
+
 ## Introduction
 
 AIS currently maintains account state in a single DynamoDB record per user (the `AccountStatusTable`).
