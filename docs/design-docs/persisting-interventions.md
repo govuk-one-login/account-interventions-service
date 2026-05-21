@@ -15,6 +15,11 @@ Without a more complete intervention history we cannot:
 
 This document proposes persisting interventions in a new DynamoDB table, written by the existing `InterventionsProcessorFunction` at the point a state transition is successfully applied.
 
+## Assumptions
+
+- Interventions are independent between accounts
+- DynamoDB means we don't have to worry about scaling
+
 ---
 
 ## Functional Requirements
