@@ -39,9 +39,9 @@ export interface AisEventIgnoredStaleExtensions extends AisEventIgnoredStaleBasi
   action?: string;
 }
 export interface AisEventIgnoredStaleBasicExtensions {
-  trigger_event_id: string;
+  trigger_event_id: string | undefined;
   trigger_event: string;
-  intervention_code?: InterventionCodeEnum;
+  intervention_code?: string;
 }
 /**
  * This interface was referenced by `AIS_EVENT_TRANSITION_APPLIED`'s JSON-Schema
