@@ -74,7 +74,7 @@ export function validateIfIdentityAcquired(intervention: EventsEnum, event: TxMA
  * A function to validate that the event received is not in the future
  * @param eventEnum - the event name as an EventsEnum
  * @param event - the event received
- * @throws ValidationError - if the timestamp of the event is in the future
+ * @throws RetryEventError - if the timestamp of the event is in the future
  */
 export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: TxMAIngressEvent) {
   const eventTimestampInMs = event.event_timestamp_ms ?? event.timestamp * 1000;
