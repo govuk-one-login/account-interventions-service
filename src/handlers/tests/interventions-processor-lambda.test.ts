@@ -88,7 +88,7 @@ const resetPasswordEventBody = {
 const mockRetrieveRecords = DynamoDatabaseService.prototype.getAccountStateInformation as Mock;
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const mockUpdateRecords = DynamoDatabaseService.prototype.updateUserStatus as Mock;
-const mockValidateEventAgainstSchema = vi.spyOn(validationModule, 'validateEventAgainstSchema').mockReturnValue();
+const mockValidateEventAgainstSchema = vi.spyOn(validationModule, 'validateEventAgainstSchema');
 
 const accountStateEngine = AccountStateEngine.getInstance();
 accountStateEngine.getInterventionEnumFromCode = vi.fn().mockImplementation(() => EventsEnum.FRAUD_BLOCK_ACCOUNT);
