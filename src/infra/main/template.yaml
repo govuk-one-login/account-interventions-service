@@ -641,7 +641,7 @@ Resources:
         Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 10
       Handler: account-deletion-processor-handler.handler
-      MemorySize: 128
+      MemorySize: 256
       Role: !GetAtt AccountDeletionProcessorFunctionRole.Arn
       CodeSigningConfigArn: !If [UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
       Environment:
