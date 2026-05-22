@@ -1,4 +1,5 @@
 import logger from '../commons/logger';
+import Ajv2019 from 'ajv/dist/2019';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
 import { AppConfigService } from '../services/app-config-service';
@@ -7,6 +8,11 @@ import { addMetric, metric } from '../commons/metrics';
 import { accountDeleteMessageSchema } from '../contracts/account-delete-message';
 import { prettifyError } from 'zod';
 import jsonSafeParse from '../commons/json-safe-parse';
+import { AUTH_DELETE_ACCOUNTSchema } from '@govuk-one-login/event-catalogue-schemas';
+
+const ajv2019 = new Ajv2019({ allErrors: true });
+
+const validateEventCatalogue = ajv2019.compile(AUTH_DELETE_ACCOUNTSchema);
 
 enum ParserErrorType {
   BODY_JSON_PARSER_ERROR = 'BODY_JSON_PARSER_ERROR',
@@ -66,6 +72,15 @@ function parseMessage(record: SQSRecord): string {
       ParserErrorType.BODY_FORMAT_PARSER_ERROR,
       `The SQS message can not be parsed. ${prettifyError(result.error)}`,
     );
+
+  if (!validateEventCatalogue(recordBodyResult.data)) {
+    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Event has failed event catalogue schema validation.`, {
+      validationErrors: validateEventCatalogue.errors,
+    });
+    addMetric(MetricNames.INVALID_EVENT_RECEIVED_EVENT_CATALOGUE, undefined, undefined, {
+      EVENT_NAME: result.data.event_name,
+    });
+  }
 
   return result.data.user.user_id;
 }
