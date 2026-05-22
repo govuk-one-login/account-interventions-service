@@ -520,7 +520,7 @@ describeFeature(feature, ({ Scenario, ScenarioOutline, BeforeEachScenario }) => 
       });
 
       And("I invoke an API to retrieve the deleted intervention status of the user's account", async () => {
-        await timeDelayForTestEnvironment(5000);
+        await timeDelayForTestEnvironment(10000);
         getItem = await getRecordFromTable(testUserId);
         response = await invokeGetAccountState(testUserId, true);
       });
