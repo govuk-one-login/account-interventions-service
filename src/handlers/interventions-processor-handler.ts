@@ -53,8 +53,8 @@ export async function handler(event: SQSEvent, context: Context): Promise<SQSBat
   const itemFailures: SQSBatchItemFailure[] = [];
 
   const promiseArray = event.Records.map((record: SQSRecord) =>
-    processSQSRecord(record).catch(async (error: unknown) => {
-      const itemIdentifier = await handleError(error, record);
+    processSQSRecord(record).catch((error: unknown) => {
+      const itemIdentifier = handleError(error, record);
       if (itemIdentifier) itemFailures.push({ itemIdentifier });
     }),
   );
@@ -74,7 +74,7 @@ export async function handler(event: SQSEvent, context: Context): Promise<SQSBat
  */
 async function processSQSRecord(record: SQSRecord) {
   const currentTimestamp = getCurrentTimestamp();
-  const recordBody = attemptToParseJson(record.body);
+  const recordBody = attemptToParseJson(record.body) as TxMAIngressEvent;
   validateEventAgainstSchema(recordBody);
   const eventName = getEventName(recordBody);
   logger.debug('Intervention received.', { intervention: eventName });
@@ -95,11 +95,7 @@ async function processSQSRecord(record: SQSRecord) {
     await validateEventIsNotStale(eventName, recordBody, currentAccountState, itemFromDB);
   }
 
-  const statusResult = accountStateEngine.applyEventTransition(
-    eventName,
-    currentAccountState,
-    itemFromDB?.intervention,
-  );
+  const statusResult = await applyEventTransition(eventName, currentAccountState, itemFromDB?.intervention, recordBody);
   const partialCommandInput = buildPartialUpdateAccountStateCommand(
     statusResult.stateResult,
     eventName,
@@ -123,6 +119,22 @@ async function processSQSRecord(record: SQSRecord) {
   await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, recordBody, statusResult);
 }
 
+async function applyEventTransition(
+  event: EventsEnum,
+  initialState: StateDetails,
+  interventionName: string | undefined,
+  ingressTxMAEvent: TxMAIngressEvent,
+) {
+  try {
+    return accountStateEngine.applyEventTransition(event, initialState, interventionName);
+  } catch (error) {
+    if (error instanceof StateTransitionError)
+      await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, ingressTxMAEvent, error.output);
+
+    throw error;
+  }
+}
+
 /**
  * Function to handle an error returned by the recording processing function
  * It logs appropriate messages and returns a message id if the Error type is not of a non-retryable type
@@ -130,7 +142,7 @@ async function processSQSRecord(record: SQSRecord) {
  * @param record - the record inside the message polled
  * @returns messageId - if the message should be retried
  */
-async function handleError(error: unknown, record: SQSRecord) {
+function handleError(error: unknown, record: SQSRecord) {
   if (error instanceof ValidationError)
     logger.warn('ValidationError caught, message will not be retried.', { errorMessage: error.message });
   else if (error instanceof TooManyRecordsError)
@@ -139,12 +151,6 @@ async function handleError(error: unknown, record: SQSRecord) {
     });
   else if (error instanceof StateTransitionError) {
     logger.warn('StateTransitionError caught, message will not be retried.', { errorMessage: error.message });
-    await sendAuditEvent(
-      'AIS_EVENT_TRANSITION_IGNORED',
-      error.transition,
-      JSON.parse(record.body) as TxMAIngressEvent,
-      error.output,
-    );
   } else if (error instanceof RetryEventError) {
     logger.warn('RetryEventError caught, message will be retried.', { errorMessage: error.message });
     return record.messageId;
