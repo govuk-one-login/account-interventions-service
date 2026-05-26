@@ -74,7 +74,7 @@ function parseMessage(record: SQSRecord): string {
     );
 
   if (!validateEventCatalogue(recordBodyResult.data)) {
-    logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Event has failed event catalogue schema validation.`, {
+    logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Event has failed event catalogue schema validation.`, {
       validationErrors: validateEventCatalogue.errors,
     });
     addMetric(MetricNames.INVALID_EVENT_RECEIVED_EVENT_CATALOGUE, undefined, undefined, {
