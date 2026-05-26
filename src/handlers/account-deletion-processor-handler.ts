@@ -9,10 +9,13 @@ import { accountDeleteMessageSchema } from '../contracts/account-delete-message'
 import { prettifyError } from 'zod';
 import jsonSafeParse from '../commons/json-safe-parse';
 import { AUTH_DELETE_ACCOUNTSchema } from '@govuk-one-login/event-catalogue-schemas';
+import { addEventMetadataToSchema } from '../commons/compile-schema';
 
 const ajv2019 = new Ajv2019({ allErrors: true });
 
-const validateEventCatalogue = ajv2019.compile(AUTH_DELETE_ACCOUNTSchema);
+const validateEventCatalogue = ajv2019.compile(
+  addEventMetadataToSchema(AUTH_DELETE_ACCOUNTSchema, 'AUTH_DELETE_ACCOUNT'),
+);
 
 enum ParserErrorType {
   BODY_JSON_PARSER_ERROR = 'BODY_JSON_PARSER_ERROR',
