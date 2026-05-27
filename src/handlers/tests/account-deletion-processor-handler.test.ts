@@ -215,6 +215,7 @@ describe('Account Deletion Processor', () => {
         client_id: 'client_id',
         event_name: 'AUTH_DELETE_ACCOUNT',
         component_id: 'AUTH',
+        event_id: '1234',
         // eslint-disable-next-line unicorn/numeric-separators-style
         event_timestamp_ms: 1722953808667,
         extensions: {

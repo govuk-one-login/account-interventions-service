@@ -18,7 +18,7 @@ interface Schema {
   required: string[];
 }
 
-const addEventMetadataToSchema = (schema: Schema, eventName: string) => ({
+export const addEventMetadataToSchema = (schema: Schema, eventName: string) => ({
   ...schema,
   required: [...schema.required, 'event_id'],
   properties: {
@@ -29,6 +29,9 @@ const addEventMetadataToSchema = (schema: Schema, eventName: string) => ({
     },
     event_id: {
       type: 'string',
+    },
+    txma: {
+      type: 'object',
     },
   },
 });
