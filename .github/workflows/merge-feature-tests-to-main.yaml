@@ -9,11 +9,12 @@ on:
       - 'feature-tests/**'
       - '.github/workflows/merge-feature-tests-to-main.yaml'
   workflow_dispatch:
-    gitRef:
-      description: 'Input branch name, commit SHA, or tag'
-      required: true
-      type: string
-      default: main
+    inputs:
+      gitRef:
+        description: 'Input branch name, commit SHA, or tag'
+        required: true
+        type: string
+        default: main
 
 permissions:
   id-token: write
@@ -30,14 +31,14 @@ jobs:
           ref: ${{ inputs.gitRef }}
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # pin@6.0.0
+        uses: aws-actions/configure-aws-credentials@acca2b1b2070338fb9fd1ca27ecee81d687e58e5 # pin@6.1.2
         with:
           role-to-assume: ${{ secrets.TEST_GH_ACTIONS_ROLE_ARN }}
           aws-region: eu-west-2
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@376925c9d111252e87ae59691e5a442dd100ef6a # pin@v2.1.3
+        uses: aws-actions/amazon-ecr-login@fa648b43de3d4d023bcb3f89ed6940096949c419 # pin@v2.1.5
 
       - name: Build & Publish Docker Image as latest
         working-directory: feature-tests/
