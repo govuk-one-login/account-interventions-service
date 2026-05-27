@@ -21,7 +21,6 @@ This document proposes persisting interventions in a new DynamoDB table, written
 ## Assumptions
 
 - Interventions are independent between accounts
-- DynamoDB means we don't have to worry about scaling
 
 ---
 
