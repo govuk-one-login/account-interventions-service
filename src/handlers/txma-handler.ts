@@ -1,9 +1,9 @@
 import { SQSEvent, Context } from 'aws-lambda';
 import logger from '../commons/logger';
-import { TxMAEgressEvent } from '../data-types/interfaces';
 import { createSqsClient, sendBatchSqsMessage } from '../services/send-sqs-message';
 import { addMetric, metric } from '../commons/metrics';
 import { MetricNames } from '../data-types/constants';
+import jsonSafeParse from '../commons/json-safe-parse';
 
 export async function handler(event: SQSEvent, context: Context): Promise<void> {
   logger.addContext(context);
@@ -29,20 +29,33 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
   const interventionMessages = [];
 
   for (const [id, record] of event.Records.entries()) {
-    const body = JSON.parse(record.body) as TxMAEgressEvent;
+    const parseResult = jsonSafeParse(record.body);
+
+    if (!parseResult.success) {
+      logger.error('The event contains an invalid record.');
+      addMetric(MetricNames.TXMA_HANDLER_INVALID_EVENT);
+      continue;
+    }
+
+    const body = parseResult.data;
+
+    if (!(typeof body === 'object' && body && 'event_name' in body)) {
+      logger.error('The event contains an invalid record.');
+      addMetric(MetricNames.TXMA_HANDLER_INVALID_EVENT);
+      continue;
+    }
+
+    const message = {
+      Id: String(id),
+      MessageBody: record.body,
+    };
 
     if (body.event_name === 'AUTH_DELETE_ACCOUNT') {
       addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_DELETE);
-      deletionMessages.push({
-        Id: String(id),
-        MessageBody: record.body,
-      });
+      deletionMessages.push(message);
     } else {
       addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_INTERVENTION);
-      interventionMessages.push({
-        Id: String(id),
-        MessageBody: record.body,
-      });
+      interventionMessages.push(message);
     }
   }
 
