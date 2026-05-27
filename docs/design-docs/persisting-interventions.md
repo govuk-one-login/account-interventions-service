@@ -21,6 +21,7 @@ This document proposes persisting interventions in a new DynamoDB table, written
 ## Assumptions
 
 - Interventions are independent between accounts
+- A given account has a small number of rows that we need to read at any one time. Small here means we don't have to worry about query performance and can store and manipulate them without having to worry about memory.
 
 ---
 
@@ -53,6 +54,13 @@ Based on these consequences, using a co-mingling approach would necessitate extr
 It also removes our ability to trivially throw away the intervention rows while the table is write-only, which may be a useful step while iterating on the table specification.
 Setting up a new DynamoDB table is cheap and fairly simple, and we have existing infrastructure-as-code that we can use by analogy.
 Because of this, we're choosing a multiple table approach for this problem, and **not** using a co-mingling approach.
+
+##### Interactions between interventions
+
+- superseding
+- sequencing
+- ownership
+- forbidden interventions
 
 ---
 
@@ -90,6 +98,10 @@ Secondary access patterns (e.g. reporting across all accounts) should be served 
 Events can arrive out of order or be replayed, in which case AIS might already have taken action before the "first" of two events arrives.
 This means for ordering purposes we should rely on when AIS receives an event, which most of the time will provide the same ordering as `sentAt`
 `sentAt` is preserved as a separate attribute for audit purposes.
+
+##### Consequences
+
+- We have more complicated queries (updates)
 
 ---
 
