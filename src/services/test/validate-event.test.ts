@@ -1,8 +1,9 @@
-import { DynamoDBStateResult } from '../../data-types/interfaces';
+import { DynamoDBStateResult, TxMAIngressEvent as TxMAEvent } from '../../data-types/interfaces';
 import {
   validateEventAgainstSchema,
   validateEventIsNotInFuture,
   validateEventIsNotStale,
+  validateInterventionEvent,
   validateIfIdentityAcquired,
   attemptToParseJson,
 } from '../validate-event';
@@ -12,6 +13,7 @@ import { ValidationError } from '../../data-types/errors';
 import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { sendAuditEvent } from '../send-audit-events';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
+import { InterventionCodeEnum1 } from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_APPLIED';
 import { TICF_ACCOUNT_INTERVENTION } from '@govuk-one-login/event-catalogue/TICF_ACCOUNT_INTERVENTION';
 
 vi.mock('../../commons/metrics');
@@ -45,7 +47,7 @@ describe('validateEventAgainstSchema', () => {
   });
 
   it('Successfully validate AUTH_PASSWORD_RESET_SUCCESSFUL event', () => {
-    const TxMAEvent = {
+    const TxMAEvent: TxMAEvent = {
       event_timestamp_ms: timestamp.milliseconds - 5000,
       component_id: 'AUTH',
       timestamp: timestamp.seconds - 5,
@@ -81,7 +83,7 @@ describe('validateEventAgainstSchema', () => {
       },
     };
     expect(() => {
-      validateEventAgainstSchema(TxMAEvent);
+      validateEventAgainstSchema(TxMAEvent as TxMAEvent);
     }).not.toThrow();
     expect(addMetric).not.toHaveBeenCalledWith('INVALID_EVENT_RECEIVED_EVENT_CATALOGUE', undefined, undefined, {
       EVENT_NAME: 'TICF_ACCOUNT_INTERVENTION',
@@ -97,11 +99,10 @@ describe('validateEventAgainstSchema', () => {
         user_id: 'abc',
       },
       event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
-      event_id: '123',
-      blah: 'value',
+      // event_id: '123',
     };
     expect(() => {
-      validateEventAgainstSchema(TxMAEvent);
+      validateEventAgainstSchema(TxMAEvent as TxMAEvent);
     }).not.toThrow();
     expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED_EVENT_CATALOGUE', undefined, undefined, {
       EVENT_NAME: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
@@ -116,17 +117,16 @@ describe('validateEventAgainstSchema', () => {
       user: {
         user_id: 'abc',
       },
-      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+      event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
       event_id: '123',
       extensions: {
         intervention: {
           intervention_reason: 'reason',
-          // Missing required intervention_code
         },
       },
     };
     expect(() => {
-      validateEventAgainstSchema(TxMAEvent);
+      validateEventAgainstSchema(TxMAEvent as TxMAEvent);
     }).toThrow(new ValidationError('Invalid intervention event.'));
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledWith('Sensitive info - Event has failed schema validation.', {
@@ -148,12 +148,18 @@ describe('validateEventAgainstSchema', () => {
       },
     };
     expect(() => {
-      validateEventAgainstSchema(TxMAEvent);
+      validateEventAgainstSchema(TxMAEvent as TxMAEvent);
     }).toThrow(new ValidationError('Invalid intervention event.'));
+    validateInterventionEvent(TxMAEvent as TxMAEvent);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(logger.debug).toHaveBeenCalledWith('Sensitive info - Event has failed schema validation.', {
+      validationErrors: expect.anything() as unknown,
+    });
+    expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
 
   it('should return an error as extensions do not contain required fields', () => {
-    const TxMAEvent = {
+    const TxMAEvent: TxMAEvent = {
       event_timestamp_ms: timestamp.milliseconds - 5000,
       component_id: 'AUTH',
       timestamp: timestamp.seconds - 5,
@@ -176,13 +182,13 @@ describe('validateEventAgainstSchema', () => {
     const staleEvent = {
       timestamp: timestamp.seconds - 10,
       event_timestamp_ms: timestamp.milliseconds - 10_000,
-      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION as const,
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
       event_id: '123',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       extensions: {
         intervention: {
-          intervention_code: '01',
+          intervention_code: '01' as InterventionCodeEnum1,
           intervention_reason: 'something',
           originating_component_id: 'CMS',
           originator_reference_id: '1234567',
@@ -216,13 +222,13 @@ describe('validateEventAgainstSchema', () => {
     const staleEvent = {
       timestamp: timestamp.seconds - 5000,
       event_timestamp_ms: timestamp.milliseconds - 5000,
-      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION as const,
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
       event_id: '123',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       extensions: {
         intervention: {
-          intervention_code: '01',
+          intervention_code: '01' as InterventionCodeEnum1,
           intervention_reason: 'something',
           originating_component_id: 'CMS',
           originator_reference_id: '1234567',
@@ -255,14 +261,13 @@ describe('validateEventAgainstSchema', () => {
   it('should not throw if event is not stale', async () => {
     const nonStaleEvent = {
       timestamp: timestamp.seconds,
-      event_timestamp_ms: timestamp.milliseconds,
-      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION as const,
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
       event_id: '123',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       extensions: {
         intervention: {
-          intervention_code: '01',
+          intervention_code: '01' as InterventionCodeEnum1,
           intervention_reason: 'something',
           originating_component_id: 'CMS',
           originator_reference_id: '1234567',
@@ -291,14 +296,13 @@ describe('validateEventAgainstSchema', () => {
   it('should throw an error if event timestamp is in the future', async () => {
     const eventInTheFuture = {
       timestamp: timestamp.seconds + 10,
-      event_timestamp_ms: (timestamp.seconds + 10) * 1000,
-      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION as const,
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
       event_id: '123',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       extensions: {
         intervention: {
-          intervention_code: '01',
+          intervention_code: '01' as InterventionCodeEnum1,
           intervention_reason: 'something',
           originating_component_id: 'CMS',
           originator_reference_id: '1234567',
@@ -321,13 +325,13 @@ describe('validateEventAgainstSchema', () => {
     const eventNotInTheFuture = {
       timestamp: timestamp.seconds - 10,
       event_timestamp_ms: timestamp.milliseconds - 10_000,
-      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION as const,
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
       event_id: '123',
       component_id: 'TICF_CRI',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       extensions: {
         intervention: {
-          intervention_code: '01',
+          intervention_code: '01' as InterventionCodeEnum1,
           intervention_reason: 'something',
           originating_component_id: 'CMS',
           originator_reference_id: '1234567',
@@ -344,9 +348,8 @@ describe('validateEventAgainstSchema', () => {
 
   it('should throw if success is false for a ID Reset event', () => {
     const idResetEventWithoutSuccess = {
-      event_name: EventsEnum.IPV_ACCOUNT_INTERVENTION_END as const,
+      event_name: TriggerEventsEnum.IPV_ACCOUNT_INTERVENTION_END,
       event_id: '123',
-      event_timestamp_ms: 1_234_567_000,
       timestamp: 1_234_567,
       component_id: 'https://identity.account.gov.uk',
       user: {
@@ -361,17 +364,16 @@ describe('validateEventAgainstSchema', () => {
       },
     };
     expect(() => {
-      validateIfIdentityAcquired(idResetEventWithoutSuccess);
+      validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEventWithoutSuccess);
     }).toThrow(new ValidationError('Received event that does not meet criteria to lift intervention.'));
     expect(addMetric).toHaveBeenCalledWith(MetricNames.IDENTITY_NOT_SUFFICIENTLY_PROVED);
   });
 
   it('should not throw if success is true for a ID Reset event', () => {
     const idResetEvent = {
-      event_name: EventsEnum.IPV_ACCOUNT_INTERVENTION_END as const,
+      event_name: TriggerEventsEnum.IPV_ACCOUNT_INTERVENTION_END,
       event_id: '123',
       timestamp: 1_234_567,
-      event_timestamp_ms: 1_234_567_000,
       client_id: 'UNKNOWN',
       component_id: 'https://identity.account.gov.uk',
       user: {
@@ -386,17 +388,16 @@ describe('validateEventAgainstSchema', () => {
       },
     };
     expect(() => {
-      validateIfIdentityAcquired(idResetEvent);
+      validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEvent);
     }).not.toThrow();
     expect(addMetric).not.toHaveBeenCalled();
   });
 
   it('should throw if success field is not present in an ID Reset event', () => {
     const idResetEventLowConfidence = {
-      event_name: EventsEnum.IPV_ACCOUNT_INTERVENTION_END as const,
+      event_name: TriggerEventsEnum.IPV_ACCOUNT_INTERVENTION_END,
       event_id: '123',
       timestamp: 1_234_567,
-      event_timestamp_ms: 1_234_567_000,
       client_id: 'UNKNOWN',
       component_id: 'https://identity.account.gov.uk',
       user: {
@@ -410,9 +411,58 @@ describe('validateEventAgainstSchema', () => {
       },
     };
     expect(() => {
-      validateIfIdentityAcquired(idResetEventLowConfidence);
+      validateIfIdentityAcquired(EventsEnum.IPV_ACCOUNT_INTERVENTION_END, idResetEventLowConfidence);
     }).toThrow(new ValidationError('Received event that does not meet criteria to lift intervention.'));
     expect(addMetric).toHaveBeenCalledWith(MetricNames.IDENTITY_NOT_SUFFICIENTLY_PROVED);
+  });
+});
+
+describe('validateInterventionEvent', () => {
+  it('Successfully validate TICF_ACCOUNT_INTERVENTION event', () => {
+    const TxMAEvent: TICF_ACCOUNT_INTERVENTION & { event_id: string } = {
+      event_timestamp_ms: timestamp.milliseconds - 5000,
+      component_id: 'AUTH',
+      timestamp: timestamp.seconds - 5,
+      user: {
+        user_id: 'abc',
+      },
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+      event_id: '123',
+      extensions: {
+        intervention: {
+          intervention_code: '01',
+          intervention_reason: 'reason',
+        },
+      },
+    };
+    expect(() => {
+      validateInterventionEvent(TxMAEvent as TxMAEvent);
+    }).not.toThrow();
+  });
+
+  it('should return an error as intervention code is NAN', () => {
+    const TxMAEvent: TxMAEvent = {
+      event_timestamp_ms: timestamp.milliseconds - 5000,
+      component_id: 'AUTH',
+      timestamp: timestamp.seconds - 5,
+      user: {
+        user_id: 'abc',
+      },
+      event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+      event_id: '123',
+      extensions: {
+        intervention: {
+          intervention_code: 'nan' as InterventionCodeEnum1,
+          intervention_reason: 'reason',
+        },
+      },
+    };
+    expect(() => {
+      validateInterventionEvent(TxMAEvent);
+    }).toThrow(new ValidationError('Invalid intervention event.'));
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(logger.debug).toHaveBeenCalledWith('Invalid intervention request. Intervention code is NAN');
+    expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
   });
 });
 
