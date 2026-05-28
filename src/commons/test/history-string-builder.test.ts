@@ -1,8 +1,8 @@
-import { TxMAIngressEvent } from '../../data-types/interfaces';
 import { HistoryStringBuilder } from '../history-string-builder';
 import { TriggerEventsEnum } from '../../data-types/constants';
+import { TicfAccountIntervention } from '../../contracts/intervention-events';
 
-const interventionEventBody: TxMAIngressEvent = {
+const interventionEventBody: TicfAccountIntervention = {
   timestamp: 1000,
   event_timestamp_ms: 123_456,
   user: {
@@ -21,16 +21,7 @@ const interventionEventBody: TxMAIngressEvent = {
     },
   },
 };
-const resetPasswordEventBody: TxMAIngressEvent = {
-  event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
-  event_id: '123',
-  timestamp: 10_000,
-  event_timestamp_ms: 10_000_000,
-  component_id: 'UNKNOWN',
-  user: {
-    user_id: 'abc',
-  },
-};
+
 describe('history-string-builder', () => {
   const stringBuilder = new HistoryStringBuilder();
   it('should return a history string formatted correctly', () => {
@@ -76,12 +67,6 @@ describe('history-string-builder', () => {
     const historyString = '123456||01||originating_component_id|intervention_predecessor_id|requester_i';
     expect(() => stringBuilder.getHistoryObject(historyString)).toThrow(
       new Error('One of the required property was not found in the history string.'),
-    );
-  });
-
-  it('should throw if the event passed has no intervention information', () => {
-    expect(() => stringBuilder.getHistoryString(resetPasswordEventBody, 1_234_567)).toThrow(
-      new Error('No intervention information found in event.'),
     );
   });
 });

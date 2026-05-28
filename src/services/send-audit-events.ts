@@ -2,12 +2,7 @@ import { AppConfigService } from './app-config-service';
 import tracer from '../commons/tracer';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { SendMessageCommand, SendMessageCommandOutput, SQSClient } from '@aws-sdk/client-sqs';
-import {
-  AccountStateEngineOutput,
-  TxMAEgressEvent,
-  TxMAEgressInterventionEventName,
-  TxMAIngressEvent,
-} from '../data-types/interfaces';
+import { AccountStateEngineOutput, TxMAEgressEvent, TxMAEgressInterventionEventName } from '../data-types/interfaces';
 import logger from '../commons/logger';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import {
@@ -16,11 +11,13 @@ import {
   EventsEnum,
   MetricNames,
   State,
+  TriggerEventsEnum,
   userLedActionList,
 } from '../data-types/constants';
 import { addMetric } from '../commons/metrics';
 import { transitionConfiguration } from './account-states/config';
 import { AisEventIgnoredStaleBasicExtensions, AisEventIgnoredStaleExtensions } from '../events/ais-event-ignored-stale';
+import { InterventionEventMessage } from '../contracts/intervention-events';
 
 const appConfig = AppConfigService.getInstance();
 
@@ -43,7 +40,7 @@ const sqsClient = tracer.captureAWSv3Client(
 export async function sendAuditEvent(
   egressEventName: TxMAEgressInterventionEventName,
   ingressEventName: EventsEnum,
-  ingressTxMAEvent: TxMAIngressEvent,
+  ingressTxMAEvent: InterventionEventMessage,
   accountStateEngineOutput?: AccountStateEngineOutput,
 ): Promise<SendMessageCommandOutput | undefined> {
   logger.debug('sendAuditEvent function.');
@@ -57,7 +54,9 @@ export async function sendAuditEvent(
     event_timestamp_ms: timestamp.milliseconds,
     component_id: COMPONENT_ID,
     event_name: egressEventName,
-    user: { user_id: ingressTxMAEvent.user.user_id },
+    user: {
+      user_id: ingressTxMAEvent.user.user_id,
+    },
     extensions: buildExtensions(ingressTxMAEvent, ingressEventName, egressEventName, accountStateEngineOutput),
   };
 
@@ -83,7 +82,7 @@ export async function sendAuditEvent(
  * @returns - TxMAEgressExtensions object
  */
 function buildExtensions(
-  txMAIngressEvent: TxMAIngressEvent,
+  txMAIngressEvent: InterventionEventMessage,
   ingressEventName: EventsEnum,
   egressEventName: TxMAEgressInterventionEventName,
   stateEngineOutput: AccountStateEngineOutput | undefined,
@@ -91,8 +90,9 @@ function buildExtensions(
   if (stateEngineOutput) {
     return {
       trigger_event: txMAIngressEvent.event_name,
-      trigger_event_id: txMAIngressEvent.event_id ?? 'UNKNOWN',
-      ...txMAIngressEvent.extensions?.intervention,
+      trigger_event_id: txMAIngressEvent.event_id,
+      ...(txMAIngressEvent.event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION &&
+        txMAIngressEvent.extensions.intervention),
       description: userLedActionList.includes(ingressEventName)
         ? 'USER_LED_ACTION'
         : stateEngineOutput.interventionName,
@@ -104,8 +104,9 @@ function buildExtensions(
   }
   return {
     trigger_event: txMAIngressEvent.event_name,
-    trigger_event_id: txMAIngressEvent.event_id ?? 'UNKNOWN',
-    ...txMAIngressEvent.extensions?.intervention,
+    trigger_event_id: txMAIngressEvent.event_id,
+    ...(txMAIngressEvent.event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION &&
+      txMAIngressEvent.extensions.intervention),
   };
 }
 
