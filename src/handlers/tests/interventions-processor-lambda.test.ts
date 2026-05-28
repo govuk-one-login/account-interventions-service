@@ -10,8 +10,8 @@ import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
 import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { sendAuditEvent } from '../../services/send-audit-events';
+import { TxMAIngressEvent } from '../../data-types/interfaces';
 import { publishTimeToResolveMetrics } from '../../commons/metrics-helper';
-import { InterventionEventMessage, TicfAccountIntervention } from '../../contracts/intervention-events';
 
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
@@ -32,7 +32,7 @@ const now = getCurrentTimestamp();
 const t0ms = now.milliseconds;
 const t0s = now.seconds;
 
-const interventionEventBody: InterventionEventMessage = {
+const interventionEventBody: TxMAIngressEvent = {
   component_id: '',
   timestamp: t0s - 5,
   event_timestamp_ms: t0ms - 5000,
@@ -49,7 +49,7 @@ const interventionEventBody: InterventionEventMessage = {
   },
 };
 
-const interventionEventBodyInTheFuture: TicfAccountIntervention = {
+const interventionEventBodyInTheFuture = {
   component_id: '',
   timestamp: getCurrentTimestamp().seconds + 5,
   event_timestamp_ms: getCurrentTimestamp().milliseconds + 5000,
@@ -305,18 +305,7 @@ describe('intervention processor handler', () => {
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
         'AIS_EVENT_TRANSITION_APPLIED',
         EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
-        {
-          component_id: 'UNKNOWN',
-          event_id: '123',
-          event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
-          // eslint-disable-next-line unicorn/numeric-separators-style
-          event_timestamp_ms: 1234562890,
-          // eslint-disable-next-line unicorn/numeric-separators-style
-          timestamp: 1234562,
-          user: {
-            user_id: 'abc',
-          },
-        },
+        resetPasswordEventBody,
         {
           stateResult: {
             blocked: false,
@@ -373,8 +362,6 @@ describe('intervention processor handler', () => {
     });
 
     it('should return message id to be retried if event is in the future', async () => {
-      mockValidateEventAgainstSchema.mockReturnValueOnce(interventionEventBodyInTheFuture);
-
       mockRecord.body = JSON.stringify(interventionEventBodyInTheFuture);
       expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
         batchItemFailures: [
@@ -459,7 +446,6 @@ describe('intervention processor handler', () => {
     });
 
     it('should successfully process valid event from fraud', async () => {
-      mockValidateEventAgainstSchema.mockReturnValueOnce(interventionEventBody);
       mockRetrieveRecords.mockReturnValue({
         blocked: false,
         reproveIdentity: false,
@@ -529,10 +515,7 @@ describe('intervention processor handler', () => {
         messageId: '123',
         receiptHandle: '',
         body: JSON.stringify({
-          component_id: 'UNKNOWN',
-          event_id: '123',
           timestamp: getCurrentTimestamp().milliseconds + 500_000,
-          event_timestamp_ms: getCurrentTimestamp().milliseconds + 500_000,
           user: {
             user_id: 'abc',
           },

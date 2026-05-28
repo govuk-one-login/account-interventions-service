@@ -9,13 +9,14 @@ import {
   noMetadata,
   TriggerEventsEnum,
 } from '../data-types/constants';
-import { DynamoDBStateResult, StateDetails } from '../data-types/interfaces';
+import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
 import { RetryEventError, StateTransitionError, TooManyRecordsError, ValidationError } from '../data-types/errors';
 import {
   attemptToParseJson,
   validateEventAgainstSchema,
   validateEventIsNotInFuture,
   validateEventIsNotStale,
+  validateInterventionEvent,
   validateIfIdentityAcquired,
 } from '../services/validate-event';
 import { AppConfigService } from '../services/app-config-service';
@@ -25,7 +26,6 @@ import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { sendAuditEvent } from '../services/send-audit-events';
 import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
 import { publishTimeToResolveMetrics, updateAccountStateCountMetric } from '../commons/metrics-helper';
-import { InterventionEventMessage } from '../contracts/intervention-events';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
@@ -74,33 +74,36 @@ export async function handler(event: SQSEvent, context: Context): Promise<SQSBat
  */
 async function processSQSRecord(record: SQSRecord) {
   const currentTimestamp = getCurrentTimestamp();
+  const recordBody = attemptToParseJson(record.body) as TxMAIngressEvent;
+  validateEventAgainstSchema(recordBody);
+  const eventName = getEventName(recordBody);
+  logger.debug('Intervention received.', { intervention: eventName });
+  validateIfIdentityAcquired(eventName, recordBody);
+  await validateEventIsNotInFuture(eventName, recordBody);
 
-  const recordBody = attemptToParseJson(record.body);
+  const userId = recordBody.user.user_id;
+  const eventTimestampInMs = recordBody.event_timestamp_ms ?? recordBody.timestamp * 1000;
 
-  const { result, eventName } = await validateRecord(recordBody);
-
-  const userId = result.user.user_id;
-
-  addMetric(MetricNames.EVENT_DELIVERY_LATENCY, noMetadata, currentTimestamp.milliseconds - result.event_timestamp_ms);
+  addMetric(MetricNames.EVENT_DELIVERY_LATENCY, noMetadata, currentTimestamp.milliseconds - eventTimestampInMs);
 
   const itemFromDB = await service.getAccountStateInformation(userId);
 
   const currentAccountState = formCurrentAccountStateObject(itemFromDB);
 
   if (itemFromDB) {
-    await validateAccountIsNotDeleted(eventName, userId, result, currentAccountState, itemFromDB);
-    await validateEventIsNotStale(eventName, result, currentAccountState, itemFromDB);
+    await validateAccountIsNotDeleted(eventName, userId, recordBody, currentAccountState, itemFromDB);
+    await validateEventIsNotStale(eventName, recordBody, currentAccountState, itemFromDB);
   }
 
-  const statusResult = await applyEventTransition(eventName, currentAccountState, itemFromDB?.intervention, result);
+  const statusResult = await applyEventTransition(eventName, currentAccountState, itemFromDB?.intervention, recordBody);
   const partialCommandInput = buildPartialUpdateAccountStateCommand(
     statusResult.stateResult,
+    eventName,
     currentTimestamp.milliseconds,
-    result,
+    recordBody,
     itemFromDB?.history ?? [],
     statusResult.interventionName,
   );
-
   logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Updating user status`, { userId, partialCommandInput });
   await service.updateUserStatus(userId, partialCommandInput);
   publishTimeToResolveMetrics(
@@ -113,33 +116,20 @@ async function processSQSRecord(record: SQSRecord) {
 
   updateAccountStateCountMetric(currentAccountState, statusResult.stateResult);
   addMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
-  await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, result, statusResult);
-}
-
-async function validateRecord(recordBody: unknown) {
-  const result = validateEventAgainstSchema(recordBody);
-  const eventName = getEventName(result);
-  logger.debug('Intervention received.', { intervention: eventName });
-  validateIfIdentityAcquired(result);
-  await validateEventIsNotInFuture(eventName, result);
-
-  return {
-    result,
-    eventName,
-  };
+  await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, recordBody, statusResult);
 }
 
 async function applyEventTransition(
   event: EventsEnum,
   initialState: StateDetails,
   interventionName: string | undefined,
-  result: InterventionEventMessage,
+  ingressTxMAEvent: TxMAIngressEvent,
 ) {
   try {
     return accountStateEngine.applyEventTransition(event, initialState, interventionName);
   } catch (error) {
     if (error instanceof StateTransitionError)
-      await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, result, error.output);
+      await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, ingressTxMAEvent, error.output);
 
     throw error;
   }
@@ -175,13 +165,15 @@ function handleError(error: unknown, record: SQSRecord) {
  * @param recordBody - the record body from the SQS message
  * @returns - the Enum representation of the intervention
  */
-function getEventName(recordBody: InterventionEventMessage): EventsEnum {
+function getEventName(recordBody: TxMAIngressEvent): EventsEnum {
   logger.debug('event is valid, starting processing');
   if (recordBody.event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION) {
-    const interventionCode = recordBody.extensions.intervention.intervention_code;
+    validateInterventionEvent(recordBody);
+    const interventionCode = recordBody.extensions?.intervention?.intervention_code;
+    if (!interventionCode) throw new Error('Missing intervention code from TxMAIngressEvent');
     return accountStateEngine.getInterventionEnumFromCode(interventionCode);
   }
-  return recordBody.event_name;
+  return recordBody.event_name as unknown as EventsEnum;
 }
 
 /**
@@ -195,7 +187,7 @@ function getEventName(recordBody: InterventionEventMessage): EventsEnum {
 async function validateAccountIsNotDeleted(
   intervention: EventsEnum,
   userId: string,
-  record: InterventionEventMessage,
+  record: TxMAIngressEvent,
   initialState: StateDetails,
   itemFromDB: DynamoDBStateResult,
 ) {

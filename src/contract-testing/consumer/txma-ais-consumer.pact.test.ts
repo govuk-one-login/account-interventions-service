@@ -4,6 +4,7 @@ import { boolean, number, string } from '@pact-foundation/pact/src/v3/matchers';
 import { validateEventAgainstSchema } from '../../services/validate-event';
 import path from 'node:path';
 import { AnyJson } from '@pact-foundation/pact/src/common/jsonTypes';
+import { TxMAIngressEvent } from '../../data-types/interfaces';
 const { like } = Matchers;
 
 describe('TxMA & AIS - Contract Testing - Consumer', () => {
@@ -21,9 +22,7 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
         .given('AIS is healthy')
         .expectsToReceive('a valid intervention event')
         .withContent({
-          component_id: '',
           timestamp: like(1_705_318_190),
-          event_timestamp_ms: number(1_705_318_190_000),
           event_name: 'TICF_ACCOUNT_INTERVENTION',
           user: {
             user_id: string('urn:fdc:gov.uk:2022:USER_ONE'),
@@ -41,9 +40,7 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
         .given('AIS is healthy')
         .expectsToReceive('a valid user action event - reset password')
         .withContent({
-          component_id: '',
           timestamp: number(1_705_318_190),
-          event_timestamp_ms: number(1_705_318_190_000),
           event_name: like('AUTH_PASSWORD_RESET_SUCCESSFUL'),
           user: {
             user_id: string('urn:fdc:gov.uk:2022:USER_ONE'),
@@ -55,9 +52,7 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
         .given('AIS is healthy')
         .expectsToReceive('a valid user action event - reset password')
         .withContent({
-          component_id: '',
           timestamp: number(1_705_318_190),
-          event_timestamp_ms: number(1_705_318_190_000),
           event_name: like('IPV_ACCOUNT_INTERVENTION_END'),
           user: {
             user_id: string('urn:fdc:gov.uk:2022:USER_ONE'),
@@ -83,7 +78,8 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
 });
 
 function interventionMessageValidator(event: AnyJson | Buffer) {
-  validateEventAgainstSchema(event);
+  validateEventAgainstSchema(event as unknown as TxMAIngressEvent);
+  return;
 }
 
 function deleteAccountEventValidator(event: AnyJson | Buffer) {
@@ -91,4 +87,5 @@ function deleteAccountEventValidator(event: AnyJson | Buffer) {
   if (!userId || typeof userId !== 'string' || userId.trim() === '') {
     throw new Error('Invalid Message');
   }
+  return;
 }

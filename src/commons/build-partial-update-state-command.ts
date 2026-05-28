@@ -1,10 +1,9 @@
-import { StateDetails } from '../data-types/interfaces';
+import { StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
 import { UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { AISInterventionTypes, EventsEnum, MetricNames } from '../data-types/constants';
 import { addMetric } from './metrics';
 import { HistoryStringBuilder } from './history-string-builder';
 import { AppConfigService } from '../services/app-config-service';
-import { InterventionEventMessage } from '../contracts/intervention-events';
 
 type DeepRequiredKey<T, K extends keyof T> = Omit<T, K> & {
   [P in K]-?: Exclude<T[P], undefined>;
@@ -21,12 +20,13 @@ type DeepRequiredKey<T, K extends keyof T> = Omit<T, K> & {
  */
 export function buildPartialUpdateAccountStateCommand(
   finalState: StateDetails,
+  eventName: EventsEnum,
   currentTimestamp: number,
-  interventionEvent: InterventionEventMessage,
+  interventionEvent: TxMAIngressEvent,
   historyList: string[],
   interventionName?: AISInterventionTypes,
 ): Partial<UpdateItemCommandInput> {
-  const eventTimestamp = interventionEvent.event_timestamp_ms;
+  const eventTimestamp = interventionEvent.event_timestamp_ms ?? interventionEvent.timestamp * 1000;
 
   const baseUpdateItemCommandInput: DeepRequiredKey<
     Partial<UpdateItemCommandInput>,
@@ -49,7 +49,7 @@ export function buildPartialUpdateAccountStateCommand(
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
   };
 
-  if (interventionEvent.event_name === EventsEnum.IPV_ACCOUNT_INTERVENTION_END) {
+  if (eventName === EventsEnum.IPV_ACCOUNT_INTERVENTION_END) {
     baseUpdateItemCommandInput.ExpressionAttributeNames['#RIdA'] = 'reprovedIdentityAt';
     baseUpdateItemCommandInput.ExpressionAttributeValues[':rida'] = { N: eventTimestamp.toString() };
     baseUpdateItemCommandInput.ExpressionAttributeNames['#H'] = 'history';
@@ -61,8 +61,8 @@ export function buildPartialUpdateAccountStateCommand(
   }
 
   if (
-    interventionEvent.event_name === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL ||
-    interventionEvent.event_name === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT
+    eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL ||
+    eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT
   ) {
     baseUpdateItemCommandInput.ExpressionAttributeNames['#RPswdA'] = 'resetPasswordAt';
     baseUpdateItemCommandInput.ExpressionAttributeValues[':rpswda'] = { N: eventTimestamp.toString() };
@@ -78,7 +78,6 @@ export function buildPartialUpdateAccountStateCommand(
     addMetric(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
     throw new Error('The intervention received did not have an interventionName field.');
   }
-
   baseUpdateItemCommandInput.ExpressionAttributeNames['#INT'] = 'intervention';
   baseUpdateItemCommandInput.ExpressionAttributeValues[':int'] = { S: interventionName };
   baseUpdateItemCommandInput.ExpressionAttributeNames['#AA'] = 'appliedAt';

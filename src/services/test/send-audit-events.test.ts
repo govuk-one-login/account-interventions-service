@@ -15,6 +15,7 @@ import logger from '../../commons/logger';
 import { AppConfigService } from '../app-config-service';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import 'aws-sdk-client-mock-vitest/extend';
+import { TxMAIngressEvent } from '../../data-types/interfaces';
 
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
@@ -26,14 +27,14 @@ vi.mock('../../commons/get-current-timestamp', () => ({
   })),
 }));
 
-const ingressInterventionEvent = {
+const ingressInterventionEvent: TxMAIngressEvent = {
   component_id: '',
   timestamp: 5,
   event_timestamp_ms: 5000,
   user: {
     user_id: 'testUserId',
   },
-  event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION as const,
+  event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
   event_id: '123',
   extensions: {
     intervention: {
@@ -43,14 +44,14 @@ const ingressInterventionEvent = {
   },
 };
 
-const ingressEventWithExtraInterventionData = {
+const ingressEventWithExtraInterventionData: TxMAIngressEvent = {
   component_id: '',
   timestamp: 5,
   event_timestamp_ms: 5000,
   user: {
     user_id: 'testUserId',
   },
-  event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION as const,
+  event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
   event_id: '123',
   extensions: {
     intervention: {
@@ -63,7 +64,7 @@ const ingressEventWithExtraInterventionData = {
 };
 
 const ingressUserActionEvent = {
-  event_name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL as const,
+  event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
   event_id: '123',
   timestamp: 5,
   event_timestamp_ms: 5000,

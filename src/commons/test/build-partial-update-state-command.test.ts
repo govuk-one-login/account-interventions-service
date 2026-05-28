@@ -1,12 +1,7 @@
-import { StateDetails } from '../../data-types/interfaces';
+import { StateDetails, TxMAIngressEvent } from '../../data-types/interfaces';
 import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { buildPartialUpdateAccountStateCommand } from '../build-partial-update-state-command';
 import { addMetric } from '../metrics';
-import {
-  AuthPasswordResetSuccessful,
-  IpvAccountInterventionEnd,
-  TicfAccountIntervention,
-} from '../../contracts/intervention-events';
 
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
@@ -17,8 +12,7 @@ vi.mock('../../commons/get-current-timestamp', () => ({
     seconds: 1_706_544_555,
   })),
 }));
-
-const interventionEventBody: TicfAccountIntervention = {
+const interventionEventBody: TxMAIngressEvent = {
   timestamp: 1000,
   event_timestamp_ms: 123_456,
   user: {
@@ -37,28 +31,22 @@ const interventionEventBody: TicfAccountIntervention = {
     },
   },
 };
-
-const resetPasswordEventBody: AuthPasswordResetSuccessful = {
-  event_name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+const resetPasswordEventBody = {
+  event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
   event_id: '123',
   timestamp: 10_000,
   event_timestamp_ms: 10_000_000,
+  client_id: 'UNKNOWN',
   component_id: 'UNKNOWN',
   user: {
     user_id: 'abc',
+    email: '',
+    phone: 'UNKNOWN',
+    ip_address: '',
+    session_id: '',
+    persistent_session_id: '',
+    govuk_signin_journey_id: '',
   },
-};
-
-const ipvAccountInterventionEventBody: IpvAccountInterventionEnd = {
-  event_name: EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
-  event_id: '123',
-  timestamp: 10_000,
-  event_timestamp_ms: 10_000_000,
-  component_id: 'UNKNOWN',
-  user: {
-    user_id: 'abc',
-  },
-  extensions: {},
 };
 
 describe('build-partial-update-state-command', () => {
@@ -69,6 +57,7 @@ describe('build-partial-update-state-command', () => {
       resetPassword: true,
       reproveIdentity: true,
     };
+    const userAction = EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL;
     const expectedOutput = {
       ExpressionAttributeNames: {
         '#B': 'blocked',
@@ -90,7 +79,7 @@ describe('build-partial-update-state-command', () => {
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda, #H = :h',
     };
-    const command = buildPartialUpdateAccountStateCommand(state, 4444, resetPasswordEventBody, []);
+    const command = buildPartialUpdateAccountStateCommand(state, userAction, 4444, resetPasswordEventBody, []);
     expect(command).toEqual(expectedOutput);
   });
 
@@ -101,8 +90,8 @@ describe('build-partial-update-state-command', () => {
       resetPassword: true,
       reproveIdentity: true,
     };
-    const command = buildPartialUpdateAccountStateCommand(state, 4444, ipvAccountInterventionEventBody, []);
-    expect(command).toEqual({
+    const userAction = EventsEnum.IPV_ACCOUNT_INTERVENTION_END;
+    const expectedOutput = {
       ExpressionAttributeNames: {
         '#B': 'blocked',
         '#H': 'history',
@@ -122,7 +111,9 @@ describe('build-partial-update-state-command', () => {
         ':rida': { N: '10000000' },
       },
       UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida, #H = :h',
-    });
+    };
+    const command = buildPartialUpdateAccountStateCommand(state, userAction, 4444, resetPasswordEventBody, []);
+    expect(command).toEqual(expectedOutput);
   });
 
   it('should return a partial update command given an intervention is applied', () => {
@@ -132,6 +123,7 @@ describe('build-partial-update-state-command', () => {
       resetPassword: true,
       reproveIdentity: false,
     };
+    const intervention = EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET;
     const expectedOutput = {
       ExpressionAttributeNames: {
         '#B': 'blocked',
@@ -160,6 +152,7 @@ describe('build-partial-update-state-command', () => {
     };
     const command = buildPartialUpdateAccountStateCommand(
       state,
+      intervention,
       4444,
       interventionEventBody,
       [],
@@ -174,6 +167,7 @@ describe('build-partial-update-state-command', () => {
       resetPassword: false,
       reproveIdentity: false,
     };
+    const intervention = EventsEnum.FRAUD_UNSUSPEND_ACCOUNT;
     const expectedOutput = {
       ExpressionAttributeNames: {
         '#B': 'blocked',
@@ -202,6 +196,7 @@ describe('build-partial-update-state-command', () => {
     };
     const command = buildPartialUpdateAccountStateCommand(
       state,
+      intervention,
       4444,
       interventionEventBody,
       [],
@@ -217,6 +212,7 @@ describe('build-partial-update-state-command', () => {
       resetPassword: false,
       reproveIdentity: true,
     };
+    const intervention = EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION;
     const expectedOutput = {
       ExpressionAttributeNames: {
         '#B': 'blocked',
@@ -245,6 +241,7 @@ describe('build-partial-update-state-command', () => {
     };
     const command = buildPartialUpdateAccountStateCommand(
       state,
+      intervention,
       4444,
       interventionEventBody,
       [],
@@ -252,7 +249,6 @@ describe('build-partial-update-state-command', () => {
     );
     expect(command).toEqual(expectedOutput);
   });
-
   it('should return a partial update command given an intervention is applied and id reset and psw reset user actions are needed', () => {
     const state: StateDetails = {
       blocked: false,
@@ -260,6 +256,7 @@ describe('build-partial-update-state-command', () => {
       resetPassword: true,
       reproveIdentity: true,
     };
+    const intervention = EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION;
     const expectedOutput = {
       ExpressionAttributeNames: {
         '#B': 'blocked',
@@ -278,7 +275,7 @@ describe('build-partial-update-state-command', () => {
         ':rp': { BOOL: true },
         ':ri': { BOOL: true },
         ':ua': { N: '4444' },
-        ':sa': { N: '123456' },
+        ':sa': { N: '1000000' },
         ':aa': { N: '4444' },
         ':h': {
           L: [{ S: '1000000|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' }],
@@ -288,18 +285,22 @@ describe('build-partial-update-state-command', () => {
       UpdateExpression:
         'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = :h REMOVE resetPasswordAt, reprovedIdentityAt',
     };
-
+    const interventionEventBodyNoMsTimestamp = {
+      ...interventionEventBody,
+      event_timestamp_ms: undefined,
+    };
     const command = buildPartialUpdateAccountStateCommand(
       state,
+      intervention,
       4444,
-      interventionEventBody,
+      interventionEventBodyNoMsTimestamp as unknown as TxMAIngressEvent,
       ['1706544554234|TICF_CRI|02|reason|originating_component_id|originator_reference_id|requester_id'],
       AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
     );
     expectedOutput.ExpressionAttributeValues[':h'] = {
       L: [
         { S: '1706544554234|TICF_CRI|02|reason|originating_component_id|originator_reference_id|requester_id' },
-        { S: '123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' },
+        { S: '1000000|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id' },
       ],
     };
     expect(command).toEqual(expectedOutput);
@@ -312,7 +313,8 @@ describe('build-partial-update-state-command', () => {
       resetPassword: true,
       reproveIdentity: true,
     };
-    expect(() => buildPartialUpdateAccountStateCommand(state, 4444, interventionEventBody, [])).toThrow(
+    const intervention = EventsEnum.FRAUD_BLOCK_ACCOUNT;
+    expect(() => buildPartialUpdateAccountStateCommand(state, intervention, 4444, interventionEventBody, [])).toThrow(
       new Error('The intervention received did not have an interventionName field.'),
     );
     expect(addMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_DID_NOT_HAVE_NAME_IN_CURRENT_CONFIG);
