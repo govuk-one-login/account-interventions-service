@@ -37,24 +37,6 @@ Both use DynamoDB and could coexist, but the choice of approach affects the tabl
 
 #### General concerns
 
-##### Co-mingling data in the table
-
-Every case we discuss in this document involves using account ID as the partition key, and the current account status table also uses account ID as a partition key.
-This means a natural option is to store all rows in the same table and tag them so we know what the difference is.
-Consequences of this co-mingling approach compared with an approach using multiple tables are:
-
-- We don't need to create or maintain another table and the access to that table
-- We need to tag rows so we know what kind of object they represent
-- We need to handle existing rows which aren't tagged
-- We need to use the existing sort key on the account status table to do queries on interventions
-- We need to add logic to the application to handle the different kinds of rows and tags
-- We wouldn't be trivially able to throw all the intervention rows away and start again
-
-Based on these consequences, using a co-mingling approach would necessitate extra complexity in the application and the table itself while saving the cost of creating a new table.
-It also removes our ability to trivially throw away the intervention rows while the table is write-only, which may be a useful step while iterating on the table specification.
-Setting up a new DynamoDB table is cheap and fairly simple, and we have existing infrastructure-as-code that we can use by analogy.
-Because of this, we're choosing a multiple table approach for this problem, and **not** using a co-mingling approach.
-
 ##### Interactions between interventions
 
 - superseding
@@ -288,6 +270,27 @@ The relevant infrastructure will be deployed identically across environments mak
 ##### Mutation testing
 The new service is in scope for Stryker.
 The `persistIntervention` method and its callers should achieve the same mutation score threshold as the rest of the codebase.
+
+## Rejected Solutions
+
+### Co-mingling data in the table
+
+Every case we discuss in this document involves using account ID as the partition key, and the current account status table also uses account ID as a partition key.
+This means a natural option is to store all rows in the same table and tag them so we know what the difference is.
+Consequences of this co-mingling approach compared with an approach using multiple tables are:
+
+- We don't need to create or maintain another table and the access to that table
+- We need to tag rows so we know what kind of object they represent
+- We need to handle existing rows which aren't tagged
+- We need to use the existing sort key on the account status table to do queries on interventions
+- We need to add logic to the application to handle the different kinds of rows and tags
+- We wouldn't be trivially able to throw all the intervention rows away and start again
+
+Based on these consequences, using a co-mingling approach would necessitate extra complexity in the application and the table itself while saving the cost of creating a new table.
+It also removes our ability to trivially throw away the intervention rows while the table is write-only, which may be a useful step while iterating on the table specification.
+Setting up a new DynamoDB table is cheap and fairly simple, and we have existing infrastructure-as-code that we can use by analogy.
+Because of this, we're choosing a multiple table approach for this problem, and **not** using a co-mingling approach.
+
 
 ## Appendices
 
