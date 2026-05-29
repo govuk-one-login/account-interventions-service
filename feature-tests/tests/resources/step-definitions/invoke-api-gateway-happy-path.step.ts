@@ -86,19 +86,13 @@ describeFeature(feature, ({ Scenario, ScenarioOutline, BeforeEachScenario }) => 
       });
 
       Then(
-        'I expect the egress queue response with all the enhanced fields send to the ingress queue for the event type <enhancedAisEventType>',
+        'I expect the egress queue response without the enhanced fields send to the ingress queue for the event type <enhancedAisEventType>',
         async () => {
           const receivedMessage = await filterUserIdInMessages(testUserId);
           const body = receivedMessage[0].Body;
           const extensions = body ? attemptParseJSON(body).extensions : {};
-          expect(extensions.a_new_field_number).toEqual(
-            aisEventsWithEnhancedFields[enhancedAisEventType as keyof typeof aisEventsWithEnhancedFields].extensions
-              .intervention.a_new_field_number,
-          );
-          expect(extensions.a_new_field_string).toEqual(
-            aisEventsWithEnhancedFields[enhancedAisEventType as keyof typeof aisEventsWithEnhancedFields].extensions
-              .intervention.a_new_field_string,
-          );
+          expect(extensions.a_new_field_number).toEqual(undefined);
+          expect(extensions.a_new_field_string).toEqual(undefined);
         },
       );
     },
