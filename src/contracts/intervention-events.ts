@@ -21,7 +21,7 @@ const ticfAccountInterventionSchema = baseInterventionMessageSchema.safeExtend({
       intervention_code: z.string(),
       intervention_reason: z.string(),
       originating_component_id: z.string().optional(),
-      originator_reference_id: z.string().optional(),
+      originator_reference_id: z.union([z.string(), z.array(z.string())]).optional(),
       requester_id: z.string().optional(),
     }),
   }),

@@ -26,10 +26,18 @@ export class HistoryStringBuilder {
     intervention_code: string,
     intervention_reason: string,
     originating_component_id = '',
-    intervention_predecessor_id = '',
+    intervention_predecessor_id: string | string[] | undefined = '',
     requester_id = '',
   ) {
-    return `${event_timestamp_ms}${this.separator}${component_id}${this.separator}${intervention_code}${this.separator}${intervention_reason}${this.separator}${originating_component_id}${this.separator}${intervention_predecessor_id}${this.separator}${requester_id}`;
+    return [
+      event_timestamp_ms,
+      component_id,
+      intervention_code,
+      intervention_reason,
+      originating_component_id,
+      intervention_predecessor_id,
+      requester_id,
+    ].join(this.separator);
   }
 
   /**
