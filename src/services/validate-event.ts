@@ -3,7 +3,7 @@ import logger from '../commons/logger';
 import { addMetric } from '../commons/metrics';
 import { AISInterventionTypes, EventsEnum, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
 import { RetryEventError, ValidationError } from '../data-types/errors';
-import { compileSchema2019 } from '../commons/compile-schema';
+import { compileSchema } from '../commons/compile-schema';
 import { EventCatalogueCombinedSchema } from '../data-types/event-catalogue-combined-schema';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { sendAuditEvent } from './send-audit-events';
@@ -11,7 +11,7 @@ import { AccountStateEngine } from './account-states/account-state-engine';
 import jsonSafeParse from '../commons/json-safe-parse';
 import { InterventionEventMessage, interventionMessageSchema } from '../contracts/intervention-events';
 
-const validateEventCatalogue = compileSchema2019(EventCatalogueCombinedSchema);
+const validateEventCatalogue = compileSchema(EventCatalogueCombinedSchema);
 
 /**
  * A function to check the event has the necessary fields to continue with the processing.

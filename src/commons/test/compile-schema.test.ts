@@ -9,7 +9,7 @@ describe('compile schema', () => {
   it('should throw if schema is not valid', () => {
     const schema = {
       definitions: {},
-      $schema: 'http://json-schema.org/draft-07/schema#',
+      $schema: 'https://json-schema.org/draft/2019-09/schema',
       $id: 'https://example.com/object1689242393.json',
       title: 'schema',
       description: 'This is an example of invalid schema',
