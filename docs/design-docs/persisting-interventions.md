@@ -59,7 +59,6 @@ This row is updates as an intervention moves through the state lifecycle.
 | `createdAt`              | Number        | Sort key      | Unix timestamp in **milliseconds** at which AIS wrote this record. Enables chronological ordering within a partition and supports range queries (e.g. "all interventions for account X since time T"). |
 | `interventionId`         | String        | —             | A generated UUIDv4. Provides a stable, globally unique identifier for this intervention record that can be referenced in audit trails, support tickets, and downstream systems without exposing the `accountId`. |
 | `interventionCode`       | String        | —             | The numeric code from `Codes` enum (e.g. `"01"`, `"02"`). Preserved verbatim from the ingress event. |
-| `interventionName`       | String        | —             | The resolved `AISInterventionTypes` enum value (e.g. `AIS_ACCOUNT_SUSPENDED`). Denormalised here so consumers do not need to join against config. |
 | `interventionReason`     | String        | —             | Free-text reason from `extensions.intervention.intervention_reason` in the ingress event. |
 | `interventionState`      | String        | —             | The current state of the intervention: `created`, `applied`, `superseded`, `mitigated`, or `removed`. |
 | `sentAt`                 | Number        | —             | Unix timestamp in milliseconds from `event_timestamp_ms` (or `timestamp * 1000`). When the originating system sent the event. |
@@ -67,7 +66,7 @@ This row is updates as an intervention moves through the state lifecycle.
 | `originatingComponentId` | String        | —             | `extensions.intervention.originating_component_id`. Optional — not all events carry it. Test fixtures consistently show `component_id: 'TICF_CRI'` paired with `originating_component_id: 'CMS'`, confirming the two fields are not redundant. Both are preserved verbatim; the precise semantic distinction is owned by the upstream systems. |
 | `requesterId`            | String        | —             | `extensions.intervention.requester_id`. The identity of the human or system that requested the intervention - omitted for automated interventions. |
 | `originatorReferenceId`  | String        | —             | `extensions.intervention.originator_reference_id`. The reference ID in the originating system. |
-| `ttl`                    | Number        | —             | Unix timestamp in **seconds** at which DynamoDB should expire this item. Set to `createdAt / 1000 + retentionSeconds`. Retention period should match the programme's data retention policy (currently 2 years / 63,072,000 seconds, consistent with `DELETED_ACCOUNT_RETENTION_SECONDS`). |
+| `ttl`                    | Number        | —             | Optional. Unix timestamp in seconds for DynamoDB TTL expiry. |
 
 ##### Why `accountId` as partition key?
 The dominant access pattern is "give me all interventions for this account".
@@ -112,38 +111,51 @@ Each row in the event log represents one transition in that state machine for on
 |------------------------------|---------------|---------------------------------------|-------|
 | `eventId`                    | String        | -                                     | A generated UUIDv4 uniquely identifying this event. |
 | `accountId`                  | String        | Partition key                         | The user's subject identifier. All events for a given user share this partition key. |
-| `interventionId`             | String        | Sort key component (B-1)              | A generated UUIDv4 assigned when the intervention is first created. Shared across all events for the same intervention, allowing all events for a single intervention to be grouped. |
-| `occurredAt`                 | Number        | Sort key component (B-2)              | Unix timestamp in milliseconds at which this event was written by AIS. |
+| `interventionId`             | String        | Sort key component                    | A generated UUIDv4 assigned when the intervention is first created. Shared across all events for the same intervention, allowing all events for a single intervention to be grouped. |
+| `createdAt`                  | Number        | Sort key component (B-2)              | Unix timestamp in milliseconds at which this event was written by AIS. |
 | `interventionState`          | String        | —                                     | The state this event transitions the intervention into: `created`, `applied`, `superseded`, `mitigated`, or `removed`. |
-| `interventionCode`           | String        | —                                     | From the `Codes` enum. Present on `created` events; may be omitted on subsequent events. |
-| `interventionName`           | String        | —                                     | Resolved `AISInterventionTypes` value. Present on `created` events. |
-| `interventionReason`         | String        | —                                     | Free-text reason. Present on `created` events. |
+| `interventionCode`           | String        | —                                     | From the `Codes` enum. Duplicated across all events for a given intervention. |
+| `interventionReason`         | String        | —                                     | Free-text reason. Duplicated across all events for a given intervention. |
 | `sentAt`                     | Number        | —                                     | Unix timestamp in milliseconds from the ingress event. |
 | `componentId`                | String        | —                                     | `component_id` from the ingress event. |
 | `originatingComponentId`     | String        | —                                     | Optional. `extensions.intervention.originating_component_id`. |
 | `requesterId`                | String        | —                                     | Optional. `extensions.intervention.requester_id`. |
 | `originatorReferenceId`      | String        | —                                     | Optional. `extensions.intervention.originator_reference_id`. |
-| `ttl`                        | Number        | —                                     | Unix timestamp in seconds for DynamoDB TTL expiry. |
+| `ttl`                        | Number        | —                                     | Optional. Unix timestamp in seconds for DynamoDB TTL expiry. |
 
 ##### Sort key options
 
 There are two reasonable choices for the sort key, with different tradeoffs:
 
-##### Option B-1: `interventionId#occurredAt` (composite sort key)
+##### Option B-1: `interventionId#createdAt` (composite sort key)
 
-Sort key is a string of the form `<interventionId>#<occurredAt>`.
+Sort key is a string of the form `<interventionId>#<createdAt>`.
 This groups all events for the same intervention together within a partition and orders them chronologically within that group.
 To reconstruct the full history of a single intervention, query with a `begins_with` condition on the sort key.
 To reconstruct the full account history, query the entire partition and group by `interventionId` in application code.
 
 Tradeoff: querying all events for an account in strict time order requires a full partition scan followed by a client-side sort, since events for different interventions are interleaved by `interventionId` prefix rather than by time.
 
-##### Option B-2: `occurredAt` (timestamp sort key)
+##### Option B-2: `createdAt` (timestamp sort key)
 
 Sort key is the millisecond timestamp at which AIS wrote the event.
 This gives a single chronological stream of all events for an account, which is the natural shape for building up account state by replaying events in order.
 To reconstruct the state of a specific intervention, query the full partition and filter by `interventionId` in application code.
 An individual account should never have many events, and reading all rows in a given partition is fast in DynamoDB, so it's unlikely performance will become an issue.
+
+##### Duplicated data
+
+Some of the fields listed above are duplicated with same value across all events for a given intervention.
+It's possible instead to only record these on the original event for intervention creation, which avoids issues about which row is the source of truth for an intervention.
+However, having this data duplicated across events has the benefit that we can grab all the data about the event from any event, including the latest.
+Because we have very limited update scenarios for this data the also stays quite simple.
+
+##### TTL Updates
+
+Events for interventions which haven't yet reached a terminal state need to persist as long as the account they refer to, so we can report the intervention status for a given account accurately.
+Once an intervention has reached a terminal state, we want to set a TTL on its events.
+This means we need to go back and update those event rows, meaning we lose true immutability.
+This is the only update we need to do, and we can keep it fairly isolated in the code, meaning this is a reasonable amount of flexibility in the system.
 
 ---
 
@@ -369,7 +381,7 @@ export type InterventionEvent {
   eventId: string;             // UUIDv4, unique per event
   accountId: string;
   interventionId: string;      // UUIDv4, shared across all events for the same intervention
-  occurredAt: number;          // ms epoch, set by AIS at write time
+  createdAt: number;          // ms epoch, set by AIS at write time
   interventionState: string;   // created | applied | superseded | mitigated | removed
   interventionCode?: string;   // Codes enum value — present on created events
   interventionName?: string;   // AISInterventionTypes enum value — present on created events
