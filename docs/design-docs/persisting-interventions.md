@@ -29,20 +29,15 @@ This document proposes persisting interventions in a new DynamoDB table, written
 
 ### Data Model
 
-Each persisted item represents a single intervention event that was successfully applied to an account.
-Items are immutable once written.
-
 Two approaches are presented below.
-Both use DynamoDB and could coexist, but the choice of approach affects the table schema, the write logic, and how consumers query the data.
+Both use DynamoDB as per [programme guidelines](https://github.com/govuk-one-login/architecture/blob/main/adr/0045-serverless-core-services.md) and could coexist, but the choice of approach affects the table schema, the write logic, and how consumers query the data.
 
 #### General concerns
 
-##### Interactions between interventions
+##### Intervention names
 
-- superseding
-- sequencing
-- ownership
-- forbidden interventions
+The name of an intervention isn't recorded in the database.
+Where a name for an intervention or event is necessary based on this data, we will use a mapping recorded in code or configuration so we can easily update the name of an intervention.
 
 ---
 
@@ -196,11 +191,14 @@ This allows us to parse based on version at write-time and read-time, and easily
 
 ### Security
 
+For the most part we can rely on the programme's security posture to inform decisions about persisting interventions.
 We can use similar security semantics to those relating to `AccountStatusTable`:
 
 ##### Encryption at rest
 The new DynamoDB table uses a customer-managed KMS key (CMK), consistent with `AccountStatusTable`, with automatic key rotation enabled.
 The key policy restricts `kms:Encrypt` / `kms:Decrypt` to the DynamoDB service principal scoped to the table ARN, and to the account root for key administration.
+
+[ADR for use of KMS](https://github.com/govuk-one-login/architecture/blob/main/adr/0016-identity-signing-and-encryption-with-kms.md)
 
 ##### Encryption in transit
 All DynamoDB API calls are made over TLS.
@@ -214,6 +212,7 @@ Read access for audit and reporting purposes must be granted separately to dedic
 ##### Data classification
 `accountId` is a sensitive identifier.
 Log statements that include `accountId` must be prefixed with `LOGS_PREFIX_SENSITIVE_INFO` (consistent with existing practice) and filtered from CSLS subscription filters.
+Instead we can rely on the eventId, an internal identifier, for relating logs to data.
 
 ### Resilience
 
@@ -227,8 +226,7 @@ Must be enabled in all non-dev environments, consistent with `AccountStatusTable
 
 ##### TTL-based expiry
 Items expire automatically via DynamoDB TTL.
-This is a soft delete — DynamoDB removes expired items asynchronously within 48 hours.
-The application must not rely on TTL for hard deletion guarantees; if regulatory requirements demand hard deletion within a specific window, a separate cleanup process is needed.
+The TTL will be set dynamically based on when an intervention reaches a terminal state.
 
 ##### Write failure handling
 A failed `PutItem` causes the SQS record to be returned as a `batchItemFailure`.
@@ -267,7 +265,7 @@ A single account receiving a burst of interventions would hit the same partition
 We should record a counter for writes to the new table(s) which records successes and errors so we can see throughput and error rate.
 We should consider recording the status and intervention type within the metric labels as well to make it easy to get basic metrics for the service.
 
-We should log thrown errors, so we can debug them - these must contain no PII.
+We should log thrown errors, so we can debug them - these must contain no sensitive information.
 
 ### Testability
 
