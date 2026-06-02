@@ -25,7 +25,7 @@ By utilising our own `Zod` types we can be sure that data enterring our system f
 
 ## Consequences
 
-- We will have control over our validation, independant of the event catalogue.
+- We will have control over our validation, independent of the event catalogue.
 - We won't be rejecting large numbers of processable messages.
 - We will get guaranteed type safety for all the data entering our system, based on automatically generated `Zod` types.
 - We have to write our own `Zod` validation in addition to the event catalogue schemas.
