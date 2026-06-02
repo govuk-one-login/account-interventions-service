@@ -126,6 +126,21 @@ $ npm audit
 
 <img src="img.png" alt="img.png" width="500"/>
 
+## Infrastructure
+
+### CloudFormation
+
+Our infrastructure is deployed using CloudFormation templates, see:
+
+- pipelines in [src/infra](src/infra)
+- custom templates in [ais-infra](https://github.com/govuk-one-login/ais-infra)
+
+### Terraform
+
+Our CloudFormation templates are deployed using Terraform, see:
+
+- [ais-base-infrastructure](https://github.com/govuk-one-login/ais-base-infrastructure)
+
 ## Additional Info
 
 ### Old SAM version
