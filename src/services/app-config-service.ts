@@ -27,6 +27,10 @@ export class AppConfigService {
     return this.validateConfiguration('TABLE_NAME');
   }
 
+  public get interventionEventsTableName(): string {
+    return this.validateConfiguration('INTERVENTION_EVENTS_TABLE_NAME');
+  }
+
   public get cloudWatchMetricsWorkSpace(): string {
     return this.validateConfiguration('CLOUDWATCH_METRICS_NAMESPACE');
   }
