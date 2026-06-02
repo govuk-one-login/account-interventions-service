@@ -39,6 +39,21 @@ Both use DynamoDB as per [programme guidelines](https://github.com/govuk-one-log
 The name of an intervention isn't recorded in the database.
 Where a name for an intervention or event is necessary based on this data, we will use a mapping recorded in code or configuration so we can easily update the name of an intervention.
 
+##### Versioning data
+
+DynamoDB doesn't enforce schemas so, aside from the partition key and the sort key, if we need to change the shape of the data we store in future we can do it entirely on the application side.
+For resilience and convenience, we should consider versioning the data, storing the version with the record itself.
+This version can be mapped to a parser at write time and read time, and used in the broader application for driving business logic.
+
+Versioning isn't necessary at this stage but should be implemented at the same time as the first change to the data schema.
+
+##### Ensuring limited records per-user
+
+To ensure the number of interventions needed for any given account stays small (and so the number of records queried for, sent over the wire, and stored and manipulated in memory), it may be necessary in future to truncate the table when querying.
+The easiest way to do this is to store a timestamp cursor for each account, for which we know we've dealt with all the interventions or events before.
+That way we can only retrieve records after the cursor, and can update the cursor using the intervention state after terminating a give intervention.
+The cursor design isn't part of this design - it has a performance impact and increases the complexity of the application, so should be implemented in future if there's a need for it.
+
 ---
 
 #### Option A: One mutable row per-intervention
