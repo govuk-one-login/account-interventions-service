@@ -1,6 +1,5 @@
 import logger from './logger';
 import Ajv2019 from 'ajv/dist/2019';
-import Ajv from 'ajv';
 import { addMetric } from './metrics';
 import { MetricNames } from '../data-types/constants';
 import {
@@ -10,7 +9,6 @@ import {
   IPV_ACCOUNT_INTERVENTION_ENDSchema,
 } from '@govuk-one-login/event-catalogue-schemas';
 
-const ajv = new Ajv({ allErrors: true });
 const ajv2019 = new Ajv2019({ allErrors: true });
 
 interface Schema {
@@ -51,21 +49,12 @@ ajv2019.addSchema(addEventMetadataToSchema(IPV_ACCOUNT_INTERVENTION_ENDSchema, '
  * @param schema - Schema obtained from schemas.ts
  * @returns Boolean or throws and logs errors
  */
-export function compileSchema(schema: object, version2019 = false) {
-  const ajvVersion = version2019 ? ajv2019 : ajv;
-
+export function compileSchema(schema: object) {
   try {
-    return ajvVersion.compile(schema);
+    return ajv2019.compile(schema);
   } catch (error) {
-    logger.error('Schema is invalid, failed to compile', { reasons: ajvVersion.errors, error });
+    logger.error('Schema is invalid, failed to compile', { reasons: ajv2019.errors, error });
     addMetric(MetricNames.INVALID_SCHEMA);
     throw new Error('Schema is invalid', { cause: error });
   }
 }
-
-/**
- * Helper function to verify if the schema is valid
- * @param schema - Schema obtained from schemas.ts
- * @returns Boolean or throws and logs errors
- */
-export const compileSchema2019 = (schema: object) => compileSchema(schema, true);

@@ -1,5 +1,6 @@
+import { TicfAccountIntervention } from '../contracts/intervention-events';
 import { HistoryStringParts, expectedHistoryStringLength } from '../data-types/constants';
-import { HistoryObject, TxMAIngressEvent } from '../data-types/interfaces';
+import { HistoryObject } from '../data-types/interfaces';
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
 
 /**
@@ -25,10 +26,18 @@ export class HistoryStringBuilder {
     intervention_code: string,
     intervention_reason: string,
     originating_component_id = '',
-    intervention_predecessor_id = '',
+    intervention_predecessor_id: string | string[] | undefined = '',
     requester_id = '',
   ) {
-    return `${event_timestamp_ms}${this.separator}${component_id}${this.separator}${intervention_code}${this.separator}${intervention_reason}${this.separator}${originating_component_id}${this.separator}${intervention_predecessor_id}${this.separator}${requester_id}`;
+    return [
+      event_timestamp_ms,
+      component_id,
+      intervention_code,
+      intervention_reason,
+      originating_component_id,
+      intervention_predecessor_id,
+      requester_id,
+    ].join(this.separator);
   }
 
   /**
@@ -38,9 +47,9 @@ export class HistoryStringBuilder {
    * @returns - the history string that has been built with the buildHistoryString method with the
    * information of each part, updated.
    */
-  public getHistoryString(event: TxMAIngressEvent, timeStamp: number) {
-    const interventionInformation = event.extensions?.intervention;
-    if (!interventionInformation) throw new Error('No intervention information found in event.');
+  public getHistoryString(event: TicfAccountIntervention, timeStamp: number) {
+    const interventionInformation = event.extensions.intervention;
+
     return this.buildHistoryString(
       String(timeStamp),
       event.component_id,

@@ -21,7 +21,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
     Scenario Outline: Happy Path - Get Request to /ais/userId with enhanced fields- Returns Expected Data for <aisEventType>
         Given I send an <enhancedAisEventType> intervention message to the TxMA ingress SQS queue with enhanced fields
         When I invoke an API to retrieve the intervention status of the account
-        Then I expect the egress queue response with all the enhanced fields send to the ingress queue for the event type <enhancedAisEventType>
+        Then I expect the egress queue response without the enhanced fields send to the ingress queue for the event type <enhancedAisEventType>
         Examples:
             | enhancedAisEventType                  |
             | suspendNoActionWithEnhancedExtensions |

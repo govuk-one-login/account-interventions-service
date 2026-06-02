@@ -1,8 +1,5 @@
-import {
-  AIS_EVENT_TRANSITION_APPLIED,
-  InterventionCodeEnum1,
-} from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_APPLIED';
-import { EventsEnum, AISInterventionTypes, TriggerEventsEnum, PossibleAccountStatus, Codes } from './constants';
+import { AIS_EVENT_TRANSITION_APPLIED } from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_APPLIED';
+import { EventsEnum, AISInterventionTypes, PossibleAccountStatus, Codes } from './constants';
 import { AIS_EVENT_IGNORED_STALE } from '../events/ais-event-ignored-stale';
 import { AIS_EVENT_TRANSITION_IGNORED } from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_IGNORED';
 import { AUTH_DELETE_ACCOUNT } from '@govuk-one-login/event-catalogue/AUTH_DELETE_ACCOUNT';
@@ -63,34 +60,8 @@ export type TxMAEgressEvent =
   | AIS_EVENT_IGNORED_STALE
   | AUTH_DELETE_ACCOUNT;
 
-export interface TxMAIngressEvent {
-  event_name: TriggerEventsEnum;
-  event_id: string | undefined;
-  timestamp: number;
-  event_timestamp_ms?: number;
-  component_id: string;
-  user: TxmaUser;
-  extensions?: IngressEventExtension;
-}
-
 export interface TxmaUser {
   user_id: string;
-}
-
-interface IngressEventExtension {
-  intervention?: Intervention;
-  type?: string;
-  success?: boolean;
-}
-
-interface Intervention {
-  intervention_code: InterventionCodeEnum1;
-  intervention_reason: string;
-  requester_id?: string;
-  originating_component_id?: string;
-  originator_reference_id?: string;
-  audit_level?: string;
-  [key: string | number]: unknown;
 }
 
 export interface DeleteStatusUpdateSNSMessage {

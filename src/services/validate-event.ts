@@ -1,56 +1,45 @@
-import { DynamoDBStateResult, StateDetails, TxMAIngressEvent } from '../data-types/interfaces';
+import { DynamoDBStateResult, StateDetails } from '../data-types/interfaces';
 import logger from '../commons/logger';
 import { addMetric } from '../commons/metrics';
 import { AISInterventionTypes, EventsEnum, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
 import { RetryEventError, ValidationError } from '../data-types/errors';
-import { compileSchema, compileSchema2019 } from '../commons/compile-schema';
-import { TxMAIngress } from '../data-types/schemas';
+import { compileSchema } from '../commons/compile-schema';
 import { EventCatalogueCombinedSchema } from '../data-types/event-catalogue-combined-schema';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { sendAuditEvent } from './send-audit-events';
 import { AccountStateEngine } from './account-states/account-state-engine';
 import jsonSafeParse from '../commons/json-safe-parse';
+import { InterventionEventMessage, interventionMessageSchema } from '../contracts/intervention-events';
 
-const validateInterventionDataInput = compileSchema(TxMAIngress);
-const validateEventCatalogue = compileSchema2019(EventCatalogueCombinedSchema);
+const validateEventCatalogue = compileSchema(EventCatalogueCombinedSchema);
 
 /**
  * A function to check the event has the necessary fields to continue with the processing.
  *
  * @param interventionRequest - the TxMA request
  */
-export function validateEventAgainstSchema(interventionRequest: TxMAIngressEvent): void {
-  if (!validateInterventionDataInput({ event: interventionRequest })) {
+export function validateEventAgainstSchema(interventionRequest: unknown) {
+  // Validate with Zod
+  const result = interventionMessageSchema.safeParse(interventionRequest);
+  if (!result.success) {
     logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Event has failed schema validation.`, {
-      validationErrors: validateInterventionDataInput.errors,
+      validationErrors: result.error,
     });
     addMetric(MetricNames.INVALID_EVENT_RECEIVED);
     throw new ValidationError('Invalid intervention event.');
   }
 
-  const eventName = interventionRequest.event_name;
-
+  // Validate against event catalogue JSON schema
   if (!validateEventCatalogue(interventionRequest)) {
     logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Event has failed event catalogue schema validation.`, {
       validationErrors: validateEventCatalogue.errors,
     });
     addMetric(MetricNames.INVALID_EVENT_RECEIVED_EVENT_CATALOGUE, undefined, undefined, {
-      EVENT_NAME: eventName,
+      EVENT_NAME: result.data.event_name,
     });
   }
-}
 
-/**
- * A function to perform validation on intervention code
- *
- * @param interventionRequest - the TxMA event
- */
-export function validateInterventionEvent(interventionRequest: TxMAIngressEvent): void {
-  if (Number.isNaN(Number.parseInt(interventionRequest.extensions?.intervention?.intervention_code ?? ''))) {
-    logger.debug('Invalid intervention request. Intervention code is NAN');
-    addMetric(MetricNames.INVALID_EVENT_RECEIVED);
-    throw new ValidationError('Invalid intervention event.');
-  }
+  return result.data;
 }
 
 /**
@@ -59,11 +48,11 @@ export function validateInterventionEvent(interventionRequest: TxMAIngressEvent)
  * @param event - the event received
  * @throws ValidationError - if the status is undefined or not as expected
  */
-export function validateIfIdentityAcquired(intervention: EventsEnum, event: TxMAIngressEvent) {
-  if (intervention === EventsEnum.IPV_ACCOUNT_INTERVENTION_END && event.extensions?.success !== true) {
+export function validateIfIdentityAcquired(event: InterventionEventMessage) {
+  if (event.event_name === EventsEnum.IPV_ACCOUNT_INTERVENTION_END && event.extensions.success !== true) {
     logger.warn('Received event that does not meet criteria to lift intervention.', {
-      success: event.extensions?.success,
-      type: event.extensions?.type,
+      success: event.extensions.success,
+      type: event.extensions.type,
     });
     addMetric(MetricNames.IDENTITY_NOT_SUFFICIENTLY_PROVED);
     throw new ValidationError('Received event that does not meet criteria to lift intervention.');
@@ -76,8 +65,8 @@ export function validateIfIdentityAcquired(intervention: EventsEnum, event: TxMA
  * @param event - the event received
  * @throws RetryEventError - if the timestamp of the event is in the future
  */
-export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: TxMAIngressEvent) {
-  const eventTimestampInMs = event.event_timestamp_ms ?? event.timestamp * 1000;
+export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: InterventionEventMessage) {
+  const eventTimestampInMs = event.event_timestamp_ms;
   const now = getCurrentTimestamp().milliseconds;
   if (now < eventTimestampInMs) {
     logger.warn('Event with timestamp in the future.', {
@@ -103,11 +92,11 @@ export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: T
  */
 export async function validateEventIsNotStale(
   intervention: EventsEnum,
-  event: TxMAIngressEvent,
+  event: InterventionEventMessage,
   initialState: StateDetails,
   itemFromDB: DynamoDBStateResult,
 ) {
-  const eventTimestampInMs = event.event_timestamp_ms ?? event.timestamp * 1000;
+  const eventTimestampInMs = event.event_timestamp_ms;
   if (!isEventAfterLastEvent(eventTimestampInMs, itemFromDB.sentAt, itemFromDB.appliedAt)) {
     logger.warn('Event received predates last applied event for this user.');
     addMetric(MetricNames.INTERVENTION_EVENT_STALE);
