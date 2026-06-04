@@ -37,7 +37,6 @@ jobs:
           registry-url: 'https://npm.pkg.github.com/'
           scope: '@govuk-one-login'
           cache: npm
-          always-auth: true
 
       - name: Install Node dev dependencies
         run: npm ci --ignore-scripts
