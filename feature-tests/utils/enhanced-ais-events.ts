@@ -1,7 +1,7 @@
 export const aisEventsWithEnhancedFields = {
   suspendNoActionWithEnhancedExtensions: {
-    timestamp: 12_345,
-    event_timestamp_ms: 12_345_000,
+    timestamp: 12345,
+    event_timestamp_ms: 12345000,
     event_name: 'TICF_ACCOUNT_INTERVENTION',
     event_id: '123',
     component_id: 'TICF_CRI',

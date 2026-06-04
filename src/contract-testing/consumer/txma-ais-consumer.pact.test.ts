@@ -22,8 +22,8 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
         .expectsToReceive('a valid intervention event')
         .withContent({
           component_id: '',
-          timestamp: like(1_705_318_190),
-          event_timestamp_ms: number(1_705_318_190_000),
+          timestamp: like(1705318190),
+          event_timestamp_ms: number(1705318190000),
           event_name: 'TICF_ACCOUNT_INTERVENTION',
           user: {
             user_id: string('urn:fdc:gov.uk:2022:USER_ONE'),
@@ -42,8 +42,8 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
         .expectsToReceive('a valid user action event - reset password')
         .withContent({
           component_id: '',
-          timestamp: number(1_705_318_190),
-          event_timestamp_ms: number(1_705_318_190_000),
+          timestamp: number(1705318190),
+          event_timestamp_ms: number(1705318190000),
           event_name: like('AUTH_PASSWORD_RESET_SUCCESSFUL'),
           user: {
             user_id: string('urn:fdc:gov.uk:2022:USER_ONE'),
@@ -56,8 +56,8 @@ describe('TxMA & AIS - Contract Testing - Consumer', () => {
         .expectsToReceive('a valid user action event - reset password')
         .withContent({
           component_id: '',
-          timestamp: number(1_705_318_190),
-          event_timestamp_ms: number(1_705_318_190_000),
+          timestamp: number(1705318190),
+          event_timestamp_ms: number(1705318190000),
           event_name: like('IPV_ACCOUNT_INTERVENTION_END'),
           user: {
             user_id: string('urn:fdc:gov.uk:2022:USER_ONE'),

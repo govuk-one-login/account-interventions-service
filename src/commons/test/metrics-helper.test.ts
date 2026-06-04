@@ -94,19 +94,13 @@ describe('update-account-state-metrics', () => {
 
     describe('should publish TimeToResolve metric', () => {
       it('when an account becomes unsuspended', () => {
-        publishTimeToResolveMetrics(accountIsSuspended, accountIsOkay, 1000, 11_000, 'FRAUD_UNSUSPEND_ACCOUNT');
+        publishTimeToResolveMetrics(accountIsSuspended, accountIsOkay, 1000, 11000, 'FRAUD_UNSUSPEND_ACCOUNT');
         expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'suspension' });
         expect(addMetric).toHaveBeenCalledTimes(1);
       });
 
       it('when an account becomes unsuspended because a password has been reset successfully', () => {
-        publishTimeToResolveMetrics(
-          accountNeedsPswReset,
-          accountIsOkay,
-          1000,
-          11_000,
-          'AUTH_PASSWORD_RESET_SUCCESSFUL',
-        );
+        publishTimeToResolveMetrics(accountNeedsPswReset, accountIsOkay, 1000, 11000, 'AUTH_PASSWORD_RESET_SUCCESSFUL');
         expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'suspension' });
         expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'resetPassword' });
         expect(addMetric).toHaveBeenCalledTimes(2);
@@ -117,7 +111,7 @@ describe('update-account-state-metrics', () => {
           accountNeedsPswReset,
           accountIsSuspended,
           1000,
-          11_000,
+          11000,
           'AUTH_PASSWORD_RESET_SUCCESSFUL',
         );
         expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'resetPassword' });
@@ -125,7 +119,7 @@ describe('update-account-state-metrics', () => {
       });
 
       it('when an account becomes unsuspended because an identity has been reset successfully', () => {
-        publishTimeToResolveMetrics(accountNeedsIdReset, accountIsOkay, 1000, 11_000, 'IPV_ACCOUNT_INTERVENTION_END');
+        publishTimeToResolveMetrics(accountNeedsIdReset, accountIsOkay, 1000, 11000, 'IPV_ACCOUNT_INTERVENTION_END');
         expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'suspension' });
         expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'reproveIdentity' });
         expect(addMetric).toHaveBeenCalledTimes(2);
@@ -136,7 +130,7 @@ describe('update-account-state-metrics', () => {
           accountNeedsIdReset,
           accountIsSuspended,
           1000,
-          11_000,
+          11000,
           'IPV_ACCOUNT_INTERVENTION_END',
         );
         expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'reproveIdentity' });
@@ -146,12 +140,12 @@ describe('update-account-state-metrics', () => {
 
     describe('should NOT publish a TimeToResolve metric', () => {
       it('when an account stays suspended', () => {
-        publishTimeToResolveMetrics(accountIsSuspended, accountIsSuspended, 1000, 11_000, 'FRAUD_SUSPEND_ACCOUNT');
+        publishTimeToResolveMetrics(accountIsSuspended, accountIsSuspended, 1000, 11000, 'FRAUD_SUSPEND_ACCOUNT');
         expect(addMetric).not.toHaveBeenCalled();
       });
 
       it('for when an account becomes suspended', () => {
-        publishTimeToResolveMetrics(accountIsOkay, accountIsSuspended, 1000, 11_000, 'FRAUD_SUSPEND_ACCOUNT');
+        publishTimeToResolveMetrics(accountIsOkay, accountIsSuspended, 1000, 11000, 'FRAUD_SUSPEND_ACCOUNT');
         expect(addMetric).not.toHaveBeenCalled();
       });
     });

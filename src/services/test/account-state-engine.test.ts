@@ -161,9 +161,9 @@ vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
 vi.mock('../../commons/get-current-timestamp', () => ({
   getCurrentTimestamp: vi.fn().mockImplementation(() => ({
-    milliseconds: 1_234_567_890,
+    milliseconds: 1234567890,
     isoString: 'today',
-    seconds: 1_234_567,
+    seconds: 1234567,
   })),
 }));
 describe('account-state-service', () => {

@@ -12,7 +12,7 @@ export default defineConfig({
     include: ['**/*.step.ts'],
     retry: 3,
     hideSkippedTests: true,
-    testTimeout: 60_000,
+    testTimeout: 60000,
     env: {
       SAM_STACK_NAME: 'ais-main',
       AWS_REGION: 'eu-west-2',

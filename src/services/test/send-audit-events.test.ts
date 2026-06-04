@@ -20,9 +20,9 @@ vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
 vi.mock('../../commons/get-current-timestamp', () => ({
   getCurrentTimestamp: vi.fn().mockImplementation(() => ({
-    milliseconds: 1_234_567_890,
+    milliseconds: 1234567890,
     isoString: 'today',
-    seconds: 1_234_567,
+    seconds: 1234567,
   })),
 }));
 
@@ -84,8 +84,8 @@ const sqsMock = mockClient(SQSClient);
 const sqsCommandInputForUserAction = {
   QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
   MessageBody: JSON.stringify({
-    timestamp: 1_234_567,
-    event_timestamp_ms: 1_234_567_890,
+    timestamp: 1234567,
+    event_timestamp_ms: 1234567890,
     component_id: 'ACCOUNT_INTERVENTION_SERVICE',
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: {
@@ -105,8 +105,8 @@ const sqsCommandInputForUserAction = {
 const sqsCommandInputForBlockIntervention = {
   QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
   MessageBody: JSON.stringify({
-    timestamp: 1_234_567,
-    event_timestamp_ms: 1_234_567_890,
+    timestamp: 1234567,
+    event_timestamp_ms: 1234567890,
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: { user_id: 'testUserId' },
@@ -125,8 +125,8 @@ const sqsCommandInputForBlockIntervention = {
 const sqsCommandInputForDeletedAccount = {
   QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
   MessageBody: JSON.stringify({
-    timestamp: 1_234_567,
-    event_timestamp_ms: 1_234_567_890,
+    timestamp: 1234567,
+    event_timestamp_ms: 1234567890,
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_IGNORED_ACCOUNT_DELETED',
     user: { user_id: 'testUserId' },
@@ -145,8 +145,8 @@ const sqsCommandInputForDeletedAccount = {
 const sqsCommandInputForSuspendIntervention = {
   QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
   MessageBody: JSON.stringify({
-    timestamp: 1_234_567,
-    event_timestamp_ms: 1_234_567_890,
+    timestamp: 1234567,
+    event_timestamp_ms: 1234567890,
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: { user_id: 'testUserId' },
@@ -165,8 +165,8 @@ const sqsCommandInputForSuspendIntervention = {
 const sqsCommandInputForUnsuspendIntervention = {
   QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
   MessageBody: JSON.stringify({
-    timestamp: 1_234_567,
-    event_timestamp_ms: 1_234_567_890,
+    timestamp: 1234567,
+    event_timestamp_ms: 1234567890,
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: { user_id: 'testUserId' },
@@ -185,8 +185,8 @@ const sqsCommandInputForUnsuspendIntervention = {
 const sqsCommandInputForFutureInterventions = {
   QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
   MessageBody: JSON.stringify({
-    timestamp: 1_234_567,
-    event_timestamp_ms: 1_234_567_890,
+    timestamp: 1234567,
+    event_timestamp_ms: 1234567890,
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_IGNORED_IN_FUTURE',
     user: { user_id: 'testUserId' },
@@ -202,8 +202,8 @@ const sqsCommandInputForFutureInterventions = {
 const sqsCommandInputForSuspendUserAction = {
   QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
   MessageBody: JSON.stringify({
-    timestamp: 1_234_567,
-    event_timestamp_ms: 1_234_567_890,
+    timestamp: 1234567,
+    event_timestamp_ms: 1234567890,
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: { user_id: 'testUserId' },
@@ -223,8 +223,8 @@ const sqsCommandInputForSuspendUserAction = {
 const sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass = {
   QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
   MessageBody: JSON.stringify({
-    timestamp: 1_234_567,
-    event_timestamp_ms: 1_234_567_890,
+    timestamp: 1234567,
+    event_timestamp_ms: 1234567890,
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: { user_id: 'testUserId' },
@@ -244,8 +244,8 @@ const sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass = {
 const sqsInputWithExtraFields = {
   QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
   MessageBody: JSON.stringify({
-    timestamp: 1_234_567,
-    event_timestamp_ms: 1_234_567_890,
+    timestamp: 1234567,
+    event_timestamp_ms: 1234567890,
     component_id: COMPONENT_ID,
     event_name: 'AIS_EVENT_TRANSITION_APPLIED',
     user: { user_id: 'testUserId' },
@@ -462,8 +462,8 @@ describe('send-audit-events', () => {
     const sqsCommandInput = {
       QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
       MessageBody: JSON.stringify({
-        timestamp: 1_234_567,
-        event_timestamp_ms: 1_234_567_890,
+        timestamp: 1234567,
+        event_timestamp_ms: 1234567890,
         component_id: COMPONENT_ID,
         event_name: 'AIS_EVENT_TRANSITION_APPLIED',
         user: { user_id: 'testUserId' },

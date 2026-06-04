@@ -12,15 +12,15 @@ vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
 vi.mock('../../commons/get-current-timestamp', () => ({
   getCurrentTimestamp: vi.fn().mockImplementation(() => ({
-    milliseconds: 1_706_544_555_234,
+    milliseconds: 1706544555234,
     isoString: 'today',
-    seconds: 1_706_544_555,
+    seconds: 1706544555,
   })),
 }));
 
 const interventionEventBody: TicfAccountIntervention = {
   timestamp: 1000,
-  event_timestamp_ms: 123_456,
+  event_timestamp_ms: 123456,
   user: {
     user_id: 'abc',
   },
@@ -41,8 +41,8 @@ const interventionEventBody: TicfAccountIntervention = {
 const resetPasswordEventBody: AuthPasswordResetSuccessful = {
   event_name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
   event_id: '123',
-  timestamp: 10_000,
-  event_timestamp_ms: 10_000_000,
+  timestamp: 10000,
+  event_timestamp_ms: 10000000,
   component_id: 'UNKNOWN',
   user: {
     user_id: 'abc',
@@ -52,8 +52,8 @@ const resetPasswordEventBody: AuthPasswordResetSuccessful = {
 const ipvAccountInterventionEventBody: IpvAccountInterventionEnd = {
   event_name: EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
   event_id: '123',
-  timestamp: 10_000,
-  event_timestamp_ms: 10_000_000,
+  timestamp: 10000,
+  event_timestamp_ms: 10000000,
   component_id: 'UNKNOWN',
   user: {
     user_id: 'abc',

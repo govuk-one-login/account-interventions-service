@@ -1,4 +1,4 @@
-/* eslint-disable unicorn/no-null, unicorn/numeric-separators-style */
+/* eslint-disable unicorn/no-null */
 import { Mock } from 'vitest';
 import type { APIGatewayEvent, APIGatewayProxyEventQueryStringParameters } from 'aws-lambda';
 import { handle } from '../status-retriever-handler';

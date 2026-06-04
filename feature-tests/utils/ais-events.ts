@@ -1,5 +1,5 @@
-const seconds = 12_345;
-const ms = 12_345_000;
+const seconds = 12345;
+const ms = 12345000;
 
 interface Event {
   timestamp: number;
