@@ -1,17 +1,20 @@
-import {
-  DynamoDBClient,
-  UpdateItemCommand,
-  UpdateItemCommandInput,
-  DeleteItemCommand,
-  QueryCommand,
-} from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { InformationFromTable } from './utility';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import EndPoints from '../apiEndpoints/endpoints';
+import {
+  DeleteCommand,
+  DynamoDBDocumentClient,
+  QueryCommand,
+  UpdateCommand,
+  UpdateCommandInput,
+} from '@aws-sdk/lib-dynamodb';
 
-const dynamoDatabase = new DynamoDBClient({
+const dynamoClient = new DynamoDBClient({
   region: process.env.AWS_REGION,
 });
+
+const dbDocClient = DynamoDBDocumentClient.from(dynamoClient);
 
 export async function getRecordFromTable(userId: string): Promise<InformationFromTable | undefined> {
   try {
@@ -20,10 +23,10 @@ export async function getRecordFromTable(userId: string): Promise<InformationFro
       TableName: EndPoints.TABLE_NAME,
       KeyConditionExpression: '#pk = :id_value',
       ExpressionAttributeNames: { '#pk': 'pk' },
-      ExpressionAttributeValues: { ':id_value': { S: userId } },
+      ExpressionAttributeValues: { ':id_value': userId },
     });
-    const response = await dynamoDatabase.send(getRecordCommand);
-    if (!response || !response.Items) {
+    const response = await dbDocClient.send(getRecordCommand);
+    if (!response.Items) {
       throw new Error('the record is undefined or doesnt exist');
     }
     return unmarshall(response.Items[0]) as InformationFromTable;
@@ -40,9 +43,9 @@ export async function getRecordFromTable(userId: string): Promise<InformationFro
  */
 export async function updateItemInTable(userId: string, input: InformationFromTable) {
   try {
-    const dynamoConfig: UpdateItemCommandInput = {
+    const dynamoConfig: UpdateCommandInput = {
       TableName: EndPoints.TABLE_NAME,
-      Key: { pk: { S: userId } },
+      Key: { pk: userId },
       UpdateExpression: 'SET #AA = :aa, #SA = :sa, #I = :i, #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
       ExpressionAttributeNames: {
         '#AA': 'appliedAt',
@@ -55,50 +58,50 @@ export async function updateItemInTable(userId: string, input: InformationFromTa
         '#UA': 'updatedAt',
       },
       ExpressionAttributeValues: {
-        ':aa': { N: `${input.appliedAt}` },
-        ':sa': { N: `${input.sentAt}` },
-        ':i': { S: input.intervention },
-        ':b': { BOOL: input.blocked },
-        ':s': { BOOL: input.suspended },
-        ':rp': { BOOL: input.resetPassword },
-        ':ri': { BOOL: input.reproveIdentity },
-        ':ua': { N: `${input.updatedAt}` },
+        ':aa': input.appliedAt,
+        ':sa': input.sentAt,
+        ':i': input.intervention,
+        ':b': input.blocked,
+        ':s': input.suspended,
+        ':rp': input.resetPassword,
+        ':ri': input.reproveIdentity,
+        ':ua': input.updatedAt,
       },
     };
     if (dynamoConfig['ExpressionAttributeNames'] && dynamoConfig['ExpressionAttributeValues']) {
       if (input.isAccountDeleted) {
         dynamoConfig['ExpressionAttributeNames']['#IAD'] = 'isAccountDeleted';
-        dynamoConfig['ExpressionAttributeValues'][':iad'] = { BOOL: input.isAccountDeleted };
+        dynamoConfig['ExpressionAttributeValues'][':iad'] = input.isAccountDeleted;
         dynamoConfig['UpdateExpression'] += ', #IAD = :iad';
       }
       if (input.reprovedIdentityAt) {
         dynamoConfig['ExpressionAttributeNames']['#RIA'] = 'reprovedIdentityAt';
-        dynamoConfig['ExpressionAttributeValues'][':ria'] = { N: `${input.reprovedIdentityAt}` };
+        dynamoConfig['ExpressionAttributeValues'][':ria'] = input.reprovedIdentityAt;
         dynamoConfig['UpdateExpression'] += ', #RIA = :ria';
       }
       if (input.resetPasswordAt) {
         dynamoConfig['ExpressionAttributeNames']['#RPA'] = 'resetPasswordAt';
-        dynamoConfig['ExpressionAttributeValues'][':rpa'] = { N: `${input.resetPasswordAt}` };
+        dynamoConfig['ExpressionAttributeValues'][':rpa'] = input.resetPasswordAt;
         dynamoConfig['UpdateExpression'] += ', #RPA = :rpa';
       }
       if (input.deletedAt) {
         dynamoConfig['ExpressionAttributeNames']['#ADA'] = 'accountDeletedAt';
-        dynamoConfig['ExpressionAttributeValues'][':ada'] = { N: `${input.deletedAt}` };
+        dynamoConfig['ExpressionAttributeValues'][':ada'] = input.deletedAt;
         dynamoConfig['UpdateExpression'] += ', #ADA = :ada';
       }
       if (input.auditLevel) {
         dynamoConfig['ExpressionAttributeNames']['#AL'] = 'auditLevel';
-        dynamoConfig['ExpressionAttributeValues'][':al'] = { S: input.auditLevel };
+        dynamoConfig['ExpressionAttributeValues'][':al'] = input.auditLevel;
         dynamoConfig['UpdateExpression'] += ', #AL = :al';
       }
       if (input.history) {
         dynamoConfig['ExpressionAttributeNames']['#H'] = 'history';
-        dynamoConfig['ExpressionAttributeValues'][':h'] = { L: [{ S: input.history }] };
+        dynamoConfig['ExpressionAttributeValues'][':h'] = [input.history];
         dynamoConfig['UpdateExpression'] += ', #H = :h';
       }
     }
-    const update = new UpdateItemCommand(dynamoConfig);
-    await dynamoDatabase.send(update);
+    const update = new UpdateCommand(dynamoConfig);
+    await dbDocClient.send(update);
   } catch (error) {
     console.log('failed to update the record in the db', { error });
   }
@@ -111,11 +114,11 @@ export async function updateItemInTable(userId: string, input: InformationFromTa
 export async function deleteTestRecord(userId: string): Promise<void> {
   try {
     console.log('deleting test user record');
-    const deleteCommand = new DeleteItemCommand({
+    const deleteCommand = new DeleteCommand({
       TableName: EndPoints.TABLE_NAME,
-      Key: { pk: { S: userId } },
+      Key: { pk: userId },
     });
-    await dynamoDatabase.send(deleteCommand);
+    await dbDocClient.send(deleteCommand);
   } catch (error) {
     console.log('record did not delete', { error });
   }
