@@ -1,49 +1,32 @@
 import { mockClient } from 'aws-sdk-client-mock';
-import { AttributeValue, DynamoDBClient, InternalServerError, QueryCommand } from '@aws-sdk/client-dynamodb';
+import { InternalServerError } from '@aws-sdk/client-dynamodb';
 import { closeServer, setupServer } from '../test-helpers/mock-server';
 import { Verifier, VerifierOptions } from '@pact-foundation/pact';
 import { AISInterventionTypes } from '../../data-types/constants';
 import { StateDetails } from '../../data-types/interfaces';
 import getEnvOrThrow from '../../commons/get-env-or-throw';
+import { DynamoDBDocumentClient, NativeAttributeValue, QueryCommand } from '@aws-sdk/lib-dynamodb';
 
 vi.mock('@aws-lambda-powertools/metrics');
 vi.mock('@aws-lambda-powertools/logger');
 const port = 8080;
-const ddbMock = mockClient(DynamoDBClient);
-const queryCommandMock = ddbMock.on(QueryCommand);
+const dbDocMock = mockClient(DynamoDBDocumentClient);
+const queryCommandMock = dbDocMock.on(QueryCommand);
 setupServer(port);
 function getDynamoDBResponseObject(
   interventionName: AISInterventionTypes,
   state: StateDetails,
-): Record<string, AttributeValue> {
+): Record<string, NativeAttributeValue> {
   return {
-    blocked: {
-      BOOL: state.blocked,
-    },
-    suspended: {
-      BOOL: state.suspended,
-    },
-    reproveIdentity: {
-      BOOL: state.reproveIdentity,
-    },
-    resetPassword: {
-      BOOL: state.resetPassword,
-    },
-    sentAt: {
-      N: '123456',
-    },
-    appliedAt: {
-      N: '123456',
-    },
-    isAccountDeleted: {
-      BOOL: false,
-    },
-    intervention: {
-      S: interventionName,
-    },
-    updatedAt: {
-      N: '123456',
-    },
+    blocked: state.blocked,
+    suspended: state.suspended,
+    reproveIdentity: state.reproveIdentity,
+    resetPassword: state.resetPassword,
+    sentAt: 123456,
+    appliedAt: 123456,
+    isAccountDeleted: false,
+    intervention: interventionName,
+    updatedAt: 123456,
   };
 }
 
