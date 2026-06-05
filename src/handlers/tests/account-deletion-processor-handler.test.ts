@@ -216,7 +216,6 @@ describe('Account Deletion Processor', () => {
         event_name: 'AUTH_DELETE_ACCOUNT',
         component_id: 'AUTH',
         event_id: '1234',
-        // eslint-disable-next-line unicorn/numeric-separators-style
         event_timestamp_ms: 1722953808667,
         extensions: {
           account_deletion_reason: 'USER_INITIATED',
@@ -227,7 +226,6 @@ describe('Account Deletion Processor', () => {
             encoded: 'encoded_data',
           },
         },
-        // eslint-disable-next-line unicorn/numeric-separators-style
         timestamp: 1722953808,
         user: {
           user_id: 'other_user_id',

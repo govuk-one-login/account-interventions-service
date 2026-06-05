@@ -22,9 +22,9 @@ vi.mock('../../commons/metrics-helper');
 
 vi.mock('../../commons/get-current-timestamp', () => ({
   getCurrentTimestamp: vi.fn().mockImplementation(() => ({
-    milliseconds: 1_234_567_890,
+    milliseconds: 1234567890,
     isoString: 'today',
-    seconds: 1_234_567,
+    seconds: 1234567,
   })),
 }));
 
@@ -309,9 +309,7 @@ describe('intervention processor handler', () => {
           component_id: 'UNKNOWN',
           event_id: '123',
           event_name: 'AUTH_PASSWORD_RESET_SUCCESSFUL',
-          // eslint-disable-next-line unicorn/numeric-separators-style
           event_timestamp_ms: 1234562890,
-          // eslint-disable-next-line unicorn/numeric-separators-style
           timestamp: 1234562,
           user: {
             user_id: 'abc',
@@ -432,7 +430,7 @@ describe('intervention processor handler', () => {
         suspended: false,
         isAccountDeleted: false,
         appliedAt: t0ms + 10,
-        sentAt: t0ms + 10_000,
+        sentAt: t0ms + 10000,
       });
       expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
         batchItemFailures: [],
@@ -531,8 +529,8 @@ describe('intervention processor handler', () => {
         body: JSON.stringify({
           component_id: 'UNKNOWN',
           event_id: '123',
-          timestamp: getCurrentTimestamp().milliseconds + 500_000,
-          event_timestamp_ms: getCurrentTimestamp().milliseconds + 500_000,
+          timestamp: getCurrentTimestamp().milliseconds + 500000,
+          event_timestamp_ms: getCurrentTimestamp().milliseconds + 500000,
           user: {
             user_id: 'abc',
           },

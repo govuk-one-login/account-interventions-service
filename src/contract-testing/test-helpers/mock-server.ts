@@ -98,7 +98,7 @@ const createDefaultApiRequest = (userIdPathParameter: string): APIGatewayProxyEv
     path: '/hello',
     protocol: 'HTTP/1.1',
     requestId: 'c6af9ac6-7b61-11e6-9a41-93e8deadbeef',
-    requestTimeEpoch: 1_428_582_896_000,
+    requestTimeEpoch: 1428582896000,
     resourceId: '123456',
     resourcePath: '/hello',
     stage: 'dev',

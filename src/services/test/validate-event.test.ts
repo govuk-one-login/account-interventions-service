@@ -19,9 +19,9 @@ vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../send-audit-events');
 vi.mock('../../commons/get-current-timestamp', () => ({
   getCurrentTimestamp: vi.fn().mockImplementation(() => ({
-    milliseconds: 1_234_567_890,
+    milliseconds: 1234567890,
     isoString: 'today',
-    seconds: 1_234_567,
+    seconds: 1234567,
   })),
 }));
 
@@ -175,7 +175,7 @@ describe('validateEventAgainstSchema', () => {
   it('should throw an error if event is stale', async () => {
     const staleEvent = {
       timestamp: timestamp.seconds - 10,
-      event_timestamp_ms: timestamp.milliseconds - 10_000,
+      event_timestamp_ms: timestamp.milliseconds - 10000,
       event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION as const,
       event_id: '123',
       component_id: 'TICF_CRI',
@@ -320,7 +320,7 @@ describe('validateEventAgainstSchema', () => {
   it('should not throw an error if the event is not in the future', async () => {
     const eventNotInTheFuture = {
       timestamp: timestamp.seconds - 10,
-      event_timestamp_ms: timestamp.milliseconds - 10_000,
+      event_timestamp_ms: timestamp.milliseconds - 10000,
       event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION as const,
       event_id: '123',
       component_id: 'TICF_CRI',
@@ -346,8 +346,8 @@ describe('validateEventAgainstSchema', () => {
     const idResetEventWithoutSuccess = {
       event_name: EventsEnum.IPV_ACCOUNT_INTERVENTION_END as const,
       event_id: '123',
-      event_timestamp_ms: 1_234_567_000,
-      timestamp: 1_234_567,
+      event_timestamp_ms: 1234567000,
+      timestamp: 1234567,
       component_id: 'https://identity.account.gov.uk',
       user: {
         user_id: 'urn:fdc:gov.uk:2022:USER_ONE',
@@ -370,8 +370,8 @@ describe('validateEventAgainstSchema', () => {
     const idResetEvent = {
       event_name: EventsEnum.IPV_ACCOUNT_INTERVENTION_END as const,
       event_id: '123',
-      timestamp: 1_234_567,
-      event_timestamp_ms: 1_234_567_000,
+      timestamp: 1234567,
+      event_timestamp_ms: 1234567000,
       client_id: 'UNKNOWN',
       component_id: 'https://identity.account.gov.uk',
       user: {
@@ -395,8 +395,8 @@ describe('validateEventAgainstSchema', () => {
     const idResetEventLowConfidence = {
       event_name: EventsEnum.IPV_ACCOUNT_INTERVENTION_END as const,
       event_id: '123',
-      timestamp: 1_234_567,
-      event_timestamp_ms: 1_234_567_000,
+      timestamp: 1234567,
+      event_timestamp_ms: 1234567000,
       client_id: 'UNKNOWN',
       component_id: 'https://identity.account.gov.uk',
       user: {

@@ -49,6 +49,7 @@ export default defineConfig(
       'unicorn/prefer-string-raw': ['off'],
       'unicorn/error-message': ['error'],
       'unicorn/no-array-reduce': ['off'],
+      'unicorn/numeric-separators-style': ['off'],
       'unicorn/prefer-logical-operator-over-ternary': ['error'],
       'unicorn/prefer-spread': ['error'],
       'unicorn/prefer-ternary': ['error'],

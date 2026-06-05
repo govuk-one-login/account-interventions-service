@@ -4,7 +4,7 @@ import { TicfAccountIntervention } from '../../contracts/intervention-events';
 
 const interventionEventBody: TicfAccountIntervention = {
   timestamp: 1000,
-  event_timestamp_ms: 123_456,
+  event_timestamp_ms: 123456,
   user: {
     user_id: 'abc',
   },
@@ -25,7 +25,7 @@ const interventionEventBody: TicfAccountIntervention = {
 describe('history-string-builder', () => {
   const stringBuilder = new HistoryStringBuilder();
   it('should return a history string formatted correctly', () => {
-    const result = stringBuilder.getHistoryString(interventionEventBody, 123_456);
+    const result = stringBuilder.getHistoryString(interventionEventBody, 123456);
     const expectedResult =
       '123456|TICF_CRI|01|reason|originating_component_id|intervention_predecessor_id|requester_id';
     expect(result).toEqual(expectedResult);
