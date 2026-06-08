@@ -31,8 +31,8 @@
     "@aws-lambda-powertools/logger": "^2.33.1",
     "@aws-lambda-powertools/metrics": "^2.33.1",
     "@aws-lambda-powertools/tracer": "^2.33.1",
-    "@aws-sdk/client-dynamodb": "^3.1053.0",
-    "@aws-sdk/client-sqs": "^3.1053.0",
+    "@aws-sdk/client-dynamodb": "^3.1057.0",
+    "@aws-sdk/client-sqs": "^3.1057.0",
     "@aws-sdk/util-dynamodb": "^3.996.0",
     "@babel/helpers": "^7.26.10",
     "@govuk-one-login/event-catalogue-schemas": "^44.0.22",
@@ -40,7 +40,7 @@
     "ajv": "^8.20.0",
     "fast-xml-parser": "^5.8.0",
     "tar": "^7.5.8",
-    "tsx": "^4.22.3",
+    "tsx": "^4.22.4",
     "zod": "^4.4.3"
   },
   "devDependencies": {
