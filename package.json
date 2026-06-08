@@ -25,7 +25,8 @@
     "clean": "rimraf .aws-sam coverage",
     "build": "sam build -t src/infra/main/template.yaml",
     "package": "npm run clean && npm run build",
-    "precommit": "pre-commit run"
+    "precommit": "pre-commit run",
+    "send-audit-event": "tsx src/commands/send-audit-event.ts"
   },
   "dependencies": {
     "@aws-lambda-powertools/logger": "^2.33.1",
