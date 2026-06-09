@@ -14,6 +14,7 @@ export default defineConfig({
       CLOUDWATCH_METRICS_NAMESPACE: 'test_namespace',
       METRIC_SERVICE_NAME: 'test',
       TABLE_NAME: 'table_name',
+      INTERVENTION_EVENTS_TABLE_NAME: 'intervention-events',
       AWS_REGION: 'aws_region',
       DELETED_ACCOUNT_RETENTION_SECONDS: '12345',
       TXMA_QUEUE_URL: 'https://sqs.eu-west-2.amazonaws.com/111122223333/TxMAQueue',

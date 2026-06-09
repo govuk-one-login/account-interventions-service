@@ -26,6 +26,7 @@ import { sendAuditEvent } from '../services/send-audit-events';
 import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
 import { publishTimeToResolveMetrics, updateAccountStateCountMetric } from '../commons/metrics-helper';
 import { InterventionEventMessage } from '../contracts/intervention-events';
+import { getPersistentInterventionEventsService, InterventionEventsService } from '../tables/intervention-events';
 
 const appConfig = AppConfigService.getInstance();
 const service = new DynamoDatabaseService(appConfig.tableName);
@@ -38,7 +39,11 @@ const accountStateEngine = AccountStateEngine.getInstance();
  * @param context - context object
  * @returns - Promise of SQS Partial Batch Response
  */
-export async function handler(event: SQSEvent, context: Context): Promise<SQSBatchResponse> {
+export async function handler(
+  event: SQSEvent,
+  context: Context,
+  interventionEventsService: InterventionEventsService = getPersistentInterventionEventsService(),
+): Promise<SQSBatchResponse> {
   logger.addContext(context);
 
   if (event.Records.length === 0) {
@@ -53,7 +58,7 @@ export async function handler(event: SQSEvent, context: Context): Promise<SQSBat
   const itemFailures: SQSBatchItemFailure[] = [];
 
   const promiseArray = event.Records.map((record: SQSRecord) =>
-    processSQSRecord(record).catch((error: unknown) => {
+    processSQSRecord(record, interventionEventsService).catch((error: unknown) => {
       const itemIdentifier = handleError(error, record);
       if (itemIdentifier) itemFailures.push({ itemIdentifier });
     }),
@@ -72,7 +77,7 @@ export async function handler(event: SQSEvent, context: Context): Promise<SQSBat
  * it updates the user record in the database, it sends a notification upon completion
  * @param record - SQS Record polled from the queue
  */
-async function processSQSRecord(record: SQSRecord) {
+async function processSQSRecord(record: SQSRecord, interventionEventsService: InterventionEventsService) {
   const currentTimestamp = getCurrentTimestamp();
 
   const recordBody = attemptToParseJson(record.body);
@@ -114,6 +119,11 @@ async function processSQSRecord(record: SQSRecord) {
   updateAccountStateCountMetric(currentAccountState, statusResult.stateResult);
   addMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
   await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, result, statusResult);
+
+  const existingInterventionEvents = await interventionEventsService.fetchEventsForAccount(userId);
+  logger.debug(
+    `${LOGS_PREFIX_SENSITIVE_INFO} Fetched existingInterventionEvents ${JSON.stringify(existingInterventionEvents)}`,
+  );
 }
 
 async function validateRecord(recordBody: unknown) {

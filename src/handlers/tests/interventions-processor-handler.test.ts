@@ -12,6 +12,7 @@ import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from
 import { sendAuditEvent } from '../../services/send-audit-events';
 import { publishTimeToResolveMetrics } from '../../commons/metrics-helper';
 import { InterventionEventMessage, TicfAccountIntervention } from '../../contracts/intervention-events';
+import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
 
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
@@ -92,6 +93,9 @@ const mockValidateEventAgainstSchema = vi.spyOn(validationModule, 'validateEvent
 
 const accountStateEngine = AccountStateEngine.getInstance();
 accountStateEngine.getInterventionEnumFromCode = vi.fn().mockImplementation(() => EventsEnum.FRAUD_BLOCK_ACCOUNT);
+
+const emptyInterventionEventsService = new InMemoryInterventionEventsService([]);
+
 describe('intervention processor handler', () => {
   let mockEvent: SQSEvent;
   let mockRecord: SQSRecord;
@@ -151,7 +155,7 @@ describe('intervention processor handler', () => {
   describe('handle', () => {
     it('does nothing if SQS event contains no record', async () => {
       const loggerWarnSpy = vi.spyOn(logger, 'warn');
-      await handler({ Records: [] }, mockContext);
+      await handler({ Records: [] }, mockContext, emptyInterventionEventsService);
       expect(loggerWarnSpy).toHaveBeenCalledWith('Received no records.');
       expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
@@ -159,7 +163,7 @@ describe('intervention processor handler', () => {
 
     it('should not retry if message body cannot be parsed to valid JSON', async () => {
       mockRecord.body = ' ';
-      expect(await handler(mockEvent, mockContext)).toEqual({
+      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
         batchItemFailures: [],
       });
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -188,7 +192,7 @@ describe('intervention processor handler', () => {
           interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
         });
       });
-      expect(await handler(mockEvent, mockContext)).toEqual({
+      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
         batchItemFailures: [],
       });
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -224,7 +228,7 @@ describe('intervention processor handler', () => {
         interventionName: EventsEnum.FRAUD_BLOCK_ACCOUNT,
         nextAllowableInterventions: [],
       });
-      expect(await handler(mockEvent, mockContext)).toEqual({
+      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
@@ -261,7 +265,7 @@ describe('intervention processor handler', () => {
         interventionName: EventsEnum.FRAUD_BLOCK_ACCOUNT,
         nextAllowableInterventions: [],
       });
-      expect(await handler(mockEvent, mockContext)).toEqual({
+      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
@@ -299,7 +303,7 @@ describe('intervention processor handler', () => {
       });
       mockRecord.body = JSON.stringify(resetPasswordEventBody);
       mockEvent.Records = [mockRecord];
-      expect(await handler(mockEvent, mockContext)).toEqual({
+      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
@@ -342,7 +346,7 @@ describe('intervention processor handler', () => {
         suspended: false,
         isAccountDeleted: true,
       });
-      expect(await handler(mockEvent, mockContext)).toEqual({
+      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
         batchItemFailures: [],
       });
       expect(addMetric).toHaveBeenLastCalledWith(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
@@ -374,7 +378,7 @@ describe('intervention processor handler', () => {
       mockValidateEventAgainstSchema.mockReturnValueOnce(interventionEventBodyInTheFuture);
 
       mockRecord.body = JSON.stringify(interventionEventBodyInTheFuture);
-      expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
+      expect(await handler({ Records: [mockRecord] }, mockContext, emptyInterventionEventsService)).toEqual({
         batchItemFailures: [
           {
             itemIdentifier: '123',
@@ -402,7 +406,7 @@ describe('intervention processor handler', () => {
       mockValidateEventAgainstSchema.mockImplementationOnce(() => {
         throw new ValidationError('invalid event');
       });
-      expect(await handler(mockEvent, mockContext)).toEqual({
+      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
         batchItemFailures: [],
       });
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
@@ -410,7 +414,7 @@ describe('intervention processor handler', () => {
 
     it('should return message id to be retried if dynamo db operation fails', async () => {
       mockRetrieveRecords.mockRejectedValue(new Error('Error'));
-      expect(await handler(mockEvent, mockContext)).toEqual({
+      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
         batchItemFailures: [
           {
             itemIdentifier: '123',
@@ -432,7 +436,7 @@ describe('intervention processor handler', () => {
         appliedAt: t0ms + 10,
         sentAt: t0ms + 10000,
       });
-      expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
+      expect(await handler({ Records: [mockRecord] }, mockContext, emptyInterventionEventsService)).toEqual({
         batchItemFailures: [],
       });
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -503,7 +507,7 @@ describe('intervention processor handler', () => {
         interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
         nextAllowableInterventions: [],
       });
-      expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
+      expect(await handler({ Records: [mockRecord] }, mockContext, emptyInterventionEventsService)).toEqual({
         batchItemFailures: [],
       });
       expect(publishTimeToResolveMetrics).toHaveBeenCalledTimes(1);
@@ -511,7 +515,7 @@ describe('intervention processor handler', () => {
 
     it('should not retry if too many items are returned', async () => {
       mockRetrieveRecords.mockRejectedValueOnce(new TooManyRecordsError('Too many records'));
-      expect(await handler(mockEvent, mockContext)).toEqual({
+      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
         batchItemFailures: [],
       });
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -552,7 +556,7 @@ describe('intervention processor handler', () => {
         eventSourceARN: '',
         awsRegion: '',
       };
-      expect(await handler({ Records: [mockRecord] }, mockContext)).toEqual({
+      expect(await handler({ Records: [mockRecord] }, mockContext, emptyInterventionEventsService)).toEqual({
         batchItemFailures: [],
       });
       expect(addMetric).toHaveBeenCalledWith('IDENTITY_NOT_SUFFICIENTLY_PROVED');
@@ -566,7 +570,7 @@ describe('intervention processor handler', () => {
 
     it('should log the expected error line when a message is retried - this line is used by a metric filter for canary deployment alarm', async () => {
       mockRetrieveRecords.mockRejectedValue(new Error('Error'));
-      await handler(mockEvent, mockContext);
+      await handler(mockEvent, mockContext, emptyInterventionEventsService);
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.error).toHaveBeenCalledWith('Error caught, message will be retried.', { errorMessage: 'Error' });
