@@ -6,5 +6,8 @@ s3_prefix = "ais-main"
 region = "eu-west-2"
 confirm_changeset = true
 capabilities = "CAPABILITY_NAMED_IAM"
-parameter_overrides = "Environment=\"dev\" VpcStackName=\"vpc\" PermissionsBoundary=\"none\" CoreStackName=\"ais-core\""
+parameter_overrides = "Environment=\"dev\" ApiStageName=\"v1\" VpcStackName=\"vpc\" PermissionsBoundary=\"none\" CSLSSubscriptionEndpointArn=\"arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2\" CodeSigningConfigArn=\"none\" CoreStackName=\"ais-core\" AlertingSNSLowAlertNotificationTopicARN=\"/ais-infra-alerting/SNS/LowAlertNotificationTopic/ARN\" LambdaDeploymentPreference=\"Canary10Percent10Minutes\" RunBookURL=\"https://govukverify.atlassian.net/wiki/spaces/AIS/pages/4579595211/AIS+-+Alarms+Metrics+Monitoring\" ProductTagValue=\"GOV.UK One Login\" SystemTagValue=\"Account Interventions Service\" OwnerTagValue=\"interventions@digital.cabinet-office.gov.uk\" SourceTagValue=\"govuk-one-login/account-interventions-service/src/infra/main/template.yaml\""
 image_repositories = []
+
+[default.global.parameters]
+region = "eu-west-2"

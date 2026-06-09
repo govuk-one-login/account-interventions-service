@@ -36,6 +36,7 @@ Conditions:
   IsDevEnvironment: !Equals [!Ref Environment, 'dev']
 
 Resources:
+  ##### AccountStatusTable #####
   AccountStatusTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -121,6 +122,96 @@ Resources:
       AliasName: !Sub 'alias/${AWS::StackName}-AccountStatusTableEncryptionKey'
       TargetKeyId: !GetAtt AccountStatusTableEncryptionKey.Arn
 
+  ##### InterventionEventsTable #####
+  InterventionEventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${AWS::StackName}-intervention-events'
+      AttributeDefinitions:
+        - AttributeName: accountId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: N
+      KeySchema:
+        - AttributeName: accountId
+          KeyType: HASH
+        - AttributeName: createdAt
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        KMSMasterKeyId: !Ref InterventionEventsTableEncryptionKey
+        SSEEnabled: true
+        SSEType: KMS
+      DeletionProtectionEnabled: !If [IsDevEnvironment, false, true]
+      ContributorInsightsSpecification:
+        Enabled: false
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: BackupFrequency
+          Value: Bihourly
+
+  InterventionEventsTableEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: AWS KMS key for encrypting the data stored within our Intervention Events Table
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - kms:*
+            Resource: '*'
+          - Effect: Allow
+            Principal:
+              Service: 'dynamodb.amazonaws.com'
+            Action:
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey*'
+              - 'kms:DescribeKey'
+              - 'kms:CreateGrant'
+            Resource: '*'
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${AWS::StackName}-InterventionEventsTable'
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-InterventionEventsTableEncryptionKey'
+
+  InterventionEventsTableEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub 'alias/${AWS::StackName}-InterventionEventsTableEncryptionKey'
+      TargetKeyId: !GetAtt AccountStatusTableEncryptionKey.Arn
+
 Outputs:
   AccountStatusTableName:
     Description: 'The name of the Intervention History DynamoDB database'
@@ -145,3 +236,27 @@ Outputs:
     Value: !GetAtt AccountStatusTableEncryptionKey.Arn
     Export:
       Name: !Sub ${AWS::StackName}-AccountStatusTableEncryptionKeyArn
+
+  InterventionEventsTableName:
+    Description: 'The name of the Intervention Events DynamoDB database table'
+    Value: !Ref InterventionEventsTable
+    Export:
+      Name: !Sub ${AWS::StackName}-InterventionEventsTableName
+
+  InterventionEventsTableArn:
+    Description: 'The ARN of the Intervention Events DynamoDB database table'
+    Value: !GetAtt InterventionEventsTable.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-InterventionEventsTableArn
+
+  InterventionEventsTableKeyArn:
+    Description: 'The ARN of the Intervention Events Table KMS key'
+    Value: !GetAtt InterventionEventsTableEncryptionKey.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-InterventionEventsTableKeyArn
+
+  InterventionEventsTableEncryptionKeyArn:
+    Description: 'The ARN of the Intervention Events DynamoDB KMS key'
+    Value: !GetAtt InterventionEventsTableEncryptionKey.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-InterventionEventsTableEncryptionKeyArn
