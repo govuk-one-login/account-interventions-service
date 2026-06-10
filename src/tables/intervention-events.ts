@@ -46,6 +46,7 @@ export type InterventionEvent = z.infer<typeof schema>;
 
 export interface InterventionEventsService {
   fetchEventsForAccount(accountId: string): Promise<InterventionEvent[]>;
+  appendEvents(events: InterventionEvent[]): Promise<void>;
 }
 
 export class InMemoryInterventionEventsService implements InterventionEventsService {
@@ -54,6 +55,10 @@ export class InMemoryInterventionEventsService implements InterventionEventsServ
   fetchEventsForAccount() {
     return Promise.resolve(this.events);
   }
+
+  async appendEvents() {
+    await Promise.resolve();
+  }
 }
 
 export class PersistentInterventionEventsService implements InterventionEventsService {
@@ -61,6 +66,10 @@ export class PersistentInterventionEventsService implements InterventionEventsSe
 
   fetchEventsForAccount(accountId: string) {
     return this.recordService.queryByPkAndValidate(accountId);
+  }
+
+  async appendEvents(events: InterventionEvent[]) {
+    await this.recordService.batchWrite(events);
   }
 }
 
