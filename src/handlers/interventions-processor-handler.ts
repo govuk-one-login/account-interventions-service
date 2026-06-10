@@ -120,10 +120,15 @@ async function processSQSRecord(record: SQSRecord, interventionEventsService: In
   addMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
   await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, result, statusResult);
 
-  const existingInterventionEvents = await interventionEventsService.fetchEventsForAccount(userId);
-  logger.debug(
-    `${LOGS_PREFIX_SENSITIVE_INFO} Fetched existingInterventionEvents ${JSON.stringify(existingInterventionEvents)}`,
-  );
+  try {
+    const existingInterventionEvents = await interventionEventsService.fetchEventsForAccount(userId);
+    logger.debug(
+      `${LOGS_PREFIX_SENSITIVE_INFO} Fetched existingInterventionEvents ${JSON.stringify(existingInterventionEvents)}`,
+    );
+  } catch (error) {
+    logger.error('Error caught during fetch intervention events.', { errorMessage: (error as Error).message });
+    addMetric(MetricNames.FETCH_INTERVENTION_EVENTS_ERROR);
+  }
 }
 
 async function validateRecord(recordBody: unknown) {
