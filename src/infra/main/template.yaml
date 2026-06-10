@@ -47,7 +47,7 @@ Parameters:
   LambdaDeploymentPreference:
     Description: "Specifies the configuration to enable gradual Lambda deployments. It can be used to set deployment type and also allows skipping canary deployment by setting to 'AllAtOnce'"
     Type: String
-    Default: 'AllAtOnce'
+    Default: 'Canary10Percent10Minutes'
     AllowedValues:
       - AllAtOnce
       - Canary10Percent5Minutes
@@ -195,17 +195,7 @@ Resources:
       FunctionName: !Sub '${AWS::StackName}-InterventionsProcessorFunction'
       Description: "Processes intervention events and updates account's intervention status."
       DeploymentPreference:
-        Type: !If
-          - IsProd
-          - !Ref LambdaDeploymentPreference
-          - AllAtOnce
-        Alarms:
-          Fn::If:
-            - IsNotInternal
-            - - !Ref InterventionsProcessorErrorsCanary
-              - !Ref ErrorPublishingEventToTxMACanary
-              - !Ref InterventionsProcessorMetricErrorsCanary
-            - - !Ref 'AWS::NoValue'
+        Type: AllAtOnce
         Role: !GetAtt CodeDeployServiceRole.Arn
       Timeout: 5
       Handler: interventions-processor-handler.handler
