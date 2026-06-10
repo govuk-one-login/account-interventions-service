@@ -43,8 +43,8 @@ describe('DynamoDBRecordService', () => {
 
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
       TableName: 'test-table',
-      KeyConditionExpression: '#pk1 = :pk',
-      ExpressionAttributeNames: { '#pk': 'pk' },
+      KeyConditionExpression: '#pk = :pk',
+      ExpressionAttributeNames: { '#pk': 'pk1' },
       ExpressionAttributeValues: { ':pk': 'key_value_1' },
     });
   });
@@ -62,8 +62,8 @@ describe('DynamoDBRecordService', () => {
 
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
       TableName: 'test-table',
-      KeyConditionExpression: '#pk1 = :pk',
-      ExpressionAttributeNames: { '#pk': 'pk' },
+      KeyConditionExpression: '#pk = :pk',
+      ExpressionAttributeNames: { '#pk': 'pk1' },
       ExpressionAttributeValues: { ':pk': 'key_value_1' },
     });
   });
@@ -81,8 +81,8 @@ describe('DynamoDBRecordService', () => {
 
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
       TableName: 'test-table',
-      KeyConditionExpression: '#pk1 = :pk',
-      ExpressionAttributeNames: { '#pk': 'pk' },
+      KeyConditionExpression: '#pk = :pk',
+      ExpressionAttributeNames: { '#pk': 'pk1' },
       ExpressionAttributeValues: { ':pk': 'key_value_1' },
     });
   });

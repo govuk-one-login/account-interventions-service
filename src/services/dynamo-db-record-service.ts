@@ -25,8 +25,8 @@ export class DynamoDBRecordService<
     const results = await this.dbClient.send(
       new QueryCommand({
         TableName: this.config.tableName,
-        KeyConditionExpression: `#${this.config.partitionKeyName} = :pk`,
-        ExpressionAttributeNames: { '#pk': 'pk' },
+        KeyConditionExpression: '#pk = :pk',
+        ExpressionAttributeNames: { '#pk': this.config.partitionKeyName },
         ExpressionAttributeValues: { ':pk': partionKeyValue },
       }),
     );
