@@ -26,6 +26,7 @@ import { sendAuditEvent } from '../services/send-audit-events';
 import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
 import { publishTimeToResolveMetrics, updateAccountStateCountMetric } from '../commons/metrics-helper';
 import { InterventionEventMessage } from '../contracts/intervention-events';
+import persistInterventionEvents from '../services/persist-intervention-events';
 import { getPersistentInterventionEventsService, InterventionEventsService } from '../tables/intervention-events';
 
 const appConfig = AppConfigService.getInstance();
@@ -121,13 +122,10 @@ async function processSQSRecord(record: SQSRecord, interventionEventsService: In
   await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, result, statusResult);
 
   try {
-    const existingInterventionEvents = await interventionEventsService.fetchEventsForAccount(userId);
-    logger.debug(
-      `${LOGS_PREFIX_SENSITIVE_INFO} Fetched existingInterventionEvents ${JSON.stringify(existingInterventionEvents)}`,
-    );
+    await persistInterventionEvents(result, eventName, itemFromDB, interventionEventsService);
   } catch (error) {
     logger.error('Error caught during fetch intervention events.', { errorMessage: (error as Error).message });
-    addMetric(MetricNames.FETCH_INTERVENTION_EVENTS_ERROR);
+    addMetric(MetricNames.PERSIST_INTERVENTION_EVENTS_ERROR);
   }
 }
 
