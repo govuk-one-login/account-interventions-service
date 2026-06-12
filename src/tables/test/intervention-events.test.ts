@@ -28,4 +28,26 @@ describe('PersistentInterventionEventsService', () => {
 
     expect(res).toEqual([event]);
   });
+
+  test('appendEvents', async () => {
+    const event = {
+      eventId: '1232',
+      accountId: 'abc',
+      interventionId: '13324',
+      createdAt: 1234,
+      interventionState: InterventionState.ACTIVE,
+      interventionName: InterventionName.TEMPORARY_SUSPENSION,
+      interventionReason: 'reason',
+      sentAt: 1234,
+      componentId: 'TEST',
+    };
+
+    const recordService = new InMemoryRecordService<typeof interventionEventsTableConfig.schema>([]);
+    const batchWriteSpy = vi.spyOn(recordService, 'batchWrite');
+    const service = new PersistentInterventionEventsService(recordService);
+
+    await service.appendEvents([event]);
+
+    expect(batchWriteSpy).toHaveBeenCalledWith([event]);
+  });
 });
