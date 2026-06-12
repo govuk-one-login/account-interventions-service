@@ -41,6 +41,8 @@ async function persistInterventionEvents(
   const eventsToAppend = generateEventsToAppend(updates, activeInterventions, message);
 
   logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention events to add ${JSON.stringify(eventsToAppend)}`);
+
+  await interventionEventsService.appendEvents(eventsToAppend);
 }
 
 /**

@@ -1,4 +1,3 @@
-import logger from '../../commons/logger';
 import { InterventionEventMessage } from '../../contracts/intervention-events';
 import { EventsEnum, TriggerEventsEnum } from '../../data-types/constants';
 import {
@@ -7,8 +6,6 @@ import {
   InterventionState,
 } from '../../tables/intervention-events';
 import persistInterventionEvents, { generateEventsToAppend } from '../persist-intervention-events';
-
-const loggerDebugSpy = vi.spyOn(logger, 'debug');
 
 const baseMessage: InterventionEventMessage = {
   component_id: 'test',
@@ -26,22 +23,41 @@ const baseMessage: InterventionEventMessage = {
   },
 };
 
-describe('persistInterventionEvents', () => {
-  test('persists a new intervention event when no existing events are present', async () => {
-    await persistInterventionEvents(
-      baseMessage,
-      EventsEnum.FRAUD_SUSPEND_ACCOUNT,
-      undefined,
-      new InMemoryInterventionEventsService([]),
-    );
+const FIXED_TIMESTAMP = 1781253284370;
 
-    expect(loggerDebugSpy).toHaveBeenNthCalledWith(1, 'Sensitive info - Fetched existingInterventionEvents []');
-    expect(loggerDebugSpy).toHaveBeenNthCalledWith(
-      2,
-      expect.stringMatching(
-        /^Sensitive info - Intervention events to add \[{"interventionName":"TEMPORARY_SUSPENSION","interventionState":"ACTIVE","eventId":".+","accountId":"1","createdAt":\d+,"interventionReason":"reason","sentAt":1722953808000,"componentId":"test"}\]$/,
-      ),
-    );
+describe('persistInterventionEvents', () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FIXED_TIMESTAMP);
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
+  test('persists a new intervention event when no existing events are present', async () => {
+    const service = new InMemoryInterventionEventsService([]);
+    const fetchEventsSpy = vi.spyOn(service, 'fetchEventsForAccount');
+    const appendEventsSpy = vi.spyOn(service, 'appendEvents');
+
+    await persistInterventionEvents(baseMessage, EventsEnum.FRAUD_SUSPEND_ACCOUNT, undefined, service);
+
+    expect(fetchEventsSpy).toHaveBeenCalledExactlyOnceWith('1');
+    expect(appendEventsSpy).toHaveBeenCalledExactlyOnceWith([
+      {
+        accountId: '1',
+        componentId: 'test',
+        createdAt: FIXED_TIMESTAMP,
+        eventId: expect.any(String) as string,
+        interventionName: 'TEMPORARY_SUSPENSION',
+        interventionReason: 'reason',
+        interventionState: 'ACTIVE',
+        originatingComponentId: undefined,
+        originatorReferenceId: undefined,
+        requesterId: undefined,
+        sentAt: 1722953808000,
+      },
+    ]);
   });
 });
 
