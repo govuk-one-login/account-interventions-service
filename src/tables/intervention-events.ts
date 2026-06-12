@@ -24,7 +24,6 @@ export enum InterventionName {
 const schema = z.object({
   eventId: z.string(),
   accountId: z.string(),
-  interventionId: z.string(),
   createdAt: z.number(),
   interventionState: z.enum(InterventionState),
   interventionName: z.enum(InterventionName),
