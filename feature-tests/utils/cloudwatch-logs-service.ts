@@ -23,8 +23,6 @@ class CloudWatchLogsService {
   startTime = Date.now(); // - 100000;
   logs: LogEvent[] = [];
 
-  constructor() {}
-
   setStartTime() {
     this.startTime = Date.now();
   }
@@ -76,6 +74,20 @@ class CloudWatchLogsService {
 
   filterMessagesBy(key: string) {
     return this.logs.filter((log) => log.message && (log as unknown as Record<string, unknown>)[key] !== undefined);
+  }
+
+  hasRetries(): boolean {
+    return this.logs.some(
+      (log) =>
+        typeof log.message !== 'string' &&
+        typeof (log.message as Record<string, unknown>)?.message === 'string' &&
+        ((log.message as Record<string, unknown>).message as string).includes(
+          'returning items that failed processing: [',
+        ) &&
+        !((log.message as Record<string, unknown>).message as string).includes(
+          'returning items that failed processing: []',
+        ),
+    );
   }
 }
 

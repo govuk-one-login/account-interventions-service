@@ -16,6 +16,7 @@ Feature: Invoke-APIGateway-HappyPath.feature
             | userActionIdResetSuccess  | false        |
             | userActionPswResetSuccess | false        |
             | unSuspendAction           | false        |
+        And I expect the intervention processor not have any batch item failures
 
     @regression
     Scenario Outline: Happy Path - Get Request to /ais/userId with enhanced fields- Returns Expected Data for <aisEventType>

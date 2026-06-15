@@ -17,7 +17,6 @@ import {
 import { aisEventResponse, AisResponseType } from '../../../utils/ais-events-responses';
 import { updateItemInTable, getRecordFromTable } from '../../../utils/dynamo-database-methods';
 import { cloudwatchLogs, LogEvent } from '../../../utils/cloudwatch-logs-service';
-import { aisEventsWithEnhancedFields } from '../../../utils/enhanced-ais-events';
 
 const feature = await loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
@@ -39,7 +38,7 @@ describeFeature(feature, ({ Scenario, ScenarioOutline, BeforeEachScenario }) => 
 
   ScenarioOutline(
     'Happy Path - Get Request to /ais/userId - Returns Expected allowable intervention codes from Egress Queue <aisEventType>',
-    ({ Given, When, Then }, { aisEventType, historyValue }) => {
+    ({ Given, When, Then, And }, { aisEventType, historyValue }) => {
       Given('I send an <aisEventType> intervention to the TxMA ingress SQS queue', async () => {
         await sendSQSEvent(testUserId, aisEventType);
       });
@@ -66,6 +65,12 @@ describeFeature(feature, ({ Scenario, ScenarioOutline, BeforeEachScenario }) => 
           }
         },
       );
+
+      And('I expect the intervention processor not have any batch item failures', () => {
+        const hasRetries = cloudwatchLogs.hasRetries();
+
+        expect(hasRetries).toBe(false);
+      });
     },
   );
 
