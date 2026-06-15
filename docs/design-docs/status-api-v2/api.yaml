@@ -1,0 +1,165 @@
+---
+openapi: 3.0.3
+
+info:
+  title: 'Account Intervention Status API v2'
+  description: |-
+    An API that provides methods to query the OneLogin Account Interventions Service
+    for the current intervention state of a User's Account.
+
+    __N.B__
+     - Recommend HTTP client __Timeout__ settings of `5 seconds` to handle requests where backend services experience cold starts.
+
+  version: 0.0.1
+  contact:
+    name: Government Digital Service - Fraud Team Neptune
+    email: interventions@digital.cabinet-office.gov.uk
+  license:
+    name: 'MIT'
+    url: 'https://github.com/govuk-one-login/account-interventions-service/blob/main/LICENCE.md'
+
+servers:
+  - url: 'https://{environment}.execute-api.eu-west-2.amazonaws.com/v2'
+    description: defaults to staging environment
+    variables:
+      environment:
+        default: vjdj6kjrj2 # staging
+        enum:
+          - m78zgo7p60 # dev
+          - rg7pm38qj4 # build
+          - vjdj6kjrj2 # staging
+          - 65zhj32bjb # integration
+          - ruz07ekh4b # Production
+
+paths:
+  /ais/{userId}:
+    get:
+      summary: 'Get User Account Intervention Status'
+      description: "Returns the active interventions applied on a user's account"
+      operationId: 'ais'
+      tags:
+        - Status
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: 'Ok'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountStatusResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+        default:
+          $ref: '#/components/responses/UnexpectedError'
+      x-amazon-apigateway-integration:
+        httpMethod: 'POST'
+        type: aws_proxy
+        uri:
+          Fn::Sub: 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StatusRetrieverFunction.Arn}:live/invocations'
+
+components:
+  schemas:
+    AccountStatusResponse:
+      title: 'Account Status Schema'
+      description: "The Status of the User's OneLogin Account"
+      type: object
+      readOnly: true
+      required:
+        - interventions
+      properties:
+        interventions:
+          $ref: '#/components/schemas/InterventionsList'
+    InterventionsList:
+      title: 'Interventions List'
+      description: 'List of interventions currently active on an account'
+      readOnly: true
+      type: array
+      items:
+        $ref: '#/components/schemas/Intervention'
+      example: [{ name: 'RESET_PASSWORD' }, { name: 'REPROVE_IDENTITY' }]
+    Intervention:
+      title: 'Intervention Schema'
+      description: 'Details about an intervention applied to an account'
+      type: object
+      properties:
+        name:
+          anyOf:
+            - type: string
+            - $ref: '#/components/schemas/InterventionName'
+          example: 'RESET_PASSWORD'
+    InterventionName:
+      type: string
+      description: 'Enum of possible Intervention names'
+      enum:
+        - 'PERMANENT_SUSPENSION'
+        - 'TEMPORARY_SUSPENSION'
+        - 'RESET_PASSWORD'
+        - 'REPROVE_IDENTITY'
+    Error:
+      title: 'Error Schema'
+      type: 'object'
+      properties:
+        message:
+          type: 'string'
+          example: 'error message'
+  parameters:
+    UserId:
+      name: userId
+      in: path
+      description: >-
+        A internal DI subject identifier. See
+        [ADR-0061](https://github.com/govuk-one-login/architecture/blob/RFC_identity_inheritance/adr/0061-common-subject-identifier-for-internal-DI-functions.md#internal-di-functions-to-use-subjectid)
+        which refers to the `SubjectId` described in
+        [ADR-0024](https://github.com/govuk-one-login/architecture/blob/RFC_identity_inheritance/adr/0024-user-identifiers.md#decision)
+        which follows the format defined in
+        [RFC-0027](https://github.com/govuk-one-login/architecture/blob/RFC_identity_inheritance/rfc/0027-subject-identifier-format.md).
+      required: true
+      example: 'urn:fdc:gov.uk:2022:JG0RJI1pYbnanbvPs-j4j5-a-PFcmhry9Qu9NCEp5d4'
+      schema:
+        type: string
+        pattern: ^[^,\s]+$
+  responses:
+    BadRequest:
+      description: 'Bad Request'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServerError:
+      description: 'Server Error'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadGateway:
+      description: 'Bad Gateway'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    GatewayTimeout:
+      description: 'Gateway Timeout'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnexpectedError:
+      description: 'Unexpected Error'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+tags:
+  - name: Status
+    description: |-
+      Provides information on an account's intervention status.
+
+      Expected users are the **DI Internal** teams ONLY.
