@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prefer-top-level-await */
 import path from 'node:path';
 import pact from '@pact-foundation/pact-cli';
 import getEnvOrThrow from '../../commons/get-env-or-throw';
