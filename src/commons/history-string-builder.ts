@@ -43,15 +43,15 @@ export class HistoryStringBuilder {
   /**
    * Method to assess information and update the history string accordingly
    * @param event - Takes the event from the ingress queue
-   * @param timeStamp - takes the events timestamp
+   * @param timestamp - takes the events timestamp
    * @returns - the history string that has been built with the buildHistoryString method with the
    * information of each part, updated.
    */
-  public getHistoryString(event: TicfAccountIntervention, timeStamp: number) {
+  public getHistoryString(event: TicfAccountIntervention, timestamp: number) {
     const interventionInformation = event.extensions.intervention;
 
     return this.buildHistoryString(
-      String(timeStamp),
+      String(timestamp),
       event.component_id,
       interventionInformation.intervention_code,
       interventionInformation.intervention_reason,

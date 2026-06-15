@@ -111,13 +111,13 @@ export async function validateEventIsNotStale(
 
 /**
  * Helper function to check if the event timestamp predates the timestamp of the latest intervention
- * @param eventTimeStamp - timestamp of the event in milliseconds
+ * @param eventTimestamp - timestamp of the event in milliseconds
  * @param sentAt - timestamp in milliseconds of the latest intervention event applied on the account
  * @param appliedAt - timestamp in milliseconds of when the latest intervention event was applied to the account
  */
-function isEventAfterLastEvent(eventTimeStamp: number, sentAt?: number, appliedAt?: number) {
+function isEventAfterLastEvent(eventTimestamp: number, sentAt?: number, appliedAt?: number) {
   const latestIntervention = sentAt ?? appliedAt ?? 0;
-  return eventTimeStamp > latestIntervention;
+  return eventTimestamp > latestIntervention;
 }
 
 /**

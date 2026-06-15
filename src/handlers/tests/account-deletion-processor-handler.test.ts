@@ -137,7 +137,7 @@ describe('Account Deletion Processor', () => {
   });
 
   it('does not process the SQS Record when user_id is a string with whitespaces in the SNS Event and tests the trim function', async () => {
-    const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user: { user_id: '   ' } });
+    const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user: { user_id: ' '.repeat(3) } });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     await handler(mockEvent, mockContext);
