@@ -51,7 +51,7 @@
     "@eslint/js": "^10.0.1",
     "@govuk-one-login/event-catalogue": "^44.0.22",
     "@pact-foundation/pact": "^16.5.0",
-    "@pact-foundation/pact-cli": "^16.1.6",
+    "@pact-foundation/pact-cli": "^18.1.0",
     "@stoplight/spectral-cli": "^6.16.0",
     "@stryker-mutator/api": "^9.6.1",
     "@stryker-mutator/core": "^9.6.1",
