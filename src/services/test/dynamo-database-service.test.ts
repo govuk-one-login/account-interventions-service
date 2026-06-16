@@ -1,4 +1,3 @@
-import { DynamoDBClient, QueryCommand, UpdateItemCommand, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 import { DynamoDatabaseService } from '../dynamo-database-service';
 import 'aws-sdk-client-mock-vitest/extend';
 import { mockClient } from 'aws-sdk-client-mock';
@@ -8,15 +7,16 @@ import { TooManyRecordsError } from '../../data-types/errors';
 import { addMetric } from '../../commons/metrics';
 import { MetricNames } from '../../data-types/constants';
 import { updateAccountStateCountMetricAfterDeletion } from '../../commons/metrics-helper';
+import { DynamoDBDocumentClient, QueryCommand, UpdateCommand, UpdateCommandInput } from '@aws-sdk/lib-dynamodb';
 
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
 vi.mock('../../commons/metrics-helper');
 vi.mock('@smithy/node-http-handler');
 
-const ddbMock = mockClient(DynamoDBClient);
+const ddbMock = mockClient(DynamoDBDocumentClient);
 const queryCommandMock = ddbMock.on(QueryCommand);
-const updateCommandMock = ddbMock.on(UpdateItemCommand);
+const updateCommandMock = ddbMock.on(UpdateCommand);
 
 describe('Dynamo DB Service', () => {
   beforeAll(() => {
@@ -34,18 +34,10 @@ describe('Dynamo DB Service', () => {
 
   const items = [
     {
-      blocked: {
-        BOOL: false,
-      },
-      suspended: {
-        BOOL: false,
-      },
-      reproveIdentity: {
-        BOOL: false,
-      },
-      resetPassword: {
-        BOOL: false,
-      },
+      blocked: false,
+      suspended: false,
+      reproveIdentity: false,
+      resetPassword: false,
     },
   ];
 
@@ -58,11 +50,11 @@ describe('Dynamo DB Service', () => {
       '#UA': 'updatedAt',
     },
     ExpressionAttributeValues: {
-      ':b': { BOOL: true },
-      ':s': { BOOL: true },
-      ':rp': { BOOL: false },
-      ':ri': { BOOL: false },
-      ':ua': { N: getCurrentTimestamp().milliseconds.toString() },
+      ':b': true,
+      ':s': true,
+      ':rp': false,
+      ':ri': false,
+      ':ua': getCurrentTimestamp().milliseconds.toString(),
     },
     UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
   };
@@ -89,7 +81,7 @@ describe('Dynamo DB Service', () => {
       TableName: 'abc',
       KeyConditionExpression: '#pk = :id_value',
       ExpressionAttributeNames: { '#pk': 'pk' },
-      ExpressionAttributeValues: { ':id_value': { S: 'abc' } },
+      ExpressionAttributeValues: { ':id_value': 'abc' },
       ProjectionExpression:
         'blocked, suspended, resetPassword, reproveIdentity, sentAt, appliedAt, isAccountDeleted, history, intervention',
     };
@@ -103,7 +95,7 @@ describe('Dynamo DB Service', () => {
       TableName: 'abc',
       KeyConditionExpression: '#pk = :id_value',
       ExpressionAttributeNames: { '#pk': 'pk' },
-      ExpressionAttributeValues: { ':id_value': { S: 'abc' } },
+      ExpressionAttributeValues: { ':id_value': 'abc' },
     };
     queryCommandMock.resolvesOnce({ Items: items });
     await new DynamoDatabaseService('abc').getFullAccountInformation('abc');
@@ -148,23 +140,15 @@ describe('Dynamo DB Service', () => {
     updateCommandMock.resolves({
       $metadata: { httpStatusCode: 200 },
       Attributes: {
-        resetPassword: {
-          BOOL: true,
-        },
-        suspended: {
-          BOOL: true,
-        },
-        blocked: {
-          BOOL: false,
-        },
-        reproveIdentity: {
-          BOOL: false,
-        },
+        resetPassword: true,
+        suspended: true,
+        blocked: false,
+        reproveIdentity: false,
       },
     });
-    const commandInput: UpdateItemCommandInput & Record<string, unknown> = {
+    const commandInput: UpdateCommandInput & Record<string, unknown> = {
       TableName: 'table_name',
-      Key: { pk: { S: 'hello' } },
+      Key: { pk: 'hello' },
       UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',
       ExpressionAttributeNames: {
         '#isAccountDeleted': 'isAccountDeleted',
@@ -172,10 +156,10 @@ describe('Dynamo DB Service', () => {
         '#deletedAt': 'deletedAt',
       },
       ExpressionAttributeValues: {
-        ':isAccountDeleted': { BOOL: true },
-        ':ttl': { N: '1685417145' },
-        ':false': { BOOL: false },
-        ':deletedAt': { N: '1685404800000' },
+        ':isAccountDeleted': true,
+        ':ttl': '1685417145',
+        ':false': false,
+        ':deletedAt': '1685404800000',
       },
       ReturnValues: 'ALL_NEW',
       ConditionExpression:
@@ -183,12 +167,12 @@ describe('Dynamo DB Service', () => {
     };
     const dynamoDBService = new DynamoDatabaseService('table_name');
     await dynamoDBService.updateDeleteStatus('hello');
-    expect(ddbMock).toHaveReceivedCommandWith(UpdateItemCommand, commandInput);
+    expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, commandInput);
     expect(updateAccountStateCountMetricAfterDeletion).toHaveBeenCalledWith(false, true);
   });
 
   it('throws an error when it fails to update the userId status.', async () => {
-    const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
+    const mockedUpdateCommand = mockClient(DynamoDBDocumentClient).on(UpdateCommand);
     const error = new Error('InternalServerError');
     mockedUpdateCommand.rejectsOnce(error);
     const loggerErrorSpy = vi.spyOn(logger, 'error');
@@ -204,7 +188,7 @@ describe('Dynamo DB Service', () => {
   });
 
   it('does not throw an error and logs an info when there is a Conditional Check Exception.', async () => {
-    const mockedUpdateCommand = mockClient(DynamoDBClient).on(UpdateItemCommand);
+    const mockedUpdateCommand = mockClient(DynamoDBDocumentClient).on(UpdateCommand);
     const error = new Error('test');
     error.name = 'ConditionalCheckFailedException';
     mockedUpdateCommand.rejectsOnce(error);
