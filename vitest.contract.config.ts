@@ -9,6 +9,7 @@ export default defineConfig({
       CLOUDWATCH_METRICS_NAMESPACE: 'test_namespace',
       METRIC_SERVICE_NAME: 'test',
       TABLE_NAME: 'table_name',
+      INTERVENTION_EVENTS_TABLE_NAME: 'intervention-events',
       AWS_REGION: 'aws_region',
       PROVIDER_BASE_URL: 'http://127.0.0.1',
       PROVIDER_PORT: ':8080',

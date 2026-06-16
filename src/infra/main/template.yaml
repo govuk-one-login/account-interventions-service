@@ -1301,6 +1301,8 @@ Resources:
         Variables:
           TABLE_NAME:
             Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableName'
+          INTERVENTION_EVENTS_TABLE_NAME:
+            Fn::ImportValue: !Sub '${CoreStackName}-InterventionEventsTableName'
           METRIC_SERVICE_NAME: StatusRetrieverFunction
       Handler: status-retriever-handler.handle
       Role: !GetAtt StatusRetrieverFunctionRole.Arn
@@ -1369,9 +1371,20 @@ Resources:
               - Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableArn'
           - Effect: Allow
             Action:
+              - 'dynamodb:BatchWriteItem'
+              - 'dynamodb:Query'
+            Resource:
+              - Fn::ImportValue: !Sub '${CoreStackName}-InterventionEventsTableArn'
+          - Effect: Allow
+            Action:
               - 'kms:decrypt'
             Resource:
               - Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableEncryptionKeyArn'
+          - Effect: Allow
+            Action:
+              - 'kms:decrypt'
+            Resource:
+              - Fn::ImportValue: !Sub '${CoreStackName}-InterventionEventsTableEncryptionKeyArn'
       Roles:
         - !Ref StatusRetrieverFunctionRole
 
