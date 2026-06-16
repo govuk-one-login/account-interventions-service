@@ -58,7 +58,7 @@ describe('previousStateToInterventions', () => {
         resetPassword: false,
         reproveIdentity: false,
       }),
-    ).toEqual(['PERMENANT_SUSPENSION']);
+    ).toEqual(['PERMANENT_SUSPENSION']);
   });
 
   test('suspended', () => {

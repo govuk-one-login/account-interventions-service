@@ -117,7 +117,7 @@ const config: Record<EventsEnum, InterventionUpdate[]> = {
   ],
 
   [EventsEnum.FRAUD_BLOCK_ACCOUNT]: [
-    { interventionName: InterventionName.PERMENANT_SUSPENSION, interventionState: InterventionState.ACTIVE },
+    { interventionName: InterventionName.PERMANENT_SUSPENSION, interventionState: InterventionState.ACTIVE },
     { interventionName: InterventionName.TEMPORARY_SUSPENSION, interventionState: InterventionState.SUPERSEDED },
     { interventionName: InterventionName.RESET_PASSWORD, interventionState: InterventionState.SUPERSEDED },
     { interventionName: InterventionName.REPROVE_IDENTITY, interventionState: InterventionState.SUPERSEDED },
@@ -160,7 +160,7 @@ const config: Record<EventsEnum, InterventionUpdate[]> = {
   ],
 
   [EventsEnum.FRAUD_UNBLOCK_ACCOUNT]: [
-    { interventionName: InterventionName.PERMENANT_SUSPENSION, interventionState: InterventionState.REMOVED },
+    { interventionName: InterventionName.PERMANENT_SUSPENSION, interventionState: InterventionState.REMOVED },
   ],
 };
 

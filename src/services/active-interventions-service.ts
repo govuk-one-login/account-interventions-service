@@ -82,7 +82,7 @@ export function previousStateToInterventions(previousState?: StateDetails): Inte
   if (previousState.resetPassword) return [InterventionName.RESET_PASSWORD];
   if (previousState.reproveIdentity) return [InterventionName.REPROVE_IDENTITY];
 
-  if (previousState.blocked) return [InterventionName.PERMENANT_SUSPENSION];
+  if (previousState.blocked) return [InterventionName.PERMANENT_SUSPENSION];
   if (previousState.suspended) return [InterventionName.TEMPORARY_SUSPENSION];
 
   return [];

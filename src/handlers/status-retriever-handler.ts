@@ -20,6 +20,14 @@ const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableN
 export async function handle(event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> {
   logger.addContext(context);
 
+  if (event.resource === '/v2/ais/{userId}') {
+    logger.debug('v2 endpoint');
+    return {
+      statusCode: 501,
+      body: JSON.stringify({ message: 'Not Implemented.' }),
+    };
+  }
+
   if (!event.pathParameters?.['userId']) {
     addMetric(MetricNames.INVALID_SUBJECT_ID);
     metric.publishStoredMetrics();

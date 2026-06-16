@@ -1518,7 +1518,7 @@ Resources:
         - Key: Name
           Value: !Sub '/aws/lambda/${InvokePrivateAPIGatewayFunction}'
 
-  # Private API Gateway resources
+  # Private API Gateway resources - Note this is deprecated, please use PrivateApi
   PrivateRestApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -1637,6 +1637,126 @@ Resources:
       SourceAccount: !Ref AWS::AccountId
       SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PrivateRestApi}/*/*' # allow any stage and any method to use status retriever
 
+  # Private API Gateway resources
+  PrivateApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      # checkov:skip=CKV_AWS_120: API Gateway caching not enabled
+      Name: !Sub '${AWS::StackName}-PrivateApi'
+      AlwaysDeploy: true
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: '../../specs/main.yaml'
+      Description: 'Private REST API that provides method to interact with the Account Interventions Services'
+      StageName: 'main'
+      OpenApiVersion: 3.0.3
+      PropagateTags: true
+      Auth:
+        ResourcePolicy:
+          IntrinsicVpcWhitelist:
+            - !FindInMap [EnvConfig, !Ref Environment, AuthenticationVPCID]
+            - !FindInMap [EnvConfig, !Ref Environment, OneLoginHomeVPCID]
+            - !FindInMap [EnvConfig, !Ref Environment, OrchestrationVPCID]
+            - !FindInMap [EnvConfig, !Ref Environment, IPVCoreVPCID]
+      AccessLogSetting:
+        Format: >-
+          {
+          "requestId": "$context.requestId",
+          "requestTime": "$context.requestTime",
+          "requestTimeEpoch": "$context.requestTimeEpoch",
+          "httpMethod": "$context.httpMethod",
+          "domainName": "$context.domainName",
+          "path": "$context.path",
+          "routeKey": "$context.routeKey",
+          "protocol": "$context.protocol",
+          "status": "$context.status",
+          "responseLength": "$context.responseLength",
+          "responseLatency": "$context.responseLatency",
+          "authorizerLatency": "$context.authorizer.latency",
+          "integrationStatus": "$context.integrationStatus",
+          "integrationLatency": "$context.integrationLatency",
+          "integrationErrorMessage": "$context.integrationErrorMessage",
+          "errorMessage": "$context.error.message",
+          "errorResponseType": "$context.error.responseType",
+          "validationErrorString": "$context.error.validationErrorString",
+          }
+        DestinationArn: !GetAtt PrivateAPIGatewayAccessLogGroup.Arn
+      CacheClusterEnabled: false
+      TracingEnabled: true
+      EndpointConfiguration:
+        Type: PRIVATE
+        VpcEndpointIds: !If
+          - IsNotInternal
+          - !Split [',', !FindInMap [EnvConfig, !Ref Environment, UniqueVPCEndpointIDs]]
+          - []
+      Tags:
+        CheckovRulesToSkip: CKV_AWS_120
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+        FMSRegionalPolicy: False
+        CustomPolicy: True
+
+  PrivateApiNameSSM:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: PrivateApi Name
+      Name: !Sub /${AWS::StackName}/PrivateApi/Name
+      Type: String
+      Value: !Sub '${AWS::StackName}-PrivateApi' # No return value for Rest API name so please keep manual value same as the PrivateApi resource Name property
+      Tags:
+        Environment: !Ref Environment
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
+  PrivateAPIMainGatewayAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/apigateway/${PrivateApi}/main'
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub '/aws/apigateway/${PrivateApi}/main'
+
+  PrivateAPIMainGatewayLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn: !Ref CSLSSubscriptionEndpointArn
+      LogGroupName: !Ref PrivateAPIMainGatewayAccessLogGroup
+      FilterPattern: ''
+
+  PrivateMainGatewayStatusRetrieverFunctionPermission:
+    DependsOn: StatusRetrieverFunctionAliaslive
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Join
+        - ':'
+        - - 'function'
+          - !Select [6, !Split [':', !GetAtt StatusRetrieverFunction.Arn]]
+          - 'live'
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PrivateApi}/*/*' # allow any stage and any method to use status retriever
+
+  # CloudWatch
   CloudWatchEncryptionKey:
     Type: AWS::KMS::Key
     Properties:
