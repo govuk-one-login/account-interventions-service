@@ -1687,10 +1687,12 @@ Resources:
       TracingEnabled: true
       EndpointConfiguration:
         Type: PRIVATE
-        VpcEndpointIds: !If
-          - IsNotInternal
-          - !Split [',', !FindInMap [EnvConfig, !Ref Environment, UniqueVPCEndpointIDs]]
-          - []
+        # TODO - figure out status of the perf VPC id
+        VpcEndpointIds: []
+        # VpcEndpointIds: !If
+        #   - IsNotInternal
+        #   - !Split [',', !FindInMap [EnvConfig, !Ref Environment, UniqueVPCEndpointIDs]]
+        #   - []
       Tags:
         CheckovRulesToSkip: CKV_AWS_120
         Product: !Ref ProductTagValue
