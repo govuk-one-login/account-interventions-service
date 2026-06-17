@@ -1,0 +1,42 @@
+---
+name: 'Build feature test environment'
+permissions:
+  contents: read
+  packages: read
+
+on:
+  push:
+    paths:
+      - feature-tests/**
+      - .github/workflows/build-feature-tests-environment.yaml
+    branches:
+      - main
+  pull_request:
+    paths:
+      - feature-tests/**
+      - .github/workflows/build-feature-tests-environment.yaml
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+      - synchronize
+  workflow_call:
+    inputs:
+      gitRef:
+        required: false
+        type: string
+        default: ${{ github.ref }}
+
+jobs:
+  build-feature-test-environment:
+    name: 'Build feature test environment'
+    runs-on: ubuntu-latest
+    working-directory: feature-tests
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6.0.2
+        with:
+          ref: ${{ inputs.gitRef || github.ref }}
+
+      # We don't run the feature tests here but we build the docker image to surface any build-time issues
+      - name: Build feature test docker image
+        run: docker build .
