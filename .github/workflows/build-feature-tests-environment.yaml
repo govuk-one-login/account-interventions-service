@@ -8,7 +8,7 @@ on:
       - feature-tests/**
       - .github/workflows/build-feature-tests-environment.yaml
     branches:
-      - main
+      - ee/test-feature-test-environment-ci
   pull_request:
     types:
       - opened
@@ -26,7 +26,6 @@ jobs:
   build-feature-test-environment:
     name: 'Build feature test environment'
     runs-on: ubuntu-latest
-    working-directory: feature-tests
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6.0.2
         with:
@@ -35,4 +34,4 @@ jobs:
       # We don't run the feature tests here but we build the docker image to surface any build-time issues
       # test
       - name: Build feature test docker image
-        run: docker build .
+        run: docker build feature-tests/.
