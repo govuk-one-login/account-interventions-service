@@ -38,5 +38,6 @@ jobs:
           ref: ${{ inputs.gitRef || github.ref }}
 
       # We don't run the feature tests here but we build the docker image to surface any build-time issues
+      # test
       - name: Build feature test docker image
         run: docker build .
