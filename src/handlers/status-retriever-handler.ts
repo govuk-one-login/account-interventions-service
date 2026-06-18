@@ -3,12 +3,14 @@ import { AppConfigService } from '../services/app-config-service';
 import logger from '../commons/logger';
 import { addMetric, metric } from '../commons/metrics';
 import { MetricNames, AISInterventionTypes } from '../data-types/constants';
-import { AccountStatus, FullAccountInformation, HistoryObject } from '../data-types/interfaces';
+import { FullAccountInformation, HistoryObject } from '../data-types/interfaces';
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { HistoryStringBuilder } from '../commons/history-string-builder';
 import getActiveInterventions from '../services/active-interventions-service';
 import { getPersistentInterventionEventsService, InterventionEventsService } from '../tables/intervention-events';
+import { UserIdParamSchema, V1QuerySchema } from '../scripts/generate-main-spec';
+import { V1Response } from '../data-types/api-schemas-v1';
 
 const appConfig = AppConfigService.getInstance();
 const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableName);
@@ -26,7 +28,8 @@ export async function handle(
 ): Promise<APIGatewayProxyResult> {
   logger.addContext(context);
 
-  if (!event.pathParameters?.['userId']) {
+  const params = UserIdParamSchema.safeParse(event.pathParameters);
+  if (!params.success) {
     addMetric(MetricNames.INVALID_SUBJECT_ID);
     metric.publishStoredMetrics();
     return {
@@ -37,12 +40,12 @@ export async function handle(
 
   logger.info('This is a comment for tests');
 
-  const userId = decodeURIComponent(validateEvent(event.pathParameters['userId']));
+  const userId = decodeURIComponent(params.data.userId);
 
   try {
     if (event.resource === '/v2/ais/{userId}') return await v2StatusApiHandler(userId, interventionEventsService);
 
-    const historyQuery = event.queryStringParameters?.['history'];
+    const { history: historyQuery } = V1QuerySchema.parse(event.queryStringParameters ?? {});
 
     return await v1StatusApiHandler(userId, historyQuery);
   } catch (error) {
@@ -58,7 +61,7 @@ export async function handle(
   };
 }
 
-async function v1StatusApiHandler(userId: string, historyQuery: string | undefined) {
+async function v1StatusApiHandler(userId: string, historyQuery: boolean | undefined) {
   const response = await dynamoDatabaseServiceInstance.getFullAccountInformation(userId);
   if (!response) {
     logger.info('Query matched no records in DynamoDB.');
@@ -66,9 +69,7 @@ async function v1StatusApiHandler(userId: string, historyQuery: string | undefin
 
     const undefinedAccount = transformResponseFromDynamoDatabase({});
 
-    if (historyQuery && historyQuery === 'true') {
-      undefinedAccount.history = [];
-    }
+    if (historyQuery) undefinedAccount.history = [];
 
     metric.publishStoredMetrics();
     return {
@@ -79,9 +80,7 @@ async function v1StatusApiHandler(userId: string, historyQuery: string | undefin
 
   const accountStatus = transformResponseFromDynamoDatabase(response);
 
-  if (historyQuery && historyQuery === 'true') {
-    accountStatus.history = constructHistoryObjectField(response.history);
-  }
+  if (historyQuery) accountStatus.history = constructHistoryObjectField(response.history);
 
   metric.publishStoredMetrics();
   return {
@@ -120,32 +119,19 @@ async function v2StatusApiHandler(userId: string, interventionEventsService: Int
 }
 
 /**
- * Helper function to remove whitespace from the user id and to validate that the event contains a valid user id
- * @param userId - Obtained from APIGateway
- * @returns - the userId that is passed in, trimmed of any whitespace
- */
-function validateEvent(userId: string) {
-  const trimmedUserId = userId.trim();
-  if (!trimmedUserId) {
-    logger.warn('Attribute invalid: user_id is empty.');
-  }
-  return trimmedUserId;
-}
-
-/**
  * Function to transform the response from DynamoDB into an object.
  * @param item - Response from DynamoDB
  * @returns - An object with all the required fields for the handler response. Creates a default object if any fields are undefined.
  * Updates timestamps to now if they are returned as null.
  */
-function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformation>) {
+function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformation>): V1Response {
   const currentTimestampMs = getCurrentTimestamp().milliseconds;
-  const accountStatus: AccountStatus = {
+  return {
     intervention: {
       updatedAt: item.updatedAt ?? currentTimestampMs,
       appliedAt: item.appliedAt ?? currentTimestampMs,
       sentAt: item.sentAt ?? currentTimestampMs,
-      description: item.intervention ?? AISInterventionTypes.AIS_NO_INTERVENTION,
+      description: (item.intervention as AISInterventionTypes | undefined) ?? AISInterventionTypes.AIS_NO_INTERVENTION,
       reprovedIdentityAt: item.reprovedIdentityAt ?? undefined,
       resetPasswordAt: item.resetPasswordAt ?? undefined,
       accountDeletedAt: item.deletedAt ?? undefined,
@@ -156,9 +142,8 @@ function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformatio
       resetPassword: item.resetPassword ?? false,
       reproveIdentity: item.reproveIdentity ?? false,
     },
-    auditLevel: item.auditLevel ?? 'standard',
+    auditLevel: (item.auditLevel as 'standard' | 'enhanced' | undefined) ?? 'standard',
   };
-  return accountStatus;
 }
 
 /**
