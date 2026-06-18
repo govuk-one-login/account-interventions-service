@@ -114,6 +114,75 @@ describe('DynamoDBRecordService', () => {
     });
   });
 
+  test('getByPkAndValidate', async () => {
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        {
+          pk1: 'value1',
+        },
+      ],
+    });
+
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
+
+    const res = await service.getByPkAndValidate('key_value_1');
+
+    expect(res).toEqual({
+      pk1: 'value1',
+    });
+
+    expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
+      TableName: 'test-table',
+      KeyConditionExpression: '#pk = :pk',
+      ExpressionAttributeNames: { '#pk': 'pk1' },
+      ExpressionAttributeValues: { ':pk': 'key_value_1' },
+    });
+  });
+
+  test('getByPkAndValidate includedKeys', async () => {
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        {
+          pk1: 'value1',
+        },
+      ],
+    });
+
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
+
+    const res = await service.getByPkAndValidate('key_value_1', ['pk1']);
+
+    expect(res).toEqual({
+      pk1: 'value1',
+    });
+
+    expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
+      TableName: 'test-table',
+      KeyConditionExpression: '#pk = :pk',
+      ExpressionAttributeNames: { '#pk': 'pk1' },
+      ExpressionAttributeValues: { ':pk': 'key_value_1' },
+    });
+  });
+
+  test('getByPkAndValidate empty', async () => {
+    ddbMock.on(QueryCommand).resolves({
+      Items: [],
+    });
+
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
+
+    const res = await service.getByPkAndValidate('key_value_1');
+
+    expect(res).toEqual(undefined);
+
+    expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
+      TableName: 'test-table',
+      KeyConditionExpression: '#pk = :pk',
+      ExpressionAttributeNames: { '#pk': 'pk1' },
+      ExpressionAttributeValues: { ':pk': 'key_value_1' },
+    });
+  });
+
   test('batchWrite', async () => {
     ddbMock.on(QueryCommand).resolves({ Items: [] });
 

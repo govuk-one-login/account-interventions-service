@@ -11,6 +11,12 @@ export interface RecordService<T extends ZodObject<ZodRawShape>> {
     partitionKeyValue: string,
     includedKeys: K[],
   ): Promise<PickedArray<T, K>>;
+
+  getByPkAndValidate(partitionKeyValue: string, includedKeys?: undefined): Promise<z.infer<T> | undefined>;
+  getByPkAndValidate<K extends keyof z.infer<T>>(
+    partitionKeyValue: string,
+    includedKeys: K[],
+  ): Promise<Pick<z.infer<T>, K> | undefined>;
   batchWrite(input: ArrayFromT<T>): Promise<void>;
 }
 
@@ -54,6 +60,22 @@ export class DynamoDBRecordService<
     return this.buildArraySchema(includedKeys).parse(results.Items ?? []) as ArrayFromT<T> | PickedArray<T, K>;
   }
 
+  getByPkAndValidate(partitionKeyValue: string, includedKeys?: undefined): Promise<z.infer<T> | undefined>;
+  getByPkAndValidate<K extends string & keyof z.infer<T>>(
+    partitionKeyValue: string,
+    includedKeys: K[],
+  ): Promise<Pick<z.infer<T>, K> | undefined>;
+  async getByPkAndValidate<K extends string & keyof z.infer<T>>(
+    partitionKeyValue: string,
+    includedKeys?: K[],
+  ): Promise<z.infer<T> | Pick<z.infer<T>, K> | undefined> {
+    const res = await (includedKeys
+      ? this.queryByPkAndValidate(partitionKeyValue, includedKeys)
+      : this.queryByPkAndValidate(partitionKeyValue));
+
+    return res[0];
+  }
+
   async batchWrite(input: ArrayFromT<T>): Promise<void> {
     await this.databaseClient.send(
       new BatchWriteCommand({
@@ -77,6 +99,15 @@ export class InMemoryRecordService<T extends ZodObject<ZodRawShape>> implements 
   ): Promise<PickedArray<T, K>>;
   queryByPkAndValidate(): Promise<ArrayFromT<T> | PickedArray<T, never>> {
     return Promise.resolve(this.results);
+  }
+
+  getByPkAndValidate(partitionKeyValue: string, includedKeys?: undefined): Promise<z.infer<T> | undefined>;
+  getByPkAndValidate<K extends keyof z.infer<T>>(
+    partitionKeyValue: string,
+    includedKeys: K[],
+  ): Promise<Pick<z.infer<T>, K> | undefined>;
+  getByPkAndValidate(): Promise<z.infer<T> | Pick<z.infer<T>, never> | undefined> {
+    return Promise.resolve(this.results[0]);
   }
 
   batchWrite(): Promise<void> {
