@@ -17,7 +17,6 @@ import {
 import { aisEventResponse, AisResponseType } from '../../../utils/ais-events-responses';
 import { updateItemInTable, getRecordFromTable } from '../../../utils/dynamo-database-methods';
 import { cloudwatchLogs, LogEvent } from '../../../utils/cloudwatch-logs-service';
-import { aisEventsWithEnhancedFields } from '../../../utils/enhanced-ais-events';
 
 const feature = await loadFeature('./tests/resources/features/aisGET/InvokeApiGateWay-HappyPath.feature');
 
