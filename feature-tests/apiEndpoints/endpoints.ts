@@ -3,6 +3,10 @@ export default class EndPoints {
     process.env.TEST_ENVIRONMENT === 'dev'
       ? `https://ysxfdzicei.execute-api.${process.env.AWS_REGION}.amazonaws.com/v1`
       : process.env.CFN_PrivateApiEndpoint;
+  public static AIS_MAIN_URL =
+    process.env.TEST_ENVIRONMENT === 'dev'
+      ? `https://4ziiqv75a4.execute-api.${process.env.AWS_REGION}.amazonaws.com/main`
+      : process.env.CFN_MainPrivateApiEndpoint;
   public static SQS_QUEUE_URL =
     process.env.TEST_ENVIRONMENT === 'dev'
       ? `https://sqs.${process.env.AWS_REGION}.amazonaws.com/484907510598/${process.env.SAM_STACK_NAME}-TxMAIngressQueue`

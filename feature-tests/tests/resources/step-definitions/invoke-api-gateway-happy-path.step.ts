@@ -69,6 +69,27 @@ describeFeature(feature, ({ Scenario, ScenarioOutline, BeforeEachScenario }) => 
     },
   );
 
+  Scenario('Happy Path - Get Request to /v2/ais/userId Returns Expected Data', ({ Given, When, Then }) => {
+    Given('I send an intervention message to the TxMA ingress SQS queue', async () => {
+      await sendSQSEvent(testUserId, 'suspendNoAction');
+    });
+
+    When('I invoke an API v2 to retrieve the intervention status of the account', async () => {
+      await timeDelayForTestEnvironment(4000);
+      response = await invokeGetAccountState(testUserId, false, true);
+    });
+
+    Then('I expect the API to return a list of active interventions', () => {
+      expect(response).toEqual({
+        interventions: [
+          {
+            name: 'TEMPORARY_SUSPENSION',
+          },
+        ],
+      });
+    });
+  });
+
   ScenarioOutline(
     'Happy Path - Get Request to /ais/userId with enhanced fields- Returns Expected Data for <aisEventType>',
     ({ Given, When, Then }, { enhancedAisEventType }) => {

@@ -1436,6 +1436,11 @@ Resources:
             - - https://
               - !GetAtt PrivateRestApi.RestApiId
               - !Sub .execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}
+          PRIVATE_API_URL: !Join
+            - ''
+            - - https://
+              - !GetAtt PrivateApi.RestApiId
+              - !Sub .execute-api.${AWS::Region}.amazonaws.com/main
           END_POINT: /ais
           QUERY_PARAMETERS: ''
           HTTP_REQUEST_METHOD: GET
@@ -1975,6 +1980,10 @@ Outputs:
   PrivateApiEndpoint:
     Description: 'Private API Gateway endpoint URL for AIS methods'
     Value: !Sub 'https://${PrivateRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}'
+
+  MainPrivateApiEndpoint:
+    Description: 'Private API Gateway endpoint URL for AIS methods'
+    Value: !Sub 'https://${PrivateApi}.execute-api.${AWS::Region}.amazonaws.com/main'
 
   TxMAEgressSqsQueueUrl:
     Description: 'Endpoint URL for TxMA Egress Queue'

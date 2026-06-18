@@ -3,16 +3,17 @@
 import getEnvOrThrow from '../commons/get-env-or-throw';
 import logger from '../commons/logger';
 
-interface CustomEvent {
+export interface CustomEvent {
   userId?: string;
   queryParameters?: string;
   baseUrl?: string;
   endpoint?: string;
   headers?: Record<string, string>;
+  privateApi?: boolean;
 }
 
 export async function handle(event: CustomEvent) {
-  const baseUrl = event.baseUrl ?? getBaseUrl();
+  const baseUrl = event.baseUrl ?? getBaseUrl(event);
   const endpoint = event.endpoint ?? getEndpoint();
   const userId = encodeURI(event.userId ?? getUserId());
   const headers = event.headers ?? { 'Content-Type': 'application/json' };
@@ -42,8 +43,8 @@ function getUserId() {
   return getEnvOrThrow('USER_ID');
 }
 
-function getBaseUrl() {
-  return validateConfiguration('BASE_URL');
+function getBaseUrl(event: CustomEvent) {
+  return event.privateApi ? validateConfiguration('PRIVATE_API_URL') : validateConfiguration('BASE_URL');
 }
 
 function getEndpoint() {
