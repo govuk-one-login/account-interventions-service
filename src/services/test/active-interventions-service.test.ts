@@ -101,6 +101,21 @@ describe('filterEventStreamToActive', () => {
     ).toEqual(new Set());
   });
 
+  test('single ignored intervention event', () => {
+    expect(
+      filterEventStreamToActive([
+        {
+          interventionName: InterventionName.TEMPORARY_SUSPENSION,
+          interventionState: InterventionState.ACTIVE,
+        },
+        {
+          interventionName: InterventionName.TEMPORARY_SUSPENSION,
+          interventionState: InterventionState.IGNORED,
+        },
+      ]),
+    ).toEqual(new Set([InterventionName.TEMPORARY_SUSPENSION]));
+  });
+
   test('active and removed intervention event', () => {
     expect(
       filterEventStreamToActive([
