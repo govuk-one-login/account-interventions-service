@@ -1,4 +1,4 @@
-# ADR title
+# Favour composition over inheritance
 
 ## What
 
