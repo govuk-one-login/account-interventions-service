@@ -100,7 +100,7 @@ async function processSQSRecord(record: SQSRecord, interventionEventsService: In
     await validateEventIsNotStale(eventName, result, currentAccountState, itemFromDB);
   }
 
-  const statusResult = await applyEventTransition(eventName, currentAccountState, itemFromDB?.intervention, result);
+  const statusResult = await applyEventTransition(eventName, currentAccountState, itemFromDB?.intervention, result, interventionEventsService);
   const partialCommandInput = buildPartialUpdateAccountStateCommand(
     statusResult.stateResult,
     currentTimestamp.milliseconds,
@@ -149,13 +149,16 @@ async function applyEventTransition(
   initialState: StateDetails,
   interventionName: string | undefined,
   result: InterventionEventMessage,
+  interventionEventsService: InterventionEventsService,
+
 ) {
   try {
     return accountStateEngine.applyEventTransition(event, initialState, interventionName);
   } catch (error) {
-    if (error instanceof StateTransitionError)
+    if (error instanceof StateTransitionError) {
       await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, result, error.output);
-
+      await persistInterventionEvents(result, EventsEnum.INTERVENTION_EVENT_IGNORED, initialState, interventionEventsService);
+    }
     throw error;
   }
 }

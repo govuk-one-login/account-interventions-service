@@ -157,6 +157,13 @@ const config: Record<EventsEnum, InterventionUpdate[]> = {
   [EventsEnum.FRAUD_UNBLOCK_ACCOUNT]: [
     { interventionName: InterventionName.PERMANENT_SUSPENSION, interventionState: InterventionState.REMOVED },
   ],
+
+  [EventsEnum.INTERVENTION_EVENT_IGNORED]: [
+    { interventionName: InterventionName.TEMPORARY_SUSPENSION, interventionState: InterventionState.IGNORED },
+    { interventionName: InterventionName.PERMENANT_SUSPENSION, interventionState: InterventionState.IGNORED },
+    { interventionName: InterventionName.RESET_PASSWORD, interventionState: InterventionState.IGNORED },
+    { interventionName: InterventionName.REPROVE_IDENTITY, interventionState: InterventionState.IGNORED },
+  ],
 };
 
 export default persistInterventionEvents;
