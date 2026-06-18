@@ -123,11 +123,7 @@ export async function deleteTestRecord(userId: string): Promise<void> {
   }
 }
 
-export interface InterventionEvent {
-  eventId: string;
-}
-
-export async function getInterventionEventRecordFromTable(userId: string): Promise<InterventionEvent | undefined> {
+export async function getInterventionEventsRecordsFromTable(userId: string) {
   try {
     console.log('retrieving intevention event record from database');
     const getRecordCommand = new QueryCommand({
@@ -140,7 +136,7 @@ export async function getInterventionEventRecordFromTable(userId: string): Promi
     if (!response.Items) {
       throw new Error('the record is undefined or doesnt exist');
     }
-    return response.Items[0] as InterventionEvent;
+    return response.Items;
   } catch (error) {
     console.log('unable to get record', { error });
   }
