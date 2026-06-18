@@ -7,6 +7,8 @@ import { AccountStatus, FullAccountInformation, HistoryObject } from '../data-ty
 import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { HistoryStringBuilder } from '../commons/history-string-builder';
+import getActiveInterventions from '../services/active-interventions-service';
+import { getPersistentInterventionEventsService, InterventionEventsService } from '../tables/intervention-events';
 
 const appConfig = AppConfigService.getInstance();
 const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableName);
@@ -17,16 +19,12 @@ const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableN
  * @param context - This object provides methods and properties that provide information about the invocation, function, and execution environment.
  * @returns - The status of the account when matched with the User ID. Returns a default object if unable to do so. Also returns the relevant status code.
  */
-export async function handle(event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> {
+export async function handle(
+  event: APIGatewayEvent,
+  context: Context,
+  interventionEventsService: InterventionEventsService = getPersistentInterventionEventsService(),
+): Promise<APIGatewayProxyResult> {
   logger.addContext(context);
-
-  if (event.resource === '/v2/ais/{userId}') {
-    logger.debug('v2 endpoint');
-    return {
-      statusCode: 501,
-      body: JSON.stringify({ message: 'Not Implemented.' }),
-    };
-  }
 
   if (!event.pathParameters?.['userId']) {
     addMetric(MetricNames.INVALID_SUBJECT_ID);
@@ -40,44 +38,84 @@ export async function handle(event: APIGatewayEvent, context: Context): Promise<
   logger.info('This is a comment for tests');
 
   const userId = decodeURIComponent(validateEvent(event.pathParameters['userId']));
-  const historyQuery = event.queryStringParameters?.['history'];
 
   try {
-    const response = await dynamoDatabaseServiceInstance.getFullAccountInformation(userId);
-    if (!response) {
-      logger.info('Query matched no records in DynamoDB.');
-      addMetric(MetricNames.ACCOUNT_NOT_FOUND);
+    if (event.resource === '/v2/ais/{userId}') return await v2StatusApiHandler(userId, interventionEventsService);
 
-      const undefinedAccount = transformResponseFromDynamoDatabase({});
+    const historyQuery = event.queryStringParameters?.['history'];
 
-      if (historyQuery && historyQuery === 'true') {
-        undefinedAccount.history = [];
-      }
-      metric.publishStoredMetrics();
-      return {
-        statusCode: 200,
-        body: JSON.stringify(undefinedAccount),
-      };
-    }
-
-    const accountStatus = transformResponseFromDynamoDatabase(response);
-
-    if (historyQuery && historyQuery === 'true') {
-      accountStatus.history = constructHistoryObjectField(response.history);
-    }
-    metric.publishStoredMetrics();
-    return {
-      statusCode: 200,
-      body: JSON.stringify(accountStatus),
-    };
+    return await v1StatusApiHandler(userId, historyQuery);
   } catch (error) {
     logger.error('A problem occurred with the query.', { error });
     addMetric(MetricNames.DB_QUERY_ERROR);
   }
+
   metric.publishStoredMetrics();
+
   return {
     statusCode: 500,
     body: JSON.stringify({ message: 'Internal Server Error.' }),
+  };
+}
+
+async function v1StatusApiHandler(userId: string, historyQuery: string | undefined) {
+  const response = await dynamoDatabaseServiceInstance.getFullAccountInformation(userId);
+  if (!response) {
+    logger.info('Query matched no records in DynamoDB.');
+    addMetric(MetricNames.ACCOUNT_NOT_FOUND);
+
+    const undefinedAccount = transformResponseFromDynamoDatabase({});
+
+    if (historyQuery && historyQuery === 'true') {
+      undefinedAccount.history = [];
+    }
+
+    metric.publishStoredMetrics();
+    return {
+      statusCode: 200,
+      body: JSON.stringify(undefinedAccount),
+    };
+  }
+
+  const accountStatus = transformResponseFromDynamoDatabase(response);
+
+  if (historyQuery && historyQuery === 'true') {
+    accountStatus.history = constructHistoryObjectField(response.history);
+  }
+
+  metric.publishStoredMetrics();
+  return {
+    statusCode: 200,
+    body: JSON.stringify(accountStatus),
+  };
+}
+
+async function v2StatusApiHandler(userId: string, interventionEventsService: InterventionEventsService) {
+  logger.debug('v2 endpoint');
+
+  const response = await dynamoDatabaseServiceInstance.getAccountStateInformation(userId);
+  if (!response) {
+    logger.info('Query matched no records in DynamoDB.');
+    addMetric(MetricNames.ACCOUNT_NOT_FOUND);
+
+    metric.publishStoredMetrics();
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        interventions: [],
+      }),
+    };
+  }
+
+  const activeInterventions = await getActiveInterventions(userId, interventionEventsService, response);
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      interventions: activeInterventions.map((name) => ({
+        name,
+      })),
+    }),
   };
 }
 

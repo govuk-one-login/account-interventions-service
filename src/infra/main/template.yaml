@@ -1301,6 +1301,8 @@ Resources:
         Variables:
           TABLE_NAME:
             Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableName'
+          INTERVENTION_EVENTS_TABLE_NAME:
+            Fn::ImportValue: !Sub '${CoreStackName}-InterventionEventsTableName'
           METRIC_SERVICE_NAME: StatusRetrieverFunction
       Handler: status-retriever-handler.handle
       Role: !GetAtt StatusRetrieverFunctionRole.Arn
@@ -1369,9 +1371,20 @@ Resources:
               - Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableArn'
           - Effect: Allow
             Action:
+              - 'dynamodb:BatchWriteItem'
+              - 'dynamodb:Query'
+            Resource:
+              - Fn::ImportValue: !Sub '${CoreStackName}-InterventionEventsTableArn'
+          - Effect: Allow
+            Action:
               - 'kms:decrypt'
             Resource:
               - Fn::ImportValue: !Sub '${CoreStackName}-AccountStatusTableEncryptionKeyArn'
+          - Effect: Allow
+            Action:
+              - 'kms:decrypt'
+            Resource:
+              - Fn::ImportValue: !Sub '${CoreStackName}-InterventionEventsTableEncryptionKeyArn'
       Roles:
         - !Ref StatusRetrieverFunctionRole
 
@@ -1423,6 +1436,11 @@ Resources:
             - - https://
               - !GetAtt PrivateRestApi.RestApiId
               - !Sub .execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}
+          PRIVATE_API_URL: !Join
+            - ''
+            - - https://
+              - !GetAtt PrivateApi.RestApiId
+              - !Sub .execute-api.${AWS::Region}.amazonaws.com/main
           END_POINT: /ais
           QUERY_PARAMETERS: ''
           HTTP_REQUEST_METHOD: GET
@@ -1962,6 +1980,10 @@ Outputs:
   PrivateApiEndpoint:
     Description: 'Private API Gateway endpoint URL for AIS methods'
     Value: !Sub 'https://${PrivateRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}'
+
+  MainPrivateApiEndpoint:
+    Description: 'Private API Gateway endpoint URL for AIS methods'
+    Value: !Sub 'https://${PrivateApi}.execute-api.${AWS::Region}.amazonaws.com/main'
 
   TxMAEgressSqsQueueUrl:
     Description: 'Endpoint URL for TxMA Egress Queue'

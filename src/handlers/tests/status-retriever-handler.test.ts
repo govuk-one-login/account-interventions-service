@@ -6,8 +6,13 @@ import logger from '../../commons/logger';
 import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import { addMetric } from '../../commons/metrics';
 import jestOpenAPI from 'jest-openapi';
+import {
+  InMemoryInterventionEventsService,
+  InterventionName,
+  InterventionState,
+} from '../../tables/intervention-events';
 
-jestOpenAPI(`${__dirname}/../../specs/api.yaml`);
+jestOpenAPI(`${__dirname}/../../specs/main.yaml`);
 
 vi.mock('../../commons/logger.ts');
 vi.mock('../../commons/metrics');
@@ -84,6 +89,8 @@ const mockConfig = {
 };
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const mockDynamoDBServiceRetrieveRecords = DynamoDatabaseService.prototype.getFullAccountInformation as Mock;
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const mockDynamoDBServiceRetrieveAccountState = DynamoDatabaseService.prototype.getAccountStateInformation as Mock;
 
 describe('status-retriever-handler', () => {
   beforeAll(() => {
@@ -572,5 +579,114 @@ describe('status-retriever-handler', () => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledWith('History string is malformed.', { error });
     expect(addMetric).toHaveBeenCalled();
+  });
+});
+
+describe('v2 Status API handler', () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(Date.UTC(2023, 4, 30)).getTime());
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    vi.resetAllMocks();
+  });
+
+  it("returns an empty list of interventions if the requested account doesn't exist", async () => {
+    const response = await handle({ ...testEvent, resource: '/v2/ais/{userId}' }, mockConfig);
+    expect(response.statusCode).toBe(200);
+
+    const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
+    expect(payload).toEqual({
+      interventions: [],
+    });
+    expect(payload).toSatisfySchemaInApiSpec('AccountStatusResponse');
+  });
+
+  it('return a list of interventions from the account status table', async () => {
+    const accountFound = {
+      pk: 'testUserID',
+      intervention: 'AIS_NO_INTERVENTION',
+      updatedAt: 123455,
+      appliedAt: 12345685809,
+      sentAt: 123456789,
+      reprovedIdentityAt: 849473,
+      resetPasswordAt: 5847392,
+      deletedAt: 12345685809,
+      blocked: false,
+      suspended: true,
+      resetPassword: true,
+      reproveIdentity: false,
+      auditLevel: 'standard',
+      ttl: 1234567890,
+    };
+
+    mockDynamoDBServiceRetrieveAccountState.mockResolvedValueOnce(accountFound);
+    const response = await handle(
+      { ...testEvent, resource: '/v2/ais/{userId}' },
+      mockConfig,
+      new InMemoryInterventionEventsService([]),
+    );
+    expect(response.statusCode).toBe(200);
+
+    const payload = JSON.parse(response.body) as Record<string, unknown>;
+    expect(payload).toEqual({
+      interventions: [
+        {
+          name: 'RESET_PASSWORD',
+        },
+      ],
+    });
+    expect(payload).toSatisfySchemaInApiSpec('AccountStatusResponse');
+  });
+
+  it('return a list of interventions from the intervention events table', async () => {
+    const accountFound = {
+      pk: 'testUserID',
+      intervention: 'AIS_NO_INTERVENTION',
+      updatedAt: 123455,
+      appliedAt: 12345685809,
+      sentAt: 123456789,
+      reprovedIdentityAt: 849473,
+      resetPasswordAt: 5847392,
+      deletedAt: 12345685809,
+      blocked: false,
+      suspended: false,
+      resetPassword: false,
+      reproveIdentity: false,
+      auditLevel: 'standard',
+      ttl: 1234567890,
+    };
+
+    mockDynamoDBServiceRetrieveAccountState.mockResolvedValueOnce(accountFound);
+    const response = await handle(
+      { ...testEvent, resource: '/v2/ais/{userId}' },
+      mockConfig,
+      new InMemoryInterventionEventsService([
+        {
+          eventId: '1234',
+
+          accountId: 'user1',
+          createdAt: 1234,
+          interventionReason: '',
+          sentAt: 1234,
+          componentId: 'TEST',
+          interventionName: InterventionName.REPROVE_IDENTITY,
+          interventionState: InterventionState.ACTIVE,
+        },
+      ]),
+    );
+    expect(response.statusCode).toBe(200);
+
+    const payload = JSON.parse(response.body) as Record<string, unknown>;
+    expect(payload).toEqual({
+      interventions: [
+        {
+          name: 'REPROVE_IDENTITY',
+        },
+      ],
+    });
+    expect(payload).toSatisfySchemaInApiSpec('AccountStatusResponse');
   });
 });
