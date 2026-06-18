@@ -217,7 +217,7 @@ describe('intervention processor handler', () => {
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
-    it.only('should persist an ignored intervention event to the database when a StateTransitionError is received', async () => {
+    it('should persist an ignored intervention event to the database when a StateTransitionError is received', async () => {
       const interventionEventsService = new InMemoryInterventionEventsService([
         {
           eventId: 'existing-event',
