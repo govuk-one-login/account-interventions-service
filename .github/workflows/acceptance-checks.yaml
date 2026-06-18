@@ -27,8 +27,6 @@ on:
       - tsconfig.json
       - .node-version
       - .github/workflows/acceptance-checks.yaml
-    branches:
-      - main
     types:
       - opened
       - reopened

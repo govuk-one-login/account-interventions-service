@@ -77,6 +77,8 @@ docker run --rm -it \
   account-intervention-service-feature-tests-image
 ```
 
+The Docker image gets built in CI to verify the build won't break the pipeline post-merge.
+
 ## Environment configuration
 
 If new values are added to **endpoints.ts**, associated values will then need to be added to the main template
