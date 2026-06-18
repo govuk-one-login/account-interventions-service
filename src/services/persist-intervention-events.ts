@@ -1,14 +1,9 @@
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import logger from '../commons/logger';
 import { InterventionEventMessage } from '../contracts/intervention-events';
-import { EventsEnum, LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
+import { EventsEnum, InterventionName, InterventionState, LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
 import { StateDetails } from '../data-types/interfaces';
-import {
-  InterventionEvent,
-  InterventionEventsService,
-  InterventionName,
-  InterventionState,
-} from '../tables/intervention-events';
+import { InterventionEvent, InterventionEventsService } from '../tables/intervention-events';
 import { randomUUID } from 'node:crypto';
 import getActiveInterventions from './active-interventions-service';
 

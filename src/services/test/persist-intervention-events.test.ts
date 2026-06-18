@@ -1,10 +1,6 @@
 import { InterventionEventMessage } from '../../contracts/intervention-events';
-import { EventsEnum, TriggerEventsEnum } from '../../data-types/constants';
-import {
-  InMemoryInterventionEventsService,
-  InterventionName,
-  InterventionState,
-} from '../../tables/intervention-events';
+import { EventsEnum, InterventionName, InterventionState, TriggerEventsEnum } from '../../data-types/constants';
+import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
 import persistInterventionEvents, { generateEventsToAppend } from '../persist-intervention-events';
 
 const baseMessage: InterventionEventMessage = {

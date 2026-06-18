@@ -6,11 +6,8 @@ import logger from '../../commons/logger';
 import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import { addMetric } from '../../commons/metrics';
 import jestOpenAPI from 'jest-openapi';
-import {
-  InMemoryInterventionEventsService,
-  InterventionName,
-  InterventionState,
-} from '../../tables/intervention-events';
+import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
+import { InterventionName, InterventionState } from '../../data-types/constants';
 
 jestOpenAPI(`${__dirname}/../../specs/main.yaml`);
 

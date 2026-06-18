@@ -1,4 +1,4 @@
-import { InterventionName, InterventionState } from '../../tables/intervention-events';
+import { InterventionName, InterventionState } from '../../data-types/constants';
 import { filterEventStreamToActive, previousStateToInterventions } from '../active-interventions-service';
 
 describe('previousStateToInterventions', () => {
