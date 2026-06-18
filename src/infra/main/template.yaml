@@ -118,7 +118,7 @@ Mappings:
       AuthenticationVPCID: vpc-07cf1e76e27f28e86 # Authentication Staging VPC ID
       OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
       IPVCoreVPCID: vpc-039e664a2b3abb03e # IPV Core Staging VPC ID
-      UniqueVPCEndpointIDs: vpce-040f33c3489ff777b,vpce-0339d04aeb67de9da,vpce-0a81481bcd8257f5e,vpce-0cc0de10742b83b8a,vpce-07078f5f005fe5efc # Auth/Orch/Perf/IPV Staging VPC endpoint IDs
+      UniqueVPCEndpointIDs: vpce-0339d04aeb67de9da,vpce-0a81481bcd8257f5e,vpce-0cc0de10742b83b8a,vpce-07078f5f005fe5efc # Authentication, Orchestration & IPV Core Integration VPC Endpoint IDs
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     integration:
       LambdaLogLevel: INFO
@@ -1705,12 +1705,10 @@ Resources:
       TracingEnabled: true
       EndpointConfiguration:
         Type: PRIVATE
-        # TODO - figure out status of the perf VPC id
-        VpcEndpointIds: []
-        # VpcEndpointIds: !If
-        #   - IsNotInternal
-        #   - !Split [',', !FindInMap [EnvConfig, !Ref Environment, UniqueVPCEndpointIDs]]
-        #   - []
+        VpcEndpointIds: !If
+          - IsNotInternal
+          - !Split [',', !FindInMap [EnvConfig, !Ref Environment, UniqueVPCEndpointIDs]]
+          - []
       Tags:
         CheckovRulesToSkip: CKV_AWS_120
         Product: !Ref ProductTagValue
