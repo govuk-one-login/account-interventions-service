@@ -1,8 +1,6 @@
----
 openapi: 3.0.3
-
 info:
-  title: 'Account Intervention Status API'
+  title: Account Intervention Status API
   description: |-
     An API that provides methods to query the OneLogin Account Interventions Service
     for the current intervention state of a User's Account.
@@ -11,164 +9,108 @@ info:
 
     __N.B__
      - Recommend HTTP client __Timeout__ settings of `5 seconds` to handle requests where backend services experience cold starts.
-
   version: 0.0.1
   contact:
     name: Government Digital Service - Accounts Bravo Team
     email: interventions@digital.cabinet-office.gov.uk
   license:
-    name: 'MIT'
-    url: 'https://github.com/govuk-one-login/account-interventions-service/blob/main/LICENCE.md'
-
+    name: MIT
+    url: https://github.com/govuk-one-login/account-interventions-service/blob/main/LICENCE.md
 servers:
-  - url: 'https://{environment}.execute-api.eu-west-2.amazonaws.com/main'
+  - url: https://{environment}.execute-api.eu-west-2.amazonaws.com/main
     description: defaults to staging environment
     variables:
       environment:
-        default: vjdj6kjrj2 # staging
+        default: vjdj6kjrj2
         enum:
-          - u9uw8aqu0c # dev
-          - rg7pm38qj4 # build
-          - vjdj6kjrj2 # staging
-          - 65zhj32bjb # integration
-          - ruz07ekh4b # Production
+          - u9uw8aqu0c
+          - rg7pm38qj4
+          - vjdj6kjrj2
+          - 65zhj32bjb
+          - ruz07ekh4b
+tags:
+  - name: Status
+    description: |-
+      Provides information on an account's intervention status.
 
-paths:
-  /v1/ais/{userId}:
-    get:
-      summary: 'Get User Account Intervention Status'
-      description: "Returns the state of the latest intervention applied on a user's account"
-      operationId: 'ais'
-      tags:
-        - Status
-      parameters:
-        - $ref: '#/components/parameters/UserId'
-        - $ref: '#/components/parameters/History'
-      responses:
-        '200':
-          description: 'Ok'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InterventionStatusResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/ServerError'
-        '502':
-          $ref: '#/components/responses/BadGateway'
-        '504':
-          $ref: '#/components/responses/GatewayTimeout'
-        default:
-          $ref: '#/components/responses/UnexpectedError'
-      x-amazon-apigateway-integration:
-        httpMethod: 'POST'
-        type: aws_proxy
-        uri:
-          Fn::Sub: 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StatusRetrieverFunction.Arn}:live/invocations'
-
-  /v2/ais/{userId}:
-    get:
-      summary: 'Get User Account Intervention Status'
-      description: "Returns the active interventions on a user's account"
-      operationId: 'aisV2'
-      tags:
-        - Status
-      parameters:
-        - $ref: '#/components/parameters/UserId'
-      responses:
-        '200':
-          description: 'Ok'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AccountStatusResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/ServerError'
-        '502':
-          $ref: '#/components/responses/BadGateway'
-        '504':
-          $ref: '#/components/responses/GatewayTimeout'
-        default:
-          $ref: '#/components/responses/UnexpectedError'
-      x-amazon-apigateway-integration:
-        httpMethod: 'POST'
-        type: aws_proxy
-        uri:
-          Fn::Sub: 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StatusRetrieverFunction.Arn}:live/invocations'
-
+      Expected users are the **DI Internal** teams ONLY.
 components:
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ServerError:
+      description: Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    BadGateway:
+      description: Bad Gateway
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    GatewayTimeout:
+      description: Gateway Timeout
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    UnexpectedError:
+      description: Unexpected Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
   schemas:
-    # v2 schemas
-    AccountStatusResponse:
-      title: 'Account Status Schema'
-      description: "The Status of the User's OneLogin Account"
+    Error:
       type: object
-      readOnly: true
+      properties:
+        message:
+          type: string
+          example: error message
+      title: Error Schema
+    InterventionStatusResponse:
+      type: object
+      properties:
+        intervention:
+          $ref: "#/components/schemas/InterventionMetadata"
+        state:
+          $ref: "#/components/schemas/AccountState"
+        auditLevel:
+          $ref: "#/components/schemas/AuditLevel"
+        history:
+          $ref: "#/components/schemas/HistoryList"
       required:
-        - interventions
-      properties:
-        interventions:
-          $ref: '#/components/schemas/InterventionsList'
-    InterventionsList:
-      title: 'Interventions List'
-      description: 'List of interventions applied to an account'
+        - intervention
+        - state
+      title: Account Intervention Status Schema
+      description: The Intervention Status of the User's OneLogin Account
       readOnly: true
-      type: array
-      items:
-        $ref: '#/components/schemas/Intervention'
-      example: [{ name: 'RESET_PASSWORD' }, { name: 'REPROVE_IDENTITY' }]
-    Intervention:
-      title: 'Intervention Schema'
-      description: 'Details about an intervention applied to an account'
-      type: object
-      properties:
-        name:
-          anyOf:
-            - type: string
-            - $ref: '#/components/schemas/InterventionName'
-          example: 'RESET_PASSWORD'
-    InterventionName:
-      type: string
-      description: 'Enum of possible Intervention names'
-      enum:
-        - 'PERMANENT_SUSPENSION'
-        - 'TEMPORARY_SUSPENSION'
-        - 'RESET_PASSWORD'
-        - 'REPROVE_IDENTITY'
-    # v1 schemas
     InterventionMetadata:
-      title: 'Intervention Metadata Schema'
-      description: 'Information about the current intervention'
-      type: 'object'
-      readOnly: true
-      required:
-        - updatedAt
-        - appliedAt
-        - sentAt
-        - description
+      type: object
       properties:
         updatedAt:
+          type: integer
           description: A timestamp (ms) when the status was last updated to the database.
-          type: integer
+          example: 1696969322935
           format: int64
-          example: 1696969322935 # 2023-10-10T20:22:02.925Z
         appliedAt:
+          type: integer
           description: A timestamp (ms) when the Intervention was Applied to the User's Account.
-          type: integer
+          example: 1696869005821
           format: int64
-          example: 1696869005821 # 2023-10-09T16:30:05.821Z
         sentAt:
-          description: A timestamp (ms) when the Intervention was sent by Fraud Analyst/Risk Engine.
           type: integer
+          description: A timestamp (ms) when the Intervention was sent by Fraud Analyst/Risk Engine.
+          example: 1696869003456
           format: int64
-          example: 1696869003456 # 2023-10-09T16:30:03.456Z
         description:
-          description: The specific intervention currently applied to the account.
           type: string
-          example: AIS_ACCOUNT_UNSUSPENDED
           enum:
             - AIS_NO_INTERVENTION
             - AIS_ACCOUNT_SUSPENDED
@@ -178,39 +120,38 @@ components:
             - AIS_FORCED_USER_PASSWORD_RESET
             - AIS_FORCED_USER_IDENTITY_VERIFY
             - AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY
+          description: The specific intervention currently applied to the account.
+          example: AIS_ACCOUNT_UNSUSPENDED
         reprovedIdentityAt:
-          description: |
-            A timestamp (ms) of when the User performed the reprove identity action to unsuspend their account.
           type: integer
+          description: A timestamp (ms) of when the User performed the reprove identity action to unsuspend their account.
+          example: 1696969322935
           format: int64
-          example: 1696969322935 # 2023-10-10T20:22:02.925Z
         resetPasswordAt:
-          description: |
-            A timestamp (ms) of when the User performed the password reset action to unsuspend their account.
           type: integer
+          description: A timestamp (ms) of when the User performed the password reset action to unsuspend their account.
+          example: 1696875903456
           format: int64
-          example: 1696875903456 # 2023-10-09T18:25:03.789Z
         accountDeletedAt:
-          description: |
-            A timestamp (ms) of when the account was deleted.
           type: integer
+          description: A timestamp (ms) of when the account was deleted.
+          example: 1696969359935
           format: int64
-          example: 1696969359935 # 2023-10-10T20:59:02.925Z
-    AccountState:
-      title: 'Account State Schema'
-      description: "Current state of the User's Account and whether user actions have been requested"
-      type: 'object'
-      readOnly: true
       required:
-        - blocked
-        - suspended
-        - reproveIdentity
-        - resetPassword
+        - updatedAt
+        - appliedAt
+        - sentAt
+        - description
+      title: Intervention Metadata Schema
+      description: Information about the current intervention
+      readOnly: true
+    AccountState:
+      type: object
       properties:
         blocked:
           type: boolean
           example: false
-          description: |
+          description: |-
             Indicates that the Account is **BLOCKED** and therefore permanently suspended.
             **N.B.** Overrides any other AccountState attributes.
             If this value is `true` the user should be completely **BLOCKED** from accessing their account
@@ -218,7 +159,7 @@ components:
         suspended:
           type: boolean
           example: false
-          description: |
+          description: |-
             Indicates that the Account is **SUSPENDED**.
             - If this value is `true` but `reproveIdentity` **AND** `resetPassword` are both set to `false` then the
             Account is **SUSPENDED** and does NOT require the User to perform any actions.
@@ -229,84 +170,72 @@ components:
         reproveIdentity:
           type: boolean
           example: false
-          description: |
+          description: |-
             Indicates that the Account is **SUSPENDED** and requires the User to reprove their identity as a
             prerequisite to being able to regain access to their account.
         resetPassword:
           type: boolean
           example: false
-          description: |
+          description: |-
             Indicates that the Account is **SUSPENDED** and requires the User to reset their password as a
             prerequisite to being able to regain access to their account.
+      required:
+        - blocked
+        - suspended
+        - reproveIdentity
+        - resetPassword
+      title: Account State Schema
+      description: Current state of the User's Account and whether user actions have been requested
+      readOnly: true
     AuditLevel:
-      title: 'Audit Level Schema'
-      description: 'Indicates if normal or enhanced downstream auditing is required for this account'
       type: string
-      example: standard
       enum:
         - standard
         - enhanced
       default: standard
-    History:
-      title: 'Intervention history'
-      description: 'History of intervention applied to this account'
+      title: Audit Level Schema
+      description: Indicates if normal or enhanced downstream auditing is required for this account
+      example: standard
+    HistoryList:
       type: array
       items:
-        $ref: '#/components/schemas/HistoryObject'
-    InterventionStatusResponse:
-      title: 'Account Intervention Status Schema'
-      description: "The Intervention Status of the User's OneLogin Account"
-      type: 'object'
-      readOnly: true
-      required:
-        - intervention
-        - state
-      properties:
-        intervention:
-          $ref: '#/components/schemas/InterventionMetadata'
-        state:
-          $ref: '#/components/schemas/AccountState'
-        auditLevel:
-          $ref: '#/components/schemas/AuditLevel'
-        history:
-          $ref: '#/components/schemas/History'
+        $ref: "#/components/schemas/HistoryObject"
+      title: Intervention history
+      description: History of intervention applied to this account
     HistoryObject:
-      title: 'Past intervention object'
-      description: 'JSON object representing an intervention previously applied on the account'
-      type: 'object'
-      readOnly: true
+      type: object
       properties:
         sentAt:
           type: string
-          example: '2023-10-10T20:22:02.925Z'
+          example: 2023-10-10T20:22:02.925Z
           description: timestamp in ISO String format of when the intervention event was sent by the originating component
         component:
           type: string
-          example: 'TICF_CRI'
+          example: TICF_CRI
           description: the name of the component that generated the intervention
         code:
           type: string
-          example: '01'
+          example: "01"
           description: the numeric code associated with the intervention
         intervention:
           type: string
-          example: 'FRAUD_SUSPEND_ACCOUNT'
+          example: FRAUD_SUSPEND_ACCOUNT
           description: the name of the intervention corresponding to the code
         reason:
           type: string
-          example: 'a reason for the intervention'
+          example: a reason for the intervention
           description: the reason field from the original intervention event
         originatingComponent:
           type: string
-          example: 'CMS'
+          example: CMS
           description: the name of the component that originated the intervention event
         originatorReferenceId:
           type: string
-          example: '12345'
+          example: "12345"
           description: the numeric code identifying the case that triggered the intervention
         requesterId:
           type: string
-          example: '12345'
+          example: "12345"
           description: opaque id of the user that requested the intervention (no PII)
       required:
         - sentAt
@@ -314,73 +243,129 @@ components:
         - code
         - intervention
         - reason
-
-    Error:
-      title: 'Error Schema'
-      type: 'object'
+      title: Past intervention object
+      description: JSON object representing an intervention previously applied on the account
+      readOnly: true
+    AccountStatusResponse:
+      type: object
       properties:
-        message:
-          type: 'string'
-          example: 'error message'
+        interventions:
+          $ref: "#/components/schemas/InterventionsList"
+      required:
+        - interventions
+      title: Account Status Schema
+      description: The Status of the User's OneLogin Account
+      readOnly: true
+    InterventionsList:
+      type: array
+      items:
+        $ref: "#/components/schemas/Intervention"
+      title: Interventions List
+      description: List of interventions applied to an account
+      example:
+        - name: RESET_PASSWORD
+        - name: REPROVE_IDENTITY
+      readOnly: true
+    Intervention:
+      type: object
+      properties:
+        name:
+          anyOf:
+            - type: string
+            - $ref: "#/components/schemas/InterventionName"
+          example: RESET_PASSWORD
+      required:
+        - name
+      title: Intervention Schema
+      description: Details about an intervention applied to an account
+    InterventionName:
+      type: string
+      enum:
+        - PERMANENT_SUSPENSION
+        - TEMPORARY_SUSPENSION
+        - RESET_PASSWORD
+        - REPROVE_IDENTITY
+      description: Enum of possible Intervention names
   parameters:
     UserId:
-      name: userId
-      in: path
-      description: >-
-        A internal DI subject identifier. See
-        [ADR-0061](https://github.com/govuk-one-login/architecture/blob/RFC_identity_inheritance/adr/0061-common-subject-identifier-for-internal-DI-functions.md#internal-di-functions-to-use-subjectid)
-        which refers to the `SubjectId` described in
-        [ADR-0024](https://github.com/govuk-one-login/architecture/blob/RFC_identity_inheritance/adr/0024-user-identifiers.md#decision)
-        which follows the format defined in
-        [RFC-0027](https://github.com/govuk-one-login/architecture/blob/RFC_identity_inheritance/rfc/0027-subject-identifier-format.md).
-      required: true
-      example: 'urn:fdc:gov.uk:2022:JG0RJI1pYbnanbvPs-j4j5-a-PFcmhry9Qu9NCEp5d4'
       schema:
         type: string
         pattern: ^[^,\s]+$
+      required: true
+      description: An internal DI subject identifier. See [ADR-0061](https://github.com/govuk-one-login/architecture/blob/RFC_identity_inheritance/adr/0061-common-subject-identifier-for-internal-DI-functions.md#internal-di-functions-to-use-subjectid) which refers to the `SubjectId` described in [ADR-0024](https://github.com/govuk-one-login/architecture/blob/RFC_identity_inheritance/adr/0024-user-identifiers.md#decision) which follows the format defined in [RFC-0027](https://github.com/govuk-one-login/architecture/blob/RFC_identity_inheritance/rfc/0027-subject-identifier-format.md).
+      name: userId
+      in: path
+      example: urn:fdc:gov.uk:2022:JG0RJI1pYbnanbvPs-j4j5-a-PFcmhry9Qu9NCEp5d4
     History:
-      name: history
-      in: query
-      description: "A flag to enable the recall of the account's previous intervention history."
-      required: false
-      example: true
       schema:
         type: boolean
-  responses:
-    BadRequest:
-      description: 'Bad Request'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    ServerError:
-      description: 'Server Error'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    BadGateway:
-      description: 'Bad Gateway'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    GatewayTimeout:
-      description: 'Gateway Timeout'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    UnexpectedError:
-      description: 'Unexpected Error'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-
-tags:
-  - name: Status
-    description: |-
-      Provides information on an account's intervention status.
-
-      Expected users are the **DI Internal** teams ONLY.
+        nullable: true
+      required: false
+      description: A flag to enable the recall of the account's previous intervention history.
+      name: history
+      in: query
+      example: true
+paths:
+  /v1/ais/{userId}:
+    get:
+      operationId: ais
+      tags:
+        - Status
+      summary: Get User Account Intervention Status
+      description: Returns the state of the latest intervention applied on a user's account
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StatusRetrieverFunction.Arn}:live/invocations
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+        - $ref: "#/components/parameters/History"
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InterventionStatusResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "504":
+          $ref: "#/components/responses/GatewayTimeout"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
+  /v2/ais/{userId}:
+    get:
+      operationId: aisV2
+      tags:
+        - Status
+      summary: Get User Account Intervention Status
+      description: Returns the active interventions applied on a user's account
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StatusRetrieverFunction.Arn}:live/invocations
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountStatusResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "504":
+          $ref: "#/components/responses/GatewayTimeout"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
