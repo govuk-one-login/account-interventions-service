@@ -49,6 +49,33 @@ describe('DynamoDBRecordService', () => {
     });
   });
 
+  test('queryByPkAndValidate includedKeys', async () => {
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        {
+          pk1: 'value1',
+        },
+      ],
+    });
+
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
+
+    const res = await service.queryByPkAndValidate('key_value_1', ['pk1']);
+
+    expect(res).toEqual([
+      {
+        pk1: 'value1',
+      },
+    ]);
+
+    expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
+      TableName: 'test-table',
+      KeyConditionExpression: '#pk = :pk',
+      ExpressionAttributeNames: { '#pk': 'pk1' },
+      ExpressionAttributeValues: { ':pk': 'key_value_1' },
+    });
+  });
+
   test('queryByPkAndValidate empty', async () => {
     ddbMock.on(QueryCommand).resolves({
       Items: [],
