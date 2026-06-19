@@ -1,5 +1,6 @@
 import logger from '../commons/logger';
-import { InterventionName, InterventionState, LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
+import { InterventionName, InterventionState, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
+import { addMetric } from '../commons/metrics';
 import { StateDetails } from '../data-types/interfaces';
 import { InterventionEventsService } from '../tables/intervention-events';
 
@@ -19,6 +20,8 @@ async function getActiveInterventions(
   const interventionsFromEvents = await getActiveInterventionsFromEvents(accountId, interventionEventsService);
 
   const interventionsFromPreviousState = previousStateToInterventions(previousState);
+
+  validateInterventions(interventionsFromEvents, interventionsFromPreviousState);
 
   return combineSets(interventionsFromEvents, interventionsFromPreviousState);
 }
@@ -89,3 +92,24 @@ export function previousStateToInterventions(previousState?: StateDetails): Inte
 }
 
 const combineSets = <T>(set1: Set<T> | T[], set2: Set<T> | T[]) => [...new Set([...set1, ...set2])];
+
+/**
+ * Raise a metric if there are any interventions from the interventions table that don't match those expected from the account status table
+ * @param interventionsFromEvents - set of intervention names from intervention events table
+ * @param interventionsFromPreviousState - intervention names generated from the current state in the account status table
+ */
+export function validateInterventions(
+  interventionsFromEvents: Set<InterventionName>,
+  interventionsFromPreviousState: InterventionName[],
+) {
+  const interventionsNotInPreviousState = [...interventionsFromEvents].filter(
+    (i) => !interventionsFromPreviousState.includes(i),
+  );
+
+  if (interventionsNotInPreviousState.length > 0) {
+    logger.debug(
+      `Interventions from events not found in previous state: ${interventionsNotInPreviousState.join(', ')}`,
+    );
+    addMetric(MetricNames.INTERVENTION_MISMATCH);
+  }
+}

@@ -1,5 +1,10 @@
 import { InterventionName, InterventionState } from '../../data-types/constants';
-import { filterEventStreamToActive, previousStateToInterventions } from '../active-interventions-service';
+import logger from '../../commons/logger';
+import {
+  filterEventStreamToActive,
+  previousStateToInterventions,
+  validateInterventions,
+} from '../active-interventions-service';
 
 describe('previousStateToInterventions', () => {
   test('no previous state', () => {
@@ -96,6 +101,21 @@ describe('filterEventStreamToActive', () => {
     ).toEqual(new Set());
   });
 
+  test('single ignored intervention event', () => {
+    expect(
+      filterEventStreamToActive([
+        {
+          interventionName: InterventionName.TEMPORARY_SUSPENSION,
+          interventionState: InterventionState.ACTIVE,
+        },
+        {
+          interventionName: InterventionName.TEMPORARY_SUSPENSION,
+          interventionState: InterventionState.IGNORED,
+        },
+      ]),
+    ).toEqual(new Set([InterventionName.TEMPORARY_SUSPENSION]));
+  });
+
   test('active and removed intervention event', () => {
     expect(
       filterEventStreamToActive([
@@ -143,5 +163,35 @@ describe('filterEventStreamToActive', () => {
         },
       ]),
     ).toEqual(new Set(['RESET_PASSWORD']));
+  });
+});
+
+describe('validateInterventions', () => {
+  const loggerDebugSpy = vi.spyOn(logger, 'debug');
+
+  it('does nothing if no interventions', () => {
+    validateInterventions(new Set(), []);
+
+    expect(loggerDebugSpy).not.toHaveBeenCalled();
+  });
+
+  it('does nothing if matched interventions', () => {
+    validateInterventions(new Set([InterventionName.RESET_PASSWORD]), [InterventionName.RESET_PASSWORD]);
+
+    expect(loggerDebugSpy).not.toHaveBeenCalled();
+  });
+
+  it('does nothing if intervention from account status but not intervention events', () => {
+    validateInterventions(new Set(), [InterventionName.RESET_PASSWORD]);
+
+    expect(loggerDebugSpy).not.toHaveBeenCalled();
+  });
+
+  it('logs if intervention from intervention events but not account status', () => {
+    validateInterventions(new Set([InterventionName.RESET_PASSWORD]), []);
+
+    expect(loggerDebugSpy).toHaveBeenCalledWith(
+      'Interventions from events not found in previous state: RESET_PASSWORD',
+    );
   });
 });
