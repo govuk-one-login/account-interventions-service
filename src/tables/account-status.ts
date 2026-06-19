@@ -14,6 +14,7 @@ import logger from '../commons/logger';
 const appConfig = AppConfigService.getInstance();
 
 const schema = z.object({
+  pk: z.string(),
   sentAt: z.number(),
   appliedAt: z.number(),
   isAccountDeleted: z.boolean(),
@@ -23,6 +24,11 @@ const schema = z.object({
   suspended: z.boolean(),
   resetPassword: z.boolean(),
   reproveIdentity: z.boolean(),
+  deletedAt: z.number().optional(),
+  reprovedIdentityAt: z.number().optional(),
+  resetPasswordAt: z.number().optional(),
+  ttl: z.number().optional(),
+  updatedAt: z.number(),
 });
 
 export const accountStatusTableConfig: TableConfig<typeof schema> = {
