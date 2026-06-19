@@ -6,11 +6,8 @@ import logger from '../../commons/logger';
 import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import { addMetric } from '../../commons/metrics';
 import jestOpenAPI from 'jest-openapi';
-import {
-  InMemoryInterventionEventsService,
-  InterventionName,
-  InterventionState,
-} from '../../tables/intervention-events';
+import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
+import { InterventionName, InterventionState } from '../../data-types/constants';
 
 jestOpenAPI(`${__dirname}/../../specs/main.yaml`);
 
@@ -281,37 +278,16 @@ describe('status-retriever-handler', () => {
     expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
   });
 
-  it('will return a default response if the userId contains whitespace and cannot find a userId that matches', async () => {
-    const accountNotFoundDefaultObject = {
-      intervention: {
-        updatedAt: 1685404800000,
-        appliedAt: 1685404800000,
-        sentAt: 1685404800000,
-        description: 'AIS_NO_INTERVENTION',
-      },
-      state: {
-        blocked: false,
-        suspended: false,
-        resetPassword: false,
-        reproveIdentity: false,
-      },
-      auditLevel: 'standard',
-    };
-
+  it('will return an error if the userId contains whitespace', async () => {
     const invalidPathParameters = {
       proxy: '/ais/{user_id}',
       userId: ' ',
     };
     const invalidTestEvent = { ...testEvent, pathParameters: invalidPathParameters };
     const response = await handle(invalidTestEvent, mockConfig);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(logger.warn).toHaveBeenCalledTimes(1);
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(logger.warn).toHaveBeenCalledWith('Attribute invalid: user_id is empty.');
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(400);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
-    expect(payload).toEqual(accountNotFoundDefaultObject);
-    expect(payload).toSatisfySchemaInApiSpec('InterventionStatusResponse');
+    expect(payload).toEqual({ message: 'Invalid Request.' });
   });
 
   it('will return the correct response if there is a problem with the query to dynamoDB', async () => {

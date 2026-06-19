@@ -3,23 +3,9 @@ import { AppConfigService } from '../services/app-config-service';
 import { DynamoDBRecordService, RecordService } from '../services/dynamo-db-record-service';
 import TableConfig from './table-config';
 import { getDBDocClient } from '../services/db-client';
+import { InterventionName, InterventionState } from '../data-types/constants';
 
 const appConfig = AppConfigService.getInstance();
-
-export enum InterventionState {
-  ACTIVE = 'ACTIVE',
-  IGNORED = 'IGNORED',
-  SUPERSEDED = 'SUPERSEDED',
-  MITIGATED = 'MITIGATED',
-  REMOVED = 'REMOVED',
-}
-
-export enum InterventionName {
-  PERMANENT_SUSPENSION = 'PERMANENT_SUSPENSION',
-  TEMPORARY_SUSPENSION = 'TEMPORARY_SUSPENSION',
-  RESET_PASSWORD = 'RESET_PASSWORD', //pragma: allowlist secret
-  REPROVE_IDENTITY = 'REPROVE_IDENTITY',
-}
 
 const schema = z.object({
   eventId: z.string(),

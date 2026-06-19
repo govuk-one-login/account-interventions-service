@@ -1,10 +1,6 @@
+import { InterventionName, InterventionState } from '../../data-types/constants';
 import { InMemoryRecordService } from '../../services/dynamo-db-record-service';
-import {
-  interventionEventsTableConfig,
-  InterventionName,
-  InterventionState,
-  PersistentInterventionEventsService,
-} from '../intervention-events';
+import { interventionEventsTableConfig, PersistentInterventionEventsService } from '../intervention-events';
 
 describe('PersistentInterventionEventsService', () => {
   test('fetchEventsForAccount', async () => {

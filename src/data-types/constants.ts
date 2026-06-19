@@ -131,3 +131,18 @@ export enum Codes {
 }
 
 export const isCode = (value: string): value is Codes => Object.values(Codes).includes(value as Codes);
+
+export enum InterventionState {
+  ACTIVE = 'ACTIVE',
+  IGNORED = 'IGNORED',
+  SUPERSEDED = 'SUPERSEDED',
+  MITIGATED = 'MITIGATED',
+  REMOVED = 'REMOVED',
+}
+
+export enum InterventionName {
+  PERMANENT_SUSPENSION = 'PERMANENT_SUSPENSION',
+  TEMPORARY_SUSPENSION = 'TEMPORARY_SUSPENSION',
+  RESET_PASSWORD = 'RESET_PASSWORD', //pragma: allowlist secret
+  REPROVE_IDENTITY = 'REPROVE_IDENTITY',
+}
