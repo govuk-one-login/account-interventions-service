@@ -1,8 +1,6 @@
 import logger from '../commons/logger';
 import Ajv2019 from 'ajv/dist/2019';
-import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
-import { AppConfigService } from '../services/app-config-service';
 import type { Context, SQSEvent, SQSRecord } from 'aws-lambda';
 import { addMetric, metric } from '../commons/metrics';
 import { accountDeleteMessageSchema } from '../contracts/account-delete-message';
@@ -10,6 +8,7 @@ import { prettifyError } from 'zod';
 import jsonSafeParse from '../commons/json-safe-parse';
 import { AUTH_DELETE_ACCOUNTSchema } from '@govuk-one-login/event-catalogue-schemas';
 import { addEventMetadataToSchema } from '../commons/compile-schema';
+import { AccountStatusService, getPersistentAccountStatusService } from '../tables/account-status';
 
 const ajv2019 = new Ajv2019({ allErrors: true });
 
@@ -34,16 +33,17 @@ class ParserError extends Error {
   }
 }
 
-const appConfig = AppConfigService.getInstance();
-const ddbService = new DynamoDatabaseService(appConfig.tableName);
-
 /**
  * Account deletion processor handler. Updates accounts and marks them for deletion.
  * @param event - SQS event. Consumes these events from a queue and takes the User ID from the record to match the account.
  * @param context -  This object provides methods and properties that provide information about the invocation, function, and execution environment.
  * @returns - Void. Sends off response to DynamoDB.
  */
-export async function handler(event: SQSEvent, context: Context): Promise<void> {
+export async function handler(
+  event: SQSEvent,
+  context: Context,
+  accountStatusService: AccountStatusService = getPersistentAccountStatusService(),
+): Promise<void> {
   logger.addContext(context);
   if (!event.Records[0]) {
     logger.error('The event does not contain any records.');
@@ -52,7 +52,7 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
 
   const updateRecordsByIdPromises = event.Records.map((record) => {
     const userId = getUserId(record);
-    return userId ? updateDeleteStatusId(userId) : undefined;
+    return userId ? updateDeleteStatusId(userId, accountStatusService) : undefined;
   }).filter((prom) => prom !== undefined);
   await Promise.all(updateRecordsByIdPromises);
   metric.publishStoredMetrics();
@@ -115,9 +115,9 @@ function getUserId(record: SQSRecord) {
  * @param userId - User ID taken from the record of the SQS Event.
  * @throws - Error if there is a problem updating the account.
  */
-async function updateDeleteStatusId(userId: string) {
+async function updateDeleteStatusId(userId: string, accountStatusService: AccountStatusService) {
   try {
-    await ddbService.updateDeleteStatus(userId);
+    await accountStatusService.updateDeleteStatus(userId);
   } catch (error) {
     logger.error(`${LOGS_PREFIX_SENSITIVE_INFO} Error updating account ${userId}`, { error });
     addMetric(MetricNames.MARK_AS_DELETED_FAILED);

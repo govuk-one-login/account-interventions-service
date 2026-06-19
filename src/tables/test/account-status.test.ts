@@ -155,10 +155,10 @@ describe('PersistentAccountStatusService', () => {
         '#ttl': 'ttl',
       },
       ExpressionAttributeValues: {
-        ':deletedAt': expect.any(String) as string,
+        ':deletedAt': expect.any(Number) as number,
         ':false': false,
         ':isAccountDeleted': true,
-        ':ttl': expect.any(String) as string,
+        ':ttl': expect.any(Number) as number,
       },
       ReturnValues: 'ALL_NEW',
       UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',

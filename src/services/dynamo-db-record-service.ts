@@ -1,5 +1,12 @@
 import { z, ZodArray, ZodObject, ZodRawShape } from 'zod';
-import { BatchWriteCommand, DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import {
+  BatchWriteCommand,
+  DynamoDBDocumentClient,
+  QueryCommand,
+  UpdateCommand,
+  UpdateCommandInput,
+  UpdateCommandOutput,
+} from '@aws-sdk/lib-dynamodb';
 import TableConfig from '../tables/table-config';
 
 type ArrayFromT<T extends ZodObject<ZodRawShape>> = z.infer<z.ZodArray<T>>;
@@ -17,7 +24,10 @@ export interface RecordService<T extends ZodObject<ZodRawShape>> {
     partitionKeyValue: string,
     includedKeys: K[],
   ): Promise<Pick<z.infer<T>, K> | undefined>;
+
   batchWrite(input: ArrayFromT<T>): Promise<void>;
+
+  update(partitionKeyValue: string, input: Partial<UpdateCommandInput>): Promise<UpdateCommandOutput | undefined>;
 }
 
 export class DynamoDBRecordService<
@@ -87,6 +97,18 @@ export class DynamoDBRecordService<
       }),
     );
   }
+
+  async update(partitionKeyValue: string, input: Partial<UpdateCommandInput>) {
+    return this.databaseClient.send(
+      new UpdateCommand({
+        ...input,
+        TableName: this.config.tableName,
+        Key: {
+          [this.config.partitionKeyName]: partitionKeyValue,
+        },
+      }),
+    );
+  }
 }
 
 export class InMemoryRecordService<T extends ZodObject<ZodRawShape>> implements RecordService<T> {
@@ -110,7 +132,11 @@ export class InMemoryRecordService<T extends ZodObject<ZodRawShape>> implements 
     return Promise.resolve(this.results[0]);
   }
 
-  batchWrite(): Promise<void> {
+  batchWrite() {
     return Promise.resolve();
+  }
+
+  update() {
+    return Promise.resolve(undefined);
   }
 }

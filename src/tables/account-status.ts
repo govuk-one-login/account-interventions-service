@@ -3,6 +3,8 @@ import { getDBDocumentClient } from '../services/database-client';
 import { DynamoDBRecordService, RecordService } from '../services/dynamo-db-record-service';
 import TableConfig from './table-config';
 import { AppConfigService } from '../services/app-config-service';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { UpdateCommandOutput } from '@aws-sdk/lib-dynamodb';
 
 const appConfig = AppConfigService.getInstance();
 
@@ -29,6 +31,7 @@ export type AccountStatus = z.infer<typeof schema>;
 export interface AccountStatusService {
   getAccountStateInformation(accountId: string): Promise<AccountStatus | undefined>;
   getFullAccountInformation(accountId: string): Promise<AccountStatus | undefined>;
+  updateDeleteStatus(accountId: string): Promise<UpdateCommandOutput | undefined>;
 }
 
 export class InMemoryAccountStatusService implements AccountStatusService {
@@ -47,6 +50,12 @@ export class InMemoryAccountStatusService implements AccountStatusService {
     if (this.error) return Promise.reject(this.error);
 
     return Promise.resolve(this.status);
+  }
+
+  updateDeleteStatus() {
+    if (this.error) return Promise.reject(this.error);
+
+    return Promise.resolve(undefined);
   }
 }
 
@@ -69,6 +78,29 @@ export class PersistentAccountStatusService implements AccountStatusService {
 
   getFullAccountInformation(accountId: string) {
     return this.recordService.getByPkAndValidate(accountId);
+  }
+
+  updateDeleteStatus(accountId: string) {
+    const now = getCurrentTimestamp();
+    const ttl = now.seconds + appConfig.maxRetentionSeconds;
+
+    return this.recordService.update(accountId, {
+      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',
+      ExpressionAttributeNames: {
+        '#isAccountDeleted': 'isAccountDeleted',
+        '#ttl': 'ttl',
+        '#deletedAt': 'deletedAt',
+      },
+      ExpressionAttributeValues: {
+        ':isAccountDeleted': true,
+        ':ttl': ttl,
+        ':false': false,
+        ':deletedAt': now.milliseconds,
+      },
+      ReturnValues: 'ALL_NEW',
+      ConditionExpression:
+        'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
+    });
   }
 }
 
