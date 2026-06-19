@@ -19,22 +19,6 @@ export interface DynamoDBStateResult extends StateDetails {
   intervention: string;
 }
 
-export interface FullAccountInformation {
-  blocked: boolean;
-  suspended: boolean;
-  resetPassword: boolean;
-  reproveIdentity: boolean;
-  sentAt: number;
-  appliedAt: number;
-  isAccountDeleted?: boolean;
-  history: string[];
-  intervention: string;
-  updatedAt: number;
-  reprovedIdentityAt?: number;
-  resetPasswordAt?: number;
-  deletedAt?: number;
-  auditLevel?: string;
-}
 export interface AccountStateEngineOutput {
   stateResult: StateDetails;
   interventionName: AISInterventionTypes | undefined;

@@ -17,7 +17,7 @@ const schema = z.object({
   pk: z.string(),
   sentAt: z.number(),
   appliedAt: z.number(),
-  isAccountDeleted: z.boolean(),
+  isAccountDeleted: z.boolean().default(false),
   history: z.array(z.string()),
   intervention: z.string(),
   blocked: z.boolean(),
@@ -28,7 +28,8 @@ const schema = z.object({
   reprovedIdentityAt: z.number().optional(),
   resetPasswordAt: z.number().optional(),
   ttl: z.number().optional(),
-  updatedAt: z.number(),
+  updatedAt: z.number().optional(),
+  auditLevel: z.enum(['standard', 'enhanced']).optional(),
 });
 
 export const accountStatusTableConfig: TableConfig<typeof schema> = {
@@ -39,8 +40,10 @@ export const accountStatusTableConfig: TableConfig<typeof schema> = {
 
 export type AccountStatus = z.infer<typeof schema>;
 
+export type BaseAccountStatus = Omit<AccountStatus, 'pk' | 'updatedAt'>;
+
 export interface AccountStatusService {
-  getAccountStateInformation(accountId: string): Promise<AccountStatus | undefined>;
+  getAccountStateInformation(accountId: string): Promise<BaseAccountStatus | undefined>;
   getFullAccountInformation(accountId: string): Promise<AccountStatus | undefined>;
   updateUserStatus(
     accountId: string,
@@ -52,22 +55,25 @@ export interface AccountStatusService {
   updateDeleteStatus(accountId: string): Promise<UpdateCommandOutput | undefined>;
 }
 
+interface InMemoryAccountStatusServiceConfig {
+  readonly status?: AccountStatus;
+  readonly baseStatus?: BaseAccountStatus;
+  readonly error?: Error;
+}
+
 export class InMemoryAccountStatusService implements AccountStatusService {
-  constructor(
-    readonly status?: AccountStatus,
-    readonly error?: Error,
-  ) {}
+  constructor(readonly config?: InMemoryAccountStatusServiceConfig) {}
 
   getAccountStateInformation() {
-    if (this.error) return Promise.reject(this.error);
+    if (this.config?.error) return Promise.reject(this.config.error);
 
-    return Promise.resolve(this.status);
+    return Promise.resolve(this.config?.baseStatus ?? this.config?.status);
   }
 
   getFullAccountInformation() {
-    if (this.error) return Promise.reject(this.error);
+    if (this.config?.error) return Promise.reject(this.config.error);
 
-    return Promise.resolve(this.status);
+    return Promise.resolve(this.config?.status);
   }
 
   updateUserStatus() {
@@ -75,7 +81,7 @@ export class InMemoryAccountStatusService implements AccountStatusService {
   }
 
   updateDeleteStatus() {
-    if (this.error) return Promise.reject(this.error);
+    if (this.config?.error) return Promise.reject(this.config.error);
 
     return Promise.resolve(undefined);
   }

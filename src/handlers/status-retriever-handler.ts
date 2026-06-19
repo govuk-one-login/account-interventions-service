@@ -2,13 +2,13 @@ import type { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda
 import logger from '../commons/logger';
 import { addMetric, metric } from '../commons/metrics';
 import { MetricNames, AISInterventionTypes } from '../data-types/constants';
-import { FullAccountInformation, HistoryObject } from '../data-types/interfaces';
+import { HistoryObject } from '../data-types/interfaces';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { HistoryStringBuilder } from '../commons/history-string-builder';
 import getActiveInterventions from '../services/active-interventions-service';
 import { getPersistentInterventionEventsService, InterventionEventsService } from '../tables/intervention-events';
 import { UserIdParameterSchema, V1QuerySchema } from '../data-types/api-parameters';
-import { AccountStatusService, getPersistentAccountStatusService } from '../tables/account-status';
+import { AccountStatus, AccountStatusService, getPersistentAccountStatusService } from '../tables/account-status';
 import { V1Response } from '../data-types/api-schemas-v1';
 
 /**
@@ -130,7 +130,7 @@ async function v2StatusApiHandler(
  * @returns - An object with all the required fields for the handler response. Creates a default object if any fields are undefined.
  * Updates timestamps to now if they are returned as null.
  */
-function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformation>): V1Response {
+function transformResponseFromDynamoDatabase(item: Partial<AccountStatus>): V1Response {
   const currentTimestampMs = getCurrentTimestamp().milliseconds;
   return {
     intervention: {
@@ -138,9 +138,9 @@ function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformatio
       appliedAt: item.appliedAt ?? currentTimestampMs,
       sentAt: item.sentAt ?? currentTimestampMs,
       description: (item.intervention as AISInterventionTypes | undefined) ?? AISInterventionTypes.AIS_NO_INTERVENTION,
-      reprovedIdentityAt: item.reprovedIdentityAt ?? undefined,
-      resetPasswordAt: item.resetPasswordAt ?? undefined,
-      accountDeletedAt: item.deletedAt ?? undefined,
+      reprovedIdentityAt: item.reprovedIdentityAt,
+      resetPasswordAt: item.resetPasswordAt,
+      accountDeletedAt: item.deletedAt,
     },
     state: {
       blocked: item.blocked ?? false,
@@ -148,7 +148,7 @@ function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformatio
       resetPassword: item.resetPassword ?? false,
       reproveIdentity: item.reproveIdentity ?? false,
     },
-    auditLevel: (item.auditLevel as 'standard' | 'enhanced' | undefined) ?? 'standard',
+    auditLevel: item.auditLevel ?? 'standard',
   };
 }
 

@@ -7,7 +7,7 @@ import jestOpenAPI from 'jest-openapi';
 import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
 import { InterventionState } from '../../data-types/constants';
 import { InterventionName } from '../../data-types/intervention-name';
-import { InMemoryAccountStatusService } from '../../tables/account-status';
+import { AccountStatus, InMemoryAccountStatusService } from '../../tables/account-status';
 
 jestOpenAPI(`${__dirname}/../../specs/main.yaml`);
 
@@ -96,7 +96,7 @@ describe('status-retriever-handler', () => {
   });
 
   it('will return the correct response from the database if the user ID matches', async () => {
-    const suspendedRecord = {
+    const suspendedRecord: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_ACCOUNT_SUSPENDED',
       updatedAt: 123455,
@@ -132,7 +132,7 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
     };
 
-    const response = await handle(testEvent, mockConfig, new InMemoryAccountStatusService(suspendedRecord));
+    const response = await handle(testEvent, mockConfig, new InMemoryAccountStatusService({ status: suspendedRecord }));
     expect(response.statusCode).toBe(200);
 
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
@@ -172,7 +172,7 @@ describe('status-retriever-handler', () => {
   });
 
   it('will return the correct response from the database if the user ID matches an account where the state items are all false', async () => {
-    const accountFoundNotSuspendedRecord = {
+    const accountFoundNotSuspendedRecord: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_NO_INTERVENTION',
       updatedAt: 123455,
@@ -213,7 +213,7 @@ describe('status-retriever-handler', () => {
     const response = await handle(
       testEvent,
       mockConfig,
-      new InMemoryAccountStatusService(accountFoundNotSuspendedRecord),
+      new InMemoryAccountStatusService({ status: accountFoundNotSuspendedRecord }),
     );
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
@@ -235,7 +235,7 @@ describe('status-retriever-handler', () => {
   });
 
   it('will return a standard 200 response when there is a request with an encoded user id', async () => {
-    const suspendedRecord = {
+    const suspendedRecord: AccountStatus = {
       pk: 'test&User?ID',
       intervention: 'AIS_ACCOUNT_SUSPENDED',
       updatedAt: 123455,
@@ -271,7 +271,7 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
     };
 
-    const response = await handle(testEvent, mockConfig, new InMemoryAccountStatusService(suspendedRecord));
+    const response = await handle(testEvent, mockConfig, new InMemoryAccountStatusService({ status: suspendedRecord }));
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(suspendedAccount);
@@ -299,7 +299,7 @@ describe('status-retriever-handler', () => {
     const response = await handle(
       testEvent,
       mockConfig,
-      new InMemoryAccountStatusService(undefined, new Error('There was a problem with the query operation')),
+      new InMemoryAccountStatusService({ error: new Error('There was a problem with the query operation') }),
     );
     expect(response.statusCode).toBe(500);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
@@ -308,10 +308,10 @@ describe('status-retriever-handler', () => {
   });
 
   it('will return the correct updatedAt field if the field is returned as null', async () => {
-    const nullUpdatedAt = {
+    const nullUpdatedAt: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_FORCED_USER_PASSWORD_RESET',
-      updatedAt: null,
+      updatedAt: undefined,
       appliedAt: 12345685809,
       sentAt: 123456789,
       reprovedIdentityAt: 849473,
@@ -344,7 +344,7 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
     };
 
-    const response = await handle(testEvent, mockConfig, new InMemoryAccountStatusService(nullUpdatedAt));
+    const response = await handle(testEvent, mockConfig, new InMemoryAccountStatusService({ status: nullUpdatedAt }));
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(updatedTime);
@@ -384,7 +384,7 @@ describe('status-retriever-handler', () => {
   });
 
   it('will add in the history field to the response returned from dynamo db if query parameters are passed in', async () => {
-    const accountFoundNotSuspendedRecord = {
+    const accountFoundNotSuspendedRecord: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_ACCOUNT_SUSPENDED',
       updatedAt: 123455,
@@ -426,7 +426,7 @@ describe('status-retriever-handler', () => {
     const response = await handle(
       addedQueryParameterTestEvent,
       mockConfig,
-      new InMemoryAccountStatusService(accountFoundNotSuspendedRecord),
+      new InMemoryAccountStatusService({ status: accountFoundNotSuspendedRecord }),
     );
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
@@ -435,7 +435,7 @@ describe('status-retriever-handler', () => {
   });
 
   it('will return the history field as an object', async () => {
-    const accountFoundNotSuspendedRecord = {
+    const accountFoundNotSuspendedRecord: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_NO_INTERVENTION',
       updatedAt: 123455,
@@ -488,7 +488,7 @@ describe('status-retriever-handler', () => {
     const response = await handle(
       addedQueryParameterTestEvent,
       mockConfig,
-      new InMemoryAccountStatusService(accountFoundNotSuspendedRecord),
+      new InMemoryAccountStatusService({ status: accountFoundNotSuspendedRecord }),
     );
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
@@ -497,7 +497,7 @@ describe('status-retriever-handler', () => {
   });
 
   it('will publish a metric if a history string is malformed and continue processing the others', async () => {
-    const accountFoundNotSuspendedRecord = {
+    const accountFoundNotSuspendedRecord: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_ACCOUNT_UNBLOCKED',
       updatedAt: 123455,
@@ -567,7 +567,7 @@ describe('status-retriever-handler', () => {
     const response = await handle(
       addedQueryParameterTestEvent,
       mockConfig,
-      new InMemoryAccountStatusService(accountFoundNotSuspendedRecord),
+      new InMemoryAccountStatusService({ status: accountFoundNotSuspendedRecord }),
     );
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
@@ -607,7 +607,7 @@ describe('v2 Status API handler', () => {
   });
 
   it('return a list of interventions from the account status table', async () => {
-    const accountFound = {
+    const accountFound: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_NO_INTERVENTION',
       updatedAt: 123455,
@@ -629,7 +629,7 @@ describe('v2 Status API handler', () => {
     const response = await handle(
       { ...testEvent, resource: '/v2/ais/{userId}' },
       mockConfig,
-      new InMemoryAccountStatusService(accountFound),
+      new InMemoryAccountStatusService({ status: accountFound }),
       new InMemoryInterventionEventsService([]),
     );
     expect(response.statusCode).toBe(200);
@@ -646,7 +646,7 @@ describe('v2 Status API handler', () => {
   });
 
   it('return a list of interventions from the intervention events table', async () => {
-    const accountFound = {
+    const accountFound: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_NO_INTERVENTION',
       updatedAt: 123455,
@@ -668,7 +668,7 @@ describe('v2 Status API handler', () => {
     const response = await handle(
       { ...testEvent, resource: '/v2/ais/{userId}' },
       mockConfig,
-      new InMemoryAccountStatusService(accountFound),
+      new InMemoryAccountStatusService({ status: accountFound }),
       new InMemoryInterventionEventsService([
         {
           eventId: '1234',
