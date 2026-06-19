@@ -16,8 +16,9 @@ export const UserIdParamSchema = z.object({
 });
 
 export const V1QuerySchema = z.object({
-  history: z.coerce
-    .boolean()
+  history: z
+    .string()
+    .transform((val) => val === 'true')
     .optional()
     .openapi({
       description: "A flag to enable the recall of the account's previous intervention history.",
