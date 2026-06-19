@@ -9,7 +9,7 @@ import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { HistoryStringBuilder } from '../commons/history-string-builder';
 import getActiveInterventions from '../services/active-interventions-service';
 import { getPersistentInterventionEventsService, InterventionEventsService } from '../tables/intervention-events';
-import { UserIdParamSchema, V1QuerySchema } from '../scripts/generate-main-spec';
+import { UserIdParamSchema, V1QuerySchema } from '../data-types/api-params';
 import { V1Response } from '../data-types/api-schemas-v1';
 
 const appConfig = AppConfigService.getInstance();
