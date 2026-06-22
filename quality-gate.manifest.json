@@ -16,13 +16,7 @@
             "file": ".github/workflows/acceptance-checks.yaml",
             "path": "$.jobs.acceptance-checks"
           }
-        }
-      ]
-    },
-    {
-      "serviceTag": "account-interventions-service",
-      "promotionType": "securePipelines",
-      "checks": [
+        },
         {
           "checkTypes": [
             "unit",
@@ -34,13 +28,7 @@
             "file": ".github/workflows/acceptance-checks.yaml",
             "path": "$.jobs.acceptance-checks"
           }
-        }
-      ]
-    },
-    {
-      "serviceTag": "account-interventions-service",
-      "promotionType": "securePipelines",
-      "checks": [
+        },
         {
           "checkTypes": [
             "code quality",
@@ -54,13 +42,7 @@
             "file": ".github/workflows/acceptance-checks.yaml",
             "path": "$.jobs.acceptance-checks"
           }
-        }
-      ]
-    },
-    {
-      "serviceTag": "account-interventions-service",
-      "promotionType": "securePipelines",
-      "checks": [
+        },
         {
           "checkTypes": [
             "contract"
@@ -71,13 +53,7 @@
             "file": ".github/workflows/pact-test-api-provider.yaml",
             "path": "$.jobs.contract-testing"
           }
-        }
-      ]
-    },
-    {
-      "serviceTag": "account-interventions-service",
-      "promotionType": "securePipelines",
-      "checks": [
+        },
         {
           "checkTypes": [
             "contract"
@@ -88,13 +64,7 @@
             "file": ".github/workflows/pact-test-message-consumer.yaml",
             "path": "$.jobs.contract-testing"
           }
-        }
-      ]
-    },
-    {
-      "serviceTag": "account-interventions-service",
-      "promotionType": "securePipelines",
-      "checks": [
+        },
         {
           "checkTypes": [
             "code quality",
