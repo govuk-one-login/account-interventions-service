@@ -94,6 +94,7 @@ Mappings:
       AuthenticationVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       OneLoginHomeVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       IPVCoreVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
+      AccountManagementComponentsVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       UniqueVPCEndpointIDs: []
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     build:
@@ -106,6 +107,7 @@ Mappings:
       AuthenticationVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
       OneLoginHomeVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
       IPVCoreVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
+      AccountManagementComponentsVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
       UniqueVPCEndpointIDs: []
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     staging:
@@ -118,6 +120,7 @@ Mappings:
       AuthenticationVPCID: vpc-07cf1e76e27f28e86 # Authentication Staging VPC ID
       OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
       IPVCoreVPCID: vpc-039e664a2b3abb03e # IPV Core Staging VPC ID
+      AccountManagementComponentsVPCID: vpc-068b8f80c6182d7cf # AMC VPC ID
       UniqueVPCEndpointIDs:
         - vpce-0339d04aeb67de9da # Auth Old Staging VPC Endpoint ID
         - vpce-0a81481bcd8257f5e # Orchestration? Staging VPC Endpoint ID
@@ -134,6 +137,7 @@ Mappings:
       AuthenticationVPCID: vpc-04796e8a5bf41b046 # Authentication Integration VPC ID
       OneLoginHomeVPCID: vpc-048c9133a5998efe7 # One Login Home Integration VPC ID
       IPVCoreVPCID: vpc-0a9e773e1f32b6697 # IPV Core Integration VPC ID
+      AccountManagementComponentsVPCID: vpc-0037692c1a2a42713 # AMC VPC ID
       UniqueVPCEndpointIDs:
         - vpce-068df58b11adba0c7 # Auth Old Integration VPC Endpoint ID
         - vpce-0704b783d794cea52 # Orchestration? Integration VPC Endpoint ID
@@ -150,6 +154,7 @@ Mappings:
       AuthenticationVPCID: vpc-06a7d758af9eefddb # Authentication Production VPC ID
       OneLoginHomeVPCID: vpc-0c94e753d20410154 # One Login Home Production VPC ID
       IPVCoreVPCID: vpc-0274d75007239691f # IPV Core Production VPC ID
+      AccountManagementComponentsVPCID: vpc-0548570d4b44ad3a7 # AMC VPC ID
       UniqueVPCEndpointIDs:
         - vpce-0e7b281bd24fbd378 # Auth Old Production VPC Endpoint ID
         - vpce-0dd5d6bf9c2a1eade # Orchestration? Production VPC Endpoint ID
@@ -1571,6 +1576,7 @@ Resources:
             - !FindInMap [EnvConfig, !Ref Environment, OneLoginHomeVPCID]
             - !FindInMap [EnvConfig, !Ref Environment, OrchestrationVPCID]
             - !FindInMap [EnvConfig, !Ref Environment, IPVCoreVPCID]
+            - !FindInMap [EnvConfig, !Ref Environment, AccountManagementComponentsVPCID]
       AccessLogSetting:
         Format: >-
           {
@@ -1690,6 +1696,7 @@ Resources:
             - !FindInMap [EnvConfig, !Ref Environment, OneLoginHomeVPCID]
             - !FindInMap [EnvConfig, !Ref Environment, OrchestrationVPCID]
             - !FindInMap [EnvConfig, !Ref Environment, IPVCoreVPCID]
+            - !FindInMap [EnvConfig, !Ref Environment, AccountManagementComponentsVPCID]
       AccessLogSetting:
         Format: >-
           {
