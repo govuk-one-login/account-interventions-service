@@ -18,6 +18,7 @@ function getDynamoDBResponseObject(
   state: StateDetails,
 ): Record<string, NativeAttributeValue> {
   return {
+    pk: '1234',
     blocked: state.blocked,
     suspended: state.suspended,
     reproveIdentity: state.reproveIdentity,
@@ -27,6 +28,7 @@ function getDynamoDBResponseObject(
     isAccountDeleted: false,
     intervention: interventionName,
     updatedAt: 123456,
+    history: [],
   };
 }
 
