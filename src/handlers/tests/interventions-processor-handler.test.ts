@@ -92,7 +92,6 @@ const mockUpdateRecords = DynamoDatabaseService.prototype.updateUserStatus as Mo
 const mockValidateEventAgainstSchema = vi.spyOn(validationModule, 'validateEventAgainstSchema');
 
 const accountStateEngine = AccountStateEngine.getInstance();
-accountStateEngine.getInterventionEnumFromCode = vi.fn().mockImplementation(() => EventsEnum.FRAUD_BLOCK_ACCOUNT);
 
 const emptyInterventionEventsService = new InMemoryInterventionEventsService([]);
 
@@ -150,6 +149,7 @@ describe('intervention processor handler', () => {
         httpStatusCode: 200,
       },
     });
+    accountStateEngine.getInterventionEnumFromCode = vi.fn().mockImplementation(() => EventsEnum.FRAUD_BLOCK_ACCOUNT);
   });
 
   describe('handle', () => {
@@ -231,6 +231,7 @@ describe('intervention processor handler', () => {
         },
       ]);
       const appendEventsSpy = vi.spyOn(interventionEventsService, 'appendEvents');
+      accountStateEngine.getInterventionEnumFromCode = vi.fn().mockReturnValueOnce(EventsEnum.FRAUD_SUSPEND_ACCOUNT);
     
       mockRetrieveRecords.mockReturnValue({
         blocked: false,
