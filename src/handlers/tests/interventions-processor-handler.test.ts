@@ -218,18 +218,22 @@ describe('intervention processor handler', () => {
     });
 
     it('should persist an ignored intervention event to the database when a StateTransitionError is received', async () => {
-      const interventionEventsService = new InMemoryInterventionEventsService([
+      const events = [
         {
           eventId: 'existing-event',
           accountId: 'abc',
           createdAt: 1000,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
           interventionName: InterventionName.TEMPORARY_SUSPENSION,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
           interventionState: InterventionState.ACTIVE,
           interventionReason: 'original reason',
           sentAt: 900,
           componentId: 'test',
         },
-      ]);
+      ]
+      
+      const interventionEventsService = new InMemoryInterventionEventsService(events);
       const appendEventsSpy = vi.spyOn(interventionEventsService, 'appendEvents');
       accountStateEngine.getInterventionEnumFromCode = vi.fn().mockReturnValueOnce(EventsEnum.FRAUD_SUSPEND_ACCOUNT);
     
@@ -259,8 +263,8 @@ describe('intervention processor handler', () => {
       expect(appendEventsSpy).toHaveBeenCalledWith([
         expect.objectContaining({
           accountId: 'abc',
-          interventionName: InterventionName.TEMPORARY_SUSPENSION,
-          interventionState: InterventionState.IGNORED,
+          interventionName: 'TEMPORARY_SUSPENSION',
+          interventionState: 'IGNORED',
           interventionReason: 'reason',
           componentId: '',
           sentAt: interventionEventBody.event_timestamp_ms,
