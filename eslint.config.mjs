@@ -53,6 +53,8 @@ export default defineConfig(
       'unicorn/prefer-logical-operator-over-ternary': ['error'],
       'unicorn/prefer-spread': ['error'],
       'unicorn/prefer-ternary': ['error'],
+      'unicorn/no-unreadable-new-expression': ['off'],
+      'unicorn/consistent-class-member-order': ['off'],
       'tsdoc/syntax': ['error'],
     },
   },
