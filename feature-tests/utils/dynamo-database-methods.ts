@@ -1,6 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { InformationFromTable } from './utility';
-import { unmarshall } from '@aws-sdk/util-dynamodb';
 import EndPoints from '../apiEndpoints/endpoints';
 import {
   DeleteCommand,
@@ -29,7 +28,7 @@ export async function getRecordFromTable(userId: string): Promise<InformationFro
     if (!response.Items) {
       throw new Error('the record is undefined or doesnt exist');
     }
-    return unmarshall(response.Items[0]) as InformationFromTable;
+    return response.Items[0] as InformationFromTable;
   } catch (error) {
     console.log('unable to get record', { error });
   }
@@ -121,5 +120,24 @@ export async function deleteTestRecord(userId: string): Promise<void> {
     await dbDocClient.send(deleteCommand);
   } catch (error) {
     console.log('record did not delete', { error });
+  }
+}
+
+export async function getInterventionEventsRecordsFromTable(userId: string) {
+  try {
+    console.log('retrieving intevention event record from database');
+    const getRecordCommand = new QueryCommand({
+      TableName: EndPoints.INTERVENTION_EVENTS_TABLE_NAME,
+      KeyConditionExpression: '#accountId = :accountId',
+      ExpressionAttributeNames: { '#accountId': 'accountId' },
+      ExpressionAttributeValues: { ':accountId': userId },
+    });
+    const response = await dbDocClient.send(getRecordCommand);
+    if (!response.Items) {
+      throw new Error('the record is undefined or doesnt exist');
+    }
+    return response.Items;
+  } catch (error) {
+    console.log('unable to get record', { error });
   }
 }
