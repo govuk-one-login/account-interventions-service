@@ -44,13 +44,12 @@ function getUserId() {
 }
 
 function getBaseUrl(event: CustomEvent) {
-  return event.privateApi ? validateConfiguration('PRIVATE_API_URL') : validateConfiguration('BASE_URL');
+  return validateConfiguration(event.privateApi ? 'PRIVATE_API_URL' : 'BASE_URL');
 }
 
 function getEndpoint() {
   const endpoint = validateConfiguration('END_POINT');
-  const prefix = endpoint.startsWith('/') ? '' : '/';
-  return prefix + endpoint;
+  return (endpoint.startsWith('/') ? '' : '/') + endpoint;
 }
 
 function getQueryParameters() {
@@ -62,10 +61,11 @@ function getHttpRequestMethod() {
 }
 
 function validateConfiguration(environmentVariable: string): string {
-  if (!process.env[environmentVariable] || process.env[environmentVariable] === 'undefined') {
+  const value = process.env[environmentVariable];
+  if (!value || value === 'undefined') {
     const message = `Environment variable ${environmentVariable} is not defined.`;
     logger.error(message);
     throw new Error(message);
   }
-  return process.env[environmentVariable];
+  return value;
 }

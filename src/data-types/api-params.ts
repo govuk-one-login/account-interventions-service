@@ -1,7 +1,5 @@
-import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+import './zod-setup';
 import { z } from 'zod';
-
-extendZodWithOpenApi(z);
 
 export const UserIdParamSchema = z.object({
   userId: z

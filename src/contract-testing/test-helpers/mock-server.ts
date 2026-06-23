@@ -49,10 +49,10 @@ export function setupServer(port: number) {
 }
 
 export function closeServer() {
-  if (server) {
-    console.log('shutting down server');
-    server.close();
-  }
+  if (!server) return;
+
+  console.log('shutting down server');
+  server.close();
 }
 
 const createDefaultApiRequest = (userIdPathParameter: string): APIGatewayProxyEvent => ({

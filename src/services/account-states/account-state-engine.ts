@@ -19,25 +19,25 @@ export class AccountStateEngine {
 
   public static getInstance() {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!AccountStateEngine.instance) {
-      AccountStateEngine.validateConfiguration();
-      AccountStateEngine.instance = new AccountStateEngine();
+    if (!this.instance) {
+      this.validateConfiguration();
+      this.instance = new AccountStateEngine();
     }
-    return AccountStateEngine.instance;
+    return this.instance;
   }
 
   /**
    * Private method to validate configuration object in use by this class
    */
   private static validateConfiguration() {
-    const accountStates = Object.keys(AccountStateEngine.configuration.nodes).toSorted(compareStrings);
-    const adjacencyLists = Object.keys(AccountStateEngine.configuration.adjacency).toSorted(compareStrings);
+    const accountStates = Object.keys(this.configuration.nodes).toSorted(compareStrings);
+    const adjacencyLists = Object.keys(this.configuration.adjacency).toSorted(compareStrings);
     if (JSON.stringify(adjacencyLists) !== JSON.stringify(accountStates))
       throw buildConfigurationError(
         MetricNames.INVALID_STATE_ENGINE_CONFIGURATION,
         'Invalid state engine configuration detected. Adjacency mismatch',
       );
-    for (const element of Object.values(AccountStateEngine.configuration.edges)) {
+    for (const element of Object.values(this.configuration.edges)) {
       if (!accountStates.includes(element.to))
         throw buildConfigurationError(
           MetricNames.INVALID_STATE_ENGINE_CONFIGURATION,
@@ -231,6 +231,5 @@ export function areAccountStatesTheSame(aState: StateDetails, anotherState: Stat
  */
 export function compareStrings(aString: string, anotherString: string) {
   if (aString === anotherString) return 0;
-  else if (aString < anotherString) return -1;
-  else return 1;
+  return aString < anotherString ? -1 : 1;
 }

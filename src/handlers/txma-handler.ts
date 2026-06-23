@@ -12,13 +12,11 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
     logger.error('ACCOUNT_DELETION_SQS_QUEUE env variable is not set');
     throw new Error('ACCOUNT_DELETION_SQS_QUEUE env variable is not set');
   }
-  const accountDeletionSqsQueue = process.env['ACCOUNT_DELETION_SQS_QUEUE'];
 
   if (!process.env['ACCOUNT_INTERVENTION_SQS_QUEUE']) {
     logger.error('ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set');
     throw new Error('ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set');
   }
-  const accountInterventionEventsQueue = process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'];
 
   if (!event.Records[0]) {
     logger.error('The event does not contain any records.');
@@ -62,6 +60,9 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
   const sqsClient = createSqsClient();
 
   const promiseList = [];
+
+  const accountInterventionEventsQueue = process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'];
+  const accountDeletionSqsQueue = process.env['ACCOUNT_DELETION_SQS_QUEUE'];
 
   if (deletionMessages.length > 0)
     promiseList.push(sendBatchSqsMessage(deletionMessages, accountDeletionSqsQueue, sqsClient));

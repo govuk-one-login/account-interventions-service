@@ -13,10 +13,10 @@ export class AppConfigService {
    */
   public static getInstance(): AppConfigService {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!AppConfigService.instance) {
+    if (!this.instance) {
       AppConfigService.instance = new AppConfigService();
     }
-    return AppConfigService.instance;
+    return this.instance;
   }
 
   public get metricServiceName(): string {
@@ -70,12 +70,14 @@ export class AppConfigService {
   }
 
   private validateConfiguration(environmentVariable: string): string {
-    if (!process.env[environmentVariable] || process.env[environmentVariable] === 'undefined') {
+    const envValue = process.env[environmentVariable];
+
+    if (!envValue || envValue === 'undefined') {
       const message = `${LOGS_PREFIX_INVALID_CONFIG} Environment variable ${environmentVariable} is not defined.`;
       logger.error(message);
       throw new InvalidEnvironmentVariableError(message);
     }
-    return process.env[environmentVariable];
+    return envValue;
   }
 
   private validateIsHTTPSUrl(environmentVariable: string) {
