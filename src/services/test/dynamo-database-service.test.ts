@@ -189,8 +189,10 @@ describe('Dynamo DB Service', () => {
 
   it('does not throw an error and logs an info when there is a Conditional Check Exception.', async () => {
     const mockedUpdateCommand = mockClient(DynamoDBDocumentClient).on(UpdateCommand);
-    const error = new Error('test');
-    error.name = 'ConditionalCheckFailedException';
+    class ConditionalCheckFailedException extends Error {
+      override name = 'ConditionalCheckFailedException';
+    }
+    const error = new ConditionalCheckFailedException('test');
     mockedUpdateCommand.rejectsOnce(error);
     const loggerInfoSpy = vi.spyOn(logger, 'info');
     const dynamoDBService = new DynamoDatabaseService('table_name');

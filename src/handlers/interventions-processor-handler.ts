@@ -58,13 +58,15 @@ export async function handler(
 
   const itemFailures: SQSBatchItemFailure[] = [];
 
-  const promiseArray = event.Records.map((record: SQSRecord) =>
-    processSQSRecord(record, interventionEventsService).catch((error: unknown) => {
+  const promiseArray = event.Records.map(async (record: SQSRecord) => {
+    try {
+      await processSQSRecord(record, interventionEventsService);
+    } catch (error: unknown) {
       const itemIdentifier = handleError(error, record);
       if (itemIdentifier) itemFailures.push({ itemIdentifier });
-    }),
-  );
-  await Promise.allSettled(promiseArray);
+    }
+  });
+  await Promise.all(promiseArray);
   metric.publishStoredMetrics();
   logger.debug('returning items that failed processing: ' + JSON.stringify(itemFailures));
   return {
@@ -212,16 +214,16 @@ async function validateAccountIsNotDeleted(
   initialState: StateDetails,
   itemFromDB: DynamoDBStateResult,
 ) {
-  if (itemFromDB.isAccountDeleted === true) {
-    logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
-    addMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-    await sendAuditEvent('AIS_EVENT_IGNORED_ACCOUNT_DELETED', intervention, record, {
-      stateResult: initialState,
-      interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-      nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
-    });
-    throw new ValidationError('Account is marked as deleted.');
-  }
+  if (!itemFromDB.isAccountDeleted) return;
+
+  logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
+  addMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
+  await sendAuditEvent('AIS_EVENT_IGNORED_ACCOUNT_DELETED', intervention, record, {
+    stateResult: initialState,
+    interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+    nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+  });
+  throw new ValidationError('Account is marked as deleted.');
 }
 
 /**

@@ -49,14 +49,14 @@ export function validateEventAgainstSchema(interventionRequest: unknown) {
  * @throws ValidationError - if the status is undefined or not as expected
  */
 export function validateIfIdentityAcquired(event: InterventionEventMessage) {
-  if (event.event_name === EventsEnum.IPV_ACCOUNT_INTERVENTION_END && event.extensions.success !== true) {
-    logger.warn('Received event that does not meet criteria to lift intervention.', {
-      success: event.extensions.success,
-      type: event.extensions.type,
-    });
-    addMetric(MetricNames.IDENTITY_NOT_SUFFICIENTLY_PROVED);
-    throw new ValidationError('Received event that does not meet criteria to lift intervention.');
-  }
+  if (!(event.event_name === EventsEnum.IPV_ACCOUNT_INTERVENTION_END && event.extensions.success !== true)) return;
+
+  logger.warn('Received event that does not meet criteria to lift intervention.', {
+    success: event.extensions.success,
+    type: event.extensions.type,
+  });
+  addMetric(MetricNames.IDENTITY_NOT_SUFFICIENTLY_PROVED);
+  throw new ValidationError('Received event that does not meet criteria to lift intervention.');
 }
 
 /**
