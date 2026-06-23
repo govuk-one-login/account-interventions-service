@@ -112,15 +112,13 @@ void (async () => {
   const queueUrl = values.queueUrl ?? 'https://sqs.eu-west-2.amazonaws.com/484907510598/ais-main-TxMAIngressQueue';
   const userId = values.userId ?? 'urn:fdc:gov.uk:2022:pgt1qOf7zW2tMCZg4V5LEu-mT-_GTSX7xqJ6RJekw9I';
   const eventName = values.eventName ?? 'TICF_ACCOUNT_INTERVENTION';
+
+  if (!isValidEvent(eventName)) throw new Error(`--eventName must be one of: ${Object.values(EventType).join(', ')}`);
+
   const interventionCode = values.interventionCode ?? '01';
 
-  if (!isValidEvent(eventName)) {
-    throw new Error(`--eventName must be one of: ${Object.values(EventType).join(', ')}`);
-  }
-
-  if (!isValidInterventionCode(interventionCode)) {
+  if (!isValidInterventionCode(interventionCode))
     throw new Error(`--interventionCode must be one of: ${Object.values(InterventionCode).join(', ')}`);
-  }
 
   await sendAuditEvent(queueUrl, userId, eventName, interventionCode);
 })();

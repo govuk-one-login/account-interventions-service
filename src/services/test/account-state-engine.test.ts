@@ -607,13 +607,15 @@ describe('account-state-service', () => {
           }
         >,
       };
-      Object.defineProperty(AccountStateEngine, 'instance', {
-        writable: true,
-        value: undefined,
-      });
-      Object.defineProperty(AccountStateEngine, 'configuration', {
-        writable: true,
-        value: invalidConfig,
+      Object.defineProperties(AccountStateEngine, {
+        instance: {
+            writable: true,
+            value: undefined,
+          },
+        configuration: {
+            writable: true,
+            value: invalidConfig,
+          },
       });
 
       expect(() => AccountStateEngine.getInstance()).toThrow(
@@ -656,13 +658,15 @@ describe('account-state-service', () => {
           }
         >,
       };
-      Object.defineProperty(AccountStateEngine, 'instance', {
-        writable: true,
-        value: undefined,
-      });
-      Object.defineProperty(AccountStateEngine, 'configuration', {
-        writable: true,
-        value: invalidConfig,
+      Object.defineProperties(AccountStateEngine, {
+        instance: {
+            writable: true,
+            value: undefined,
+          },
+        configuration: {
+            writable: true,
+            value: invalidConfig,
+          },
       });
 
       expect(() => AccountStateEngine.getInstance()).toThrow(

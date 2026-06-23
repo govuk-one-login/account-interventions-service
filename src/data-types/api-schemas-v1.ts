@@ -1,8 +1,6 @@
+import './zod-setup';
 import z from 'zod';
 import { AISInterventionTypes } from './constants';
-import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-
-extendZodWithOpenApi(z);
 
 const InterventionMetadataSchema = z
   .object({
