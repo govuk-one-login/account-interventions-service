@@ -134,7 +134,7 @@ const document = generator.generateDocument({
       "An API that provides methods to query the OneLogin Account Interventions Service\nfor the current intervention state of a User's Account.\n\nThis solution was created as part of the Interventions initiative.\n\n__N.B__\n - Recommend HTTP client __Timeout__ settings of `5 seconds` to handle requests where backend services experience cold starts.",
     version: '0.0.1',
     contact: {
-      name: 'Government Digital Service - Accounts Bravo Team',
+      name: 'Government Digital Service - Fraud Team Neptune',
       email: 'interventions@digital.cabinet-office.gov.uk',
     },
     license: {
