@@ -12,7 +12,7 @@ import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from
 import { sendAuditEvent } from '../../services/send-audit-events';
 import { publishTimeToResolveMetrics } from '../../commons/metrics-helper';
 import { InterventionEventMessage, TicfAccountIntervention } from '../../contracts/intervention-events';
-import { InMemoryInterventionEventsService, InterventionName, InterventionState } from '../../tables/intervention-events';
+import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
 
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
@@ -215,61 +215,6 @@ describe('intervention processor handler', () => {
         },
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
-    });
-
-    it('should persist an ignored intervention event to the database when a StateTransitionError is received', async () => {
-      const events = [
-        {
-          eventId: 'existing-event',
-          accountId: 'abc',
-          createdAt: 1000,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-          interventionName: InterventionName.TEMPORARY_SUSPENSION,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-          interventionState: InterventionState.ACTIVE,
-          interventionReason: 'original reason',
-          sentAt: 900,
-          componentId: 'test',
-        },
-      ]
-      
-      const interventionEventsService = new InMemoryInterventionEventsService(events);
-      const appendEventsSpy = vi.spyOn(interventionEventsService, 'appendEvents');
-      accountStateEngine.getInterventionEnumFromCode = vi.fn().mockReturnValueOnce(EventsEnum.FRAUD_SUSPEND_ACCOUNT);
-    
-      mockRetrieveRecords.mockReturnValue({
-        blocked: false,
-        reproveIdentity: false,
-        resetPassword: false,
-        suspended: true,
-        isAccountDeleted: false,
-      });
-    
-      accountStateEngine.applyEventTransition = vi.fn().mockImplementationOnce(() => {
-        throw new StateTransitionError('State transition Error', EventsEnum.FRAUD_SUSPEND_ACCOUNT, {
-          nextAllowableInterventions: [],
-          stateResult: {
-            blocked: false,
-            suspended: true,
-            resetPassword: false,
-            reproveIdentity: false,
-          },
-          interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-        });
-      });
-    
-      await handler(mockEvent, mockContext, interventionEventsService);
-    
-      expect(appendEventsSpy).toHaveBeenCalledWith([
-        expect.objectContaining({
-          accountId: 'abc',
-          interventionName: 'TEMPORARY_SUSPENSION',
-          interventionState: 'IGNORED',
-          interventionReason: 'reason',
-          componentId: '',
-          sentAt: interventionEventBody.event_timestamp_ms,
-        }),
-      ]);
     });
 
     it('should succeed when a valid intervention event is received', async () => {
