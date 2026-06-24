@@ -1,0 +1,53 @@
+{
+  "name": "@govuk-one-login/ais-status-sdk",
+  "version": "0.0.1",
+  "description": "TypeScript SDK for the Account Interventions Service Status API",
+  "author": "Fraud Team Neptune",
+  "homepage": "https://github.com/govuk-one-login/account-interventions-service#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/govuk-one-login/account-interventions-service.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-swc",
+    "clean": "rm -r dist",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:types": "tsc --noEmit",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-swc": "^0.4.1",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@swc/core": "^1.15.43",
+    "rollup": "^4.62.2",
+    "rollup-plugin-dts": "^6.4.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9",
+    "zod": "^4.4.3"
+  }
+}

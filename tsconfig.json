@@ -28,5 +28,5 @@
     "ignoreDeprecations": "6.0",
     "types": ["node", "vitest/globals"]
   },
-  "exclude": ["feature-tests", "coverage"]
+  "exclude": ["feature-tests", "coverage", "**/dist", "**/rollup.config.ts"]
 }

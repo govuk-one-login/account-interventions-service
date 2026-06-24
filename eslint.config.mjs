@@ -10,7 +10,15 @@ import globals from 'globals';
 export default defineConfig(
   eslintPluginUnicorn.configs.recommended,
   {
-    ignores: ['**/node_modules/**', '**/feature-tests/**', 'coverage/**', '**/.aws-sam/**', '.stryker-tmp/*'],
+    ignores: [
+      '**/node_modules/**',
+      '**/feature-tests/**',
+      'coverage/**',
+      '**/.aws-sam/**',
+      '.stryker-tmp/*',
+      '**/dist/**',
+      '**/rollup.config.ts',
+    ],
   },
   {
     files: ['**/*.ts'],
