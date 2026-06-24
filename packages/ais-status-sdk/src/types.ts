@@ -12,3 +12,11 @@ export interface Intervention {
 export interface AccountStatusResult {
   interventions: Intervention[];
 }
+
+export interface InterventionClientConfig {
+  baseUrl: string;
+}
+
+export interface InterventionClientInterface {
+  getAccountStatus(userId: string): Promise<AccountStatusResult>;
+}
