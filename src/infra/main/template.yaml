@@ -1,5 +1,15 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
+Transform:
+  - AWS::Serverless-2016-10-31
+  - AWS::LanguageExtensions
+
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - E3031
+        - E3510
+        - E3033
 
 Description: >-
   The main Account Interventions Service (AIS) solution stack
@@ -1576,6 +1586,7 @@ Resources:
             - !FindInMap [EnvConfig, !Ref Environment, OrchestrationVPCID]
             - !FindInMap [EnvConfig, !Ref Environment, IPVCoreVPCID]
             - !FindInMap [EnvConfig, !Ref Environment, AccountManagementComponentsVPCID]
+            - !FindInMap [EnvConfig, !Ref Environment, blah, { DefaultValue: !Ref AWS::NoValue }]
       AccessLogSetting:
         Format: >-
           {
