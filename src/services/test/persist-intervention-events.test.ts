@@ -1,7 +1,7 @@
 import { InterventionEventMessage } from '../../contracts/intervention-events';
 import { EventsEnum, InterventionName, InterventionState, TriggerEventsEnum } from '../../data-types/constants';
 import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
-import persistInterventionEvents, { generateEventsToAppend } from '../persist-intervention-events';
+import persistInterventionEvents, { generateEventsToAppend, persistIgnoredInterventionEvent } from '../persist-intervention-events';
 
 const baseMessage: InterventionEventMessage = {
   component_id: 'test',
@@ -159,6 +159,91 @@ describe('generateEventsToAppend', () => {
         requesterId: undefined,
         sentAt: 1722953808000,
       },
+    ]);
+  });
+});
+
+describe('persistIgnoredInterventionEvent', () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FIXED_TIMESTAMP);
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
+  test('persists exactly one ignored row when attempted intervention matches the active intervention', async () => {
+    const service = new InMemoryInterventionEventsService([
+      {
+        eventId: 'existing',
+        accountId: '1',
+        createdAt: 1000,
+        interventionName: InterventionName.TEMPORARY_SUSPENSION,
+        interventionState: InterventionState.ACTIVE,
+        interventionReason: 'original',
+        sentAt: 900,
+        componentId: 'test',
+      },
+    ]);
+    const appendEventsSpy = vi.spyOn(service, 'appendEvents');
+
+    await persistIgnoredInterventionEvent(
+      baseMessage,
+      EventsEnum.FRAUD_SUSPEND_ACCOUNT,
+      { blocked: false, suspended: true, resetPassword: false, reproveIdentity: false },
+      service,
+    );
+
+    expect(appendEventsSpy).toHaveBeenCalledExactlyOnceWith([
+      expect.objectContaining({
+        accountId: '1',
+        interventionName: InterventionName.TEMPORARY_SUSPENSION,
+        interventionState: InterventionState.IGNORED,
+        interventionReason: 'reason',
+        sentAt: 1722953808000,
+        componentId: 'test',
+      }),
+    ]);
+  });
+
+  test('persists only one ignored row when account has two active interventions and only one matches', async () => {
+    const service = new InMemoryInterventionEventsService([
+      {
+        eventId: 'existing-1',
+        accountId: '1',
+        createdAt: 1000,
+        interventionName: InterventionName.RESET_PASSWORD,
+        interventionState: InterventionState.ACTIVE,
+        interventionReason: 'original',
+        sentAt: 900,
+        componentId: 'test',
+      },
+      {
+        eventId: 'existing-2',
+        accountId: '1',
+        createdAt: 1001,
+        interventionName: InterventionName.REPROVE_IDENTITY,
+        interventionState: InterventionState.ACTIVE,
+        interventionReason: 'original',
+        sentAt: 900,
+        componentId: 'test',
+      },
+    ]);
+    const appendEventsSpy = vi.spyOn(service, 'appendEvents');
+
+    await persistIgnoredInterventionEvent(
+      baseMessage,
+      EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
+      { blocked: false, suspended: false, resetPassword: true, reproveIdentity: true },
+      service,
+    );
+
+    expect(appendEventsSpy).toHaveBeenCalledExactlyOnceWith([
+      expect.objectContaining({
+        interventionName: InterventionName.RESET_PASSWORD,
+        interventionState: InterventionState.IGNORED,
+      }),
     ]);
   });
 });

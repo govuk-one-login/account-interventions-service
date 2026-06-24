@@ -40,6 +40,31 @@ async function persistInterventionEvents(
   await interventionEventsService.appendEvents(eventsToAppend);
 }
 
+export async function persistIgnoredInterventionEvent(
+  message: InterventionEventMessage,
+  event: EventsEnum,
+  previousState: StateDetails | undefined,
+  interventionEventsService: InterventionEventsService,
+) {
+  const attemptedInterventions = config[event]
+  .filter((u) => u.interventionState === InterventionState.ACTIVE)
+  .map((u) => u.interventionName);
+
+  const activeInterventions = await getActiveInterventions(
+    message.user.user_id,
+    interventionEventsService,
+    previousState,
+  );
+
+  const updatedIntervention = attemptedInterventions
+    .filter((name) => activeInterventions.includes(name))
+    .map((name) => ({ interventionName: name, interventionState: InterventionState.IGNORED }));
+
+  const callWith = enrichEvents(updatedIntervention, message);
+
+  await interventionEventsService.appendEvents(callWith);
+}
+
 /**
  *
  * @param updates - list of possible updates to apply
@@ -157,6 +182,7 @@ const config: Record<EventsEnum, InterventionUpdate[]> = {
   [EventsEnum.FRAUD_UNBLOCK_ACCOUNT]: [
     { interventionName: InterventionName.PERMANENT_SUSPENSION, interventionState: InterventionState.REMOVED },
   ],
+
 };
 
 export default persistInterventionEvents;

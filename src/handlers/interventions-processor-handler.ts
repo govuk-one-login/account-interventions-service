@@ -26,7 +26,7 @@ import { sendAuditEvent } from '../services/send-audit-events';
 import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
 import { publishTimeToResolveMetrics, updateAccountStateCountMetric } from '../commons/metrics-helper';
 import { InterventionEventMessage } from '../contracts/intervention-events';
-import persistInterventionEvents from '../services/persist-intervention-events';
+import persistInterventionEvents, { persistIgnoredInterventionEvent } from '../services/persist-intervention-events';
 import { getPersistentInterventionEventsService, InterventionEventsService } from '../tables/intervention-events';
 
 const appConfig = AppConfigService.getInstance();
@@ -100,7 +100,7 @@ async function processSQSRecord(record: SQSRecord, interventionEventsService: In
     await validateEventIsNotStale(eventName, result, currentAccountState, itemFromDB);
   }
 
-  const statusResult = await applyEventTransition(eventName, currentAccountState, itemFromDB?.intervention, result);
+  const statusResult = await applyEventTransition(eventName, currentAccountState, itemFromDB?.intervention, result, interventionEventsService);
   const partialCommandInput = buildPartialUpdateAccountStateCommand(
     statusResult.stateResult,
     currentTimestamp.milliseconds,
@@ -149,13 +149,21 @@ async function applyEventTransition(
   initialState: StateDetails,
   interventionName: string | undefined,
   result: InterventionEventMessage,
+  interventionEventsService: InterventionEventsService,
+
 ) {
   try {
     return accountStateEngine.applyEventTransition(event, initialState, interventionName);
   } catch (error) {
-    if (error instanceof StateTransitionError)
+    if (error instanceof StateTransitionError) {
       await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, result, error.output);
-
+      try {
+        await persistIgnoredInterventionEvent(result, event, initialState, interventionEventsService);
+      } catch (error) {
+        logger.error('Error caught whilst attempting to persist ignored event.', { errorMessage: (error as Error).message });
+        addMetric(MetricNames.PERSIST_INTERVENTION_EVENTS_ERROR);
+      }
+    }
     throw error;
   }
 }
