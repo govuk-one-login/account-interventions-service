@@ -94,6 +94,7 @@ Mappings:
       AuthenticationVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       OneLoginHomeVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       IPVCoreVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
+      AccountManagementComponentsVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
       UniqueVPCEndpointIDs: []
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     build:
@@ -106,6 +107,7 @@ Mappings:
       AuthenticationVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
       OneLoginHomeVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
       IPVCoreVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
+      AccountManagementComponentsVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
       UniqueVPCEndpointIDs: []
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     staging:
@@ -118,11 +120,13 @@ Mappings:
       AuthenticationVPCID: vpc-07cf1e76e27f28e86 # Authentication Staging VPC ID
       OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
       IPVCoreVPCID: vpc-039e664a2b3abb03e # IPV Core Staging VPC ID
+      AccountManagementComponentsVPCID: vpc-068b8f80c6182d7cf # AMC Staging VPC ID
       UniqueVPCEndpointIDs:
         - vpce-0339d04aeb67de9da # Auth Old Staging VPC Endpoint ID
         - vpce-0a81481bcd8257f5e # Orchestration? Staging VPC Endpoint ID
         - vpce-0cc0de10742b83b8a # IPV Core? Staging VPC Endpoint ID
         - vpce-07078f5f005fe5efc # Auth New Staging VPC Endpoint ID
+        - vpce-04ae8d53b32b38278 # AMC Staging VPC Endpoint ID
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     integration:
       LambdaLogLevel: INFO
@@ -1571,6 +1575,7 @@ Resources:
             - !FindInMap [EnvConfig, !Ref Environment, OneLoginHomeVPCID]
             - !FindInMap [EnvConfig, !Ref Environment, OrchestrationVPCID]
             - !FindInMap [EnvConfig, !Ref Environment, IPVCoreVPCID]
+            - !FindInMap [EnvConfig, !Ref Environment, AccountManagementComponentsVPCID]
       AccessLogSetting:
         Format: >-
           {
@@ -1690,6 +1695,7 @@ Resources:
             - !FindInMap [EnvConfig, !Ref Environment, OneLoginHomeVPCID]
             - !FindInMap [EnvConfig, !Ref Environment, OrchestrationVPCID]
             - !FindInMap [EnvConfig, !Ref Environment, IPVCoreVPCID]
+            - !FindInMap [EnvConfig, !Ref Environment, AccountManagementComponentsVPCID]
       AccessLogSetting:
         Format: >-
           {
