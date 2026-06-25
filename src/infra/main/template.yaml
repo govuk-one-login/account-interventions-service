@@ -50,10 +50,6 @@ Parameters:
     Description: The name of the Core VC Storage stack
     Type: String
     Default: ais-core
-  AlertingSNSLowAlertNotificationTopicARN:
-    Description: 'The ARN of the Alerting SNS Low Alert Notification topic'
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: '/ais-infra-alerting/SNS/LowAlertNotificationTopic/ARN' #pragma: allowlist secret
   LambdaDeploymentPreference:
     Description: "Specifies the configuration to enable gradual Lambda deployments. It can be used to set deployment type and also allows skipping canary deployment by setting to 'AllAtOnce'"
     Type: String
@@ -84,6 +80,10 @@ Parameters:
     Description: Value for the Source Tag
     Type: String
     Default: govuk-one-login/account-interventions-service/src/infra/main/template.yaml
+  BuildNotificationStackName:
+    Description: 'The name of the BuildNotificationStack, which links to the Slack channel where notifications are sent'
+    Type: String
+    AllowedPattern: '[a-zA-Z0-9-]+|none'
 
 Conditions:
   IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
@@ -1867,7 +1867,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Errors returned from the StatusRetrieverFunction Lambda. ${RunBookURL}'
       MetricName: Errors
       Dimensions:
@@ -1891,7 +1892,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Lambda returning 5xx response. ${RunBookURL}'
       Namespace: AWS/ApiGateway
       MetricName: 5XXError
@@ -1911,7 +1913,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        # - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Errors returned from the InterventionsProcessorFunction Lambda. ${RunBookURL}'
       MetricName: Errors
       Dimensions:
@@ -1935,7 +1938,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        # - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Publishing to TxMA has failed due to incorrect Lambda permissions. ${RunBookURL}'
       MetricName: ERROR_PUBLISHING_EVENT_TO_TXMA
       Namespace: !Ref SystemTagValue
@@ -1955,7 +1959,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        # - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Interventions Processor Function Alarm for InterventionsProcessorLambdaErrorMetricFilter. ${RunBookURL}'
       MetricName: InterventionsProcessorLambdaError
       Namespace: !Ref SystemTagValue
@@ -1972,7 +1977,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        # - !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Errors returned from the AccountDeletionProcessorFunction Lambda. ${RunBookURL}'
       MetricName: Errors
       Dimensions:
