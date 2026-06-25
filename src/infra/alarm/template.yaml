@@ -9,14 +9,6 @@ Parameters:
     Description: Value for the System Tag
     Type: String
     Default: Account Interventions Service
-  AlertingSNSLowAlertNotificationTopicARN:
-    Description: 'The ARN of the Alerting SNS Low Alert Notification topic'
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: '/ais-infra-alerting/SNS/LowAlertNotificationTopic/ARN' #pragma: allowlist secret
-  AlertingSNSHighAlertNotificationTopicARN:
-    Description: 'The ARN of the Alerting SNS High Alert Notification topic'
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: '/ais-infra-alerting/SNS/HighAlertNotificationTopic/ARN' #pragma: allowlist secret
   TxMAEgressQueueName:
     Description: 'The name of the TxMA Egress queue'
     Type: AWS::SSM::Parameter::Value<String>

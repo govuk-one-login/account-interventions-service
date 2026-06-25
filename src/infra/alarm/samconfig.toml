@@ -6,5 +6,8 @@ s3_prefix = "ais-alarm"
 region = "eu-west-2"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "Environment=\"dev\" VpcStackName=\"vpc\" PermissionsBoundary=\"none\" CoreStackName=\"ais-core\""
+parameter_overrides = "SystemTagValue=\"Account Interventions Service\" TxMAEgressQueueName=\"/ais-main/SQS/TxMAEgressQueue/Name\" TxMAEgressDLQName=\"/ais-main/SQS/TxMAEgressDLQ/Name\" PrivateRestApiName=\"/ais-main/PrivateRestApi/Name\" AccountDeletionEventQueueName=\"/ais-main/SQS/AccountDeletionEventQueue/Name\" AccountDeletionProcessorDLQName=\"/ais-main/SQS/AccountDeletionProcessorDLQ/Name\" AccountInterventionEventsQueueName=\"/ais-main/SQS/AccountInterventionEventsQueue/Name\" AccountInterventionEventsDLQName=\"/ais-main/SQS/AccountInterventionEventsDLQ/Name\" MainStackName=\"ais-main\" RunBookURL=\"https://govukverify.atlassian.net/wiki/spaces/AIS/pages/4579595211/AIS+-+Alarms+Metrics+Monitoring\" TeamManualPlaybookUrl=\"https://team-manual.account.gov.uk/teams/fraud-platforms-and-delivery-team/fraud-neptune-team/ais/account-interventions-service-playbook\" BuildNotificationStackName=\"build-notifications\""
 image_repositories = []
+
+[default.global.parameters]
+region = "eu-west-2"
