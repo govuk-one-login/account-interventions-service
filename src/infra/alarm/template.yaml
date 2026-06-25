@@ -58,6 +58,7 @@ Resources:
   #
   # CloudWatch Alarms for SQS Queues
   #
+  # Commented AlertingSNSLowAlertNotificationTopicARN and AlertingSNSHighAlertNotificationTopicARN indicates past priority of alarms
 
   TxMAEgressQueueProcessingSlowly:
     Type: AWS::CloudWatch::Alarm
