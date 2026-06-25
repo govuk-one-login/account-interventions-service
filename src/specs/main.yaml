@@ -11,7 +11,7 @@ info:
      - Recommend HTTP client __Timeout__ settings of `5 seconds` to handle requests where backend services experience cold starts.
   version: 0.0.1
   contact:
-    name: Government Digital Service - Accounts Bravo Team
+    name: Government Digital Service - Fraud Team Neptune
     email: interventions@digital.cabinet-office.gov.uk
   license:
     name: MIT
@@ -298,8 +298,7 @@ components:
       example: urn:fdc:gov.uk:2022:JG0RJI1pYbnanbvPs-j4j5-a-PFcmhry9Qu9NCEp5d4
     History:
       schema:
-        type: boolean
-        nullable: true
+        type: string
       required: false
       description: A flag to enable the recall of the account's previous intervention history.
       name: history
