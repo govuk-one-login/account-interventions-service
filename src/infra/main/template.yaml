@@ -2011,6 +2011,80 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda
       PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
 
+  FeatureTestsRole:
+    Type: AWS::IAM::Role
+    Condition: IsInternal
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-GitHubFeatureTestsRole'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: arn:aws:iam::484907510598:oidc-provider/token.actions.githubusercontent.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringLike:
+                token.actions.githubusercontent.com:sub:
+                  - repo:govuk-one-login/account-interventions-service*ref:refs/heads/*
+                  - repo:govuk-one-login/account-interventions-service:environment:*
+                  - repo:govuk-one-login/account-interventions-service:pull_request
+              StringEqualsIgnoreCase:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+      ManagedPolicyArns:
+        - !Ref FeatureTestsManagedPolicy
+
+  FeatureTestsManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: IsInternal
+    Properties:
+      ManagedPolicyName: !Sub '${AWS::StackName}-GitHubFeatureTestsRolePolicy'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: kms:Decrypt
+            Resource: !ImportValue
+              'Fn::Sub': '${CoreStackName}-AccountStatusTableEncryptionKeyArn'
+          - Effect: Allow
+            Action:
+              - dynamodb:Query
+              - dynamodb:UpdateItem
+            Resource: !ImportValue
+              'Fn::Sub': '${CoreStackName}-AccountStatusTableArn'
+          - Effect: Allow
+            Action: kms:Decrypt
+            Resource: !ImportValue
+              'Fn::Sub': '${CoreStackName}-InterventionEventsTableKeyArn'
+          - Effect: Allow
+            Action:
+              - dynamodb:Query
+            Resource: !ImportValue
+              'Fn::Sub': '${CoreStackName}-InterventionEventsTableArn'
+          - Effect: Allow
+            Action: logs:FilterLogEvents
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}-StatusRetrieverFunction:*'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}-InterventionsProcessorFunction:*'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}-AccountDeletionProcessorFunction:*'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${AWS::StackName}-InvokePrivateAPIGatewayFunction:*'
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource: !GetAtt SQSEncryptionKey.Arn
+          - Effect: Allow
+            Action: lambda:InvokeFunction
+            Resource: !GetAtt InvokePrivateAPIGatewayFunction.Arn
+          - Effect: Allow
+            Action: sqs:SendMessage
+            Resource: !GetAtt TxMAIngressQueue.Arn
+          - Effect: Allow
+            Action:
+              - sqs:ReceiveMessage
+              - sqs:purgequeue
+            Resource: !GetAtt TxMAEgressQueue.Arn
+
 Outputs:
   PrivateApiEndpoint:
     Description: 'Private API Gateway endpoint URL for AIS methods'
