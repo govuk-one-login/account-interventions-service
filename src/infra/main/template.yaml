@@ -100,11 +100,7 @@ Mappings:
       TxMAAccountID: '484907510598' # di-account-interventions-dev
       TxMAIngressQueueARN: 'Uses Internal TxMAIngressQueue'
       TxMAIngressQueueKmsKeyARN: 'Uses the SQSEncryptionKey with Internal TxMAIngressQueue'
-      OrchestrationVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
-      AuthenticationVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
-      OneLoginHomeVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
-      IPVCoreVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
-      AccountManagementComponentsVPCID: vpc-03688222b1d03a1f7 # di-account-interventions-dev VPC ID
+      UniqueVPCIds: []
       UniqueVPCEndpointIDs: []
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     build:
@@ -113,11 +109,7 @@ Mappings:
       TxMAAccountID: '565393035754' # di-account-interventions-build
       TxMAIngressQueueARN: 'Uses Internal TxMAIngressQueue'
       TxMAIngressQueueKmsKeyARN: 'Uses the SQSEncryptionKey with Internal TxMAIngressQueue'
-      OrchestrationVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
-      AuthenticationVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
-      OneLoginHomeVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
-      IPVCoreVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
-      AccountManagementComponentsVPCID: vpc-0f30b7754111ecc68 # di-account-interventions-build VPC ID
+      UniqueVPCIds: []
       UniqueVPCEndpointIDs: []
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     staging:
@@ -126,11 +118,12 @@ Mappings:
       TxMAAccountID: '178023842775' # di-txma-event-processing-staging
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:178023842775:self-staging-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:178023842775:key/e388cb30-2d78-431f-b1a6-847549a815aa
-      OrchestrationVPCID: vpc-0217499e2982d99ca # Orchestration Staging VPC ID
-      AuthenticationVPCID: vpc-07cf1e76e27f28e86 # Authentication Staging VPC ID
-      OneLoginHomeVPCID: vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
-      IPVCoreVPCID: vpc-039e664a2b3abb03e # IPV Core Staging VPC ID
-      AccountManagementComponentsVPCID: vpc-068b8f80c6182d7cf # AMC Staging VPC ID
+      UniqueVPCIds:
+        - vpc-0217499e2982d99ca # Orchestration Staging VPC ID
+        - vpc-02e4eb3b0cffc08b0 # Performance testing VPC ID
+        - vpc-07cf1e76e27f28e86 # Authentication Staging VPC ID
+        - vpc-039e664a2b3abb03e # IPV Core Staging VPC ID
+        - vpc-068b8f80c6182d7cf # AMC Staging VPC ID
       UniqueVPCEndpointIDs:
         - vpce-0339d04aeb67de9da # Auth Old Staging VPC Endpoint ID
         - vpce-0a81481bcd8257f5e # Orchestration? Staging VPC Endpoint ID
@@ -144,10 +137,11 @@ Mappings:
       TxMAAccountID: '729485541398' # di-txma-event-processing-integration
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:729485541398:self-integration-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:729485541398:key/c360ee61-da3b-48de-998e-68cb91743414
-      OrchestrationVPCID: vpc-09984eb16fa30fb55 # Orchestration Integration VPC ID
-      AuthenticationVPCID: vpc-04796e8a5bf41b046 # Authentication Integration VPC ID
-      OneLoginHomeVPCID: vpc-048c9133a5998efe7 # One Login Home Integration VPC ID
-      IPVCoreVPCID: vpc-0a9e773e1f32b6697 # IPV Core Integration VPC ID
+      UniqueVPCIds:
+        - vpc-09984eb16fa30fb55 # Orchestration Integration VPC ID
+        - vpc-04796e8a5bf41b046 # Authentication Integration VPC ID
+        - vpc-048c9133a5998efe7 # One Login Home Integration VPC ID
+        - vpc-0a9e773e1f32b6697 # IPV Core Integration VPC ID
       UniqueVPCEndpointIDs:
         - vpce-068df58b11adba0c7 # Auth Old Integration VPC Endpoint ID
         - vpce-0704b783d794cea52 # Orchestration? Integration VPC Endpoint ID
@@ -160,10 +154,11 @@ Mappings:
       TxMAAccountID: '451773080033' # di-txma-event-processing-prod
       TxMAIngressQueueARN: arn:aws:sqs:eu-west-2:451773080033:self-production-EC-SQS-Output-Queue-accountsIntervention
       TxMAIngressQueueKmsKeyARN: arn:aws:kms:eu-west-2:451773080033:key/5bbb4188-6774-4fe8-a78a-968f5e435295
-      OrchestrationVPCID: vpc-058178adacb1c387a # Orchestration Production VPC ID
-      AuthenticationVPCID: vpc-06a7d758af9eefddb # Authentication Production VPC ID
-      OneLoginHomeVPCID: vpc-0c94e753d20410154 # One Login Home Production VPC ID
-      IPVCoreVPCID: vpc-0274d75007239691f # IPV Core Production VPC ID
+      UniqueVPCIds:
+        - vpc-058178adacb1c387a # Orchestration Production VPC ID
+        - vpc-06a7d758af9eefddb # Authentication Production VPC ID
+        - vpc-0c94e753d20410154 # One Login Home Production VPC ID
+        - vpc-0274d75007239691f # IPV Core Production VPC ID
       UniqueVPCEndpointIDs:
         - vpce-0e7b281bd24fbd378 # Auth Old Production VPC Endpoint ID
         - vpce-0dd5d6bf9c2a1eade # Orchestration? Production VPC Endpoint ID
@@ -1580,17 +1575,7 @@ Resources:
       PropagateTags: true
       Auth:
         ResourcePolicy:
-          IntrinsicVpcWhitelist:
-            - !FindInMap [EnvConfig, !Ref Environment, AuthenticationVPCID]
-            - !FindInMap [EnvConfig, !Ref Environment, OneLoginHomeVPCID]
-            - !FindInMap [EnvConfig, !Ref Environment, OrchestrationVPCID]
-            - !FindInMap [EnvConfig, !Ref Environment, IPVCoreVPCID]
-            - !FindInMap [
-                EnvConfig,
-                !Ref Environment,
-                AccountManagementComponentsVPCID,
-                { DefaultValue: !Ref AWS::NoValue },
-              ]
+          IntrinsicVpcWhitelist: !FindInMap [EnvConfig, !Ref Environment, UniqueVPCIds]
       AccessLogSetting:
         Format: >-
           {
@@ -1705,17 +1690,7 @@ Resources:
       PropagateTags: true
       Auth:
         ResourcePolicy:
-          IntrinsicVpcWhitelist:
-            - !FindInMap [EnvConfig, !Ref Environment, AuthenticationVPCID]
-            - !FindInMap [EnvConfig, !Ref Environment, OneLoginHomeVPCID]
-            - !FindInMap [EnvConfig, !Ref Environment, OrchestrationVPCID]
-            - !FindInMap [EnvConfig, !Ref Environment, IPVCoreVPCID]
-            - !FindInMap [
-                EnvConfig,
-                !Ref Environment,
-                AccountManagementComponentsVPCID,
-                { DefaultValue: !Ref AWS::NoValue },
-              ]
+          IntrinsicVpcWhitelist: !FindInMap [EnvConfig, !Ref Environment, UniqueVPCIds]
       AccessLogSetting:
         Format: >-
           {
