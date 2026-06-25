@@ -9,14 +9,6 @@ Parameters:
     Description: Value for the System Tag
     Type: String
     Default: Account Interventions Service
-  AlertingSNSLowAlertNotificationTopicARN:
-    Description: 'The ARN of the Alerting SNS Low Alert Notification topic'
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: '/ais-infra-alerting/SNS/LowAlertNotificationTopic/ARN' #pragma: allowlist secret
-  AlertingSNSHighAlertNotificationTopicARN:
-    Description: 'The ARN of the Alerting SNS High Alert Notification topic'
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: '/ais-infra-alerting/SNS/HighAlertNotificationTopic/ARN' #pragma: allowlist secret
   TxMAEgressQueueName:
     Description: 'The name of the TxMA Egress queue'
     Type: AWS::SSM::Parameter::Value<String>
@@ -57,18 +49,24 @@ Parameters:
     Description: 'A link to the AIS playbook in the team manual'
     Type: String
     Default: 'https://team-manual.account.gov.uk/teams/fraud-platforms-and-delivery-team/fraud-neptune-team/ais/account-interventions-service-playbook'
+  BuildNotificationStackName:
+    Description: 'The name of the BuildNotificationStack, which links to the Slack channel where notifications are sent'
+    Type: String
+    AllowedPattern: '[a-zA-Z0-9-]+|none'
 
 Resources:
   #
   # CloudWatch Alarms for SQS Queues
   #
+  # Commented AlertingSNSLowAlertNotificationTopicARN and AlertingSNSHighAlertNotificationTopicARN indicates past priority of alarms
 
   TxMAEgressQueueProcessingSlowly:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'TxMA Egress queue processing slowly. ${RunBookURL}'
       ComparisonOperator: GreaterThanThreshold
       Threshold: 60
@@ -88,7 +86,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'TxMA Egress queue processing too slow. ${RunBookURL}'
       ComparisonOperator: GreaterThanThreshold
       Threshold: 600
@@ -108,7 +107,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'TxMA Egress queue has backlog. ${RunBookURL}'
       ComparisonOperator: GreaterThanThreshold
       Threshold: 10
@@ -128,7 +128,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'TxMA Egress queue has too many messages. ${RunBookURL}'
       ComparisonOperator: GreaterThanThreshold
       Threshold: 50
@@ -148,7 +149,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'TxMA Egress DLQ has messages. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -168,7 +170,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'TxMA Egress DLQ has too many messages. ${RunBookURL}'
       ComparisonOperator: GreaterThanThreshold
       Threshold: 10
@@ -188,7 +191,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Account Intervention Events queue processing slowly. ${RunBookURL}'
       ComparisonOperator: GreaterThanThreshold
       Threshold: 60 # Adjust threshold as needed
@@ -208,7 +212,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Account Intervention Events queue has too many messages. ${RunBookURL}'
       ComparisonOperator: GreaterThanThreshold
       Threshold: 50 # Adjust threshold as needed
@@ -228,7 +233,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Account Intervention Events DLQ has messages. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -248,7 +254,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Account Intervention Events DLQ has too many messages. ${RunBookURL}'
       ComparisonOperator: GreaterThanThreshold
       Threshold: 10 # Adjust threshold as needed
@@ -268,7 +275,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Account Deletion Event Queue processing slowly. ${RunBookURL}'
       ComparisonOperator: GreaterThanThreshold
       Threshold: 60
@@ -288,7 +296,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Account Deletion Event Queue processing too slow. ${RunBookURL}'
       ComparisonOperator: GreaterThanThreshold
       Threshold: 600
@@ -308,7 +317,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Account Deletion Processor DLQ has at least one message. ${RunBookURL}'
       ComparisonOperator: GreaterThanThreshold
       Threshold: 1
@@ -332,7 +342,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Account Deletion Processor Function Lambda Errors. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -352,7 +363,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Account Deletion Processor Function Lambda errors over 5 minutes. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -372,7 +384,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Account Deletion Processor Function Lambda errors over 10 minutes. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -392,7 +405,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Account Deletion Processor Function Lambda Throttled. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -412,7 +426,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Account Deletion Processor Function Lambda throttled over 5 minutes. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -432,7 +447,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Account Deletion Processor Function Lambda throttled over 10 minutes. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -452,7 +468,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub "User's deletion status failed to be updated. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -472,7 +489,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub "User's deletion status failed to be updated due to DynamoDB. ${RunBookURL}"
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -496,7 +514,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        #- !Ref AlertingSNSHighAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'There is a configuration issue with the Account State Engine. ${TeamManualPlaybookUrl}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -573,7 +592,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Intervention Event was received with unknown Intervention code. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -593,7 +613,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Intervention received was not allowed on current account state. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 5
@@ -613,7 +634,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Too many Interventions received were not allowed on current account state. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 5
@@ -637,7 +659,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Interventions Processor Function Lambda Errors. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -657,7 +680,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Interventions Processor Function Lambda errors over 5 minutes. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -677,7 +701,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        #- !Ref AlertingSNSHighAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Interventions Processor Function Lambda errors over 10 minutes. ${TeamManualPlaybookUrl}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -697,7 +722,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub ' Interventions Processor Function Lambda Throttled. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -717,7 +743,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub ' Interventions Processor Function Lambda throttled over 5 minutes. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -737,7 +764,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Interventions Processor Function Lambda throttled over 10 minutes. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -757,7 +785,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Received intervention event is invalid. ${RunBookURL}'
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_EVENT_RECEIVED
@@ -777,7 +806,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Too many received intervention events are invalid. ${RunBookURL}'
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_EVENT_RECEIVED
@@ -797,7 +827,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Intervention event failed validation. ${RunBookURL}'
       Namespace: !Ref SystemTagValue
       MetricName: ACCOUNT_IS_MARKED_AS_DELETED
@@ -817,7 +848,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Intervention event has timestamp in future. ${RunBookURL}'
       Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_IGNORED_IN_FUTURE
@@ -837,7 +869,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Intervention event messages are out of order. ${RunBookURL}'
       Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_EVENT_STALE
@@ -857,7 +890,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Too many intervention event messages are out of order. ${RunBookURL}'
       Namespace: !Ref SystemTagValue
       MetricName: INTERVENTION_EVENT_STALE
@@ -877,7 +911,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'DynamoDB query no response error relating to InterventionsProcessorFunction. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -897,7 +932,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'DynamoDB query no response error relating to StatusRetrieverFunction. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -917,7 +953,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        #- !Ref AlertingSNSHighAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'The query to DynamoDB has provided the no response error twice within a minute. ${TeamManualPlaybookUrl}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       DatapointsToAlarm: 1
@@ -938,7 +975,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'DynamoDB query returned too many items. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -958,7 +996,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: DynamoDB query too many items error once within a minute.
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -978,7 +1017,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Publishing to TxMA failed. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -998,7 +1038,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        #- !Ref AlertingSNSHighAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Publishing to TxMA failed once every minute for two periods over a span of 10 minutes. ${TeamManualPlaybookUrl}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -1019,7 +1060,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: Schema is invalid.
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_SCHEMA
@@ -1043,7 +1085,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Messages from TxMA have an average latency above 2s.${RunBookURL}'
       Namespace: !Ref SystemTagValue
       MetricName: EVENT_DELIVERY_LATENCY
@@ -1063,7 +1106,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Messages from TxMA have an average latency above 5s. ${RunBookURL}'
       Namespace: !Ref SystemTagValue
       MetricName: EVENT_DELIVERY_LATENCY
@@ -1083,7 +1127,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Messages from TxMA have a maximum latency above 10s. ${RunBookURL}'
       Namespace: !Ref SystemTagValue
       MetricName: EVENT_DELIVERY_LATENCY
@@ -1107,7 +1152,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Status Retriever Function Lambda Errors.${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -1127,7 +1173,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Status Retriever Function Lambda errors over 5 minutes. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -1147,7 +1194,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        #- !Ref AlertingSNSHighAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Status Retriever Function Lambda errors over 10 minutes. ${TeamManualPlaybookUrl}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -1167,7 +1215,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub ' Status Retriever Function Lambda Throttled. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -1187,7 +1236,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub ' Status Retriever Function Lambda throttled over 5 minutes. ${RunBookURL}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -1207,7 +1257,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        #- !Ref AlertingSNSHighAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Status Retriever Function Lambda throttled over 10 minutes. ${TeamManualPlaybookUrl}'
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 1
@@ -1227,7 +1278,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        #- !Ref AlertingSNSHighAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'An error occurred with the query to DynamoDB once every minutes for two consecutive periods. ${RunBookURL}'
       Namespace: !Ref SystemTagValue
       MetricName: DB_QUERY_ERROR
@@ -1247,7 +1299,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'User ID was not found in the event once every minute for three periods over 10 minutes. ${RunBookURL}'
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_SUBJECT_ID
@@ -1268,7 +1321,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'History string may be missing required components. ${RunBookURL}'
       Namespace: !Ref SystemTagValue
       MetricName: INVALID_HISTORY_STRING
@@ -1292,7 +1346,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Over 5% of API Gateway requests are exceeding 2 seconds in a 10 minute period. ${RunBookURL}'
       Namespace: AWS/ApiGateway
       MetricName: Latency
@@ -1311,7 +1366,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Over 20% of API Gateway requests are exceeding 2 seconds in a 10 minute period. ${RunBookURL}'
       Namespace: AWS/ApiGateway
       MetricName: Latency
@@ -1330,7 +1386,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Small proportion of 5XX errors on the API Gateway. ${RunBookURL}'
       Threshold: 1
       EvaluationPeriods: 5
@@ -1374,7 +1431,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSHighAlertNotificationTopicARN
+        #- !Ref AlertingSNSHighAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Significant proportion of 5XX errors on the API Gateway. ${TeamManualPlaybookUrl}'
       Threshold: 80
       EvaluationPeriods: 5
@@ -1418,7 +1476,8 @@ Resources:
     Properties:
       ActionsEnabled: true
       AlarmActions:
-        - !Ref AlertingSNSLowAlertNotificationTopicARN
+        #- !Ref AlertingSNSLowAlertNotificationTopicARN
+        - Fn::ImportValue: !Sub '${BuildNotificationStackName}-CriticalAlertsTopicArn'
       AlarmDescription: !Sub 'Small proportion of 4XX errors on the API Gateway. ${RunBookURL}'
       Threshold: 1
       EvaluationPeriods: 5
