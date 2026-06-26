@@ -1,7 +1,11 @@
 import { InterventionEventMessage } from '../../contracts/intervention-events';
-import { EventsEnum, InterventionName, InterventionState, TriggerEventsEnum } from '../../data-types/constants';
+import { EventsEnum, InterventionState, TriggerEventsEnum } from '../../data-types/constants';
+import { InterventionName } from '../../data-types/intervention-name';
 import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
-import persistInterventionEvents, { generateEventsToAppend, persistIgnoredInterventionEvent } from '../persist-intervention-events';
+import persistInterventionEvents, {
+  generateEventsToAppend,
+  persistIgnoredInterventionEvent,
+} from '../persist-intervention-events';
 
 const baseMessage: InterventionEventMessage = {
   component_id: 'test',

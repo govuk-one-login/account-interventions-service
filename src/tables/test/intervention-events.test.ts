@@ -1,4 +1,5 @@
-import { InterventionName, InterventionState } from '../../data-types/constants';
+import { InterventionState } from '../../data-types/constants';
+import { InterventionName } from '../../data-types/intervention-name';
 import { InMemoryRecordService } from '../../services/dynamo-db-record-service';
 import { interventionEventsTableConfig, PersistentInterventionEventsService } from '../intervention-events';
 

@@ -1,10 +1,11 @@
-import { InterventionName, InterventionState } from '../../data-types/constants';
+import { InterventionState } from '../../data-types/constants';
 import logger from '../../commons/logger';
 import {
   filterEventStreamToActive,
   previousStateToInterventions,
   validateInterventions,
 } from '../active-interventions-service';
+import { InterventionName } from '../../data-types/intervention-name';
 
 describe('previousStateToInterventions', () => {
   test('no previous state', () => {

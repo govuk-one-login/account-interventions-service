@@ -1,6 +1,6 @@
+import { InterventionName } from './intervention-name';
 import './zod-setup';
 import z from 'zod';
-import { InterventionName } from './constants';
 
 const InterventionNameSchema = z
   .enum(InterventionName)
