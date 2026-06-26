@@ -74,7 +74,7 @@
           "provider": "GitHub",
           "config": {
             "file": ".github/workflows/code-quality.yaml",
-            "path": "$.jobs.code-quality"
+            "path": "$.jobs.run-pre-commit"
           }
         }
       ]
