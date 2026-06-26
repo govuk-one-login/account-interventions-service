@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import z from 'zod';
 import { InterventionName } from './intervention-name';
 

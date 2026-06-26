@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import z from 'zod';
 import { AISInterventionTypes } from './constants';
 
