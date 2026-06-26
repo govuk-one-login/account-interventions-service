@@ -294,7 +294,7 @@ components:
       description: A flag to enable the recall of the account's previous intervention history.
       name: history
       in: query
-      example: true
+      example: "true"
 paths:
   /v1/ais/{userId}:
     get:
