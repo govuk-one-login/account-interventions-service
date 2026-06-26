@@ -1,11 +1,12 @@
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import logger from '../commons/logger';
 import { InterventionEventMessage } from '../contracts/intervention-events';
-import { EventsEnum, InterventionName, InterventionState, LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
+import { EventsEnum, InterventionState, LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
 import { StateDetails } from '../data-types/interfaces';
 import { InterventionEvent, InterventionEventsService } from '../tables/intervention-events';
 import { randomUUID } from 'node:crypto';
 import getActiveInterventions from './active-interventions-service';
+import { InterventionName } from '../data-types/intervention-name';
 
 interface InterventionUpdate {
   interventionName: InterventionName;
@@ -47,8 +48,8 @@ export async function persistIgnoredInterventionEvent(
   interventionEventsService: InterventionEventsService,
 ) {
   const attemptedInterventions = config[event]
-  .filter((u) => u.interventionState === InterventionState.ACTIVE)
-  .map((u) => u.interventionName);
+    .filter((u) => u.interventionState === InterventionState.ACTIVE)
+    .map((u) => u.interventionName);
 
   const activeInterventions = await getActiveInterventions(
     message.user.user_id,
@@ -182,7 +183,6 @@ const config: Record<EventsEnum, InterventionUpdate[]> = {
   [EventsEnum.FRAUD_UNBLOCK_ACCOUNT]: [
     { interventionName: InterventionName.PERMANENT_SUSPENSION, interventionState: InterventionState.REMOVED },
   ],
-
 };
 
 export default persistInterventionEvents;
