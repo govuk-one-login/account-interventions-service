@@ -136,14 +136,14 @@ export function enrichEvents(updates: InterventionUpdate[], message: Interventio
 }
 
 export async function setTtlOnInactiveEvents(
-  accountId: string, 
+  accountId: string,
   interventionEventsService: InterventionEventsService,
   closedInterventionNames: InterventionName[]
 ) {
   const allEvents = await interventionEventsService.fetchEventsForAccount(accountId);
   const now = getCurrentTimestamp();
   const ttl = now.seconds + appConfig.maxRetentionSeconds;
-  
+
   const eventsNeedingTtl = allEvents.filter(
     (event) =>
       closedInterventionNames.includes(event.interventionName) &&

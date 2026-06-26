@@ -403,11 +403,11 @@ describe('setTtlOnInactiveEvents', () => {
         componentId: 'test',
       },
     ]);
-    
+
     const appendEventsSpy = vi.spyOn(service, 'appendEvents');
-  
+
     await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION]);
-  
+
     expect(appendEventsSpy).toHaveBeenCalledExactlyOnceWith([
       expect.objectContaining({ eventId: 'event-1', ttl: EXPECTED_TTL }),
       expect.objectContaining({ eventId: 'event-2', ttl: EXPECTED_TTL }),
