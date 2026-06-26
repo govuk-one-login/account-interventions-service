@@ -1,9 +1,9 @@
+import './zod-setup';
 import { OpenApiGeneratorV3, OpenAPIRegistry, type RouteConfig } from '@asteasolutions/zod-to-openapi';
 import { writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { ResponseObject } from 'openapi3-ts/oas30';
 import { stringify } from 'yaml';
-
 import { z } from 'zod';
 import { V1ResponseSchema } from '../data-types/api-schemas-v1';
 import { V2ResponseSchema } from '../data-types/api-schemas-v2';

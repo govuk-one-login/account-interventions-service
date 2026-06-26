@@ -1,21 +1,22 @@
-import { InterventionName } from './intervention-name';
-import './zod-setup';
 import z from 'zod';
+import { InterventionName } from './intervention-name';
 
 const InterventionNameSchema = z
   .enum(InterventionName)
-  .openapi('InterventionName', { description: 'Enum of possible Intervention names' });
+  .meta({ id: 'InterventionName', description: 'Enum of possible Intervention names' });
 
 const InterventionSchema = z
   .object({
-    name: z.union([z.string(), InterventionNameSchema]).openapi({ example: InterventionName.RESET_PASSWORD }),
+    name: z.union([z.string(), InterventionNameSchema]).meta({ example: InterventionName.RESET_PASSWORD }),
   })
-  .openapi('Intervention', {
+  .meta({
+    id: 'Intervention',
     title: 'Intervention Schema',
     description: 'Details about an intervention applied to an account',
   });
 
-const InterventionsListSchema = z.array(InterventionSchema).openapi('InterventionsList', {
+const InterventionsListSchema = z.array(InterventionSchema).meta({
+  id: 'InterventionsList',
   title: 'Interventions List',
   description: 'List of interventions applied to an account',
   example: [{ name: 'RESET_PASSWORD' }, { name: 'REPROVE_IDENTITY' }],
@@ -26,7 +27,8 @@ export const V2ResponseSchema = z
   .object({
     interventions: InterventionsListSchema,
   })
-  .openapi('AccountStatusResponse', {
+  .meta({
+    id: 'AccountStatusResponse',
     title: 'Account Status Schema',
     description: "The Status of the User's OneLogin Account",
     readOnly: true,
