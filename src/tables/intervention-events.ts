@@ -3,7 +3,8 @@ import { AppConfigService } from '../services/app-config-service';
 import { DynamoDBRecordService, RecordService } from '../services/dynamo-db-record-service';
 import TableConfig from './table-config';
 import { getDBDocClient } from '../services/db-client';
-import { InterventionName, InterventionState } from '../data-types/constants';
+import { InterventionState } from '../data-types/constants';
+import { InterventionName } from '../data-types/intervention-name';
 
 const appConfig = AppConfigService.getInstance();
 

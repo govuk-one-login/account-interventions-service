@@ -1,8 +1,9 @@
 import logger from '../commons/logger';
-import { InterventionName, InterventionState, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
+import { InterventionState, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
 import { addMetric } from '../commons/metrics';
 import { StateDetails } from '../data-types/interfaces';
 import { InterventionEventsService } from '../tables/intervention-events';
+import { InterventionName } from '../data-types/intervention-name';
 
 /**
  * Get a list of currently active interventions on an account

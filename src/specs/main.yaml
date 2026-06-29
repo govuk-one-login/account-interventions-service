@@ -88,7 +88,6 @@ components:
       required:
         - intervention
         - state
-      title: Account Intervention Status Schema
       description: The Intervention Status of the User's OneLogin Account
       readOnly: true
     InterventionMetadata:
@@ -142,7 +141,6 @@ components:
         - appliedAt
         - sentAt
         - description
-      title: Intervention Metadata Schema
       description: Information about the current intervention
       readOnly: true
     AccountState:
@@ -184,7 +182,6 @@ components:
         - suspended
         - reproveIdentity
         - resetPassword
-      title: Account State Schema
       description: Current state of the User's Account and whether user actions have been requested
       readOnly: true
     AuditLevel:
@@ -193,14 +190,12 @@ components:
         - standard
         - enhanced
       default: standard
-      title: Audit Level Schema
       description: Indicates if normal or enhanced downstream auditing is required for this account
       example: standard
     HistoryList:
       type: array
       items:
         $ref: "#/components/schemas/HistoryObject"
-      title: Intervention history
       description: History of intervention applied to this account
     HistoryObject:
       type: object
@@ -243,7 +238,6 @@ components:
         - code
         - intervention
         - reason
-      title: Past intervention object
       description: JSON object representing an intervention previously applied on the account
       readOnly: true
     AccountStatusResponse:
@@ -253,14 +247,12 @@ components:
           $ref: "#/components/schemas/InterventionsList"
       required:
         - interventions
-      title: Account Status Schema
       description: The Status of the User's OneLogin Account
       readOnly: true
     InterventionsList:
       type: array
       items:
         $ref: "#/components/schemas/Intervention"
-      title: Interventions List
       description: List of interventions applied to an account
       example:
         - name: RESET_PASSWORD
@@ -276,7 +268,6 @@ components:
           example: RESET_PASSWORD
       required:
         - name
-      title: Intervention Schema
       description: Details about an intervention applied to an account
     InterventionName:
       type: string
