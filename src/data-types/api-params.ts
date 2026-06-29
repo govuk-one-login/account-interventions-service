@@ -19,6 +19,6 @@ export const V1QuerySchema = z.object({
     .optional()
     .meta({
       description: "A flag to enable the recall of the account's previous intervention history.",
-      param: { name: 'history', in: 'query', example: true },
+      param: { name: 'history', in: 'query', example: 'true' },
     }),
 });

@@ -20,7 +20,7 @@
     "lint:code": "eslint --ext .ts .",
     "lint:code:fix": "npm run lint:code -- --fix",
     "lint:iac": "for f in src/infra/**/template.yaml; do (sam validate --lint -t $f) || exit 1; done",
-    "lint:spec:oas": "spectral lint src/specs/api.yaml",
+    "lint:spec:oas": "spectral lint src/specs/**",
     "lint:spec": "npm run lint:spec:oas",
     "clean": "rimraf .aws-sam coverage",
     "build": "sam build -t src/infra/main/template.yaml",
