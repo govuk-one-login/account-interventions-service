@@ -7,11 +7,14 @@ import { InterventionEvent, InterventionEventsService } from '../tables/interven
 import { randomUUID } from 'node:crypto';
 import getActiveInterventions from './active-interventions-service';
 import { InterventionName } from '../data-types/intervention-name';
+import { AppConfigService } from './app-config-service';
 
 interface InterventionUpdate {
   interventionName: InterventionName;
   interventionState: InterventionState;
 }
+
+const appConfig = AppConfigService.getInstance();
 
 /**
  * Generate and append intervention events based on the received txma message
@@ -39,6 +42,11 @@ async function persistInterventionEvents(
   logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Intervention events to add ${JSON.stringify(eventsToAppend)}`);
 
   await interventionEventsService.appendEvents(eventsToAppend);
+
+  const closedNames = eventsToAppend
+    .filter((event) => event.interventionState !== InterventionState.ACTIVE)
+    .map((event) => event.interventionName);
+  await setTtlOnInactiveEvents(message.user.user_id, interventionEventsService, closedNames);
 }
 
 export async function persistIgnoredInterventionEvent(
@@ -125,6 +133,27 @@ export function enrichEvents(updates: InterventionUpdate[], message: Interventio
       originatorReferenceId: interventionExtension?.originator_reference_id,
     };
   });
+}
+
+export async function setTtlOnInactiveEvents(
+  accountId: string,
+  interventionEventsService: InterventionEventsService,
+  closedInterventionNames: InterventionName[]
+) {
+  const allEvents = await interventionEventsService.fetchEventsForAccount(accountId);
+  const now = getCurrentTimestamp();
+  const ttl = now.seconds + appConfig.maxRetentionSeconds;
+
+  const eventsNeedingTtl = allEvents.filter(
+    (event) =>
+      closedInterventionNames.includes(event.interventionName) &&
+      !event.ttl
+  );
+
+  if (eventsNeedingTtl.length > 0) {
+    const updatedEvents = eventsNeedingTtl.map((event) => ({ ...event, ttl }));
+    await interventionEventsService.appendEvents(updatedEvents);
+  }
 }
 
 /**

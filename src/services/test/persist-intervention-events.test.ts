@@ -5,6 +5,7 @@ import { InMemoryInterventionEventsService } from '../../tables/intervention-eve
 import persistInterventionEvents, {
   generateEventsToAppend,
   persistIgnoredInterventionEvent,
+  setTtlOnInactiveEvents,
 } from '../persist-intervention-events';
 
 const baseMessage: InterventionEventMessage = {
@@ -42,7 +43,7 @@ describe('persistInterventionEvents', () => {
 
     await persistInterventionEvents(baseMessage, EventsEnum.FRAUD_SUSPEND_ACCOUNT, undefined, service);
 
-    expect(fetchEventsSpy).toHaveBeenCalledExactlyOnceWith('1');
+    expect(fetchEventsSpy).toHaveBeenCalledTimes(2);
     expect(appendEventsSpy).toHaveBeenCalledExactlyOnceWith([
       {
         accountId: '1',
@@ -248,6 +249,168 @@ describe('persistIgnoredInterventionEvent', () => {
         interventionName: InterventionName.RESET_PASSWORD,
         interventionState: InterventionState.IGNORED,
       }),
+    ]);
+  });
+});
+
+describe('setTtlOnInactiveEvents', () => {
+  const FIXED_TIMESTAMP = 1781253284370;
+  const EXPECTED_TTL = Math.floor(FIXED_TIMESTAMP / 1000) + 12345;
+
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FIXED_TIMESTAMP);
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
+  test('sets ttl on inactive events that do not already have a ttl', async () => {
+    const service = new InMemoryInterventionEventsService([
+      {
+        eventId: 'event-1',
+        accountId: '1',
+        createdAt: 1000,
+        interventionName: InterventionName.TEMPORARY_SUSPENSION,
+        interventionState: InterventionState.SUPERSEDED,
+        interventionReason: 'reason',
+        sentAt: 900,
+        componentId: 'test',
+      },
+    ]);
+    const appendEventsSpy = vi.spyOn(service, 'appendEvents');
+
+    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION]);
+
+    expect(appendEventsSpy).toHaveBeenCalledExactlyOnceWith([
+      expect.objectContaining({ eventId: 'event-1', ttl: EXPECTED_TTL }),
+    ]);
+  });
+
+  test('does not set ttl on interventions that are still ACTIVE', async () => {
+    const service = new InMemoryInterventionEventsService([
+      {
+        eventId: 'event-1',
+        accountId: '1',
+        createdAt: 1000,
+        interventionName: InterventionName.RESET_PASSWORD,
+        interventionState: InterventionState.ACTIVE,
+        interventionReason: 'reason',
+        sentAt: 900,
+        componentId: 'test',
+      },
+    ]);
+    const appendEventsSpy = vi.spyOn(service, 'appendEvents');
+
+    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION]);
+
+    expect(appendEventsSpy).not.toHaveBeenCalled();
+  });
+
+  test('does not rewrite events that already have a ttl', async () => {
+    const service = new InMemoryInterventionEventsService([
+      {
+        eventId: 'event-1',
+        accountId: '1',
+        createdAt: 1000,
+        interventionName: InterventionName.TEMPORARY_SUSPENSION,
+        interventionState: InterventionState.REMOVED,
+        interventionReason: 'reason',
+        sentAt: 900,
+        componentId: 'test',
+        ttl: 1234567890,
+      },
+    ]);
+    const appendEventsSpy = vi.spyOn(service, 'appendEvents');
+
+    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION]);
+
+    expect(appendEventsSpy).not.toHaveBeenCalled();
+  });
+
+  test('does nothing when there are no events for the account', async () => {
+    const service = new InMemoryInterventionEventsService([]);
+    const appendEventsSpy = vi.spyOn(service, 'appendEvents');
+
+    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION]);
+
+    expect(appendEventsSpy).not.toHaveBeenCalled();
+  });
+
+  test('only sets ttl on events matching the closed intervention names', async () => {
+    const service = new InMemoryInterventionEventsService([
+      {
+        eventId: 'event-1',
+        accountId: '1',
+        createdAt: 1000,
+        interventionName: InterventionName.TEMPORARY_SUSPENSION,
+        interventionState: InterventionState.SUPERSEDED,
+        interventionReason: 'reason',
+        sentAt: 900,
+        componentId: 'test',
+      },
+      {
+        eventId: 'event-2',
+        accountId: '1',
+        createdAt: 1001,
+        interventionName: InterventionName.RESET_PASSWORD,
+        interventionState: InterventionState.REMOVED,
+        interventionReason: 'reason',
+        sentAt: 901,
+        componentId: 'test',
+      },
+    ]);
+    const appendEventsSpy = vi.spyOn(service, 'appendEvents');
+
+    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION]);
+
+    expect(appendEventsSpy).toHaveBeenCalledExactlyOnceWith([
+      expect.objectContaining({ eventId: 'event-1', ttl: EXPECTED_TTL }),
+    ]);
+  });
+
+  test('sets ttl on all events for a closed intervention including the original ACTIVE event', async () => {
+    const service = new InMemoryInterventionEventsService([
+      {
+        eventId: 'event-1',
+        accountId: '1',
+        createdAt: 1000,
+        interventionName: InterventionName.TEMPORARY_SUSPENSION,
+        interventionState: InterventionState.ACTIVE,
+        interventionReason: 'reason',
+        sentAt: 900,
+        componentId: 'test',
+      },
+      {
+        eventId: 'event-2',
+        accountId: '1',
+        createdAt: 2000,
+        interventionName: InterventionName.TEMPORARY_SUSPENSION,
+        interventionState: InterventionState.SUPERSEDED,
+        interventionReason: 'reason',
+        sentAt: 1900,
+        componentId: 'test',
+      },
+      {
+        eventId: 'event-3',
+        accountId: '1',
+        createdAt: 2001,
+        interventionName: InterventionName.RESET_PASSWORD,
+        interventionState: InterventionState.ACTIVE,
+        interventionReason: 'reason',
+        sentAt: 1901,
+        componentId: 'test',
+      },
+    ]);
+
+    const appendEventsSpy = vi.spyOn(service, 'appendEvents');
+
+    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION]);
+
+    expect(appendEventsSpy).toHaveBeenCalledExactlyOnceWith([
+      expect.objectContaining({ eventId: 'event-1', ttl: EXPECTED_TTL }),
+      expect.objectContaining({ eventId: 'event-2', ttl: EXPECTED_TTL }),
     ]);
   });
 });
