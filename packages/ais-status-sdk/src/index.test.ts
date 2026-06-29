@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { InterventionClient } from './index';
+import { InterventionInvalidResponse } from './errors';
 
 const mockFetch = vi.fn<typeof fetch>();
 vi.stubGlobal('fetch', mockFetch);
@@ -13,17 +14,17 @@ function mockResponse(body: unknown, status = 200): Response {
   } as unknown as Response;
 }
 
-describe('AisClient', () => {
+describe('InterventionClient', () => {
   const baseUrl = 'https://example.com';
-  let client: InterventionClient;
 
   beforeEach(() => {
     mockFetch.mockReset();
-    client = new InterventionClient({ baseUrl });
   });
 
   describe('getAccountStatus', () => {
     it('calls the v2 endpoint with the encoded userId', async () => {
+      const client = new InterventionClient({ baseUrl });
+
       const userId = 'urn:fdc:gov.uk:2022:user123';
       mockFetch.mockResolvedValue(mockResponse({ interventions: [] }));
 
@@ -31,10 +32,12 @@ describe('AisClient', () => {
 
       const [calledUrl, calledOptions] = mockFetch.mock.calls[0] as [string, RequestInit];
       expect(calledUrl).toBe(`${baseUrl}/v2/ais/${encodeURIComponent(userId)}`);
-      expect((calledOptions.headers as Record<string, string>)['Content-Type']).toBe('application/json');
+      expect(new Headers(calledOptions.headers).get('Content-Type')).toBe('application/json');
     });
 
     it('returns the parsed AccountStatus', async () => {
+      const client = new InterventionClient({ baseUrl });
+
       const status = { interventions: [{ name: 'FRAUD_SUSPEND_ACCOUNT' }] };
       mockFetch.mockResolvedValue(mockResponse(status));
 
@@ -44,9 +47,19 @@ describe('AisClient', () => {
     });
 
     it('throws when the response is not ok', async () => {
+      const client = new InterventionClient({ baseUrl });
+
       mockFetch.mockResolvedValue(mockResponse({}, 404));
 
       await expect(client.getAccountStatus('user-1')).rejects.toThrow('AIS request failed: 404');
+    });
+
+    it('throws AisInvalidResponse when the response body does not match the schema', async () => {
+      const client = new InterventionClient({ baseUrl });
+
+      mockFetch.mockResolvedValue(mockResponse({ unexpected: 'shape' }));
+
+      await expect(client.getAccountStatus('user-1')).rejects.toThrow(InterventionInvalidResponse);
     });
 
     it('strips trailing slash from baseUrl', async () => {
