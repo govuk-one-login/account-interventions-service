@@ -26,7 +26,7 @@
     "build": "sam build -t src/infra/main/template.yaml",
     "package": "npm run clean && npm run build",
     "precommit": "pre-commit run",
-    "send-audit-event": "tsx src/commands/send-audit-event.ts",
+    "send-audit-event": "tsx src/scripts/send-audit-event.ts",
     "generate:spec:main": "tsx src/scripts/generate-main-spec.ts"
   },
   "dependencies": {
