@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/prefer-top-level-await */
-import getEnvOrThrow from '../../commons/get-env-or-throw';
+import getEnvironmentOrThrow from '../../commons/get-environment-or-throw';
 
 //required to connect to PactBroker as Pact libraries don't allow testSource parameter to be passed
 async function connectToPactBroker(pact_url: string, pact_user: string, pact_password: string): Promise<number> {
@@ -25,9 +25,9 @@ async function connectToPactBroker(pact_url: string, pact_user: string, pact_pas
 const run = async () => {
   try {
     await connectToPactBroker(
-      getEnvOrThrow('PACT_BROKER_URL') + '?testSource=' + getEnvOrThrow('PACT_BROKER_SOURCE_SECRET'),
-      getEnvOrThrow('PACT_BROKER_USER'),
-      getEnvOrThrow('PACT_BROKER_PASSWORD'),
+      getEnvironmentOrThrow('PACT_BROKER_URL') + '?testSource=' + getEnvironmentOrThrow('PACT_BROKER_SOURCE_SECRET'),
+      getEnvironmentOrThrow('PACT_BROKER_USER'),
+      getEnvironmentOrThrow('PACT_BROKER_PASSWORD'),
     );
   } catch (error) {
     console.error('FAILED TO CONNECT TO PACT BROKER', error);

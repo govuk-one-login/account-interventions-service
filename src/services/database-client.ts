@@ -5,22 +5,24 @@ import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 export { DynamoDBClient as DbClient } from '@aws-sdk/client-dynamodb';
 
-let dbClient: DynamoDBClient | undefined;
-let dbDocClient: DynamoDBDocumentClient | undefined;
+let databaseClient: DynamoDBClient | undefined;
+let databaseDocumentClient: DynamoDBDocumentClient | undefined;
 
 export function getDBClient(): DynamoDBClient {
-  dbClient ??= tracer.captureAWSv3Client(
+  // eslint-disable-next-line unicorn/no-top-level-assignment-in-function
+  databaseClient ??= tracer.captureAWSv3Client(
     new DynamoDBClient({
       region: AppConfigService.getInstance().awsRegion,
       maxAttempts: 2,
       requestHandler: new NodeHttpHandler({ requestTimeout: 5000 }),
     }),
   );
-  return dbClient;
+  return databaseClient;
 }
 
-export function getDBDocClient(): DynamoDBDocumentClient {
-  dbDocClient ??= DynamoDBDocumentClient.from(getDBClient());
+export function getDBDocumentClient(): DynamoDBDocumentClient {
+  // eslint-disable-next-line unicorn/no-top-level-assignment-in-function
+  databaseDocumentClient ??= DynamoDBDocumentClient.from(getDBClient());
 
-  return dbDocClient;
+  return databaseDocumentClient;
 }

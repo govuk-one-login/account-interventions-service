@@ -100,7 +100,13 @@ async function processSQSRecord(record: SQSRecord, interventionEventsService: In
     await validateEventIsNotStale(eventName, result, currentAccountState, itemFromDB);
   }
 
-  const statusResult = await applyEventTransition(eventName, currentAccountState, itemFromDB?.intervention, result, interventionEventsService);
+  const statusResult = await applyEventTransition(
+    eventName,
+    currentAccountState,
+    itemFromDB?.intervention,
+    result,
+    interventionEventsService,
+  );
   const partialCommandInput = buildPartialUpdateAccountStateCommand(
     statusResult.stateResult,
     currentTimestamp.milliseconds,
@@ -120,7 +126,7 @@ async function processSQSRecord(record: SQSRecord, interventionEventsService: In
   );
 
   updateAccountStateCountMetric(currentAccountState, statusResult.stateResult);
-  addMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName: eventName.toString() });
+  addMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName });
   await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, result, statusResult);
 
   try {
@@ -150,7 +156,6 @@ async function applyEventTransition(
   interventionName: string | undefined,
   result: InterventionEventMessage,
   interventionEventsService: InterventionEventsService,
-
 ) {
   try {
     return accountStateEngine.applyEventTransition(event, initialState, interventionName);
@@ -160,7 +165,9 @@ async function applyEventTransition(
       try {
         await persistIgnoredInterventionEvent(result, event, initialState, interventionEventsService);
       } catch (error) {
-        logger.error('Error caught whilst attempting to persist ignored event.', { errorMessage: (error as Error).message });
+        logger.error('Error caught whilst attempting to persist ignored event.', {
+          errorMessage: (error as Error).message,
+        });
         addMetric(MetricNames.PERSIST_INTERVENTION_EVENTS_ERROR);
       }
     }

@@ -33,9 +33,9 @@ describe('DynamoDBRecordService', () => {
 
     const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
 
-    const res = await service.queryByPkAndValidate('key_value_1');
+    const response = await service.queryByPkAndValidate('key_value_1');
 
-    expect(res).toEqual([
+    expect(response).toEqual([
       {
         pk1: 'value1',
       },
@@ -56,9 +56,9 @@ describe('DynamoDBRecordService', () => {
 
     const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
 
-    const res = await service.queryByPkAndValidate('key_value_1');
+    const response = await service.queryByPkAndValidate('key_value_1');
 
-    expect(res).toEqual([]);
+    expect(response).toEqual([]);
 
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
       TableName: 'test-table',
@@ -75,9 +75,9 @@ describe('DynamoDBRecordService', () => {
 
     const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
 
-    const res = await service.queryByPkAndValidate('key_value_1');
+    const response = await service.queryByPkAndValidate('key_value_1');
 
-    expect(res).toEqual([]);
+    expect(response).toEqual([]);
 
     expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
       TableName: 'test-table',

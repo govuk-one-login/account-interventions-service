@@ -1,6 +1,6 @@
 /* istanbul ignore: not production */
 // Stryker disable all: Not used in production
-import getEnvOrThrow from '../commons/get-env-or-throw';
+import getEnvironmentOrThrow from '../commons/get-environment-or-throw';
 import logger from '../commons/logger';
 
 export interface CustomEvent {
@@ -40,27 +40,27 @@ export async function handle(event: CustomEvent) {
 }
 
 function getUserId() {
-  return getEnvOrThrow('USER_ID');
+  return getEnvironmentOrThrow('USER_ID');
 }
 
 function getBaseUrl(event: CustomEvent) {
-  return validateConfiguration(event.privateApi ? 'PRIVATE_API_URL' : 'BASE_URL');
+  return validateConfig(event.privateApi ? 'PRIVATE_API_URL' : 'BASE_URL');
 }
 
 function getEndpoint() {
-  const endpoint = validateConfiguration('END_POINT');
+  const endpoint = validateConfig('END_POINT');
   return (endpoint.startsWith('/') ? '' : '/') + endpoint;
 }
 
 function getQueryParameters() {
-  return getEnvOrThrow('QUERY_PARAMETERS');
+  return getEnvironmentOrThrow('QUERY_PARAMETERS');
 }
 
 function getHttpRequestMethod() {
-  return validateConfiguration('HTTP_REQUEST_METHOD');
+  return validateConfig('HTTP_REQUEST_METHOD');
 }
 
-function validateConfiguration(environmentVariable: string): string {
+function validateConfig(environmentVariable: string): string {
   const value = process.env[environmentVariable];
   if (!value || value === 'undefined') {
     const message = `Environment variable ${environmentVariable} is not defined.`;

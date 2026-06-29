@@ -7,15 +7,15 @@ import { stringify } from 'yaml';
 import { z } from 'zod';
 import { V1ResponseSchema } from '../data-types/api-schemas-v1';
 import { V2ResponseSchema } from '../data-types/api-schemas-v2';
-import { UserIdParamSchema, V1QuerySchema } from '../data-types/api-params';
+import { UserIdParameterSchema, V1QuerySchema } from '../data-types/api-parameters';
 
 const registry = new OpenAPIRegistry();
 
-const UserIdParam = registry.registerParameter('UserId', UserIdParamSchema.shape.userId);
-const HistoryParam = registry.registerParameter('History', V1QuerySchema.shape.history);
+const UserIdParameter = registry.registerParameter('UserId', UserIdParameterSchema.shape.userId);
+const HistoryParameter = registry.registerParameter('History', V1QuerySchema.shape.history);
 
-const RegisteredUserIdParamSchema = z.object({ userId: UserIdParam });
-const RegisteredV1QuerySchema = z.object({ history: HistoryParam });
+const RegisteredUserIdParameterSchema = z.object({ userId: UserIdParameter });
+const RegisteredV1QuerySchema = z.object({ history: HistoryParameter });
 
 registry.register(
   'Error',
@@ -33,14 +33,14 @@ interface ResponseEntry {
  * @returns
  */
 const hoistResponses = (responses: Record<number, ResponseEntry>): RouteConfig['responses'] =>
-  Object.entries(responses).reduce<RouteConfig['responses']>((acc, [statusCode, response]) => {
+  Object.entries(responses).reduce<RouteConfig['responses']>((accumulator, [statusCode, response]) => {
     if (Number(statusCode) === 200)
       // Ignore the default response
-      return { ...acc, [statusCode]: response as RouteConfig['responses'][string] };
+      return { ...accumulator, [statusCode]: response as RouteConfig['responses'][string] };
 
     const name = response.description.replaceAll(' ', '');
     registry.registerComponent('responses', name, response as ResponseObject);
-    return { ...acc, [statusCode]: { $ref: `#/components/responses/${name}` } };
+    return { ...accumulator, [statusCode]: { $ref: `#/components/responses/${name}` } };
   }, {});
 
 const errorResponses = {
@@ -77,7 +77,7 @@ registry.registerPath({
   summary: 'Get User Account Intervention Status',
   description: "Returns the state of the latest intervention applied on a user's account",
   request: {
-    params: RegisteredUserIdParamSchema,
+    params: RegisteredUserIdParameterSchema,
     query: RegisteredV1QuerySchema,
   },
   responses: hoistResponses({
@@ -105,7 +105,7 @@ registry.registerPath({
   summary: 'Get User Account Intervention Status',
   description: "Returns the active interventions applied on a user's account",
   request: {
-    params: RegisteredUserIdParamSchema,
+    params: RegisteredUserIdParameterSchema,
   },
   responses: hoistResponses({
     200: {
@@ -175,12 +175,12 @@ const parameters = document.components?.parameters as
   | Record<string, { schema?: { $ref?: string; description?: string } }>
   | undefined;
 if (schemas && parameters) {
-  for (const param of Object.values(parameters)) {
-    const ref = param.schema?.$ref;
-    const schemaName = ref?.split('/').pop();
+  for (const parameter of Object.values(parameters)) {
+    const reference = parameter.schema?.$ref;
+    const schemaName = reference?.split('/').pop();
     if (schemaName) {
-      param.schema = schemas[schemaName] as { $ref?: string; description?: string };
-      delete param.schema.description;
+      parameter.schema = schemas[schemaName] as { $ref?: string; description?: string };
+      delete parameter.schema.description;
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete schemas[schemaName];
     }

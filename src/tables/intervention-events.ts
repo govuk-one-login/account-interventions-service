@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { AppConfigService } from '../services/app-config-service';
 import { DynamoDBRecordService, RecordService } from '../services/dynamo-db-record-service';
 import TableConfig from './table-config';
-import { getDBDocClient } from '../services/db-client';
+import { getDBDocumentClient } from '../services/database-client';
 import { InterventionState } from '../data-types/constants';
 import { InterventionName } from '../data-types/intervention-name';
 
@@ -62,4 +62,6 @@ export class PersistentInterventionEventsService implements InterventionEventsSe
 }
 
 export const getPersistentInterventionEventsService = (): PersistentInterventionEventsService =>
-  new PersistentInterventionEventsService(new DynamoDBRecordService(interventionEventsTableConfig, getDBDocClient()));
+  new PersistentInterventionEventsService(
+    new DynamoDBRecordService(interventionEventsTableConfig, getDBDocumentClient()),
+  );

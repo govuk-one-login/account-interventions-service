@@ -68,7 +68,7 @@ export interface DeleteStatusUpdateSNSMessage {
   user_id: string;
 }
 
-export interface TransitionConfigurationInterface {
+export interface TransitionConfigInterface {
   nodes: Record<PossibleAccountStatus, StateDetails>;
   edges: Record<
     Codes,

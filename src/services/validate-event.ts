@@ -74,7 +74,7 @@ export async function validateEventIsNotInFuture(eventEnum: EventsEnum, event: I
       emittedAt: new Date(eventTimestampInMs).toISOString(),
       currentTime: new Date(now).toISOString(),
       msInTheFuture: eventTimestampInMs - now,
-      event: eventEnum.toString(),
+      event: eventEnum,
     });
     addMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
     await sendAuditEvent('AIS_EVENT_IGNORED_IN_FUTURE', eventEnum, event);

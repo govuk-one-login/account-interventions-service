@@ -1,4 +1,4 @@
-import { transitionConfiguration } from './config';
+import { transitionConfig } from './config';
 import { AccountStateEngineOutput, StateDetails } from '../../data-types/interfaces';
 import {
   AISInterventionTypes,
@@ -9,12 +9,12 @@ import {
   PossibleAccountStatus,
   userLedActionList,
 } from '../../data-types/constants';
-import { StateEngineConfigurationError, StateTransitionError } from '../../data-types/errors';
+import { StateEngineConfigError, StateTransitionError } from '../../data-types/errors';
 import logger from '../../commons/logger';
 import { addMetric } from '../../commons/metrics';
 
 export class AccountStateEngine {
-  private static readonly configuration = transitionConfiguration;
+  private static readonly configuration = transitionConfig;
   private static instance: AccountStateEngine;
 
   public static getInstance() {
@@ -33,13 +33,13 @@ export class AccountStateEngine {
     const accountStates = Object.keys(this.configuration.nodes).toSorted(compareStrings);
     const adjacencyLists = Object.keys(this.configuration.adjacency).toSorted(compareStrings);
     if (JSON.stringify(adjacencyLists) !== JSON.stringify(accountStates))
-      throw buildConfigurationError(
+      throw buildConfigError(
         MetricNames.INVALID_STATE_ENGINE_CONFIGURATION,
         'Invalid state engine configuration detected. Adjacency mismatch',
       );
     for (const element of Object.values(this.configuration.edges)) {
       if (!accountStates.includes(element.to))
-        throw buildConfigurationError(
+        throw buildConfigError(
           MetricNames.INVALID_STATE_ENGINE_CONFIGURATION,
           'Invalid state engine configuration detected. Edge mismatch',
         );
@@ -52,7 +52,7 @@ export class AccountStateEngine {
    */
   getInterventionEnumFromCode(code: string): EventsEnum {
     if (!isCode(code))
-      throw buildConfigurationError(
+      throw buildConfigError(
         MetricNames.INTERVENTION_CODE_NOT_FOUND_IN_CONFIG,
         `code: ${code} is not found in current configuration`,
       );
@@ -80,7 +80,7 @@ export class AccountStateEngine {
     const transition = this.getTransition(allowedTransitions, event, initialState, interventionName);
     const newStateObject = this.getNewStateObject(transition);
     if (areAccountStatesTheSame(newStateObject, initialState))
-      throw buildConfigurationError(
+      throw buildConfigError(
         MetricNames.TRANSITION_SAME_AS_CURRENT_STATE,
         `Computed new state is the same as the current state. Current state: ${interventionName ?? '(empty)'}; Event: ${event}`,
       );
@@ -106,10 +106,10 @@ export class AccountStateEngine {
    * @param state - StateDetail object representing the state of the account
    */
   private findAccountStateName(state: StateDetails): PossibleAccountStatus {
-    for (const [key, node] of Object.entries(transitionConfiguration.nodes)) {
+    for (const [key, node] of Object.entries(transitionConfig.nodes)) {
       if (areAccountStatesTheSame(node, state)) return key as PossibleAccountStatus;
     }
-    throw buildConfigurationError(
+    throw buildConfigError(
       MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG,
       'Account state does not exists in current configuration.',
     );
@@ -123,7 +123,7 @@ export class AccountStateEngine {
   private findPossibleTransitions(nodeKey: PossibleAccountStatus): Codes[] {
     const allowedTransition = AccountStateEngine.configuration.adjacency[nodeKey];
     if (!allowedTransition)
-      throw buildConfigurationError(
+      throw buildConfigError(
         MetricNames.NO_TRANSITIONS_FOUND_IN_CONFIG,
         `There are no allowed transitions from state ${nodeKey} in current configurations`,
       );
@@ -146,7 +146,7 @@ export class AccountStateEngine {
     interventionName: string | undefined,
   ) {
     for (const edge of allowedTransition) {
-      if (AccountStateEngine.configuration.edges[edge].name.toString() === transition.toString()) return edge;
+      if (AccountStateEngine.configuration.edges[edge].name === transition) return edge;
     }
     throw buildStateTransitionError(
       MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED,
@@ -183,7 +183,7 @@ function buildStateTransitionError(
 ) {
   if (
     !(
-      areAccountStatesTheSame(initialState, transitionConfiguration.nodes[PossibleAccountStatus.AccountIsOkay]) &&
+      areAccountStatesTheSame(initialState, transitionConfig.nodes[PossibleAccountStatus.AccountIsOkay]) &&
       userLedActionList.includes(transition)
     )
   ) {
@@ -203,10 +203,10 @@ function buildStateTransitionError(
  * @param metricName - name of the metric
  * @param errorMessage - error message to be logged
  */
-function buildConfigurationError(metricName: MetricNames, errorMessage: string) {
+function buildConfigError(metricName: MetricNames, errorMessage: string) {
   addMetric(metricName);
   logger.error({ message: errorMessage });
-  return new StateEngineConfigurationError(errorMessage);
+  return new StateEngineConfigError(errorMessage);
 }
 
 /**
@@ -215,6 +215,7 @@ function buildConfigurationError(metricName: MetricNames, errorMessage: string) 
  * @param aState - first account state
  * @param anotherState - second account state
  */
+// eslint-disable-next-line unicorn/consistent-boolean-name
 export function areAccountStatesTheSame(aState: StateDetails, anotherState: StateDetails) {
   return (
     aState.resetPassword === anotherState.resetPassword &&
