@@ -168,7 +168,12 @@ describe('Dynamo DB Service', () => {
     const dynamoDBService = new DynamoDatabaseService('table_name');
     await dynamoDBService.updateDeleteStatus('hello');
     expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, commandInput);
-    expect(updateAccountStateCountMetricAfterDeletion).toHaveBeenCalledWith(false, true);
+    expect(updateAccountStateCountMetricAfterDeletion).toHaveBeenCalledWith({
+      blocked: false,
+      reproveIdentity: false,
+      resetPassword: true,
+      suspended: true,
+    });
   });
 
   it('throws an error when it fails to update the userId status.', async () => {

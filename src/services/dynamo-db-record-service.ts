@@ -16,13 +16,13 @@ export class DynamoDBRecordService<
 
   public constructor(
     readonly config: TableConfig<T>,
-    readonly dbClient: DynamoDBDocumentClient,
+    readonly databaseClient: DynamoDBDocumentClient,
   ) {
     this.arraySchema = z.array(config.schema);
   }
 
   async queryByPkAndValidate(partionKeyValue: string): Promise<ArrayFromT<T>> {
-    const results = await this.dbClient.send(
+    const results = await this.databaseClient.send(
       new QueryCommand({
         TableName: this.config.tableName,
         KeyConditionExpression: '#pk = :pk',
@@ -35,7 +35,7 @@ export class DynamoDBRecordService<
   }
 
   async batchWrite(input: ArrayFromT<T>): Promise<void> {
-    await this.dbClient.send(
+    await this.databaseClient.send(
       new BatchWriteCommand({
         RequestItems: {
           [this.config.tableName]: input.map((item) => ({

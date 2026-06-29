@@ -8,20 +8,19 @@ import { EventsEnum, MetricNames, noMetadata } from '../data-types/constants';
  * @param newState - the StateDetails representation of the user account's state after the applied event
  */
 export function updateAccountStateCountMetric(oldState: StateDetails, newState: StateDetails) {
-  const blockedChange = (Number(oldState.blocked) - Number(newState.blocked)) * -1;
+  const blockedChange = Number(newState.blocked) - Number(oldState.blocked);
   if (blockedChange !== 0) addMetric(MetricNames.ACCOUNTS_BLOCKED, noMetadata, blockedChange);
-  const suspendChange = (Number(oldState.suspended) - Number(newState.suspended)) * -1;
+  const suspendChange = Number(newState.suspended) - Number(oldState.suspended);
   if (suspendChange !== 0) addMetric(MetricNames.ACCOUNTS_SUSPENDED, noMetadata, suspendChange);
 }
 
 /**
  * Function that inspects the account information and decrements the appropriate count in response to the account being deleted
- * @param blocked - boolean flag tracking if account is blocked
- * @param suspended - boolean flag tracking if account is suspended
+ * @param state - boolean flags tracking suspension and blocked
  */
-export function updateAccountStateCountMetricAfterDeletion(blocked: boolean, suspended: boolean) {
-  if (blocked) addMetric(MetricNames.ACCOUNTS_BLOCKED, noMetadata, -1);
-  else if (suspended) addMetric(MetricNames.ACCOUNTS_SUSPENDED, noMetadata, -1);
+export function updateAccountStateCountMetricAfterDeletion(state: { blocked: boolean; suspended: boolean }) {
+  if (state.blocked) addMetric(MetricNames.ACCOUNTS_BLOCKED, noMetadata, -1);
+  else if (state.suspended) addMetric(MetricNames.ACCOUNTS_SUSPENDED, noMetadata, -1);
 }
 
 /**
@@ -38,7 +37,7 @@ export function publishTimeToResolveMetrics(
   currentState: StateDetails,
   oldAppliedAt: number,
   currentAppliedAt: number,
-  eventName: string,
+  eventName: EventsEnum,
 ) {
   const timeDifferenceAsSeconds = Math.floor((currentAppliedAt - oldAppliedAt) / 1000);
 
@@ -47,8 +46,8 @@ export function publishTimeToResolveMetrics(
   }
 
   if (
-    (eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL.toString() ||
-      eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT.toString()) &&
+    (eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL ||
+      eventName === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT) &&
     oldState.resetPassword &&
     !currentState.resetPassword
   ) {
@@ -56,7 +55,7 @@ export function publishTimeToResolveMetrics(
   }
 
   if (
-    eventName === EventsEnum.IPV_ACCOUNT_INTERVENTION_END.toString() &&
+    eventName === EventsEnum.IPV_ACCOUNT_INTERVENTION_END &&
     oldState.reproveIdentity &&
     !currentState.reproveIdentity
   ) {

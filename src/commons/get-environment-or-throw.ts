@@ -1,6 +1,6 @@
 import logger from './logger';
 
-const getEnvOrThrow = (name: string) => {
+const getEnvironmentOrThrow = (name: string) => {
   const value = process.env[name];
 
   if (!value) {
@@ -11,4 +11,4 @@ const getEnvOrThrow = (name: string) => {
   return value;
 };
 
-export default getEnvOrThrow;
+export default getEnvironmentOrThrow;

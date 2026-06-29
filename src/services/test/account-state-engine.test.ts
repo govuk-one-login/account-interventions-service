@@ -6,9 +6,9 @@ import {
   MetricNames,
   PossibleAccountStatus,
 } from '../../data-types/constants';
-import { StateEngineConfigurationError, StateTransitionError } from '../../data-types/errors';
+import { StateEngineConfigError, StateTransitionError } from '../../data-types/errors';
 import { addMetric } from '../../commons/metrics';
-import { StateDetails, TransitionConfigurationInterface } from '../../data-types/interfaces';
+import { StateDetails, TransitionConfigInterface } from '../../data-types/interfaces';
 import logger from '../../commons/logger';
 
 const accountStateEngine = AccountStateEngine.getInstance();
@@ -327,7 +327,7 @@ describe('account-state-service', () => {
     });
     it('should throw a configuration error if code cannot be found in current configurations', () => {
       expect(() => accountStateEngine.getInterventionEnumFromCode('111')).toThrow(
-        new StateEngineConfigurationError('code: 111 is not found in current configuration'),
+        new StateEngineConfigError('code: 111 is not found in current configuration'),
       );
     });
   });
@@ -462,7 +462,7 @@ describe('account-state-service', () => {
             unexpectedAccountState,
             interventionName,
           ),
-        ).toThrow(new StateEngineConfigurationError('Account state does not exists in current configuration.'));
+        ).toThrow(new StateEngineConfigError('Account state does not exists in current configuration.'));
         expect(addMetric).toHaveBeenLastCalledWith(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
       });
     });
@@ -471,12 +471,12 @@ describe('account-state-service', () => {
   describe('Configuration errors', () => {
     it('should throw when given code cannot be found in configuration', () => {
       expect(() => accountStateEngine.getInterventionEnumFromCode('111')).toThrow(
-        new StateEngineConfigurationError('code: 111 is not found in current configuration'),
+        new StateEngineConfigError('code: 111 is not found in current configuration'),
       );
       expect(addMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_CODE_NOT_FOUND_IN_CONFIG);
     });
     it('should throw when the computed state is the same as the current state', () => {
-      const invalidConfig: TransitionConfigurationInterface = {
+      const invalidConfig: TransitionConfigInterface = {
         nodes: {
           AccountIsOkay: {
             blocked: false,
@@ -514,7 +514,7 @@ describe('account-state-service', () => {
         value: invalidConfig,
       });
 
-      const expectedError = new StateEngineConfigurationError(
+      const expectedError = new StateEngineConfigError(
         'Computed new state is the same as the current state. Current state: (empty); Event: FRAUD_BLOCK_ACCOUNT',
       );
 
@@ -525,7 +525,7 @@ describe('account-state-service', () => {
     });
 
     it('should throw when there are no configured transition for a given state', () => {
-      const invalidConfig: TransitionConfigurationInterface = {
+      const invalidConfig: TransitionConfigInterface = {
         nodes: {
           AccountIsOkay: {
             blocked: false,
@@ -566,7 +566,7 @@ describe('account-state-service', () => {
       expect(() =>
         accountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsBlocked, interventionName),
       ).toThrow(
-        new StateEngineConfigurationError(
+        new StateEngineConfigError(
           'There are no allowed transitions from state AccountIsBlocked in current configurations',
         ),
       );
@@ -574,7 +574,7 @@ describe('account-state-service', () => {
     });
 
     it('should throw when the the configuration object fails validation because not all nodes have an adjacency list', () => {
-      const invalidConfig: TransitionConfigurationInterface = {
+      const invalidConfig: TransitionConfigInterface = {
         nodes: {
           AccountIsOkay: {
             blocked: false,
@@ -609,22 +609,22 @@ describe('account-state-service', () => {
       };
       Object.defineProperties(AccountStateEngine, {
         instance: {
-            writable: true,
-            value: undefined,
-          },
+          writable: true,
+          value: undefined,
+        },
         configuration: {
-            writable: true,
-            value: invalidConfig,
-          },
+          writable: true,
+          value: invalidConfig,
+        },
       });
 
       expect(() => AccountStateEngine.getInstance()).toThrow(
-        new StateEngineConfigurationError('Invalid state engine configuration detected. Adjacency mismatch'),
+        new StateEngineConfigError('Invalid state engine configuration detected. Adjacency mismatch'),
       );
       expect(addMetric).toHaveBeenLastCalledWith(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION);
     });
     it('should throw when the the configuration object fails validation because at least one edge points to a non-existing node', () => {
-      const invalidConfig: TransitionConfigurationInterface = {
+      const invalidConfig: TransitionConfigInterface = {
         nodes: {
           AccountIsOkay: {
             blocked: false,
@@ -660,17 +660,17 @@ describe('account-state-service', () => {
       };
       Object.defineProperties(AccountStateEngine, {
         instance: {
-            writable: true,
-            value: undefined,
-          },
+          writable: true,
+          value: undefined,
+        },
         configuration: {
-            writable: true,
-            value: invalidConfig,
-          },
+          writable: true,
+          value: invalidConfig,
+        },
       });
 
       expect(() => AccountStateEngine.getInstance()).toThrow(
-        new StateEngineConfigurationError('Invalid state engine configuration detected. Edge mismatch'),
+        new StateEngineConfigError('Invalid state engine configuration detected. Edge mismatch'),
       );
       expect(addMetric).toHaveBeenLastCalledWith(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION);
     });
@@ -700,12 +700,12 @@ describe('account-state-service', () => {
       expect(areAccountStatesTheSame(aState, aDifferentState)).toEqual(false);
     });
     it('should return -1 if a string comes before another alphabetically, 1 if opposite is true, 0 if they are equal', () => {
-      const strOne = 'aString';
-      const strTwo = 'bString';
-      const strThree = 'bString';
-      expect(compareStrings(strOne, strTwo)).toEqual(-1);
-      expect(compareStrings(strTwo, strOne)).toEqual(1);
-      expect(compareStrings(strTwo, strThree)).toEqual(0);
+      const stringOne = 'aString';
+      const stringTwo = 'bString';
+      const stringThree = 'bString';
+      expect(compareStrings(stringOne, stringTwo)).toEqual(-1);
+      expect(compareStrings(stringTwo, stringOne)).toEqual(1);
+      expect(compareStrings(stringTwo, stringThree)).toEqual(0);
     });
   });
 });

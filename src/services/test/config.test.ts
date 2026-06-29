@@ -1,10 +1,10 @@
-import { transitionConfiguration } from '../account-states/config';
+import { transitionConfig } from '../account-states/config';
 import { compareStrings } from '../account-states/account-state-engine';
 
-const nodesValuesList = Object.values(transitionConfiguration.nodes);
-const nodesKeysList = Object.keys(transitionConfiguration.nodes);
-const edgesValuesList = Object.values(transitionConfiguration.edges);
-const adjListKeys = Object.keys(transitionConfiguration.adjacency);
+const nodesValuesList = Object.values(transitionConfig.nodes);
+const nodesKeysList = Object.keys(transitionConfig.nodes);
+const edgesValuesList = Object.values(transitionConfig.edges);
+const adjListKeys = Object.keys(transitionConfig.adjacency);
 
 /**
  * These tests have been added as an extra safeguard against breaking changes being made to the Account State Engine configuration files
@@ -14,23 +14,24 @@ const adjListKeys = Object.keys(transitionConfiguration.adjacency);
  */
 describe('Tests for account state engine configuration file', () => {
   it('no two nodes should have the same values', () => {
-    const hasDuplicates = new Set(nodesValuesList.map((e) => JSON.stringify(e))).size !== nodesValuesList.length;
+    const hasDuplicates =
+      new Set(nodesValuesList.map((stateDetail) => JSON.stringify(stateDetail))).size !== nodesValuesList.length;
     expect(hasDuplicates).toEqual(false);
   });
   it('each node should have one adjacency list', () => {
     expect(adjListKeys.length === nodesKeysList.length).toEqual(true);
-    const equality =
+    const isEquality =
       JSON.stringify(nodesKeysList.toSorted(compareStrings)) === JSON.stringify(adjListKeys.toSorted(compareStrings));
-    expect(equality).toEqual(true);
+    expect(isEquality).toEqual(true);
   });
   it('each edge should point to an existing node', () => {
-    let allEdgesPointToExistingNodes = true;
+    let isAllEdgesPointToExistingNodes = true;
     for (const edge of edgesValuesList) {
-      if (!nodesKeysList.includes(edge.to)) {
-        allEdgesPointToExistingNodes = false;
-        break;
-      }
+      if (nodesKeysList.includes(edge.to)) continue;
+
+      isAllEdgesPointToExistingNodes = false;
+      break;
     }
-    expect(allEdgesPointToExistingNodes).toEqual(true);
+    expect(isAllEdgesPointToExistingNodes).toEqual(true);
   });
 });

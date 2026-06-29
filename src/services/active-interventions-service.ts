@@ -49,12 +49,12 @@ interface InterventionEventStream {
 }
 
 export const filterEventStreamToActive = (eventStream: InterventionEventStream[]): Set<InterventionName> =>
-  eventStream.reduce((res, event) => {
-    if (event.interventionState === InterventionState.ACTIVE) return res.add(event.interventionName);
+  eventStream.reduce((result, event) => {
+    if (event.interventionState === InterventionState.ACTIVE) return result.add(event.interventionName);
 
-    if (event.interventionState !== InterventionState.IGNORED) res.delete(event.interventionName);
+    if (event.interventionState !== InterventionState.IGNORED) result.delete(event.interventionName);
 
-    return res;
+    return result;
   }, new Set<InterventionName>());
 
 /**
@@ -104,7 +104,7 @@ export function validateInterventions(
   interventionsFromPreviousState: InterventionName[],
 ) {
   const interventionsNotInPreviousState = [...interventionsFromEvents].filter(
-    (i) => !interventionsFromPreviousState.includes(i),
+    (index) => !interventionsFromPreviousState.includes(index),
   );
 
   if (interventionsNotInPreviousState.length > 0) {

@@ -9,7 +9,7 @@ import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { HistoryStringBuilder } from '../commons/history-string-builder';
 import getActiveInterventions from '../services/active-interventions-service';
 import { getPersistentInterventionEventsService, InterventionEventsService } from '../tables/intervention-events';
-import { UserIdParamSchema, V1QuerySchema } from '../data-types/api-params';
+import { UserIdParameterSchema, V1QuerySchema } from '../data-types/api-parameters';
 import { V1Response } from '../data-types/api-schemas-v1';
 
 const appConfig = AppConfigService.getInstance();
@@ -28,8 +28,8 @@ export async function handle(
 ): Promise<APIGatewayProxyResult> {
   logger.addContext(context);
 
-  const params = UserIdParamSchema.safeParse(event.pathParameters);
-  if (!params.success) {
+  const parameters = UserIdParameterSchema.safeParse(event.pathParameters);
+  if (!parameters.success) {
     addMetric(MetricNames.INVALID_SUBJECT_ID);
     metric.publishStoredMetrics();
     return {
@@ -40,7 +40,7 @@ export async function handle(
 
   logger.info('This is a comment for tests');
 
-  const userId = decodeURIComponent(params.data.userId);
+  const userId = decodeURIComponent(parameters.data.userId);
 
   try {
     if (event.resource === '/v2/ais/{userId}') return await v2StatusApiHandler(userId, interventionEventsService);

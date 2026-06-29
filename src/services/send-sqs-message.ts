@@ -8,10 +8,10 @@ import {
   SendMessageBatchRequestEntry,
 } from '@aws-sdk/client-sqs';
 import tracer from '../commons/tracer';
-import getEnvOrThrow from '../commons/get-env-or-throw';
+import getEnvironmentOrThrow from '../commons/get-environment-or-throw';
 
 export function createSqsClient() {
-  const region = getEnvOrThrow('AWS_REGION');
+  const region = getEnvironmentOrThrow('AWS_REGION');
 
   return tracer.captureAWSv3Client(new SQSClient({ region }));
 }

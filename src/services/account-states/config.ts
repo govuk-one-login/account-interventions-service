@@ -1,5 +1,5 @@
 import { EventsEnum, AISInterventionTypes, PossibleAccountStatus, Codes } from '../../data-types/constants';
-import { TransitionConfigurationInterface } from '../../data-types/interfaces';
+import { TransitionConfigInterface } from '../../data-types/interfaces';
 
 /**
  * Graph like configuration object for Account State Engine class
@@ -7,7 +7,7 @@ import { TransitionConfigurationInterface } from '../../data-types/interfaces';
  * edges are the possible transition to a new state given a specific event
  * adjacency contains the adjacency list for each account state, representing what transitions are allowed on any given state
  */
-export const transitionConfiguration: TransitionConfigurationInterface = {
+export const transitionConfig: TransitionConfigInterface = {
   nodes: {
     AccountIsOkay: {
       blocked: false,

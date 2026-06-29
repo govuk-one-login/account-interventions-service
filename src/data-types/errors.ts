@@ -9,10 +9,10 @@ export class InvalidEnvironmentVariableError extends Error {
   }
 }
 
-export class StateEngineConfigurationError extends Error {
+export class StateEngineConfigError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'StateEngineConfigurationError';
+    this.name = 'StateEngineConfigError';
   }
 }
 export class StateTransitionError extends Error {

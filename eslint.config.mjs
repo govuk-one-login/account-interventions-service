@@ -55,6 +55,7 @@ export default defineConfig(
       'unicorn/prefer-ternary': ['error'],
       'unicorn/no-unreadable-new-expression': ['off'],
       'unicorn/consistent-class-member-order': ['off'],
+      'unicorn/name-replacements': ['off'],
       'tsdoc/syntax': ['error'],
     },
   },

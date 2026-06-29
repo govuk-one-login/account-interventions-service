@@ -1,9 +1,7 @@
 import express from 'express';
 import { handle } from '../../handlers/status-retriever-handler';
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 import { Server } from 'node:http';
-
-let result: APIGatewayProxyResult;
 
 const dummyContext = {
   callbackWaitsForEmptyEventLoop: true,
@@ -26,8 +24,6 @@ const dummyContext = {
   },
 };
 
-let server: Server | undefined;
-
 export function setupServer(port: number) {
   const app = express();
   app.disable('x-powered-by');
@@ -35,7 +31,7 @@ export function setupServer(port: number) {
   app.get('/V1/ais/:userId', async (request, response) => {
     const apiGatewayEvent = createDefaultApiRequest(request.params.userId);
     try {
-      result = await handle(apiGatewayEvent, dummyContext);
+      const result = await handle(apiGatewayEvent, dummyContext);
       response.status(result.statusCode).json(JSON.parse(result.body));
     } catch (error) {
       console.log(`The operation had an unexpected outcome: ${String(error)}`);
@@ -43,12 +39,12 @@ export function setupServer(port: number) {
     }
   });
 
-  server = app.listen(port, () => {
+  return app.listen(port, () => {
     console.log(`mock server listening on port ${String(port)}`);
   });
 }
 
-export function closeServer() {
+export function closeServer(server: Server | undefined) {
   if (!server) return;
 
   console.log('shutting down server');

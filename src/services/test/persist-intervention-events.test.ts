@@ -64,7 +64,7 @@ describe('persistInterventionEvents', () => {
 
 describe('generateEventsToAppend', () => {
   test('add one intervention', () => {
-    const res = generateEventsToAppend(
+    const response = generateEventsToAppend(
       [
         {
           interventionName: InterventionName.TEMPORARY_SUSPENSION,
@@ -75,7 +75,7 @@ describe('generateEventsToAppend', () => {
       baseMessage,
     );
 
-    expect(res).toEqual([
+    expect(response).toEqual([
       {
         accountId: '1',
         componentId: 'test',
@@ -93,7 +93,7 @@ describe('generateEventsToAppend', () => {
   });
 
   test('add one intervention remove one intervention', () => {
-    const res = generateEventsToAppend(
+    const response = generateEventsToAppend(
       [
         {
           interventionName: InterventionName.RESET_PASSWORD,
@@ -108,7 +108,7 @@ describe('generateEventsToAppend', () => {
       baseMessage,
     );
 
-    expect(res).toEqual([
+    expect(response).toEqual([
       {
         accountId: '1',
         componentId: 'test',
@@ -139,7 +139,7 @@ describe('generateEventsToAppend', () => {
   });
 
   test('remove existing intervention', () => {
-    const res = generateEventsToAppend(
+    const response = generateEventsToAppend(
       [
         {
           interventionName: InterventionName.TEMPORARY_SUSPENSION,
@@ -150,7 +150,7 @@ describe('generateEventsToAppend', () => {
       baseMessage,
     );
 
-    expect(res).toEqual([
+    expect(response).toEqual([
       {
         accountId: '1',
         componentId: 'test',

@@ -21,9 +21,9 @@ describe('PersistentInterventionEventsService', () => {
       new InMemoryRecordService<typeof interventionEventsTableConfig.schema>([event]),
     );
 
-    const res = await service.fetchEventsForAccount('1234');
+    const resposnse = await service.fetchEventsForAccount('1234');
 
-    expect(res).toEqual([event]);
+    expect(resposnse).toEqual([event]);
   });
 
   test('appendEvents', async () => {
