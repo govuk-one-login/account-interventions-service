@@ -58,6 +58,7 @@ Parameters:
 Conditions:
   UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, 'none']]
   UseCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, 'none']]
+  IsDevBuildStaging: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build], !Equals [!Ref Environment, staging]]
 
 Globals:
   Function:
@@ -74,6 +75,7 @@ Resources:
 
   FrontendFunction:
     Type: AWS::Serverless::Function
+    Condition: IsDevBuildStaging
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution limit
     Properties:
@@ -110,6 +112,7 @@ Resources:
 
   FrontendFunctionRole:
     Type: AWS::IAM::Role
+    Condition: IsDevBuildStaging
     Properties:
       RoleName: !Sub '${AWS::StackName}-FrontendFunctionRole'
       Description: !Sub 'The role assumed by ${AWS::StackName}-FrontendFunction'
@@ -138,6 +141,7 @@ Resources:
 
   FrontendFunctionManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
+    Condition: IsDevBuildStaging
     Properties:
       ManagedPolicyName: !Sub '${AWS::StackName}-FrontendFunctionPolicy'
       PolicyDocument:
@@ -154,8 +158,8 @@ Resources:
 
   FrontendFunctionLogGroup:
     Type: AWS::Logs::LogGroup
+    Condition: IsDevBuildStaging
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-FrontendFunction'
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
@@ -174,6 +178,7 @@ Resources:
 
   FrontendFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
+    Condition: IsDevBuildStaging
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
       LogGroupName: !Ref FrontendFunctionLogGroup
@@ -182,6 +187,7 @@ Resources:
   FrontendApiGatewayPermission:
     DependsOn: FrontendFunctionAliaslive
     Type: AWS::Lambda::Permission
+    Condition: IsDevBuildStaging
     Properties:
       FunctionName: !Join
         - ':'
@@ -197,6 +203,7 @@ Resources:
 
   FrontendApi:
     Type: AWS::Serverless::Api
+    Condition: IsDevBuildStaging
     Properties:
       # checkov:skip=CKV_AWS_120: API Gateway caching not enabled
       Name: !Sub '${AWS::StackName}-FrontendApi'
@@ -234,8 +241,8 @@ Resources:
 
   FrontendApiAccessLogGroup:
     Type: AWS::Logs::LogGroup
+    Condition: IsDevBuildStaging
     Properties:
-      LogGroupName: !Sub '/aws/apigateway/${AWS::StackName}-FrontendApi/${ApiStageName}'
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
@@ -254,6 +261,7 @@ Resources:
 
   FrontendApiLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
+    Condition: IsDevBuildStaging
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
       LogGroupName: !Ref FrontendApiAccessLogGroup
@@ -263,6 +271,7 @@ Resources:
 
   LambdaEnvironmentVariableEncryptionKey:
     Type: AWS::KMS::Key
+    Condition: IsDevBuildStaging
     Properties:
       Description: 'KMS key used to encrypt lambda environment variables'
       EnableKeyRotation: true
@@ -298,12 +307,14 @@ Resources:
 
   LambdaEnvironmentVariableEncryptionKeyAlias:
     Type: AWS::KMS::Alias
+    Condition: IsDevBuildStaging
     Properties:
       AliasName: !Sub 'alias/${AWS::StackName}-LambdaEnvironmentVariableEncryptionKey'
       TargetKeyId: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
 
   CloudWatchEncryptionKey:
     Type: AWS::KMS::Key
+    Condition: IsDevBuildStaging
     Properties:
       Description: 'AWS KMS key for encrypting CloudWatch logs'
       EnableKeyRotation: true
@@ -344,11 +355,13 @@ Resources:
 
   CloudWatchEncryptionKeyAlias:
     Type: AWS::KMS::Alias
+    Condition: IsDevBuildStaging
     Properties:
       AliasName: !Sub 'alias/${AWS::StackName}-CloudWatchEncryptionKey'
       TargetKeyId: !GetAtt CloudWatchEncryptionKey.Arn
 
 Outputs:
   FrontendApiEndpoint:
+    Condition: IsDevBuildStaging
     Description: 'Frontend API Gateway endpoint URL'
     Value: !Sub 'https://${FrontendApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}'
