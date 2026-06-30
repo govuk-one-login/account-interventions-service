@@ -15,6 +15,7 @@
     "test:pact:provider": "vitest -c vitest.contract.config.ts src/contract-testing/provider/*",
     "test:pact:consumer": "vitest -c vitest.contract.config.ts src/contract-testing/consumer/*",
     "test:mutation": "stryker run",
+    "test:mutation:ci": "stryker run stryker-ci.config.json",
     "connect:pact:broker": "tsx src/contract-testing/test-helpers/connect-to-pact-broker.ts",
     "pact:publish:contracts": "tsx src/contract-testing/test-helpers/publish-pacts.ts",
     "lint": "npm run lint:code && npm run lint:spec && npm run lint:iac",
