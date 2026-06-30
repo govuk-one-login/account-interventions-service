@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "npm run test:unit",
-    "test:unit": "vitest --coverage",
+    "test:unit": "vitest run --coverage",
+    "test:unit:watch": "vitest --coverage",
     "test:types": "tsc --noEmit",
     "test:pact:provider": "vitest -c vitest.contract.config.ts src/contract-testing/provider/*",
     "test:pact:consumer": "vitest -c vitest.contract.config.ts src/contract-testing/consumer/*",
