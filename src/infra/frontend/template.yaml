@@ -160,6 +160,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Condition: IsDevBuildStaging
     Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-FrontendFunction'
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
@@ -202,7 +203,7 @@ Resources:
   ### API Gateway ###
 
   FrontendApi:
-    Type: AWS::Serverless::Api
+    Type: AWS::Serverless::Api # NOSONAR(cloudformation:S6333) - intentionally public API, no authentication required
     Condition: IsDevBuildStaging
     Properties:
       # checkov:skip=CKV_AWS_120: API Gateway caching not enabled
@@ -243,6 +244,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Condition: IsDevBuildStaging
     Properties:
+      LogGroupName: !Sub '/aws/apigateway/${AWS::StackName}-FrontendApi/${ApiStageName}'
       RetentionInDays: 30
       KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
