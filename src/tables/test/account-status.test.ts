@@ -1,13 +1,15 @@
+import { mockClient } from 'aws-sdk-client-mock';
 import { AISInterventionTypes, TriggerEventsEnum } from '../../data-types/constants';
-import { CurrentTimeDescriptor } from '../../data-types/interfaces';
-import { InMemoryRecordService } from '../../services/dynamo-db-record-service';
+import { DynamoDBRecordService, InMemoryRecordService } from '../../services/dynamo-db-record-service';
 import { accountStatusTableConfig, PersistentAccountStatusService } from '../account-status';
+import { DynamoDBDocumentClient, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import 'aws-sdk-client-mock-vitest/extend';
+import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 
-const currentTimestamp: CurrentTimeDescriptor = {
-  isoString: '123',
-  seconds: 123,
-  milliseconds: 1234,
-};
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date(Date.UTC(2023, 2, 13)).getTime());
+});
 
 describe('PersistentAccountStatusService', () => {
   test('getAccountStateInformation', async () => {
@@ -88,7 +90,7 @@ describe('PersistentAccountStatusService', () => {
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
         nextAllowableInterventions: [],
       },
-      currentTimestamp,
+      getCurrentTimestamp(),
       {
         component_id: 'TEST',
         timestamp: 1234,
@@ -120,7 +122,7 @@ describe('PersistentAccountStatusService', () => {
         '#UA': 'updatedAt',
       },
       ExpressionAttributeValues: {
-        ':aa': 1234,
+        ':aa': 1678665600000,
         ':b': false,
         ':h': ['12345|TEST|01||||'],
         ':int': 'AIS_ACCOUNT_SUSPENDED',
@@ -128,7 +130,7 @@ describe('PersistentAccountStatusService', () => {
         ':rp': false,
         ':s': true,
         ':sa': 12345,
-        ':ua': 1234,
+        ':ua': 1678665600000,
       },
       UpdateExpression:
         'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = :h',
@@ -161,6 +163,59 @@ describe('PersistentAccountStatusService', () => {
         ':ttl': expect.any(Number) as number,
       },
       ReturnValues: 'ALL_NEW',
+      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',
+    });
+  });
+});
+
+const ddbMock = mockClient(DynamoDBDocumentClient);
+
+describe('PersistentAccountStatusService deep DynamoDB Tests', () => {
+  test('updateDeleteStatus', async () => {
+    ddbMock.on(UpdateCommand).resolves({
+      Attributes: {
+        deletedAt: 1234,
+        isAccountDeleted: true,
+        ttl: 5678,
+      },
+    });
+
+    const recordService = new DynamoDBRecordService<typeof accountStatusTableConfig.schema>(
+      accountStatusTableConfig,
+      ddbMock as unknown as DynamoDBDocumentClient,
+    );
+
+    const service = new PersistentAccountStatusService(recordService);
+
+    const res = await service.updateDeleteStatus('1234');
+
+    expect(res).toEqual({
+      Attributes: {
+        deletedAt: 1234,
+        isAccountDeleted: true,
+        ttl: 5678,
+      },
+    });
+
+    expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
+      ConditionExpression:
+        'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
+      ExpressionAttributeNames: {
+        '#deletedAt': 'deletedAt',
+        '#isAccountDeleted': 'isAccountDeleted',
+        '#ttl': 'ttl',
+      },
+      ExpressionAttributeValues: {
+        ':deletedAt': 1678665600000,
+        ':false': false,
+        ':isAccountDeleted': true,
+        ':ttl': 1678677945,
+      },
+      Key: {
+        pk: '1234',
+      },
+      ReturnValues: 'ALL_NEW',
+      TableName: 'table_name',
       UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',
     });
   });
