@@ -1,0 +1,354 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: >-
+  The Frontend layer for the Account Interventions Service (AIS) solution
+
+Parameters:
+  Environment:
+    Description: The name of the environment to deploy to
+    Type: String
+    AllowedValues:
+      - dev
+      - build
+      - staging
+      - integration
+      - production
+    Default: dev
+  ApiStageName:
+    Description: The stage name of the API
+    Type: String
+    Default: v1
+  StagePrefix:
+    Description: >-
+      The URL path prefix for the API stage, used for asset URLs in templates.
+      Set to /v1 when behind API Gateway without a custom domain.
+      Set to empty string when a custom domain with base path mapping is in use.
+    Type: String
+    Default: /v1
+  PermissionsBoundary:
+    Description: The ARN of the permissions boundary to apply when creating IAM roles
+    Type: String
+    Default: none
+  CSLSSubscriptionEndpointArn:
+    Type: String
+    Description: CSLS Subscription endpoint
+    Default: 'arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2'
+  CodeSigningConfigArn:
+    Description: Asserts that lambdas are signed when deployed.
+    Type: String
+    Default: none
+  ProductTagValue:
+    Description: Value for the Product Tag
+    Type: String
+    Default: GOV.UK One Login
+  SystemTagValue:
+    Description: Value for the System Tag
+    Type: String
+    Default: Account Interventions Service
+  OwnerTagValue:
+    Description: Value for the Owner Tag
+    Type: String
+    Default: interventions@digital.cabinet-office.gov.uk
+  SourceTagValue:
+    Description: Value for the Source Tag
+    Type: String
+    Default: govuk-one-login/account-interventions-service/src/infra/frontend/template.yaml
+
+Conditions:
+  UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, 'none']]
+  UseCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, 'none']]
+
+Globals:
+  Function:
+    Runtime: nodejs24.x
+    Architectures:
+      - arm64
+    Tracing: Active
+    AutoPublishAlias: live
+    CodeUri: ../../../dist/frontend
+    KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
+
+Resources:
+  ### Frontend Lambda ###
+
+  FrontendFunction:
+    Type: AWS::Serverless::Function
+    # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
+    # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution limit
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-FrontendFunction'
+      Description: 'Serves the AIS frontend web interface.'
+      Handler: frontend-handler.handler
+      MemorySize: 256
+      Timeout: 10
+      Role: !GetAtt FrontendFunctionRole.Arn
+      CodeSigningConfigArn: !If [UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+      Environment:
+        Variables:
+          STAGE_PREFIX: !Ref StagePrefix
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FrontendApi
+            Path: /{proxy+}
+            Method: ANY
+        RootApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FrontendApi
+            Path: /
+            Method: GET
+      Tags:
+        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+
+  FrontendFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-FrontendFunctionRole'
+      Description: !Sub 'The role assumed by ${AWS::StackName}-FrontendFunction'
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  FrontendFunctionManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub '${AWS::StackName}-FrontendFunctionPolicy'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
+            Resource:
+              - !GetAtt FrontendFunctionLogGroup.Arn
+      Roles:
+        - !Ref FrontendFunctionRole
+
+  FrontendFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-FrontendFunction'
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub '/aws/lambda/${AWS::StackName}-FrontendFunction'
+
+  FrontendFunctionLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn: !Ref CSLSSubscriptionEndpointArn
+      LogGroupName: !Ref FrontendFunctionLogGroup
+      FilterPattern: '{$.message != "Sensitive info*"}'
+
+  FrontendApiGatewayPermission:
+    DependsOn: FrontendFunctionAliaslive
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Join
+        - ':'
+        - - 'function'
+          - !Select [6, !Split [':', !GetAtt FrontendFunction.Arn]]
+          - 'live'
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FrontendApi}/*/*'
+
+  ### API Gateway ###
+
+  FrontendApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      # checkov:skip=CKV_AWS_120: API Gateway caching not enabled
+      Name: !Sub '${AWS::StackName}-FrontendApi'
+      AlwaysDeploy: true
+      StageName: !Ref ApiStageName
+      OpenApiVersion: 3.0.3
+      PropagateTags: true
+      Description: 'Public REST API for the AIS frontend'
+      TracingEnabled: true
+      CacheClusterEnabled: false
+      AccessLogSetting:
+        Format: >-
+          {
+          "requestId": "$context.requestId",
+          "requestTime": "$context.requestTime",
+          "httpMethod": "$context.httpMethod",
+          "path": "$context.path",
+          "status": "$context.status",
+          "responseLength": "$context.responseLength",
+          "responseLatency": "$context.responseLatency",
+          "integrationLatency": "$context.integrationLatency",
+          "integrationErrorMessage": "$context.integrationErrorMessage",
+          "errorMessage": "$context.error.message"
+          }
+        DestinationArn: !GetAtt FrontendApiAccessLogGroup.Arn
+      Tags:
+        CheckovRulesToSkip: CKV_AWS_120
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+        FMSRegionalPolicy: False
+        CustomPolicy: public
+
+  FrontendApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/apigateway/${AWS::StackName}-FrontendApi/${ApiStageName}'
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub '/aws/apigateway/${AWS::StackName}-FrontendApi/${ApiStageName}'
+
+  FrontendApiLogsSubscriptionFilterCSLS:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      DestinationArn: !Ref CSLSSubscriptionEndpointArn
+      LogGroupName: !Ref FrontendApiAccessLogGroup
+      FilterPattern: ''
+
+  ### Encryption Keys ###
+
+  LambdaEnvironmentVariableEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: 'KMS key used to encrypt lambda environment variables'
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'kms:Decrypt'
+            Resource: '*'
+            Condition:
+              ArnLike:
+                'aws:SourceArn': !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*'
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-LambdaEnvironmentVariableEncryptionKey'
+
+  LambdaEnvironmentVariableEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub 'alias/${AWS::StackName}-LambdaEnvironmentVariableEncryptionKey'
+      TargetKeyId: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
+
+  CloudWatchEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: 'AWS KMS key for encrypting CloudWatch logs'
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Effect: Allow
+            Principal:
+              Service: !Sub 'logs.${AWS::Region}.amazonaws.com'
+            Action:
+              - 'kms:Encrypt*'
+              - 'kms:Decrypt*'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey*'
+              - 'kms:Describe*'
+            Resource: '*'
+            Condition:
+              ArnLike:
+                'kms:EncryptionContext:aws:logs:arn': !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-CloudWatchEncryptionKey'
+
+  CloudWatchEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub 'alias/${AWS::StackName}-CloudWatchEncryptionKey'
+      TargetKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+
+Outputs:
+  FrontendApiEndpoint:
+    Description: 'Frontend API Gateway endpoint URL'
+    Value: !Sub 'https://${FrontendApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}'
