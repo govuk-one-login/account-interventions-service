@@ -108,6 +108,16 @@ Ensure you have logged into AWS and obtained credentials before attempting to de
 $ sam deploy --guided -t src/infra/core/template.yaml
 ```
 
+### Deploy `frontend` stack manually for development
+
+To manually deploy the ais-core stack, use the following commands **from project root directory**.
+Ensure you have logged into AWS and obtained credentials before attempting to deploy manually.
+
+```bash
+$ npm run ui:build
+$ sam deploy --config-env frontend --guided
+```
+
 ### Lints Code, SAM Template & Open API Spec
 
 ```bash
