@@ -15,7 +15,7 @@ import {
   userLedActionList,
 } from '../data-types/constants';
 import { addMetric } from '../commons/metrics';
-import { transitionConfiguration } from './account-states/config';
+import { transitionConfig } from './account-states/config';
 import { AisEventIgnoredStaleBasicExtensions, AisEventIgnoredStaleExtensions } from '../events/ais-event-ignored-stale';
 import { InterventionEventMessage } from '../contracts/intervention-events';
 
@@ -97,7 +97,7 @@ function buildExtensions(
         ? 'USER_LED_ACTION'
         : stateEngineOutput.interventionName,
       allowable_interventions: stateEngineOutput.nextAllowableInterventions.filter(
-        (intervention) => transitionConfiguration.edges[intervention].interventionName,
+        (intervention) => transitionConfig.edges[intervention].interventionName,
       ),
       ...buildAdditionalAttributes(stateEngineOutput, egressEventName),
     };

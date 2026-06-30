@@ -71,3 +71,8 @@ dist/
 
 # stryker temp files
 .stryker-tmp
+
+# nx npm package builder files
+.nx/cache
+.nx/workspace-data
+.nx/migrate-runs

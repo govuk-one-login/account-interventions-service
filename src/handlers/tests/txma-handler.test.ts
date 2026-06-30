@@ -68,12 +68,12 @@ describe('TxMA Handler', () => {
   });
 
   it('Sends an SQS message to the delete queue', async () => {
-    const deleteEvent = {
+    const authDeleteEvent = {
       event_name: 'AUTH_DELETE_ACCOUNT',
       user: { user_id: 'urn:fdc:gov.uk:2022:USER_ONE' },
       txma: { configVersion: '1.0.4' },
     };
-    const mockRecord = createMockRecord(deleteEvent);
+    const mockRecord = createMockRecord(authDeleteEvent);
     const mockEvent = { Records: [mockRecord] };
 
     vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'delete_queue');

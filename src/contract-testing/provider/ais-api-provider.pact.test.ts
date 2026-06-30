@@ -4,15 +4,15 @@ import { closeServer, setupServer } from '../test-helpers/mock-server';
 import { Verifier, VerifierOptions } from '@pact-foundation/pact';
 import { AISInterventionTypes } from '../../data-types/constants';
 import { StateDetails } from '../../data-types/interfaces';
-import getEnvOrThrow from '../../commons/get-env-or-throw';
+import getEnvironmentOrThrow from '../../commons/get-environment-or-throw';
 import { DynamoDBDocumentClient, NativeAttributeValue, QueryCommand } from '@aws-sdk/lib-dynamodb';
 
 vi.mock('@aws-lambda-powertools/metrics');
 vi.mock('@aws-lambda-powertools/logger');
 const port = 8080;
-const dbDocMock = mockClient(DynamoDBDocumentClient);
-const queryCommandMock = dbDocMock.on(QueryCommand);
-setupServer(port);
+const databaseDocumentMock = mockClient(DynamoDBDocumentClient);
+const queryCommandMock = databaseDocumentMock.on(QueryCommand);
+const server = setupServer(port);
 function getDynamoDBResponseObject(
   interventionName: AISInterventionTypes,
   state: StateDetails,
@@ -32,14 +32,14 @@ function getDynamoDBResponseObject(
 
 /* eslint-disable @typescript-eslint/require-await */
 const config: VerifierOptions = {
-  providerBaseUrl: getEnvOrThrow('PROVIDER_BASE_URL') + getEnvOrThrow('PROVIDER_PORT'),
-  providerBranch: getEnvOrThrow('GIT_BRANCH'),
-  providerVersion: getEnvOrThrow('PROVIDER_APP_VERSION'),
-  pactBrokerUrl: getEnvOrThrow('PACT_BROKER_URL'),
-  publishVerificationResult: getEnvOrThrow('PUBLISH_RESULT') === 'true',
+  providerBaseUrl: getEnvironmentOrThrow('PROVIDER_BASE_URL') + getEnvironmentOrThrow('PROVIDER_PORT'),
+  providerBranch: getEnvironmentOrThrow('GIT_BRANCH'),
+  providerVersion: getEnvironmentOrThrow('PROVIDER_APP_VERSION'),
+  pactBrokerUrl: getEnvironmentOrThrow('PACT_BROKER_URL'),
+  publishVerificationResult: getEnvironmentOrThrow('PUBLISH_RESULT') === 'true',
   consumerVersionTags: ['main'],
-  pactBrokerPassword: getEnvOrThrow('PACT_BROKER_PASSWORD'),
-  pactBrokerUsername: getEnvOrThrow('PACT_BROKER_USER'),
+  pactBrokerPassword: getEnvironmentOrThrow('PACT_BROKER_PASSWORD'),
+  pactBrokerUsername: getEnvironmentOrThrow('PACT_BROKER_USER'),
   provider: 'AccountInterventionServiceProvider',
   logLevel: 'error',
   stateHandlers: {
@@ -148,7 +148,7 @@ const config: VerifierOptions = {
 
 describe('PACT verification', () => {
   afterAll(() => {
-    closeServer();
+    closeServer(server);
   });
   it('will verify the json file', async () => {
     const verify = new Verifier(config);

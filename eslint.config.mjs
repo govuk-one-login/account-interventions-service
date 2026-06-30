@@ -10,7 +10,15 @@ import globals from 'globals';
 export default defineConfig(
   eslintPluginUnicorn.configs.recommended,
   {
-    ignores: ['**/node_modules/**', '**/feature-tests/**', 'coverage/**', '**/.aws-sam/**', '.stryker-tmp/*'],
+    ignores: [
+      '**/node_modules/**',
+      '**/feature-tests/**',
+      'coverage/**',
+      '**/.aws-sam/**',
+      '.stryker-tmp/*',
+      '**/dist/**',
+      '**/rollup.config.ts',
+    ],
   },
   {
     files: ['**/*.ts'],
@@ -55,6 +63,7 @@ export default defineConfig(
       'unicorn/prefer-ternary': ['error'],
       'unicorn/no-unreadable-new-expression': ['off'],
       'unicorn/consistent-class-member-order': ['off'],
+      'unicorn/name-replacements': ['off'],
       'tsdoc/syntax': ['error'],
     },
   },

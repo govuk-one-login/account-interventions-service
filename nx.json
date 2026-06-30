@@ -1,0 +1,51 @@
+{
+  "neverConnectToCloud": true,
+  "extends": "nx/presets/npm.json",
+  "workspaceLayout": {
+    "libsDir": "packages"
+  },
+  "release": {
+    "projects": [
+      "ais-status-sdk"
+    ],
+    "changelog": {
+      "projectChangelogs": {
+        "createRelease": "github"
+      }
+    },
+    "projectsRelationship": "independent",
+    "version": {
+      "conventionalCommits": true,
+      "updateDependents": "never"
+    }
+  },
+  "targets": {
+    "publish": {
+      "executor": "@nx/js:release-publish",
+      "options": {
+        "registry": "https://registry.npmjs.org"
+      }
+    }
+  },
+  "targetDefaults": {
+    "@nx/js:tsc": {
+      "cache": true,
+      "dependsOn": [
+        "^dist"
+      ],
+      "inputs": [
+        "default",
+        "^default"
+      ]
+    },
+    "@nx/eslint:lint": {
+      "cache": true,
+      "inputs": [
+        "default",
+        "{workspaceRoot}/eslint.config.mjs"
+      ]
+    }
+  },
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "analytics": false
+}

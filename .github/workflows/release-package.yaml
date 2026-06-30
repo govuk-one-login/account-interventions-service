@@ -1,0 +1,101 @@
+name: Release Package
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Release package'
+        required: true
+        type: choice
+        default: '@govuk-one-login/ais-status-sdk'
+        options:
+          - '@govuk-one-login/ais-status-sdk'
+
+      increment:
+        description: 'Increment'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+      first_release:
+        description: 'First release (from this repo)'
+        required: true
+        default: false
+        type: boolean
+
+      dry_run:
+        description: 'Dry run?'
+        required: true
+        default: false
+        type: boolean
+
+run-name: Release ${{ github.event.inputs.target }} ${{ github.event.inputs.increment }} ${{ github.event.inputs.first_release == 'true' && '--first-release' || '' }} ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
+
+# Needed for nx-set-shas when run on the main branch
+permissions:
+  actions: read
+  contents: write
+  id-token: write # needed for provenance data generation, this allows GitHub to generate OIDC token for npmjs.com
+
+jobs:
+  prepare-branch-for-main:
+    name: Prepare branch for main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 #v3.2.0
+        id: app-token
+        with:
+          app-id: ${{ vars.PUBLISHER_APP_ID }}
+          private-key: ${{ secrets.PUBLISHER_APP_SECRET }}
+
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # pin@v6.3.0
+        with:
+          node-version-file: '.node-version'
+          package-manager-cache: false # never use caching in release builds
+
+      - name: Run npm install
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+
+      # required set up steps for Github architecture
+      - run: npm i @rollup/rollup-linux-x64-gnu --no-save
+      - run: npm i @nx/nx-linux-x64-gnu --no-save
+
+      - name: Set SHAs for affected packages
+        uses: nrwl/nx-set-shas@afb73a62d26e41464e9254689e1fd6122ee683c1 #v5.0.1
+
+      - name: Print Environment Information
+        run: npx nx report
+
+      - name: Build all projects
+        run: npx nx run-many -t build
+
+      - name: Format, lint, test, and build affected packages
+        run: npx nx run-many -t test,test:types --projects=${{ github.event.inputs.target }}
+
+      # This line is needed for nx affected to work when CI is running on a PR
+      - name: Set up main branch tracking
+        run: git branch --track main origin/main
+        if: ${{ github.event_name == 'pull_request' }}
+
+      - name: Configure git user
+        run: |
+          git config --global user.email "297960032+ais-package-publisher[bot]@users.noreply.github.com"
+          git config --global user.name "ais-package-publisher[bot]"
+
+      - name: Publish packages
+        if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release-') }}
+        run: npx nx release ${{ github.event.inputs.increment }} --projects=${{ github.event.inputs.target }} ${{ github.event.inputs.first_release == 'true' && '--first-release' || '' }} ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '--yes' }}
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          # See here for why legacy peer deps setting is required: https://github.com/nrwl/nx/issues/22066
+          npm_config_legacy_peer_deps: false

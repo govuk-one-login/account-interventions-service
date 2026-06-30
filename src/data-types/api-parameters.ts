@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const UserIdParamSchema = z.object({
+export const UserIdParameterSchema = z.object({
   userId: z
     .string()
     .trim()
@@ -15,10 +15,10 @@ export const UserIdParamSchema = z.object({
 export const V1QuerySchema = z.object({
   history: z
     .string()
-    .transform((val) => val === 'true')
+    .transform((value) => value === 'true')
     .optional()
     .meta({
       description: "A flag to enable the recall of the account's previous intervention history.",
-      param: { name: 'history', in: 'query', example: true },
+      param: { name: 'history', in: 'query', example: 'true' },
     }),
 });

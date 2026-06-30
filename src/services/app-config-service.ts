@@ -70,14 +70,14 @@ export class AppConfigService {
   }
 
   private validateConfiguration(environmentVariable: string): string {
-    const envValue = process.env[environmentVariable];
+    const environmentValue = process.env[environmentVariable];
 
-    if (!envValue || envValue === 'undefined') {
+    if (!environmentValue || environmentValue === 'undefined') {
       const message = `${LOGS_PREFIX_INVALID_CONFIG} Environment variable ${environmentVariable} is not defined.`;
       logger.error(message);
       throw new InvalidEnvironmentVariableError(message);
     }
-    return envValue;
+    return environmentValue;
   }
 
   private validateIsHTTPSUrl(environmentVariable: string) {

@@ -7,14 +7,14 @@ import {
 } from '@aws-sdk/client-sqs';
 import logger from '../../commons/logger';
 
-const sendFn = vi.fn();
+const sendFunction = vi.fn();
 
 vi.mock('@aws-sdk/client-sqs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@aws-sdk/client-sqs')>();
   return {
     ...actual,
     SQSClient: vi.fn(function () {
-      return { send: sendFn };
+      return { send: sendFunction };
     }),
   };
 });
@@ -25,7 +25,7 @@ describe('sendSqsMessage', () => {
   const queueUrl = 'queue';
 
   afterEach(() => {
-    sendFn.mockReset();
+    sendFunction.mockReset();
   });
 
   it('throws an error if AWS_REGION environment variable is not set', async () => {
@@ -41,8 +41,8 @@ describe('sendSqsMessage', () => {
     await sendSqsMessage(messageBody, queueUrl);
 
     expect(SQSClient).toHaveBeenCalledWith({ region: 'eu-west-2' });
-    expect(sendFn).toHaveBeenCalledWith(expect.any(SendMessageCommand));
-    expect(sendFn).toHaveBeenCalledWith(
+    expect(sendFunction).toHaveBeenCalledWith(expect.any(SendMessageCommand));
+    expect(sendFunction).toHaveBeenCalledWith(
       expect.objectContaining({
         input: { QueueUrl: queueUrl, MessageBody: messageBody },
       }),
@@ -51,7 +51,7 @@ describe('sendSqsMessage', () => {
 
   it('throws an error if sending the message fails', async () => {
     vi.stubEnv('AWS_REGION', 'eu-west-2');
-    sendFn.mockImplementation(() => {
+    sendFunction.mockImplementation(() => {
       throw new Error('Failed to send message');
     });
 
@@ -68,7 +68,7 @@ describe('sendBatchSqsMessage', () => {
   const queueUrl = 'queue';
 
   afterEach(() => {
-    sendFn.mockReset();
+    sendFunction.mockReset();
   });
 
   it('throws an error if AWS_REGION environment variable is not set', async () => {
@@ -84,8 +84,8 @@ describe('sendBatchSqsMessage', () => {
     await sendBatchSqsMessage(entries, queueUrl);
 
     expect(SQSClient).toHaveBeenCalledWith({ region: 'eu-west-2' });
-    expect(sendFn).toHaveBeenCalledWith(expect.any(SendMessageBatchCommand));
-    expect(sendFn).toHaveBeenCalledWith(
+    expect(sendFunction).toHaveBeenCalledWith(expect.any(SendMessageBatchCommand));
+    expect(sendFunction).toHaveBeenCalledWith(
       expect.objectContaining({
         input: { QueueUrl: queueUrl, Entries: entries },
       }),
@@ -94,7 +94,7 @@ describe('sendBatchSqsMessage', () => {
 
   it('throws an error if sending the message fails', async () => {
     vi.stubEnv('AWS_REGION', 'eu-west-2');
-    sendFn.mockImplementation(() => {
+    sendFunction.mockImplementation(() => {
       throw new Error('Failed to send message');
     });
 

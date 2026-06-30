@@ -110,7 +110,7 @@ export class DynamoDatabaseService {
       const response = await this.dbDocClient.send(command);
       if (response.Attributes) {
         const responseObject = response.Attributes as unknown as FullAccountInformation;
-        updateAccountStateCountMetricAfterDeletion(responseObject.blocked, responseObject.suspended);
+        updateAccountStateCountMetricAfterDeletion(responseObject);
       }
       logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} Account marked as deleted.`, { userId });
       addMetric(MetricNames.MARK_AS_DELETED_SUCCEEDED);
