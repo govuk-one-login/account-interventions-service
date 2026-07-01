@@ -100,7 +100,7 @@ describe('generateEventsToAppend', () => {
     ]);
   });
 
-  test.only('add one intervention remove one intervention', () => {
+  test('add one intervention remove one intervention', () => {
     const response = generateEventsToAppend(
       [
         {
