@@ -13,18 +13,10 @@ import {
 import { addMetric } from '../../commons/metrics';
 import logger from '../../commons/logger';
 import { AppConfigService } from '../app-config-service';
-import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import 'aws-sdk-client-mock-vitest/extend';
 
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
-vi.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: vi.fn().mockImplementation(() => ({
-    milliseconds: 1234567890,
-    isoString: 'today',
-    seconds: 1234567,
-  })),
-}));
 
 const ingressInterventionEvent = {
   component_id: '',
@@ -266,9 +258,15 @@ const sqsInputWithExtraFields = {
 
 describe('send-audit-events', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1234567890);
+  });
+
+  afterEach(() => {
     vi.clearAllMocks();
     sqsMock.resetHistory();
-  });
+  })
+
 
   it('should successfully send the audit event and return a response when a user action event is received', async () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
@@ -286,7 +284,6 @@ describe('send-audit-events', () => {
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
-    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForUserAction);
   });
 
@@ -306,7 +303,6 @@ describe('send-audit-events', () => {
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
-    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendIntervention);
   });
 
@@ -326,7 +322,6 @@ describe('send-audit-events', () => {
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
-    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForBlockIntervention);
   });
 
@@ -343,7 +338,6 @@ describe('send-audit-events', () => {
       },
     );
     expect(response).toBeUndefined();
-    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendIntervention);
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.error).toHaveBeenCalledWith(
@@ -369,7 +363,6 @@ describe('send-audit-events', () => {
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
-    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForDeletedAccount);
   });
 
@@ -389,7 +382,6 @@ describe('send-audit-events', () => {
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
-    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendIntervention);
   });
 
@@ -409,7 +401,6 @@ describe('send-audit-events', () => {
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
-    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForSuspendUserAction);
   });
 
@@ -429,7 +420,6 @@ describe('send-audit-events', () => {
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
-    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(
       SendMessageCommand,
       sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass,
@@ -453,7 +443,6 @@ describe('send-audit-events', () => {
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
-    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsInputWithExtraFields);
   });
 
@@ -486,7 +475,6 @@ describe('send-audit-events', () => {
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
-    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInput);
   });
 
@@ -506,7 +494,6 @@ describe('send-audit-events', () => {
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
-    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForUnsuspendIntervention);
   });
 
@@ -521,7 +508,6 @@ describe('send-audit-events', () => {
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.debug).toHaveBeenCalledTimes(2);
-    expect(getCurrentTimestamp).toHaveBeenCalledTimes(1);
     expect(sqsMock).toHaveReceivedCommandWith(SendMessageCommand, sqsCommandInputForFutureInterventions);
   });
 

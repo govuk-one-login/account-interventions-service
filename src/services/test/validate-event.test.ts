@@ -17,29 +17,27 @@ import { TICF_ACCOUNT_INTERVENTION } from '@govuk-one-login/event-catalogue/TICF
 vi.mock('../../commons/metrics');
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../send-audit-events');
-vi.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: vi.fn().mockImplementation(() => ({
-    milliseconds: 1234567890,
-    isoString: 'today',
-    seconds: 1234567,
-  })),
-}));
-
-const timestamp = getCurrentTimestamp();
+const FIXED_TIME_MS = 1234567890;
 
 const dynamoDBResult: DynamoDBStateResult = {
   blocked: false,
   suspended: false,
   reproveIdentity: false,
   resetPassword: false,
-  sentAt: timestamp.milliseconds - 5000,
-  appliedAt: timestamp.milliseconds - 5000,
+  sentAt: FIXED_TIME_MS - 5000,
+  appliedAt: FIXED_TIME_MS - 5000,
   isAccountDeleted: false,
   history: [],
   intervention: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
 };
 
 describe('validateEventAgainstSchema', () => {
+  let timestamp: ReturnType<typeof getCurrentTimestamp>;
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1234567890);
+    timestamp = getCurrentTimestamp();
+  })
   afterEach(() => {
     vi.clearAllMocks();
   });

@@ -10,13 +10,6 @@ import {
 
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
-vi.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: vi.fn().mockImplementation(() => ({
-    milliseconds: 1706544555234,
-    isoString: 'today',
-    seconds: 1706544555,
-  })),
-}));
 
 const interventionEventBody: TicfAccountIntervention = {
   timestamp: 1000,
@@ -62,6 +55,14 @@ const ipvAccountInterventionEventBody: IpvAccountInterventionEnd = {
 };
 
 describe('build-partial-update-state-command', () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1706544555234);
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
   it('should return a partial update command given Auth successful password reset is applied', () => {
     const state: StateDetails = {
       blocked: false,

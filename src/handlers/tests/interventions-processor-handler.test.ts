@@ -19,22 +19,14 @@ vi.mock('../../commons/metrics');
 vi.mock('../../services/send-audit-events');
 vi.mock('../../commons/metrics-helper');
 
-vi.mock('../../commons/get-current-timestamp', () => ({
-  getCurrentTimestamp: vi.fn().mockImplementation(() => ({
-    milliseconds: 1234567890,
-    isoString: 'today',
-    seconds: 1234567,
-  })),
-}));
+const FIXED_TIME_MS = 1234567890;
+const FIXED_TIME_S = 1234567;
 
-const now = getCurrentTimestamp();
-const t0ms = now.milliseconds;
-const t0s = now.seconds;
 
 const interventionEventBody: InterventionEventMessage = {
   component_id: '',
-  timestamp: t0s - 5,
-  event_timestamp_ms: t0ms - 5000,
+  timestamp: FIXED_TIME_S - 5,
+  event_timestamp_ms: FIXED_TIME_MS - 5000,
   user: {
     user_id: 'abc',
   },
@@ -50,8 +42,8 @@ const interventionEventBody: InterventionEventMessage = {
 
 const interventionEventBodyInTheFuture: TicfAccountIntervention = {
   component_id: '',
-  timestamp: getCurrentTimestamp().seconds + 5,
-  event_timestamp_ms: getCurrentTimestamp().milliseconds + 5000,
+  timestamp: FIXED_TIME_S + 5,
+  event_timestamp_ms: FIXED_TIME_MS + 5000,
   user: {
     user_id: 'abc',
   },
@@ -68,8 +60,8 @@ const interventionEventBodyInTheFuture: TicfAccountIntervention = {
 const resetPasswordEventBody = {
   event_name: TriggerEventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
   event_id: '123',
-  timestamp: t0s - 5,
-  event_timestamp_ms: t0ms - 5000,
+  timestamp: FIXED_TIME_S - 5,
+  event_timestamp_ms: FIXED_TIME_MS - 5000,
   client_id: 'UNKNOWN',
   component_id: 'UNKNOWN',
   user: {
@@ -115,6 +107,8 @@ describe('intervention processor handler', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(1234567890);
     mockRecord = {
       messageId: '123',
       receiptHandle: '',
@@ -133,6 +127,10 @@ describe('intervention processor handler', () => {
     };
     mockEvent = { Records: [mockRecord] };
     accountStateEngine.getInterventionEnumFromCode = vi.fn().mockImplementation(() => EventsEnum.FRAUD_BLOCK_ACCOUNT);
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
   });
 
   describe('handle', () => {
@@ -485,8 +483,8 @@ describe('intervention processor handler', () => {
               reproveIdentity: false,
               resetPassword: false,
               suspended: false,
-              appliedAt: t0ms + 10,
-              sentAt: t0ms + 10000,
+              appliedAt: FIXED_TIME_MS + 10,
+              sentAt: FIXED_TIME_MS + 10000,
               isAccountDeleted: false,
               history: [],
               intervention: '',
@@ -524,7 +522,7 @@ describe('intervention processor handler', () => {
         messageId: '123',
         receiptHandle: '',
         body: JSON.stringify({
-          timestamp: t0s,
+          timestamp: FIXED_TIME_S,
           user: {
             user_id: 'abc',
           },
