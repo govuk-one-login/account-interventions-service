@@ -1,19 +1,15 @@
 import type { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { AppConfigService } from '../services/app-config-service';
 import logger from '../commons/logger';
 import { addMetric, metric } from '../commons/metrics';
 import { MetricNames, AISInterventionTypes } from '../data-types/constants';
-import { FullAccountInformation, HistoryObject } from '../data-types/interfaces';
-import { DynamoDatabaseService } from '../services/dynamo-database-service';
+import { HistoryObject } from '../data-types/interfaces';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { HistoryStringBuilder } from '../commons/history-string-builder';
 import getActiveInterventions from '../services/active-interventions-service';
 import { getPersistentInterventionEventsService, InterventionEventsService } from '../tables/intervention-events';
 import { UserIdParameterSchema, V1QuerySchema } from '../data-types/api-parameters';
+import { AccountStatus, AccountStatusService, getPersistentAccountStatusService } from '../tables/account-status';
 import { V1Response } from '../data-types/api-schemas-v1';
-
-const appConfig = AppConfigService.getInstance();
-const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableName);
 
 /**
  * Status Retriever Handler. Queries DynamoDB and returns the intervention status of the account.
@@ -24,6 +20,7 @@ const dynamoDatabaseServiceInstance = new DynamoDatabaseService(appConfig.tableN
 export async function handle(
   event: APIGatewayEvent,
   context: Context,
+  accountStatusService: AccountStatusService = getPersistentAccountStatusService(),
   interventionEventsService: InterventionEventsService = getPersistentInterventionEventsService(),
 ): Promise<APIGatewayProxyResult> {
   logger.addContext(context);
@@ -43,11 +40,12 @@ export async function handle(
   const userId = decodeURIComponent(parameters.data.userId);
 
   try {
-    if (event.resource === '/v2/ais/{userId}') return await v2StatusApiHandler(userId, interventionEventsService);
+    if (event.resource === '/v2/ais/{userId}')
+      return await v2StatusApiHandler(userId, accountStatusService, interventionEventsService);
 
     const { history: historyQuery } = V1QuerySchema.parse(event.queryStringParameters ?? {});
 
-    return await v1StatusApiHandler(userId, historyQuery);
+    return await v1StatusApiHandler(userId, historyQuery, accountStatusService);
   } catch (error) {
     logger.error('A problem occurred with the query.', { error });
     addMetric(MetricNames.DB_QUERY_ERROR);
@@ -61,8 +59,12 @@ export async function handle(
   };
 }
 
-async function v1StatusApiHandler(userId: string, historyQuery: boolean | undefined) {
-  const response = await dynamoDatabaseServiceInstance.getFullAccountInformation(userId);
+async function v1StatusApiHandler(
+  userId: string,
+  historyQuery: boolean | undefined,
+  accountStatusService: AccountStatusService,
+) {
+  const response = await accountStatusService.getFullAccountInformation(userId);
   if (!response) {
     logger.info('Query matched no records in DynamoDB.');
     addMetric(MetricNames.ACCOUNT_NOT_FOUND);
@@ -89,10 +91,14 @@ async function v1StatusApiHandler(userId: string, historyQuery: boolean | undefi
   };
 }
 
-async function v2StatusApiHandler(userId: string, interventionEventsService: InterventionEventsService) {
+async function v2StatusApiHandler(
+  userId: string,
+  accountStatusService: AccountStatusService,
+  interventionEventsService: InterventionEventsService,
+) {
   logger.debug('v2 endpoint');
 
-  const response = await dynamoDatabaseServiceInstance.getAccountStateInformation(userId);
+  const response = await accountStatusService.getAccountStateInformation(userId);
   if (!response) {
     logger.info('Query matched no records in DynamoDB.');
     addMetric(MetricNames.ACCOUNT_NOT_FOUND);
@@ -124,7 +130,7 @@ async function v2StatusApiHandler(userId: string, interventionEventsService: Int
  * @returns - An object with all the required fields for the handler response. Creates a default object if any fields are undefined.
  * Updates timestamps to now if they are returned as null.
  */
-function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformation>): V1Response {
+function transformResponseFromDynamoDatabase(item: Partial<AccountStatus>): V1Response {
   const currentTimestampMs = getCurrentTimestamp().milliseconds;
   return {
     intervention: {
@@ -132,9 +138,9 @@ function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformatio
       appliedAt: item.appliedAt ?? currentTimestampMs,
       sentAt: item.sentAt ?? currentTimestampMs,
       description: (item.intervention as AISInterventionTypes | undefined) ?? AISInterventionTypes.AIS_NO_INTERVENTION,
-      reprovedIdentityAt: item.reprovedIdentityAt ?? undefined,
-      resetPasswordAt: item.resetPasswordAt ?? undefined,
-      accountDeletedAt: item.deletedAt ?? undefined,
+      reprovedIdentityAt: item.reprovedIdentityAt,
+      resetPasswordAt: item.resetPasswordAt,
+      accountDeletedAt: item.deletedAt,
     },
     state: {
       blocked: item.blocked ?? false,
@@ -142,7 +148,7 @@ function transformResponseFromDynamoDatabase(item: Partial<FullAccountInformatio
       resetPassword: item.resetPassword ?? false,
       reproveIdentity: item.reproveIdentity ?? false,
     },
-    auditLevel: (item.auditLevel as 'standard' | 'enhanced' | undefined) ?? 'standard',
+    auditLevel: item.auditLevel ?? 'standard',
   };
 }
 

@@ -18,19 +18,15 @@ import {
   validateEventIsNotStale,
   validateIfIdentityAcquired,
 } from '../services/validate-event';
-import { AppConfigService } from '../services/app-config-service';
-import { DynamoDatabaseService } from '../services/dynamo-database-service';
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { sendAuditEvent } from '../services/send-audit-events';
-import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
 import { publishTimeToResolveMetrics, updateAccountStateCountMetric } from '../commons/metrics-helper';
 import { InterventionEventMessage } from '../contracts/intervention-events';
 import persistInterventionEvents, { persistIgnoredInterventionEvent } from '../services/persist-intervention-events';
 import { getPersistentInterventionEventsService, InterventionEventsService } from '../tables/intervention-events';
+import { AccountStatusService, getPersistentAccountStatusService } from '../tables/account-status';
 
-const appConfig = AppConfigService.getInstance();
-const service = new DynamoDatabaseService(appConfig.tableName);
 const accountStateEngine = AccountStateEngine.getInstance();
 
 /**
@@ -43,6 +39,7 @@ const accountStateEngine = AccountStateEngine.getInstance();
 export async function handler(
   event: SQSEvent,
   context: Context,
+  accountStatusService: AccountStatusService = getPersistentAccountStatusService(),
   interventionEventsService: InterventionEventsService = getPersistentInterventionEventsService(),
 ): Promise<SQSBatchResponse> {
   logger.addContext(context);
@@ -60,7 +57,7 @@ export async function handler(
 
   const promiseArray = event.Records.map(async (record: SQSRecord) => {
     try {
-      await processSQSRecord(record, interventionEventsService);
+      await processSQSRecord(record, accountStatusService, interventionEventsService);
     } catch (error: unknown) {
       const itemIdentifier = handleError(error, record);
       if (itemIdentifier) itemFailures.push({ itemIdentifier });
@@ -80,7 +77,11 @@ export async function handler(
  * it updates the user record in the database, it sends a notification upon completion
  * @param record - SQS Record polled from the queue
  */
-async function processSQSRecord(record: SQSRecord, interventionEventsService: InterventionEventsService) {
+async function processSQSRecord(
+  record: SQSRecord,
+  accountStatusService: AccountStatusService,
+  interventionEventsService: InterventionEventsService,
+) {
   const currentTimestamp = getCurrentTimestamp();
 
   const recordBody = attemptToParseJson(record.body);
@@ -91,7 +92,7 @@ async function processSQSRecord(record: SQSRecord, interventionEventsService: In
 
   addMetric(MetricNames.EVENT_DELIVERY_LATENCY, noMetadata, currentTimestamp.milliseconds - result.event_timestamp_ms);
 
-  const itemFromDB = await service.getAccountStateInformation(userId);
+  const itemFromDB = await accountStatusService.getAccountStateInformation(userId);
 
   const currentAccountState = formCurrentAccountStateObject(itemFromDB);
 
@@ -107,16 +108,14 @@ async function processSQSRecord(record: SQSRecord, interventionEventsService: In
     result,
     interventionEventsService,
   );
-  const partialCommandInput = buildPartialUpdateAccountStateCommand(
-    statusResult.stateResult,
-    currentTimestamp.milliseconds,
+
+  await accountStatusService.updateUserStatus(
+    userId,
+    statusResult,
+    currentTimestamp,
     result,
     itemFromDB?.history ?? [],
-    statusResult.interventionName,
   );
-
-  logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Updating user status`, { userId, partialCommandInput });
-  await service.updateUserStatus(userId, partialCommandInput);
   publishTimeToResolveMetrics(
     currentAccountState,
     statusResult.stateResult,

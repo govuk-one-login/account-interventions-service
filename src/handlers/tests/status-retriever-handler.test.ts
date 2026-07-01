@@ -1,20 +1,18 @@
 /* eslint-disable unicorn/no-null */
-import { Mock } from 'vitest';
 import type { APIGatewayEvent, APIGatewayProxyEventQueryStringParameters } from 'aws-lambda';
 import { handle } from '../status-retriever-handler';
 import logger from '../../commons/logger';
-import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import { addMetric } from '../../commons/metrics';
 import jestOpenAPI from 'jest-openapi';
 import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
 import { InterventionState } from '../../data-types/constants';
 import { InterventionName } from '../../data-types/intervention-name';
+import { AccountStatus, InMemoryAccountStatusService } from '../../tables/account-status';
 
 jestOpenAPI(`${__dirname}/../../specs/main.yaml`);
 
 vi.mock('../../commons/logger.ts');
 vi.mock('../../commons/metrics');
-vi.mock('../../services/dynamo-database-service');
 vi.mock('@smithy/node-http-handler');
 
 const testEvent: APIGatewayEvent = {
@@ -85,10 +83,6 @@ const mockConfig = {
     console.log('Succeeded!');
   },
 };
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const mockDynamoDBServiceRetrieveRecords = DynamoDatabaseService.prototype.getFullAccountInformation as Mock;
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const mockDynamoDBServiceRetrieveAccountState = DynamoDatabaseService.prototype.getAccountStateInformation as Mock;
 
 describe('status-retriever-handler', () => {
   beforeAll(() => {
@@ -102,7 +96,7 @@ describe('status-retriever-handler', () => {
   });
 
   it('will return the correct response from the database if the user ID matches', async () => {
-    const suspendedRecord = {
+    const suspendedRecord: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_ACCOUNT_SUSPENDED',
       updatedAt: 123455,
@@ -116,7 +110,8 @@ describe('status-retriever-handler', () => {
       reproveIdentity: false,
       auditLevel: 'standard',
       ttl: 1234567890,
-      history: 'some intervention',
+      history: ['some intervention'],
+      isAccountDeleted: false,
     };
 
     const suspendedAccount = {
@@ -137,9 +132,7 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
     };
 
-    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'testUserID');
-    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(suspendedRecord);
-    const response = await handle(testEvent, mockConfig);
+    const response = await handle(testEvent, mockConfig, new InMemoryAccountStatusService({ status: suspendedRecord }));
     expect(response.statusCode).toBe(200);
 
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
@@ -164,8 +157,12 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
     };
 
-    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
-    const response = await handle(testEvent, mockConfig);
+    const response = await handle(
+      testEvent,
+      mockConfig,
+      new InMemoryAccountStatusService(),
+      new InMemoryInterventionEventsService([]),
+    );
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.info).toHaveBeenCalledWith('Query matched no records in DynamoDB.');
     expect(response.statusCode).toBe(200);
@@ -175,7 +172,7 @@ describe('status-retriever-handler', () => {
   });
 
   it('will return the correct response from the database if the user ID matches an account where the state items are all false', async () => {
-    const accountFoundNotSuspendedRecord = {
+    const accountFoundNotSuspendedRecord: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_NO_INTERVENTION',
       updatedAt: 123455,
@@ -191,6 +188,7 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
       ttl: 1234567890,
       history: [],
+      isAccountDeleted: false,
     };
 
     const accountIsNotSuspended = {
@@ -212,9 +210,11 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
     };
 
-    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'testUserID');
-    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
-    const response = await handle(testEvent, mockConfig);
+    const response = await handle(
+      testEvent,
+      mockConfig,
+      new InMemoryAccountStatusService({ status: accountFoundNotSuspendedRecord }),
+    );
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(accountIsNotSuspended);
@@ -235,7 +235,7 @@ describe('status-retriever-handler', () => {
   });
 
   it('will return a standard 200 response when there is a request with an encoded user id', async () => {
-    const suspendedRecord = {
+    const suspendedRecord: AccountStatus = {
       pk: 'test&User?ID',
       intervention: 'AIS_ACCOUNT_SUSPENDED',
       updatedAt: 123455,
@@ -249,7 +249,8 @@ describe('status-retriever-handler', () => {
       reproveIdentity: false,
       auditLevel: 'standard',
       ttl: 1234567890,
-      history: 'some intervention',
+      history: ['some intervention'],
+      isAccountDeleted: false,
     };
 
     const suspendedAccount = {
@@ -270,9 +271,7 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
     };
 
-    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : encodeURIComponent('test&User?ID'));
-    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(suspendedRecord);
-    const response = await handle(testEvent, mockConfig);
+    const response = await handle(testEvent, mockConfig, new InMemoryAccountStatusService({ status: suspendedRecord }));
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(suspendedAccount);
@@ -285,15 +284,23 @@ describe('status-retriever-handler', () => {
       userId: ' ',
     };
     const invalidTestEvent = { ...testEvent, pathParameters: invalidPathParameters };
-    const response = await handle(invalidTestEvent, mockConfig);
+    const response = await handle(
+      invalidTestEvent,
+      mockConfig,
+      new InMemoryAccountStatusService(),
+      new InMemoryInterventionEventsService([]),
+    );
     expect(response.statusCode).toBe(400);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual({ message: 'Invalid Request.' });
   });
 
   it('will return the correct response if there is a problem with the query to dynamoDB', async () => {
-    mockDynamoDBServiceRetrieveRecords.mockRejectedValue('There was a problem with the query operation');
-    const response = await handle(testEvent, mockConfig);
+    const response = await handle(
+      testEvent,
+      mockConfig,
+      new InMemoryAccountStatusService({ error: new Error('There was a problem with the query operation') }),
+    );
     expect(response.statusCode).toBe(500);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual({ message: 'Internal Server Error.' });
@@ -301,10 +308,10 @@ describe('status-retriever-handler', () => {
   });
 
   it('will return the correct updatedAt field if the field is returned as null', async () => {
-    const nullUpdatedAt = {
+    const nullUpdatedAt: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_FORCED_USER_PASSWORD_RESET',
-      updatedAt: null,
+      updatedAt: undefined,
       appliedAt: 12345685809,
       sentAt: 123456789,
       reprovedIdentityAt: 849473,
@@ -315,7 +322,8 @@ describe('status-retriever-handler', () => {
       reproveIdentity: false,
       auditLevel: 'standard',
       ttl: 1234567890,
-      history: 'some intervention',
+      history: ['some intervention'],
+      isAccountDeleted: false,
     };
 
     const updatedTime = {
@@ -336,8 +344,7 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
     };
 
-    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(nullUpdatedAt);
-    const response = await handle(testEvent, mockConfig);
+    const response = await handle(testEvent, mockConfig, new InMemoryAccountStatusService({ status: nullUpdatedAt }));
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(updatedTime);
@@ -364,8 +371,12 @@ describe('status-retriever-handler', () => {
     };
 
     const addedQueryParameterTestEvent = { ...testEvent, queryStringParameters: queryParameters };
-    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
-    const response = await handle(addedQueryParameterTestEvent, mockConfig);
+    const response = await handle(
+      addedQueryParameterTestEvent,
+      mockConfig,
+      new InMemoryAccountStatusService(),
+      new InMemoryInterventionEventsService([]),
+    );
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(accountNotFoundDefaultObject);
@@ -373,7 +384,7 @@ describe('status-retriever-handler', () => {
   });
 
   it('will add in the history field to the response returned from dynamo db if query parameters are passed in', async () => {
-    const accountFoundNotSuspendedRecord = {
+    const accountFoundNotSuspendedRecord: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_ACCOUNT_SUSPENDED',
       updatedAt: 123455,
@@ -388,6 +399,7 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
       ttl: 1234567890,
       history: [],
+      isAccountDeleted: false,
     };
 
     const accountIsNotSuspended = {
@@ -411,9 +423,11 @@ describe('status-retriever-handler', () => {
 
     const queryParameters: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
     const addedQueryParameterTestEvent = { ...testEvent, queryStringParameters: queryParameters };
-    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
-    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
-    const response = await handle(addedQueryParameterTestEvent, mockConfig);
+    const response = await handle(
+      addedQueryParameterTestEvent,
+      mockConfig,
+      new InMemoryAccountStatusService({ status: accountFoundNotSuspendedRecord }),
+    );
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(accountIsNotSuspended);
@@ -421,7 +435,7 @@ describe('status-retriever-handler', () => {
   });
 
   it('will return the history field as an object', async () => {
-    const accountFoundNotSuspendedRecord = {
+    const accountFoundNotSuspendedRecord: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_NO_INTERVENTION',
       updatedAt: 123455,
@@ -436,6 +450,7 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
       ttl: 1234567890,
       history: ['123456|TICF_CRI|01|reason|originating_component_id|intervention_predecessor_id|requester_id'],
+      isAccountDeleted: false,
     };
 
     const accountIsNotSuspended = {
@@ -470,9 +485,11 @@ describe('status-retriever-handler', () => {
 
     const queryParameters: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
     const addedQueryParameterTestEvent = { ...testEvent, queryStringParameters: queryParameters };
-    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
-    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
-    const response = await handle(addedQueryParameterTestEvent, mockConfig);
+    const response = await handle(
+      addedQueryParameterTestEvent,
+      mockConfig,
+      new InMemoryAccountStatusService({ status: accountFoundNotSuspendedRecord }),
+    );
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(accountIsNotSuspended);
@@ -480,7 +497,7 @@ describe('status-retriever-handler', () => {
   });
 
   it('will publish a metric if a history string is malformed and continue processing the others', async () => {
-    const accountFoundNotSuspendedRecord = {
+    const accountFoundNotSuspendedRecord: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_ACCOUNT_UNBLOCKED',
       updatedAt: 123455,
@@ -500,6 +517,7 @@ describe('status-retriever-handler', () => {
         '7895646|TICF_CRI|02|reason|originating_component_id|intervention_predecessor_id|requester_id',
         'anotherInvalidString',
       ],
+      isAccountDeleted: false,
     };
 
     const accountIsNotSuspended = {
@@ -546,9 +564,11 @@ describe('status-retriever-handler', () => {
 
     const queryParameters: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
     const addedQueryParameterTestEvent = { ...testEvent, queryStringParameters: queryParameters };
-    mockDynamoDBServiceRetrieveRecords(testEvent.pathParameters ? ['userId'] : 'some user');
-    mockDynamoDBServiceRetrieveRecords.mockResolvedValueOnce(accountFoundNotSuspendedRecord);
-    const response = await handle(addedQueryParameterTestEvent, mockConfig);
+    const response = await handle(
+      addedQueryParameterTestEvent,
+      mockConfig,
+      new InMemoryAccountStatusService({ status: accountFoundNotSuspendedRecord }),
+    );
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(accountIsNotSuspended);
@@ -571,7 +591,12 @@ describe('v2 Status API handler', () => {
   });
 
   it("returns an empty list of interventions if the requested account doesn't exist", async () => {
-    const response = await handle({ ...testEvent, resource: '/v2/ais/{userId}' }, mockConfig);
+    const response = await handle(
+      { ...testEvent, resource: '/v2/ais/{userId}' },
+      mockConfig,
+      new InMemoryAccountStatusService(),
+      new InMemoryInterventionEventsService([]),
+    );
     expect(response.statusCode).toBe(200);
 
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
@@ -582,7 +607,7 @@ describe('v2 Status API handler', () => {
   });
 
   it('return a list of interventions from the account status table', async () => {
-    const accountFound = {
+    const accountFound: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_NO_INTERVENTION',
       updatedAt: 123455,
@@ -597,12 +622,14 @@ describe('v2 Status API handler', () => {
       reproveIdentity: false,
       auditLevel: 'standard',
       ttl: 1234567890,
+      history: [],
+      isAccountDeleted: false,
     };
 
-    mockDynamoDBServiceRetrieveAccountState.mockResolvedValueOnce(accountFound);
     const response = await handle(
       { ...testEvent, resource: '/v2/ais/{userId}' },
       mockConfig,
+      new InMemoryAccountStatusService({ status: accountFound }),
       new InMemoryInterventionEventsService([]),
     );
     expect(response.statusCode).toBe(200);
@@ -619,7 +646,7 @@ describe('v2 Status API handler', () => {
   });
 
   it('return a list of interventions from the intervention events table', async () => {
-    const accountFound = {
+    const accountFound: AccountStatus = {
       pk: 'testUserID',
       intervention: 'AIS_NO_INTERVENTION',
       updatedAt: 123455,
@@ -634,12 +661,14 @@ describe('v2 Status API handler', () => {
       reproveIdentity: false,
       auditLevel: 'standard',
       ttl: 1234567890,
+      history: [],
+      isAccountDeleted: false,
     };
 
-    mockDynamoDBServiceRetrieveAccountState.mockResolvedValueOnce(accountFound);
     const response = await handle(
       { ...testEvent, resource: '/v2/ais/{userId}' },
       mockConfig,
+      new InMemoryAccountStatusService({ status: accountFound }),
       new InMemoryInterventionEventsService([
         {
           eventId: '1234',

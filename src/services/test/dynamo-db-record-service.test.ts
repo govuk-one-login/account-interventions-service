@@ -1,7 +1,7 @@
 import z from 'zod';
 import TableConfig from '../../tables/table-config';
 import { DynamoDBRecordService } from '../dynamo-db-record-service';
-import { BatchWriteCommand, DynamoDBDocumentClient, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { BatchWriteCommand, DynamoDBDocumentClient, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-vitest/extend';
 
@@ -36,6 +36,33 @@ describe('DynamoDBRecordService', () => {
     const response = await service.queryByPkAndValidate('key_value_1');
 
     expect(response).toEqual([
+      {
+        pk1: 'value1',
+      },
+    ]);
+
+    expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
+      TableName: 'test-table',
+      KeyConditionExpression: '#pk = :pk',
+      ExpressionAttributeNames: { '#pk': 'pk1' },
+      ExpressionAttributeValues: { ':pk': 'key_value_1' },
+    });
+  });
+
+  test('queryByPkAndValidate includedKeys', async () => {
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        {
+          pk1: 'value1',
+        },
+      ],
+    });
+
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
+
+    const res = await service.queryByPkAndValidate('key_value_1', ['pk1']);
+
+    expect(res).toEqual([
       {
         pk1: 'value1',
       },
@@ -87,9 +114,76 @@ describe('DynamoDBRecordService', () => {
     });
   });
 
-  test('batchWrite', async () => {
-    ddbMock.on(QueryCommand).resolves({ Items: [] });
+  test('getByPkAndValidate', async () => {
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        {
+          pk1: 'value1',
+        },
+      ],
+    });
 
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
+
+    const res = await service.getByPkAndValidate('key_value_1');
+
+    expect(res).toEqual({
+      pk1: 'value1',
+    });
+
+    expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
+      TableName: 'test-table',
+      KeyConditionExpression: '#pk = :pk',
+      ExpressionAttributeNames: { '#pk': 'pk1' },
+      ExpressionAttributeValues: { ':pk': 'key_value_1' },
+    });
+  });
+
+  test('getByPkAndValidate includedKeys', async () => {
+    ddbMock.on(QueryCommand).resolves({
+      Items: [
+        {
+          pk1: 'value1',
+        },
+      ],
+    });
+
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
+
+    const res = await service.getByPkAndValidate('key_value_1', ['pk1']);
+
+    expect(res).toEqual({
+      pk1: 'value1',
+    });
+
+    expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
+      TableName: 'test-table',
+      KeyConditionExpression: '#pk = :pk',
+      ExpressionAttributeNames: { '#pk': 'pk1' },
+      ExpressionAttributeValues: { ':pk': 'key_value_1' },
+    });
+  });
+
+  test('getByPkAndValidate empty', async () => {
+    ddbMock.on(QueryCommand).resolves({
+      Items: [],
+    });
+
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
+
+    const res = await service.getByPkAndValidate('key_value_1');
+
+    expect(res).toEqual(undefined);
+
+    expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
+      TableName: 'test-table',
+      KeyConditionExpression: '#pk = :pk',
+      ExpressionAttributeNames: { '#pk': 'pk1' },
+      ExpressionAttributeValues: { ':pk': 'key_value_1' },
+    });
+  });
+
+  test('batchWrite', async () => {
     const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
 
     await service.batchWrite([
@@ -109,6 +203,34 @@ describe('DynamoDBRecordService', () => {
             },
           },
         ],
+      },
+    });
+  });
+
+  test('update', async () => {
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
+
+    await service.update('1234', {
+      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted',
+      ExpressionAttributeNames: {
+        '#isAccountDeleted': 'isAccountDeleted',
+      },
+      ExpressionAttributeValues: {
+        ':isAccountDeleted': true,
+      },
+    });
+
+    expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
+      TableName: 'test-table',
+      Key: {
+        pk1: '1234',
+      },
+      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted',
+      ExpressionAttributeNames: {
+        '#isAccountDeleted': 'isAccountDeleted',
+      },
+      ExpressionAttributeValues: {
+        ':isAccountDeleted': true,
       },
     });
   });

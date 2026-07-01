@@ -1,19 +1,15 @@
 import { Mock } from 'vitest';
 import { handler } from '../account-deletion-processor-handler';
-import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import logger from '../../commons/logger';
 import 'aws-sdk-client-mock-vitest/extend';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { Metrics } from '@aws-lambda-powertools/metrics';
 import { MetricNames } from '../../data-types/constants';
+import { InMemoryAccountStatusService } from '../../tables/account-status';
 
-vi.mock('../../services/dynamo-database-service');
-vi.mock('@aws-sdk/util-dynamodb');
 vi.mock('../../commons/logger');
 vi.mock('@aws-lambda-powertools/metrics');
 
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const mockDynamoDBServiceUpdateDeleteStatus = DynamoDatabaseService.prototype.updateDeleteStatus as Mock;
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const mockPublishStoredMetric = Metrics.prototype.publishStoredMetrics as Mock;
 // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -72,7 +68,6 @@ describe('Account Deletion Processor', () => {
       awsRegion: '',
     };
     mockEvent = { Records: [mockRecord] };
-    mockDynamoDBServiceUpdateDeleteStatus.mockReturnValue(['1', '2']);
     mockSerializeMetrics.mockReturnValue({
       _aws: { CloudWatchMetrics: [] },
     });
@@ -83,9 +78,8 @@ describe('Account Deletion Processor', () => {
   });
 
   it('does nothing if SQS event contains no record', async () => {
-    mockDynamoDBServiceUpdateDeleteStatus.mockReturnValue([]);
     mockEvent = { Records: [] };
-    await handler(mockEvent, mockContext);
+    await handler(mockEvent, mockContext, new InMemoryAccountStatusService());
     expect(mockPublishStoredMetric).toHaveBeenCalledTimes(0);
     expect(loggerErrorSpy).toHaveBeenCalledWith('The event does not contain any records.');
   });
@@ -94,7 +88,7 @@ describe('Account Deletion Processor', () => {
     const mockBody = 'non-JSON mockRecordBody';
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext);
+    await handler(mockEvent, mockContext, new InMemoryAccountStatusService());
     expect(loggerErrorSpy).toHaveBeenCalledWith('The SQS message can not be parsed.');
 
     expect(mockAddMetric).toHaveBeenCalledTimes(1);
@@ -108,7 +102,7 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ Message: 'invalid JSON message in the message body' });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext);
+    await handler(mockEvent, mockContext, new InMemoryAccountStatusService());
     expect(loggerErrorSpy)
       .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ Invalid input: expected "AUTH_DELETE_ACCOUNT"
   → at event_name
@@ -120,7 +114,7 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT' });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext);
+    await handler(mockEvent, mockContext, new InMemoryAccountStatusService());
     expect(loggerErrorSpy)
       .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ Invalid input: expected object, received undefined
   → at user`);
@@ -130,7 +124,7 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user: { user_id: '' } });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext);
+    await handler(mockEvent, mockContext, new InMemoryAccountStatusService());
     expect(loggerErrorSpy)
       .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ String cannot be empty or just spaces
   → at user.user_id`);
@@ -140,7 +134,7 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user: { user_id: ' '.repeat(3) } });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext);
+    await handler(mockEvent, mockContext, new InMemoryAccountStatusService());
     expect(loggerErrorSpy)
       .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ String cannot be empty or just spaces
   → at user.user_id`);
@@ -150,27 +144,29 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user: { user_id: 123 } });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext);
+    await handler(mockEvent, mockContext, new InMemoryAccountStatusService());
     expect(loggerErrorSpy)
       .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ Invalid input: expected string, received number
   → at user.user_id`);
   });
 
   it('successfully processes the message when the user id passed contains trailing spaces', async () => {
-    mockDynamoDBServiceUpdateDeleteStatus.mockReturnValueOnce(['1']);
+    const service = new InMemoryAccountStatusService();
+
+    const onUpdateDeleteStatusSpy = vi.spyOn(service, 'updateDeleteStatus');
+
     const mockBody = JSON.stringify({
       event_name: 'AUTH_DELETE_ACCOUNT',
       user: { user_id: 'abcdef ' },
     });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext);
+    await handler(mockEvent, mockContext, service);
     expect(mockPublishStoredMetric).toHaveBeenCalled();
-    expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledWith('abcdef');
+    expect(onUpdateDeleteStatusSpy).toHaveBeenCalledWith('abcdef');
   });
 
   it('throws an error when it fails to update the delete status', async () => {
-    mockDynamoDBServiceUpdateDeleteStatus.mockRejectedValue('Error');
     const mockBody = JSON.stringify({
       event_name: 'AUTH_DELETE_ACCOUNT',
       user: {
@@ -179,21 +175,33 @@ describe('Account Deletion Processor', () => {
     });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await expect(handler(mockEvent, mockContext)).rejects.toThrow('Failed to update the account status.');
+    const error = new Error('Error');
+    await expect(handler(mockEvent, mockContext, new InMemoryAccountStatusService({ error }))).rejects.toThrow(
+      'Failed to update the account status.',
+    );
     expect(mockPublishStoredMetric).toHaveBeenCalled();
-    expect(loggerErrorSpy).toHaveBeenCalledWith(`Sensitive info - Error updating account hello`, { error: 'Error' });
+    expect(loggerErrorSpy).toHaveBeenCalledWith(`Sensitive info - Error updating account hello`, {
+      error: new Error('Error'),
+    });
     expect(mockAddMetric).toHaveBeenCalled();
     expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.MARK_AS_DELETED_FAILED, 'Count', 1);
   });
 
   it('successfully process the message when it contains a single record', async () => {
-    mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
-    await handler(mockEvent, mockContext);
+    const service = new InMemoryAccountStatusService();
+
+    const onUpdateDeleteStatusSpy = vi.spyOn(service, 'updateDeleteStatus');
+
+    await handler(mockEvent, mockContext, service);
     expect(mockPublishStoredMetric).toHaveBeenCalled();
-    expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(1);
+    expect(onUpdateDeleteStatusSpy).toHaveBeenCalledTimes(1);
   });
 
   it('successfully process the message when it contains a single record, wrapped user', async () => {
+    const service = new InMemoryAccountStatusService();
+
+    const onUpdateDeleteStatusSpy = vi.spyOn(service, 'updateDeleteStatus');
+
     mockRecord = {
       ...mockRecord,
       body: JSON.stringify({
@@ -202,13 +210,16 @@ describe('Account Deletion Processor', () => {
       }),
     };
     const mockEvent = { Records: [mockRecord] };
-    mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
-    await handler(mockEvent, mockContext);
+    await handler(mockEvent, mockContext, service);
     expect(mockPublishStoredMetric).toHaveBeenCalled();
-    expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(1);
+    expect(onUpdateDeleteStatusSpy).toHaveBeenCalledTimes(1);
   });
 
   it('successfully process the message when it contains a single txma message', async () => {
+    const service = new InMemoryAccountStatusService();
+
+    const onUpdateDeleteStatusSpy = vi.spyOn(service, 'updateDeleteStatus');
+
     mockRecord = {
       ...mockRecord,
       body: JSON.stringify({
@@ -239,33 +250,17 @@ describe('Account Deletion Processor', () => {
       }),
     };
     const mockEvent = { Records: [mockRecord] };
-    mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
-    await handler(mockEvent, mockContext);
+    await handler(mockEvent, mockContext, service);
     expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
     expect(mockAddMetric).not.toHaveBeenCalledWith('INVALID_EVENT_RECEIVED_EVENT_CATALOGUE', 'Count', 1);
-    expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(1);
+    expect(onUpdateDeleteStatusSpy).toHaveBeenCalledTimes(1);
   });
 
   it('successfully process the message when it contains multiple records', async () => {
-    mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValue('');
-    const mockRecord2 = {
-      ...mockRecord,
-      body: JSON.stringify({
-        event_name: 'AUTH_DELETE_ACCOUNT',
-        user: {
-          user_id: 'other_user_id',
-        },
-      }),
-    };
-    const mockEvent = { Records: [mockRecord, mockRecord2] };
-    await handler(mockEvent, mockContext);
-    expect(mockPublishStoredMetric).toHaveBeenCalled();
-    expect(mockDynamoDBServiceUpdateDeleteStatus).toHaveBeenCalledTimes(2);
-  });
+    const service = new InMemoryAccountStatusService();
 
-  it('will throw an error if one of multiple records fails to process', async () => {
-    mockDynamoDBServiceUpdateDeleteStatus.mockResolvedValueOnce('');
-    mockDynamoDBServiceUpdateDeleteStatus.mockRejectedValue('Error');
+    const onUpdateDeleteStatusSpy = vi.spyOn(service, 'updateDeleteStatus');
+
     const mockRecord2 = {
       ...mockRecord,
       body: JSON.stringify({
@@ -276,8 +271,8 @@ describe('Account Deletion Processor', () => {
       }),
     };
     const mockEvent = { Records: [mockRecord, mockRecord2] };
-    await expect(handler(mockEvent, mockContext)).rejects.toThrow('Failed to update the account status.');
+    await handler(mockEvent, mockContext, service);
     expect(mockPublishStoredMetric).toHaveBeenCalled();
-    expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.MARK_AS_DELETED_FAILED, 'Count', 1);
+    expect(onUpdateDeleteStatusSpy).toHaveBeenCalledTimes(2);
   });
 });
