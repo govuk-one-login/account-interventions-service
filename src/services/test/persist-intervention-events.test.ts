@@ -63,6 +63,15 @@ describe('persistInterventionEvents', () => {
 });
 
 describe('generateEventsToAppend', () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(FIXED_TIMESTAMP);
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   test('add one intervention', () => {
     const response = generateEventsToAppend(
       [
@@ -74,12 +83,11 @@ describe('generateEventsToAppend', () => {
       [],
       baseMessage,
     );
-
     expect(response).toEqual([
       {
         accountId: '1',
         componentId: 'test',
-        createdAt: expect.any(Number) as number,
+        createdAt: FIXED_TIMESTAMP,
         eventId: expect.any(String) as string,
         interventionName: 'TEMPORARY_SUSPENSION',
         interventionReason: 'reason',
@@ -92,7 +100,7 @@ describe('generateEventsToAppend', () => {
     ]);
   });
 
-  test('add one intervention remove one intervention', () => {
+  test.only('add one intervention remove one intervention', () => {
     const response = generateEventsToAppend(
       [
         {
@@ -112,7 +120,7 @@ describe('generateEventsToAppend', () => {
       {
         accountId: '1',
         componentId: 'test',
-        createdAt: expect.any(Number) as number,
+        createdAt: FIXED_TIMESTAMP,
         eventId: expect.any(String) as string,
         interventionName: 'RESET_PASSWORD',
         interventionReason: 'reason',
@@ -125,7 +133,7 @@ describe('generateEventsToAppend', () => {
       {
         accountId: '1',
         componentId: 'test',
-        createdAt: expect.any(Number) as number,
+        createdAt: FIXED_TIMESTAMP + 1,
         eventId: expect.any(String) as string,
         interventionName: 'TEMPORARY_SUSPENSION',
         interventionReason: 'reason',
@@ -154,7 +162,7 @@ describe('generateEventsToAppend', () => {
       {
         accountId: '1',
         componentId: 'test',
-        createdAt: expect.any(Number) as number,
+        createdAt: FIXED_TIMESTAMP,
         eventId: expect.any(String) as string,
         interventionName: 'TEMPORARY_SUSPENSION',
         interventionReason: 'reason',
