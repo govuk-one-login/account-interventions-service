@@ -19,11 +19,17 @@ const nodeModulesRoot = existsSync(path.join(__dirname, 'node_modules')) ? __dir
 // Stage prefix for asset URLs — empty string locally, /v1 when behind API Gateway without a custom domain
 const stagePrefix = process.env['STAGE_PREFIX'] ?? '';
 
-export function init(
-  interventionClient: InterventionClientInterface = new InterventionClient({
-    baseUrl: 'https://example.com',
-  }),
-) {
+const statusApiUrl = process.env['STATUS_API_URL'];
+
+const generateInterventionClient = () => {
+  if (!statusApiUrl) throw new Error('Missing required environment variable: STATUS_API_URL');
+
+  return new InterventionClient({
+    baseUrl: statusApiUrl,
+  });
+};
+
+export function init(interventionClient: InterventionClientInterface = generateInterventionClient()) {
   const server = fastify();
 
   // Parse URL-encoded form bodies (application/x-www-form-urlencoded)
