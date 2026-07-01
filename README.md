@@ -69,6 +69,16 @@ npx stryker run
 
 These commands are equivalent and running either will run the mutation tests, then produce an html report in the `/reports` directory. This report can be opened in the browser and shows where in the code the mutation tests failed, i.e. where Stryker made meaningful changes to the code and the tests still passed.
 
+#### CI
+
+Mutation tests run automatically on pull requests via a separate GitHub Actions workflow (`.github/workflows/mutation-tests.yaml`).
+
+The CI command uses a dedicated config file (`stryker-ci.config.json`) with text-only output:
+
+```sh
+npm run test:mutation:ci
+```
+
 ### Build & deploy **main** application manually stack for development
 
 To build the application code and deploy the ais-main stack use the following commands **from project root directory**.
