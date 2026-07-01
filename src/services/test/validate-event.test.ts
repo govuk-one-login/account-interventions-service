@@ -35,7 +35,7 @@ describe('validateEventAgainstSchema', () => {
   let timestamp: ReturnType<typeof getCurrentTimestamp>;
   beforeAll(() => {
     vi.useFakeTimers();
-    vi.setSystemTime(1234567890);
+    vi.setSystemTime(FIXED_TIME_MS);
     timestamp = getCurrentTimestamp();
   })
 

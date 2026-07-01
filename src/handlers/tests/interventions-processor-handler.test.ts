@@ -108,7 +108,7 @@ describe('intervention processor handler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    vi.setSystemTime(1234567890);
+    vi.setSystemTime(FIXED_TIME_MS);
     mockRecord = {
       messageId: '123',
       receiptHandle: '',
