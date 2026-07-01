@@ -265,8 +265,11 @@ describe('send-audit-events', () => {
   afterEach(() => {
     vi.clearAllMocks();
     sqsMock.resetHistory();
-  })
+  });
 
+  afterAll(() => {
+    vi.useRealTimers();
+  });
 
   it('should successfully send the audit event and return a response when a user action event is received', async () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });

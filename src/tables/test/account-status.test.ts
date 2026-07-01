@@ -12,6 +12,10 @@ beforeEach(() => {
   vi.setSystemTime(new Date(Date.UTC(2023, 2, 13)).getTime());
 });
 
+afterAll(() => {
+  vi.useRealTimers();
+});
+
 describe('PersistentAccountStatusService', () => {
   test('getAccountStateInformation', async () => {
     const accountStatus = {

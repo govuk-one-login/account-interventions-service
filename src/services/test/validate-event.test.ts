@@ -38,8 +38,13 @@ describe('validateEventAgainstSchema', () => {
     vi.setSystemTime(1234567890);
     timestamp = getCurrentTimestamp();
   })
+
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
   });
 
   it('Successfully validate AUTH_PASSWORD_RESET_SUCCESSFUL event', () => {
