@@ -1,7 +1,10 @@
 import { V2ResponseSchema, type V2Response } from '../../../src/data-types/api-schemas-v2';
 import type { AccountStatusResult, InterventionClientConfig, InterventionClientInterface } from './types';
+export type { AccountStatusResult, InterventionClientConfig, InterventionClientInterface, Intervention } from './types';
+export { InterventionName } from './types';
 import { InterventionInvalidResponse, InterventionRequestFailed } from './errors';
 export type { InterventionInvalidResponse, InterventionRequestFailed } from './errors';
+export { InterventionStub } from './stub';
 
 export class InterventionClient implements InterventionClientInterface {
   private readonly baseUrl: string;

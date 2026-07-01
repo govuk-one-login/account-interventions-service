@@ -3,7 +3,6 @@ import { handler } from '../interventions-processor-handler';
 import logger from '../../commons/logger';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { addMetric } from '../../commons/metrics';
-import { DynamoDatabaseService } from '../../services/dynamo-database-service';
 import * as validationModule from '../../services/validate-event';
 import { AccountStateEngine } from '../../services/account-states/account-state-engine';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
@@ -13,11 +12,10 @@ import { sendAuditEvent } from '../../services/send-audit-events';
 import { publishTimeToResolveMetrics } from '../../commons/metrics-helper';
 import { InterventionEventMessage, TicfAccountIntervention } from '../../contracts/intervention-events';
 import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
+import { InMemoryAccountStatusService } from '../../tables/account-status';
 
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
-vi.mock('@aws-sdk/util-dynamodb');
-vi.mock('../../services/dynamo-database-service');
 vi.mock('../../services/send-audit-events');
 vi.mock('../../commons/metrics-helper');
 
@@ -85,10 +83,6 @@ const resetPasswordEventBody = {
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const mockRetrieveRecords = DynamoDatabaseService.prototype.getAccountStateInformation as Mock;
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const mockUpdateRecords = DynamoDatabaseService.prototype.updateUserStatus as Mock;
 const mockValidateEventAgainstSchema = vi.spyOn(validationModule, 'validateEventAgainstSchema');
 
 const accountStateEngine = AccountStateEngine.getInstance();
@@ -138,24 +132,30 @@ describe('intervention processor handler', () => {
       awsRegion: '',
     };
     mockEvent = { Records: [mockRecord] };
-    mockRetrieveRecords.mockReturnValue({
-      blocked: false,
-      reproveIdentity: false,
-      resetPassword: false,
-      suspended: false,
-    });
-    mockUpdateRecords.mockReturnValue({
-      $metadata: {
-        httpStatusCode: 200,
-      },
-    });
     accountStateEngine.getInterventionEnumFromCode = vi.fn().mockImplementation(() => EventsEnum.FRAUD_BLOCK_ACCOUNT);
   });
 
   describe('handle', () => {
     it('does nothing if SQS event contains no record', async () => {
       const loggerWarnSpy = vi.spyOn(logger, 'warn');
-      await handler({ Records: [] }, mockContext, emptyInterventionEventsService);
+      await handler(
+        { Records: [] },
+        mockContext,
+        new InMemoryAccountStatusService({
+          baseStatus: {
+            blocked: false,
+            reproveIdentity: false,
+            resetPassword: false,
+            suspended: false,
+            sentAt: 1234,
+            appliedAt: 7890,
+            isAccountDeleted: false,
+            history: [],
+            intervention: '',
+          },
+        }),
+        emptyInterventionEventsService,
+      );
       expect(loggerWarnSpy).toHaveBeenCalledWith('Received no records.');
       expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
@@ -163,7 +163,9 @@ describe('intervention processor handler', () => {
 
     it('should not retry if message body cannot be parsed to valid JSON', async () => {
       mockRecord.body = ' ';
-      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
+      expect(
+        await handler(mockEvent, mockContext, new InMemoryAccountStatusService(), emptyInterventionEventsService),
+      ).toEqual({
         batchItemFailures: [],
       });
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -174,12 +176,6 @@ describe('intervention processor handler', () => {
     });
 
     it('should not retry the record if a StateTransitionError is received', async () => {
-      mockRetrieveRecords.mockReturnValue({
-        blocked: false,
-        reproveIdentity: false,
-        resetPassword: false,
-        suspended: false,
-      });
       accountStateEngine.applyEventTransition = vi.fn().mockImplementationOnce(() => {
         throw new StateTransitionError('State transition Error', EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, {
           nextAllowableInterventions: [],
@@ -192,7 +188,26 @@ describe('intervention processor handler', () => {
           interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
         });
       });
-      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
+      expect(
+        await handler(
+          mockEvent,
+          mockContext,
+          new InMemoryAccountStatusService({
+            baseStatus: {
+              blocked: false,
+              reproveIdentity: false,
+              resetPassword: false,
+              suspended: false,
+              sentAt: 1234,
+              appliedAt: 7890,
+              isAccountDeleted: false,
+              history: [],
+              intervention: '',
+            },
+          }),
+          emptyInterventionEventsService,
+        ),
+      ).toEqual({
         batchItemFailures: [],
       });
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -228,7 +243,9 @@ describe('intervention processor handler', () => {
         interventionName: EventsEnum.FRAUD_BLOCK_ACCOUNT,
         nextAllowableInterventions: [],
       });
-      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
+      expect(
+        await handler(mockEvent, mockContext, new InMemoryAccountStatusService(), emptyInterventionEventsService),
+      ).toEqual({
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
@@ -254,7 +271,6 @@ describe('intervention processor handler', () => {
     });
 
     it('should succeed when an intervention event is received for a non existing user', async () => {
-      mockRetrieveRecords.mockReturnValue([]);
       accountStateEngine.applyEventTransition = vi.fn().mockReturnValueOnce({
         stateResult: {
           blocked: false,
@@ -265,7 +281,9 @@ describe('intervention processor handler', () => {
         interventionName: EventsEnum.FRAUD_BLOCK_ACCOUNT,
         nextAllowableInterventions: [],
       });
-      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
+      expect(
+        await handler(mockEvent, mockContext, new InMemoryAccountStatusService(), emptyInterventionEventsService),
+      ).toEqual({
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
@@ -303,7 +321,9 @@ describe('intervention processor handler', () => {
       });
       mockRecord.body = JSON.stringify(resetPasswordEventBody);
       mockEvent.Records = [mockRecord];
-      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
+      expect(
+        await handler(mockEvent, mockContext, new InMemoryAccountStatusService(), emptyInterventionEventsService),
+      ).toEqual({
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
@@ -339,14 +359,26 @@ describe('intervention processor handler', () => {
     });
 
     it('should not process the event if the user account is marked as deleted', async () => {
-      mockRetrieveRecords.mockReturnValue({
-        blocked: false,
-        reproveIdentity: false,
-        resetPassword: false,
-        suspended: false,
-        isAccountDeleted: true,
-      });
-      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
+      expect(
+        await handler(
+          mockEvent,
+          mockContext,
+          new InMemoryAccountStatusService({
+            baseStatus: {
+              blocked: false,
+              reproveIdentity: false,
+              resetPassword: false,
+              suspended: false,
+              sentAt: 1234,
+              appliedAt: 7890,
+              isAccountDeleted: true,
+              history: [],
+              intervention: '',
+            },
+          }),
+          emptyInterventionEventsService,
+        ),
+      ).toEqual({
         batchItemFailures: [],
       });
       expect(addMetric).toHaveBeenLastCalledWith(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
@@ -378,7 +410,14 @@ describe('intervention processor handler', () => {
       mockValidateEventAgainstSchema.mockReturnValueOnce(interventionEventBodyInTheFuture);
 
       mockRecord.body = JSON.stringify(interventionEventBodyInTheFuture);
-      expect(await handler({ Records: [mockRecord] }, mockContext, emptyInterventionEventsService)).toEqual({
+      expect(
+        await handler(
+          { Records: [mockRecord] },
+          mockContext,
+          new InMemoryAccountStatusService(),
+          emptyInterventionEventsService,
+        ),
+      ).toEqual({
         batchItemFailures: [
           {
             itemIdentifier: '123',
@@ -406,15 +445,24 @@ describe('intervention processor handler', () => {
       mockValidateEventAgainstSchema.mockImplementationOnce(() => {
         throw new ValidationError('invalid event');
       });
-      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
+      expect(
+        await handler(mockEvent, mockContext, new InMemoryAccountStatusService(), emptyInterventionEventsService),
+      ).toEqual({
         batchItemFailures: [],
       });
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
     it('should return message id to be retried if dynamo db operation fails', async () => {
-      mockRetrieveRecords.mockRejectedValue(new Error('Error'));
-      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
+      const error = new Error('Error');
+      expect(
+        await handler(
+          mockEvent,
+          mockContext,
+          new InMemoryAccountStatusService({ error }),
+          emptyInterventionEventsService,
+        ),
+      ).toEqual({
         batchItemFailures: [
           {
             itemIdentifier: '123',
@@ -427,16 +475,26 @@ describe('intervention processor handler', () => {
     });
 
     it('should not process the event and return if the event timestamp predates the latest applied intervention for the user ', async () => {
-      mockRetrieveRecords.mockReturnValueOnce({
-        blocked: false,
-        reproveIdentity: false,
-        resetPassword: false,
-        suspended: false,
-        isAccountDeleted: false,
-        appliedAt: t0ms + 10,
-        sentAt: t0ms + 10000,
-      });
-      expect(await handler({ Records: [mockRecord] }, mockContext, emptyInterventionEventsService)).toEqual({
+      expect(
+        await handler(
+          { Records: [mockRecord] },
+          mockContext,
+          new InMemoryAccountStatusService({
+            baseStatus: {
+              blocked: false,
+              reproveIdentity: false,
+              resetPassword: false,
+              suspended: false,
+              appliedAt: t0ms + 10,
+              sentAt: t0ms + 10000,
+              isAccountDeleted: false,
+              history: [],
+              intervention: '',
+            },
+          }),
+          emptyInterventionEventsService,
+        ),
+      ).toEqual({
         batchItemFailures: [],
       });
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -462,13 +520,6 @@ describe('intervention processor handler', () => {
 
     it('should successfully process valid event from fraud', async () => {
       mockValidateEventAgainstSchema.mockReturnValueOnce(interventionEventBody);
-      mockRetrieveRecords.mockReturnValue({
-        blocked: false,
-        reproveIdentity: false,
-        resetPassword: false,
-        suspended: false,
-        isAccountDeleted: false,
-      });
       mockRecord = {
         messageId: '123',
         receiptHandle: '',
@@ -507,15 +558,42 @@ describe('intervention processor handler', () => {
         interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
         nextAllowableInterventions: [],
       });
-      expect(await handler({ Records: [mockRecord] }, mockContext, emptyInterventionEventsService)).toEqual({
+      expect(
+        await handler(
+          { Records: [mockRecord] },
+          mockContext,
+          new InMemoryAccountStatusService({
+            baseStatus: {
+              blocked: false,
+              reproveIdentity: false,
+              resetPassword: false,
+              suspended: false,
+              sentAt: 1234,
+              appliedAt: 7890,
+              isAccountDeleted: false,
+              history: [],
+              intervention: '',
+            },
+          }),
+          emptyInterventionEventsService,
+        ),
+      ).toEqual({
         batchItemFailures: [],
       });
       expect(publishTimeToResolveMetrics).toHaveBeenCalledTimes(1);
     });
 
     it('should not retry if too many items are returned', async () => {
-      mockRetrieveRecords.mockRejectedValueOnce(new TooManyRecordsError('Too many records'));
-      expect(await handler(mockEvent, mockContext, emptyInterventionEventsService)).toEqual({
+      const error = new TooManyRecordsError('Too many records');
+
+      expect(
+        await handler(
+          mockEvent,
+          mockContext,
+          new InMemoryAccountStatusService({ error }),
+          emptyInterventionEventsService,
+        ),
+      ).toEqual({
         batchItemFailures: [],
       });
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -556,7 +634,14 @@ describe('intervention processor handler', () => {
         eventSourceARN: '',
         awsRegion: '',
       };
-      expect(await handler({ Records: [mockRecord] }, mockContext, emptyInterventionEventsService)).toEqual({
+      expect(
+        await handler(
+          { Records: [mockRecord] },
+          mockContext,
+          new InMemoryAccountStatusService(),
+          emptyInterventionEventsService,
+        ),
+      ).toEqual({
         batchItemFailures: [],
       });
       expect(addMetric).toHaveBeenCalledWith('IDENTITY_NOT_SUFFICIENTLY_PROVED');
@@ -569,8 +654,12 @@ describe('intervention processor handler', () => {
     });
 
     it('should log the expected error line when a message is retried - this line is used by a metric filter for canary deployment alarm', async () => {
-      mockRetrieveRecords.mockRejectedValue(new Error('Error'));
-      await handler(mockEvent, mockContext, emptyInterventionEventsService);
+      await handler(
+        mockEvent,
+        mockContext,
+        new InMemoryAccountStatusService({ error: new Error('Error') }),
+        emptyInterventionEventsService,
+      );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.error).toHaveBeenCalledWith('Error caught, message will be retried.', { errorMessage: 'Error' });

@@ -37,6 +37,7 @@ run-name: Release ${{ github.event.inputs.target }} ${{ github.event.inputs.incr
 permissions:
   actions: read
   contents: write
+  packages: read
   id-token: write # needed for provenance data generation, this allows GitHub to generate OIDC token for npmjs.com
 
 jobs:
@@ -47,8 +48,10 @@ jobs:
       - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 #v3.2.0
         id: app-token
         with:
-          app-id: ${{ vars.PUBLISHER_APP_ID }}
+          client-id: ${{ vars.PUBLISHER_APP_CLIENT_ID }}
           private-key: ${{ secrets.PUBLISHER_APP_SECRET }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.repository }}
 
       - name: Checkout code
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 #v7.0.0
@@ -59,10 +62,12 @@ jobs:
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # pin@v6.3.0
         with:
           node-version-file: '.node-version'
+          registry-url: 'https://npm.pkg.github.com/'
+          scope: '@govuk-one-login'
           package-manager-cache: false # never use caching in release builds
 
       - name: Run npm install
-        run: npm ci
+        run: npm ci --ignore-scripts
         env:
           NODE_AUTH_TOKEN: ${{ github.token }}
 

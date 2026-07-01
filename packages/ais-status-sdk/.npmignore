@@ -3,3 +3,5 @@ src/
 tsconfig*.json
 vitest.config.ts
 coverage/
+rollup.config.ts
+vitest.config.ts
