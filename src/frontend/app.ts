@@ -1,9 +1,16 @@
 import fastify from 'fastify';
 import view from '@fastify/view';
 import staticFiles from '@fastify/static';
+import formbody from '@fastify/formbody';
 import nunjucks from 'nunjucks';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
+import {
+  InterventionClient,
+  InterventionClientInterface,
+  InterventionName,
+  InterventionStub,
+} from '@govuk-one-login/ais-status-sdk';
 
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).
@@ -12,8 +19,15 @@ const nodeModulesRoot = existsSync(path.join(__dirname, 'node_modules')) ? __dir
 // Stage prefix for asset URLs — empty string locally, /v1 when behind API Gateway without a custom domain
 const stagePrefix = process.env['STAGE_PREFIX'] ?? '';
 
-export function init() {
+export function init(
+  interventionClient: InterventionClientInterface = new InterventionClient({
+    baseUrl: 'https://example.com',
+  }),
+) {
   const server = fastify();
+
+  // Parse URL-encoded form bodies (application/x-www-form-urlencoded)
+  server.register(formbody);
 
   // Serve govuk assets under /assets/ — registers both the dist root (for CSS/JS)
   // and the assets subdirectory (for fonts, images, manifest) as a single plugin registration.
@@ -33,9 +47,35 @@ export function init() {
     templates: [path.join(__dirname, 'views'), path.join(nodeModulesRoot, 'node_modules/govuk-frontend/dist')],
   });
 
-  server.get('/', async (_request, reply) =>
-    reply.view('index.njk', { stagePrefix, assetPath: `${stagePrefix}/assets` }),
-  );
+  const viewContext = { stagePrefix, assetPath: `${stagePrefix}/assets` };
+
+  server.get('/', async (_request, reply) => reply.view('index.njk', viewContext));
+
+  // Accepts the submitted userId from the search form and redirects to the user details page.
+  server.post<{ Body: { userId?: string } }>('/search', async (request, reply) => {
+    const userId = request.body.userId?.trim() ?? '';
+    return reply.redirect(`${stagePrefix}/user/${encodeURIComponent(userId)}`, 303);
+  });
+
+  // Fetches account status for the given userId and renders the details page.
+  server.get<{ Params: { userId: string } }>('/user/:userId', async (request, reply) => {
+    const userId = decodeURIComponent(request.params.userId);
+
+    const accountStatus = await interventionClient.getAccountStatus(userId);
+
+    return reply.view('user-details.njk', { ...viewContext, accountStatus, userId });
+  });
 
   return server;
+}
+
+/* istanbul ignore next */
+if (require.main === module) {
+  // called directly i.e. "node app"
+  init(
+    new InterventionStub({ interventionNames: [InterventionName.RESET_PASSWORD, InterventionName.REPROVE_IDENTITY] }),
+  ).listen({ port: 3000 }, (error) => {
+    if (error) console.error(error);
+    console.log('server listening on 3000');
+  });
 }
