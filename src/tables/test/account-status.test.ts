@@ -5,6 +5,7 @@ import { accountStatusTableConfig, PersistentAccountStatusService } from '../acc
 import { DynamoDBDocumentClient, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import 'aws-sdk-client-mock-vitest/extend';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
+import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -196,6 +197,83 @@ describe('PersistentAccountStatusService deep DynamoDB Tests', () => {
         ttl: 5678,
       },
     });
+
+    expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
+      ConditionExpression:
+        'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
+      ExpressionAttributeNames: {
+        '#deletedAt': 'deletedAt',
+        '#isAccountDeleted': 'isAccountDeleted',
+        '#ttl': 'ttl',
+      },
+      ExpressionAttributeValues: {
+        ':deletedAt': 1678665600000,
+        ':false': false,
+        ':isAccountDeleted': true,
+        ':ttl': 1678677945,
+      },
+      Key: {
+        pk: '1234',
+      },
+      ReturnValues: 'ALL_NEW',
+      TableName: 'table_name',
+      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',
+    });
+  });
+
+  test('updateDeleteStatus throws ConditionalCheckFailedException', async () => {
+    ddbMock.on(UpdateCommand).rejects(
+      new ConditionalCheckFailedException({
+        $metadata: {},
+        message: '',
+      }),
+    );
+
+    const recordService = new DynamoDBRecordService<typeof accountStatusTableConfig.schema>(
+      accountStatusTableConfig,
+      ddbMock as unknown as DynamoDBDocumentClient,
+    );
+
+    const service = new PersistentAccountStatusService(recordService);
+
+    const res = await service.updateDeleteStatus('1234');
+
+    expect(res).toEqual(undefined);
+
+    expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
+      ConditionExpression:
+        'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
+      ExpressionAttributeNames: {
+        '#deletedAt': 'deletedAt',
+        '#isAccountDeleted': 'isAccountDeleted',
+        '#ttl': 'ttl',
+      },
+      ExpressionAttributeValues: {
+        ':deletedAt': 1678665600000,
+        ':false': false,
+        ':isAccountDeleted': true,
+        ':ttl': 1678677945,
+      },
+      Key: {
+        pk: '1234',
+      },
+      ReturnValues: 'ALL_NEW',
+      TableName: 'table_name',
+      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',
+    });
+  });
+
+  test('updateDeleteStatus throws generic error', async () => {
+    ddbMock.on(UpdateCommand).rejects(new Error('Error message'));
+
+    const recordService = new DynamoDBRecordService<typeof accountStatusTableConfig.schema>(
+      accountStatusTableConfig,
+      ddbMock as unknown as DynamoDBDocumentClient,
+    );
+
+    const service = new PersistentAccountStatusService(recordService);
+
+    await expect(service.updateDeleteStatus('1234')).rejects.toThrow('Error message');
 
     expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
       ConditionExpression:

@@ -5,6 +5,7 @@ import TableConfig from './table-config';
 import { AppConfigService } from '../services/app-config-service';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { UpdateCommandOutput } from '@aws-sdk/lib-dynamodb';
+import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
 import { AccountStateEngineOutput, CurrentTimeDescriptor } from '../data-types/interfaces';
 import { InterventionEventMessage } from '../contracts/intervention-events';
 import { LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
@@ -126,27 +127,38 @@ export class PersistentAccountStatusService implements AccountStatusService {
     await this.recordService.update(accountId, partialCommandInput);
   }
 
-  updateDeleteStatus(accountId: string) {
+  async updateDeleteStatus(accountId: string) {
     const now = getCurrentTimestamp();
     const ttl = now.seconds + appConfig.maxRetentionSeconds;
 
-    return this.recordService.update(accountId, {
-      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',
-      ExpressionAttributeNames: {
-        '#isAccountDeleted': 'isAccountDeleted',
-        '#ttl': 'ttl',
-        '#deletedAt': 'deletedAt',
-      },
-      ExpressionAttributeValues: {
-        ':isAccountDeleted': true,
-        ':ttl': ttl,
-        ':false': false,
-        ':deletedAt': now.milliseconds,
-      },
-      ReturnValues: 'ALL_NEW',
-      ConditionExpression:
-        'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
-    });
+    try {
+      return await this.recordService.update(accountId, {
+        UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',
+        ExpressionAttributeNames: {
+          '#isAccountDeleted': 'isAccountDeleted',
+          '#ttl': 'ttl',
+          '#deletedAt': 'deletedAt',
+        },
+        ExpressionAttributeValues: {
+          ':isAccountDeleted': true,
+          ':ttl': ttl,
+          ':false': false,
+          ':deletedAt': now.milliseconds,
+        },
+        ReturnValues: 'ALL_NEW',
+        ConditionExpression:
+          'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
+      });
+    } catch (error) {
+      if (error instanceof ConditionalCheckFailedException) {
+        logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} No intervention exists for this account.`, {
+          error,
+          userId: accountId,
+        });
+        return;
+      }
+      throw error;
+    }
   }
 }
 
