@@ -1,6 +1,6 @@
+/* v8 ignore file */
 // test ignore
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-/* istanbul ignore file */
 import logger from '../commons/logger';
 import { InterventionEventMessage } from '../contracts/intervention-events';
 import { EventsEnum, InterventionState, LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
