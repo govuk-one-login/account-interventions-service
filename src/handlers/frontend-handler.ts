@@ -1,4 +1,4 @@
-/* istanbul ignore file -- very simple file to host Fastify on Lambda */
+/* v8 ignore file -- very simple file to host Fastify on Lambda */
 
 import awsLambdaFastify from '@fastify/aws-lambda';
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
