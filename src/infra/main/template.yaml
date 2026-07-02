@@ -2104,6 +2104,12 @@ Outputs:
     Description: 'Private API Gateway endpoint URL for AIS methods'
     Value: !Sub 'https://${PrivateApi}.execute-api.${AWS::Region}.amazonaws.com/main'
 
+  PrivateApiRestApiId:
+    Description: 'The RestApiId of the PrivateApi (v2/main) API Gateway'
+    Value: !GetAtt PrivateApi.RestApiId
+    Export:
+      Name: !Sub '${AWS::StackName}-PrivateApiRestApiId'
+
   TxMAEgressSqsQueueUrl:
     Description: 'Endpoint URL for TxMA Egress Queue'
     Value: !Ref TxMAEgressQueue
