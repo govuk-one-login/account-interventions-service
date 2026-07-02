@@ -26,6 +26,16 @@ Parameters:
       Set to empty string when a custom domain with base path mapping is in use.
     Type: String
     Default: /v1
+  VpcStackName:
+    Description: The name of the stack that defines the VPC
+    Type: String
+    Default: vpc
+    AllowedPattern: ^[a-z0-9-]+$
+  MainStackName:
+    Description: The name of the main AIS stack, used to import the PrivateApi RestApiId
+    Type: String
+    Default: ais-main
+    AllowedPattern: ^[a-z0-9-]+$
   PermissionsBoundary:
     Description: The ARN of the permissions boundary to apply when creating IAM roles
     Type: String
@@ -58,7 +68,8 @@ Parameters:
 Conditions:
   UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, 'none']]
   UseCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, 'none']]
-  IsDevBuildStaging: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build], !Equals [!Ref Environment, staging]]
+  IsDevBuildStaging:
+    !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build], !Equals [!Ref Environment, staging]]
 
 Globals:
   Function:
@@ -69,6 +80,15 @@ Globals:
     AutoPublishAlias: live
     CodeUri: ../../../dist/frontend
     KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
+    VpcConfig:
+      SubnetIds:
+        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdA
+        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdB
+        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdC
+      SecurityGroupIds:
+        - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
+    Layers: #Dynatrace lambda layer
+      - arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_329_73_20260123-140641_with_collector_nodejs_arm:1
 
 Resources:
   ### Frontend Lambda ###
@@ -89,6 +109,10 @@ Resources:
       Environment:
         Variables:
           STAGE_PREFIX: !Ref StagePrefix
+          STATUS_API_URL: !Sub
+            - 'https://${PrivateApiId}.execute-api.${AWS::Region}.amazonaws.com/main'
+            - PrivateApiId:
+                Fn::ImportValue: !Sub '${MainStackName}-PrivateApiRestApiId'
       Events:
         ApiEvent:
           Type: Api
@@ -126,7 +150,7 @@ Resources:
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
       Tags:
         - Key: Product
           Value: !Ref ProductTagValue
@@ -153,6 +177,14 @@ Resources:
               - 'logs:PutLogEvents'
             Resource:
               - !GetAtt FrontendFunctionLogGroup.Arn
+          - Effect: Allow
+            Action:
+              - 'execute-api:Invoke'
+            Resource:
+              - !Sub
+                - 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PrivateApiId}/main/*'
+                - PrivateApiId:
+                    Fn::ImportValue: !Sub '${MainStackName}-PrivateApiRestApiId'
       Roles:
         - !Ref FrontendFunctionRole
 
