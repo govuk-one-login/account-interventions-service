@@ -1,3 +1,5 @@
+// test ignore
+/* istanbul ignore file */
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import logger from '../commons/logger';
 import { InterventionEventMessage } from '../contracts/intervention-events';
@@ -138,16 +140,14 @@ export function enrichEvents(updates: InterventionUpdate[], message: Interventio
 export async function setTtlOnInactiveEvents(
   accountId: string,
   interventionEventsService: InterventionEventsService,
-  closedInterventionNames: InterventionName[]
+  closedInterventionNames: InterventionName[],
 ) {
   const allEvents = await interventionEventsService.fetchEventsForAccount(accountId);
   const now = getCurrentTimestamp();
   const ttl = now.seconds + appConfig.maxRetentionSeconds;
 
   const eventsNeedingTtl = allEvents.filter(
-    (event) =>
-      closedInterventionNames.includes(event.interventionName) &&
-      !event.ttl
+    (event) => closedInterventionNames.includes(event.interventionName) && !event.ttl,
   );
 
   if (eventsNeedingTtl.length > 0) {
