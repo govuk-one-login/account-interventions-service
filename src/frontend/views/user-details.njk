@@ -10,14 +10,18 @@
   </p>
   <h1 class="govuk-heading-l">Active Interventions</h1>
   {% if accountStatus %}
-    {% set rows = [] %}
-    {% for intervention in accountStatus.interventions %}
-      {% set rows = rows.concat([{
-        key: { text: intervention.name },
-        value: { html: '<strong class="govuk-tag govuk-tag--red">Active</strong>' }
-      }]) %}
-    {% endfor %}
-    {{ govukSummaryList({ rows: rows }) }}
+    {% if accountStatus.interventions.length %}
+      {% set rows = [] %}
+      {% for intervention in accountStatus.interventions %}
+        {% set rows = rows.concat([{
+          key: { text: intervention.name },
+          value: { html: '<strong class="govuk-tag govuk-tag--red">Active</strong>' }
+        }]) %}
+      {% endfor %}
+      {{ govukSummaryList({ rows: rows }) }}
+    {% else %}
+      <p class="govuk-body">There are no active interventions on this account.</p>
+    {% endif %}
   {% else %}
     <p class="govuk-body">No account found for this identifier.</p>
   {% endif %}

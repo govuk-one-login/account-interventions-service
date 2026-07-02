@@ -31,7 +31,7 @@ describe('frontend app', () => {
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
       });
       expect(response.statusCode).toBe(303);
-      expect(response.headers['location']).toBe('/user/test-user-id');
+      expect(response.headers.location).toBe('/user/test-user-id');
     });
 
     it('URL-encodes the userId in the redirect location', async () => {
@@ -44,7 +44,7 @@ describe('frontend app', () => {
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
       });
       expect(response.statusCode).toBe(303);
-      expect(response.headers['location']).toBe(`/user/${encodeURIComponent(userId)}`);
+      expect(response.headers.location).toBe(`/user/${encodeURIComponent(userId)}`);
     });
 
     it('redirects to /user/ when userId is missing from the body', async () => {
@@ -56,7 +56,7 @@ describe('frontend app', () => {
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
       });
       expect(response.statusCode).toBe(303);
-      expect(response.headers['location']).toBe('/user/');
+      expect(response.headers.location).toBe('/user/');
     });
   });
 
@@ -74,6 +74,14 @@ describe('frontend app', () => {
       const response = await server.inject({ method: 'GET', url: '/user/test-user-id' });
       expect(response.statusCode).toBe(200);
       expect(response.body).toContain('PERMANENT_SUSPENSION');
+    });
+
+    it('displays a no interventions message when the account exists but has no interventions', async () => {
+      const server = init(new InterventionStub({ result: { interventions: [] } }));
+      const response = await server.inject({ method: 'GET', url: '/user/test-user-id' });
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toContain('There are no active interventions on this account.');
+      expect(response.body).not.toContain('No account found for this identifier.');
     });
 
     it('URL-decodes the userId path parameter before querying', async () => {
