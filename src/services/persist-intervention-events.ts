@@ -1,6 +1,6 @@
 // test ignore
-/* istanbul ignore file */
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+/* istanbul ignore file */
 import logger from '../commons/logger';
 import { InterventionEventMessage } from '../contracts/intervention-events';
 import { EventsEnum, InterventionState, LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
@@ -14,6 +14,10 @@ import { AppConfigService } from './app-config-service';
 interface InterventionUpdate {
   interventionName: InterventionName;
   interventionState: InterventionState;
+}
+
+function myFunction() {
+  return 100;
 }
 
 const appConfig = AppConfigService.getInstance();
@@ -31,6 +35,7 @@ async function persistInterventionEvents(
   previousState: StateDetails | undefined,
   interventionEventsService: InterventionEventsService,
 ) {
+  myFunction();
   const updates: InterventionUpdate[] = config[event];
 
   const activeInterventions = await getActiveInterventions(
