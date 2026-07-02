@@ -12,6 +12,10 @@ beforeEach(() => {
   vi.setSystemTime(new Date(Date.UTC(2023, 2, 13)).getTime());
 });
 
+afterAll(() => {
+  vi.useRealTimers();
+});
+
 describe('PersistentAccountStatusService', () => {
   test('getAccountStateInformation', async () => {
     const accountStatus = {
@@ -158,10 +162,10 @@ describe('PersistentAccountStatusService', () => {
         '#ttl': 'ttl',
       },
       ExpressionAttributeValues: {
-        ':deletedAt': expect.any(Number) as number,
+        ':deletedAt': 1678665600000,
         ':false': false,
         ':isAccountDeleted': true,
-        ':ttl': expect.any(Number) as number,
+        ':ttl': 1678677945,
       },
       ReturnValues: 'ALL_NEW',
       UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',

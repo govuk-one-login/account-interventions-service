@@ -77,6 +77,10 @@ describe('Account Deletion Processor', () => {
     vi.clearAllMocks();
   });
 
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   it('does nothing if SQS event contains no record', async () => {
     mockEvent = { Records: [] };
     await handler(mockEvent, mockContext, new InMemoryAccountStatusService());

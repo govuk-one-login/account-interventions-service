@@ -95,6 +95,10 @@ describe('status-retriever-handler', () => {
     vi.resetAllMocks();
   });
 
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   it('will return the correct response from the database if the user ID matches', async () => {
     const suspendedRecord: AccountStatus = {
       pk: 'testUserID',
@@ -588,6 +592,10 @@ describe('v2 Status API handler', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.resetAllMocks();
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
   });
 
   it("returns an empty list of interventions if the requested account doesn't exist", async () => {
