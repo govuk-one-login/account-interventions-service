@@ -115,6 +115,7 @@ export const removeUnnecessaryUpdates = (
  */
 export function enrichEvents(updates: InterventionUpdate[], message: InterventionEventMessage): InterventionEvent[] {
   const currentTime = getCurrentTimestamp().milliseconds;
+  const transactionId = randomUUID();
 
   return updates.map((update, index) => {
     const interventionExtension =
@@ -131,6 +132,8 @@ export function enrichEvents(updates: InterventionUpdate[], message: Interventio
       originatingComponentId: interventionExtension?.originating_component_id,
       requesterId: interventionExtension?.requester_id,
       originatorReferenceId: interventionExtension?.originator_reference_id,
+      transactionId,
+      messageEventId: message.event_id,
     };
   });
 }
@@ -138,16 +141,14 @@ export function enrichEvents(updates: InterventionUpdate[], message: Interventio
 export async function setTtlOnInactiveEvents(
   accountId: string,
   interventionEventsService: InterventionEventsService,
-  closedInterventionNames: InterventionName[]
+  closedInterventionNames: InterventionName[],
 ) {
   const allEvents = await interventionEventsService.fetchEventsForAccount(accountId);
   const now = getCurrentTimestamp();
   const ttl = now.seconds + appConfig.maxRetentionSeconds;
 
   const eventsNeedingTtl = allEvents.filter(
-    (event) =>
-      closedInterventionNames.includes(event.interventionName) &&
-      !event.ttl
+    (event) => closedInterventionNames.includes(event.interventionName) && !event.ttl,
   );
 
   if (eventsNeedingTtl.length > 0) {

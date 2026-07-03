@@ -22,6 +22,8 @@ const schema = z.object({
   requesterId: z.string().optional(),
   originatorReferenceId: z.union([z.string(), z.array(z.string())]).optional(),
   ttl: z.number().optional(),
+  transactionId: z.string().optional(),
+  messageEventId: z.string().optional(),
 });
 
 export const interventionEventsTableConfig: TableConfig<typeof schema> = {
