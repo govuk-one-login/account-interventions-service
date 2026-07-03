@@ -4,11 +4,7 @@ import { addMetric } from './metrics';
 import { HistoryStringBuilder } from './history-string-builder';
 import { AppConfigService } from '../services/app-config-service';
 import { InterventionEventMessage } from '../contracts/intervention-events';
-import { UpdateCommandInput } from '@aws-sdk/lib-dynamodb';
-
-type DeepRequiredKey<T, K extends keyof T> = Omit<T, K> & {
-  [P in K]-?: Exclude<T[P], undefined>;
-};
+import { AccountStatus } from '../tables/account-status';
 
 /**
  * Method to build a Partial of UpdateItemCommandInput
@@ -25,55 +21,38 @@ export function buildPartialUpdateAccountStateCommand(
   interventionEvent: InterventionEventMessage,
   historyList: string[],
   interventionName?: AISInterventionTypes,
-): Partial<UpdateCommandInput> {
+): { input: Partial<AccountStatus>; keysToRemove?: (keyof AccountStatus)[] } {
   const eventTimestamp = interventionEvent.event_timestamp_ms;
 
-  const baseUpdateItemCommandInput: DeepRequiredKey<
-    Partial<UpdateCommandInput>,
-    'ExpressionAttributeNames' | 'ExpressionAttributeValues' | 'UpdateExpression'
-  > = {
-    ExpressionAttributeNames: {
-      '#B': 'blocked',
-      '#S': 'suspended',
-      '#RP': 'resetPassword',
-      '#RI': 'reproveIdentity',
-      '#UA': 'updatedAt',
-    },
-    ExpressionAttributeValues: {
-      ':b': finalState.blocked,
-      ':s': finalState.suspended,
-      ':rp': finalState.resetPassword,
-      ':ri': finalState.reproveIdentity,
-      ':ua': currentTimestamp,
-    },
-    UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua',
+  const baseUpdateItemCommandInput: Partial<AccountStatus> = {
+    blocked: finalState.blocked,
+    suspended: finalState.suspended,
+    resetPassword: finalState.resetPassword,
+    reproveIdentity: finalState.reproveIdentity,
+    updatedAt: currentTimestamp,
   };
 
   if (interventionEvent.event_name === EventsEnum.IPV_ACCOUNT_INTERVENTION_END) {
-    baseUpdateItemCommandInput.ExpressionAttributeNames['#RIdA'] = 'reprovedIdentityAt';
-    baseUpdateItemCommandInput.ExpressionAttributeValues[':rida'] = eventTimestamp;
-    baseUpdateItemCommandInput.ExpressionAttributeNames['#H'] = 'history';
-    baseUpdateItemCommandInput.ExpressionAttributeValues[':h'] = extractValidHistoryItems(
-      historyList,
-      currentTimestamp,
-    );
-    baseUpdateItemCommandInput.UpdateExpression += ', #RIdA = :rida, #H = :h';
-    return baseUpdateItemCommandInput;
+    return {
+      input: {
+        ...baseUpdateItemCommandInput,
+        reprovedIdentityAt: eventTimestamp,
+        history: extractValidHistoryItems(historyList, currentTimestamp),
+      },
+    };
   }
 
   if (
     interventionEvent.event_name === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL ||
     interventionEvent.event_name === EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT
   ) {
-    baseUpdateItemCommandInput.ExpressionAttributeNames['#RPswdA'] = 'resetPasswordAt';
-    baseUpdateItemCommandInput.ExpressionAttributeValues[':rpswda'] = eventTimestamp;
-    baseUpdateItemCommandInput.ExpressionAttributeNames['#H'] = 'history';
-    baseUpdateItemCommandInput.ExpressionAttributeValues[':h'] = extractValidHistoryItems(
-      historyList,
-      currentTimestamp,
-    );
-    baseUpdateItemCommandInput.UpdateExpression += ', #RPswdA = :rpswda, #H = :h';
-    return baseUpdateItemCommandInput;
+    return {
+      input: {
+        ...baseUpdateItemCommandInput,
+        resetPasswordAt: eventTimestamp,
+        history: extractValidHistoryItems(historyList, currentTimestamp),
+      },
+    };
   }
 
   if (!interventionName) {
@@ -81,30 +60,29 @@ export function buildPartialUpdateAccountStateCommand(
     throw new Error('The intervention received did not have an interventionName field.');
   }
 
-  baseUpdateItemCommandInput.ExpressionAttributeNames['#INT'] = 'intervention';
-  baseUpdateItemCommandInput.ExpressionAttributeValues[':int'] = interventionName;
-  baseUpdateItemCommandInput.ExpressionAttributeNames['#AA'] = 'appliedAt';
-  baseUpdateItemCommandInput.ExpressionAttributeValues[':aa'] = currentTimestamp;
-  baseUpdateItemCommandInput.ExpressionAttributeNames['#SA'] = 'sentAt';
-  baseUpdateItemCommandInput.ExpressionAttributeValues[':sa'] = eventTimestamp;
   const stringBuilder = new HistoryStringBuilder();
-  baseUpdateItemCommandInput.ExpressionAttributeNames['#H'] = 'history';
-  baseUpdateItemCommandInput.ExpressionAttributeValues[':h'] = [
-    ...extractValidHistoryItems(historyList, currentTimestamp),
-    stringBuilder.getHistoryString(interventionEvent, eventTimestamp),
-  ];
-  baseUpdateItemCommandInput.UpdateExpression += ', #INT = :int, #SA = :sa, #AA = :aa, #H = :h';
-  baseUpdateItemCommandInput.UpdateExpression += buildRemoveExpression(finalState);
 
-  return baseUpdateItemCommandInput;
+  return {
+    input: {
+      ...baseUpdateItemCommandInput,
+      intervention: interventionName,
+      appliedAt: currentTimestamp,
+      sentAt: eventTimestamp,
+      history: [
+        ...extractValidHistoryItems(historyList, currentTimestamp),
+        stringBuilder.getHistoryString(interventionEvent, eventTimestamp),
+      ],
+    },
+    keysToRemove: keysToRemove(finalState),
+  };
 }
 
 /**
  * Helper function to build the Remove Expression for DynamoDB update
  * @param finalState - new account state object
  */
-function buildRemoveExpression(finalState: StateDetails) {
-  const itemsToRemove = [];
+function keysToRemove(finalState: StateDetails): (keyof AccountStatus)[] {
+  const itemsToRemove: (keyof AccountStatus)[] = [];
 
   if (finalState.resetPassword) {
     itemsToRemove.push('resetPasswordAt');
@@ -113,11 +91,7 @@ function buildRemoveExpression(finalState: StateDetails) {
     itemsToRemove.push('reprovedIdentityAt');
   }
 
-  if (itemsToRemove.length === 0) {
-    return '';
-  }
-
-  return ' REMOVE ' + itemsToRemove.join(', ');
+  return itemsToRemove;
 }
 
 /**

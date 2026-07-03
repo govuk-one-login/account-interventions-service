@@ -124,7 +124,9 @@ export class PersistentAccountStatusService implements AccountStatusService {
       statusResult.interventionName,
     );
     logger.debug(`${LOGS_PREFIX_SENSITIVE_INFO} Updating user status`, { userId: accountId, partialCommandInput });
-    await this.recordService.update(accountId, partialCommandInput);
+    await this.recordService.update(accountId, partialCommandInput.input, {
+      RemoveKeys: partialCommandInput.keysToRemove,
+    });
   }
 
   async updateDeleteStatus(accountId: string) {
@@ -132,23 +134,22 @@ export class PersistentAccountStatusService implements AccountStatusService {
     const ttl = now.seconds + appConfig.maxRetentionSeconds;
 
     try {
-      return await this.recordService.update(accountId, {
-        UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',
-        ExpressionAttributeNames: {
-          '#isAccountDeleted': 'isAccountDeleted',
-          '#ttl': 'ttl',
-          '#deletedAt': 'deletedAt',
+      return await this.recordService.update(
+        accountId,
+        {
+          isAccountDeleted: true,
+          ttl: ttl,
+          deletedAt: now.milliseconds,
         },
-        ExpressionAttributeValues: {
-          ':isAccountDeleted': true,
-          ':ttl': ttl,
-          ':false': false,
-          ':deletedAt': now.milliseconds,
+        {
+          ReturnValues: 'ALL_NEW',
+          ExpressionAttributeValues: {
+            ':false': false,
+          },
+          ConditionExpression:
+            'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
         },
-        ReturnValues: 'ALL_NEW',
-        ConditionExpression:
-          'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
-      });
+      );
     } catch (error) {
       if (error instanceof ConditionalCheckFailedException) {
         logger.info(`${LOGS_PREFIX_SENSITIVE_INFO} No intervention exists for this account.`, {

@@ -9,6 +9,7 @@ const ddbMock = mockClient(DynamoDBDocumentClient);
 
 const schema = z.object({
   pk1: z.string(),
+  isAccountDeleted: z.boolean().optional(),
 });
 
 const tableConfig: TableConfig<typeof schema> = {
@@ -207,17 +208,11 @@ describe('DynamoDBRecordService', () => {
     });
   });
 
-  test('update', async () => {
+  test('basic update', async () => {
     const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
 
     await service.update('1234', {
-      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted',
-      ExpressionAttributeNames: {
-        '#isAccountDeleted': 'isAccountDeleted',
-      },
-      ExpressionAttributeValues: {
-        ':isAccountDeleted': true,
-      },
+      isAccountDeleted: true,
     });
 
     expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
@@ -233,5 +228,49 @@ describe('DynamoDBRecordService', () => {
         ':isAccountDeleted': true,
       },
     });
+  });
+
+  test('update with ConditionExpression and RemoveKeys', async () => {
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
+
+    await service.update(
+      '1234',
+      {
+        isAccountDeleted: true,
+      },
+      {
+        RemoveKeys: ['pk1'],
+        ConditionExpression:
+          'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
+        ExpressionAttributeValues: {
+          ':false': false,
+        },
+      },
+    );
+
+    expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
+      TableName: 'test-table',
+      Key: {
+        pk1: '1234',
+      },
+      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted REMOVE pk1',
+      ExpressionAttributeNames: {
+        '#isAccountDeleted': 'isAccountDeleted',
+      },
+      ExpressionAttributeValues: {
+        ':isAccountDeleted': true,
+        ':false': false,
+      },
+      ConditionExpression:
+        'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
+    });
+  });
+
+  test('update with empty object', async () => {
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
+
+    await service.update('1234', {});
+
+    expect(ddbMock).not.toHaveReceivedAnyCommand();
   });
 });
