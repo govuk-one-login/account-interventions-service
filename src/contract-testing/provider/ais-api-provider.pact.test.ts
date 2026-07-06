@@ -6,6 +6,8 @@ import { AISInterventionTypes } from '../../data-types/constants';
 import { StateDetails } from '../../data-types/interfaces';
 import getEnvironmentOrThrow from '../../commons/get-environment-or-throw';
 import { DynamoDBDocumentClient, NativeAttributeValue, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { InterventionName } from '../../data-types/intervention-name';
+import { InterventionState } from '../../data-types/constants';
 
 vi.mock('@aws-lambda-powertools/metrics');
 vi.mock('@aws-lambda-powertools/logger');
@@ -143,6 +145,191 @@ const config: VerifierOptions = {
     //non-existing
     'the internal pairwise subject id does not exist in the AIS database': async () => {
       queryCommandMock.resolves({ Items: [] });
+    },
+  
+    // --- v2 Status API State Handlers ---
+
+    // v2: no account found
+    'v2 the internal pairwise subject id does not exist in the AIS database': async () => {
+      queryCommandMock.resolves({ Items: [] });
+    },
+    // v2: suspended
+    'v2 internal pairwise subject id corresponds to an account that has state: blocked = false, suspended = true, reproveIdentity = false, resetPassword = false':
+      async () => {
+        queryCommandMock
+          .resolvesOnce({
+            Items: [
+              getDynamoDBResponseObject(AISInterventionTypes.AIS_ACCOUNT_SUSPENDED, {
+                blocked: false,
+                suspended: true,
+                reproveIdentity: false,
+                resetPassword: false,
+              }),
+            ],
+          })
+          .resolvesOnce({
+            Items: [
+              {
+                eventId: 'event-1',
+                accountId: '1234',
+                createdAt: 123456,
+                interventionName: InterventionName.TEMPORARY_SUSPENSION,
+                interventionState: InterventionState.ACTIVE,
+                interventionReason: 'reason',
+                sentAt: 123456,
+                componentId: 'test',
+              },
+            ],
+          });
+      },
+    // v2: no intervention
+    'v2 internal pairwise subject id corresponds to an account that has state: blocked = false, suspended = false, reproveIdentity = false, resetPassword = false':
+      async () => {
+        queryCommandMock
+          .resolvesOnce({
+            Items: [
+              getDynamoDBResponseObject(AISInterventionTypes.AIS_NO_INTERVENTION, {
+                blocked: false,
+                suspended: false,
+                reproveIdentity: false,
+                resetPassword: false,
+              }),
+            ],
+          })
+          .resolvesOnce({
+            Items: [],
+          });
+      },
+    // v2: blocked
+    'v2 internal pairwise subject id corresponds to an account that has state: blocked = true, suspended = false, reproveIdentity = false, resetPassword = false':
+      async () => {
+        queryCommandMock
+          .resolvesOnce({
+            Items: [
+              getDynamoDBResponseObject(AISInterventionTypes.AIS_ACCOUNT_BLOCKED, {
+                blocked: true,
+                suspended: false,
+                reproveIdentity: false,
+                resetPassword: false,
+              }),
+            ],
+          })
+          .resolvesOnce({
+            Items: [
+              {
+                eventId: 'event-1',
+                accountId: '1234',
+                createdAt: 123456,
+                interventionName: InterventionName.PERMANENT_SUSPENSION,
+                interventionState: InterventionState.ACTIVE,
+                interventionReason: 'reason',
+                sentAt: 123456,
+                componentId: 'test',
+              },
+            ],
+          });
+      },
+    // v2: password reset
+    'v2 internal pairwise subject id corresponds to an account that has state: blocked = false, suspended = true, reproveIdentity = false, resetPassword = true':
+      async () => {
+        queryCommandMock
+          .resolvesOnce({
+            Items: [
+              getDynamoDBResponseObject(AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET, {
+                blocked: false,
+                suspended: true,
+                reproveIdentity: false,
+                resetPassword: true,
+              }),
+            ],
+          })
+          .resolvesOnce({
+            Items: [
+              {
+                eventId: 'event-1',
+                accountId: '1234',
+                createdAt: 123456,
+                interventionName: InterventionName.RESET_PASSWORD,
+                interventionState: InterventionState.ACTIVE,
+                interventionReason: 'reason',
+                sentAt: 123456,
+                componentId: 'test',
+              },
+            ],
+          });
+      },
+    // v2: id reset
+    'v2 internal pairwise subject id corresponds to an account that has state: blocked = false, suspended = true, reproveIdentity = true, resetPassword = false':
+      async () => {
+        queryCommandMock
+          .resolvesOnce({
+            Items: [
+              getDynamoDBResponseObject(AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY, {
+                blocked: false,
+                suspended: true,
+                reproveIdentity: true,
+                resetPassword: false,
+              }),
+            ],
+          })
+          .resolvesOnce({
+            Items: [
+              {
+                eventId: 'event-1',
+                accountId: '1234',
+                createdAt: 123456,
+                interventionName: InterventionName.REPROVE_IDENTITY,
+                interventionState: InterventionState.ACTIVE,
+                interventionReason: 'reason',
+                sentAt: 123456,
+                componentId: 'test',
+              },
+            ],
+          });
+      },
+    // v2: id and password reset
+    'v2 internal pairwise subject id corresponds to an account that has state: blocked = false, suspended = true, reproveIdentity = true, resetPassword = true':
+      async () => {
+        queryCommandMock
+          .resolvesOnce({
+            Items: [
+              getDynamoDBResponseObject(AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY, {
+                blocked: false,
+                suspended: true,
+                reproveIdentity: true,
+                resetPassword: true,
+              }),
+            ],
+          })
+          .resolvesOnce({
+            Items: [
+              {
+                eventId: 'event-1',
+                accountId: '1234',
+                createdAt: 123456,
+                interventionName: InterventionName.RESET_PASSWORD,
+                interventionState: InterventionState.ACTIVE,
+                interventionReason: 'reason',
+                sentAt: 123456,
+                componentId: 'test',
+              },
+              {
+                eventId: 'event-2',
+                accountId: '1234',
+                createdAt: 123457,
+                interventionName: InterventionName.REPROVE_IDENTITY,
+                interventionState: InterventionState.ACTIVE,
+                interventionReason: 'reason',
+                sentAt: 123456,
+                componentId: 'test',
+              },
+            ],
+          });
+      },
+    // v2: error
+    'v2 AIS encounters an error and responds with 500 status': async () => {
+      const error = new InternalServerError({ message: 'Internal Server Error.', $metadata: { httpStatusCode: 500 } });
+      queryCommandMock.rejects(error);
     },
   },
 };
