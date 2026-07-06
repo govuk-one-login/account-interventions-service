@@ -1,5 +1,5 @@
 {% extends "base.njk" %}
-
+{% from "govuk/components/button/macro.njk" import govukButton %}
 {% block content %}
   <h1 class="govuk-heading-xl">Account Interventions Service</h1>
   {{ govukButton({ text: "Get started" }) }}
