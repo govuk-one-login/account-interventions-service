@@ -39,6 +39,18 @@ export function setupServer(port: number) {
     }
   });
 
+  app.get('/v2/ais/:userId', async (request, response) => {
+    const apiGatewayEvent = createDefaultApiRequest(request.params.userId);
+    apiGatewayEvent.resource = '/v2/ais/{userId}';
+    try {
+      const result = await handle(apiGatewayEvent, dummyContext);
+      response.status(result.statusCode).json(JSON.parse(result.body));
+    } catch (error) {
+      console.log(`The operation had an unexpected outcome: ${String(error)}`);
+      response.status(500).json(`The call to the handler was unsuccessful: ${String(error)}`);
+    }
+  });
+
   return app.listen(port, () => {
     console.log(`mock server listening on port ${String(port)}`);
   });
