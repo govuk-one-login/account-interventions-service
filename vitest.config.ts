@@ -1,6 +1,12 @@
 import { defineConfig } from 'vitest/config';
+import path from 'node:path';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@govuk-one-login/ais-status-sdk': path.resolve(__dirname, 'packages/ais-status-sdk/src/index.ts'),
+    },
+  },
   test: {
     globals: true,
     environment: 'node',
