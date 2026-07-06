@@ -33,7 +33,9 @@
     "precommit": "pre-commit run",
     "send-audit-event": "tsx src/scripts/send-audit-event.ts",
     "generate:spec:main": "tsx src/scripts/generate-main-spec.ts",
-    "ui:start": "tsx watch --watch-path src/frontend/views src/frontend/local.ts"
+    "ui:start": "tsx watch --watch-path src/frontend/views src/frontend/local.ts",
+    "ui:build": "node build-frontend.mjs && sam build -t src/infra/frontend/template.yaml",
+    "ui:deploy": "sam deploy --config-env frontend"
   },
   "dependencies": {
     "@aws-lambda-powertools/logger": "^2.33.1",
