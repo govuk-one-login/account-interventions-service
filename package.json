@@ -69,7 +69,7 @@
     "@nx/js": "^23.0.1",
     "@nx/node": "^23.0.1",
     "@nx/workspace": "^23.0.1",
-    "@pact-foundation/pact": "^16.5.0",
+    "@pact-foundation/pact": "^17.0.0",
     "@pact-foundation/pact-cli": "^16.1.6",
     "@stoplight/spectral-cli": "^6.16.0",
     "@stryker-mutator/api": "^9.6.1",
