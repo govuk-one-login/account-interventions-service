@@ -146,7 +146,7 @@ const config: VerifierOptions = {
     'the internal pairwise subject id does not exist in the AIS database': async () => {
       queryCommandMock.resolves({ Items: [] });
     },
-  
+
     // --- v2 Status API State Handlers ---
 
     // v2: no account found
