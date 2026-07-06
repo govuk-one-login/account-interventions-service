@@ -36,6 +36,16 @@ Parameters:
       Set to empty string when a custom domain with base path mapping is in use.
     Type: String
     Default: /v1
+  VpcStackName:
+    Description: The name of the stack that defines the VPC
+    Type: String
+    Default: vpc
+    AllowedPattern: ^[a-z0-9-]+$
+  MainStackName:
+    Description: The name of the main AIS stack, used to import the PrivateApi RestApiId
+    Type: String
+    Default: ais-main
+    AllowedPattern: ^[a-z0-9-]+$
   PermissionsBoundary:
     Description: The ARN of the permissions boundary to apply when creating IAM roles
     Type: String
@@ -80,6 +90,15 @@ Globals:
     AutoPublishAlias: live
     CodeUri: ../../../dist/frontend
     KmsKeyArn: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
+    VpcConfig:
+      SubnetIds:
+        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdA
+        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdB
+        - Fn::ImportValue: !Sub ${VpcStackName}-ProtectedSubnetIdC
+      SecurityGroupIds:
+        - Fn::ImportValue: !Sub ${VpcStackName}-AWSServicesEndpointSecurityGroupId
+    Layers: #Dynatrace lambda layer
+      - arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_329_73_20260123-140641_with_collector_nodejs_arm:1
 
 Resources:
   ### Frontend Lambda ###

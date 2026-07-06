@@ -17,7 +17,7 @@ resolve_s3 = true
 s3_prefix = "ais-frontend"
 confirm_changeset = true
 capabilities = "CAPABILITY_NAMED_IAM"
-parameter_overrides = "Environment=\"dev\" ApiStageName=\"v1\" StagePrefix=\"/v1\" PermissionsBoundary=\"none\" CSLSSubscriptionEndpointArn=\"arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2\" CodeSigningConfigArn=\"none\" ProductTagValue=\"GOV.UK One Login\" SystemTagValue=\"Account Interventions Service\" OwnerTagValue=\"interventions@digital.cabinet-office.gov.uk\" SourceTagValue=\"govuk-one-login/account-interventions-service/src/infra/main/template.yaml\""
+parameter_overrides = "Environment=\"dev\" ApiStageName=\"v1\" StagePrefix=\"/v1\" VpcStackName=\"vpc\" MainStackName=\"ais-main\" PermissionsBoundary=\"none\" CSLSSubscriptionEndpointArn=\"arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2\" CodeSigningConfigArn=\"none\" ProductTagValue=\"GOV.UK One Login\" SystemTagValue=\"Account Interventions Service\" OwnerTagValue=\"interventions@digital.cabinet-office.gov.uk\" SourceTagValue=\"govuk-one-login/account-interventions-service/src/infra/main/template.yaml\""
 image_repositories = []
 
 [frontend.global.parameters]
