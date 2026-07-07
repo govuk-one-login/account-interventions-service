@@ -12,6 +12,7 @@ const baseMessage: InterventionEventMessage = {
   component_id: 'test',
   timestamp: 1722953808,
   event_timestamp_ms: 1722953808000,
+  event_id: '123abc',
   user: {
     user_id: '1',
   },
@@ -57,6 +58,8 @@ describe('persistInterventionEvents', () => {
         originatorReferenceId: undefined,
         requesterId: undefined,
         sentAt: 1722953808000,
+        transactionId: expect.any(String) as string,
+        messageEventId: '123abc',
       },
     ]);
   });
@@ -96,6 +99,8 @@ describe('generateEventsToAppend', () => {
         originatorReferenceId: undefined,
         requesterId: undefined,
         sentAt: 1722953808000,
+        transactionId: expect.any(String) as string,
+        messageEventId: '123abc',
       },
     ]);
   });
@@ -129,6 +134,8 @@ describe('generateEventsToAppend', () => {
         originatorReferenceId: undefined,
         requesterId: undefined,
         sentAt: 1722953808000,
+        transactionId: expect.any(String) as string,
+        messageEventId: '123abc',
       },
       {
         accountId: '1',
@@ -142,8 +149,12 @@ describe('generateEventsToAppend', () => {
         originatorReferenceId: undefined,
         requesterId: undefined,
         sentAt: 1722953808000,
+        transactionId: expect.any(String) as string,
+        messageEventId: '123abc',
       },
     ]);
+
+    expect(response[0]?.transactionId).toEqual(response[1]?.transactionId);
   });
 
   test('remove existing intervention', () => {
@@ -171,6 +182,8 @@ describe('generateEventsToAppend', () => {
         originatorReferenceId: undefined,
         requesterId: undefined,
         sentAt: 1722953808000,
+        transactionId: expect.any(String) as string,
+        messageEventId: '123abc',
       },
     ]);
   });
