@@ -290,6 +290,15 @@ Resources:
       SourceAccount: !Ref AWS::AccountId
       SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FrontendApi}/*/*'
 
+  FrontendFunctionCrossAccountApiGatewayPermission:
+    Type: AWS::Lambda::Permission
+    Condition: IsDev
+    Properties:
+      FunctionName: !Ref FrontendFunctionAliaslive
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:301631959974:*/*/*'
+
   ### API Gateway ###
 
   FrontendApi:
