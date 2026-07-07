@@ -48,8 +48,9 @@ The JWT will be attached to every request using a cookie or a header and the AIS
 1. If one team breaks the pipeline it would block both teams from releasing.
 1. The FAI frontend lambda would need access to further resources without a seperation of concerns and this would be managed by Team Mercury.
 
-### Express App
+#### Express App
 
 This would match FAI.
 However we would lose the benefits of Fastify.
 It doesn't seem that likely that we would want to combine the apps in the future.
+
