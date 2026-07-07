@@ -38,6 +38,8 @@ describeFeature(feature, ({ Scenario, BeforeEachScenario }) => {
           originatorReferenceId: '1234567',
           requesterId: '1234567',
           sentAt: expect.any(Number),
+          messageEventId: '123',
+          transactionId: expect.any(String),
         },
       ]);
     });
@@ -72,6 +74,8 @@ describeFeature(feature, ({ Scenario, BeforeEachScenario }) => {
           originatorReferenceId: '1234567',
           requesterId: '1234567',
           sentAt: expect.any(Number),
+          messageEventId: '123',
+          transactionId: expect.any(String),
         },
         {
           accountId: testUserId,
@@ -82,6 +86,8 @@ describeFeature(feature, ({ Scenario, BeforeEachScenario }) => {
           interventionReason: '',
           interventionState: 'MITIGATED',
           sentAt: expect.any(Number),
+          messageEventId: '123',
+          transactionId: expect.any(String),
         },
       ]);
     });
