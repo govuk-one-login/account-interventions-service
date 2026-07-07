@@ -6,7 +6,7 @@ Deploy a frontend hosted within the Account Interventions Service (AIS) AWS acco
 
 This will sit behind an API Gateway in the AIS account, with the Fraud Admin Interface (FAI) forwarding a subpath `/interventions` to the AIS API Gateway and frontend.
 
-FAI will handle authentication and only pass on authorised users.
+FAI will handle authentication and pass through a verifiable JWT with authorisation data (see [notes](#authorisation-and-authentication) for more detail).
 
 The AIS frontend will have seperate cookies from FAI.
 
@@ -24,6 +24,20 @@ The AIS frontend will have seperate cookies from FAI.
 1. We may have to adapt to changes to the FAI authoriser over time.
 
 ## Notes
+
+### Authorisation and authentication
+
+We have the following requirements for auth:
+
+- Users will authorise using the existing FAI authoriser.
+- FAI must pass a token with the request to the AIS site.
+- This token must be verifiable - the AIS site must be able to prove it came from FAI.
+- This token must contain authorisation data about what the user is allowed to do.
+
+We'll add functionality to the authoriser to create a JWT containing a claim about the user's authorisation.
+The JWT will be signed with an asymmetric KMS key.
+The KMS key's public key will be shared with the AIS frontend Lambda via the `GetPublicKey` operation (see [AWS docs](https://docs.aws.amazon.com/kms/latest/developerguide/key-policy-modifying-external-accounts.html)).
+The JWT will be attached to every request using a cookie or a header and the AIS frontend Lambda will use the shared public key to verify it.
 
 ### Discounted Options
 
