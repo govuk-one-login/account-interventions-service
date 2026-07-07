@@ -3,12 +3,13 @@
 ## What
 
 Deploy a frontend hosted within the Account Interventions Service (AIS) AWS accounts.
-
 This will sit behind an API Gateway in the AIS account, with the Fraud Admin Interface (FAI) forwarding a subpath `/interventions` to the AIS API Gateway and frontend.
 
 FAI will handle authentication and pass through a verifiable JWT with authorisation data (see [notes](#authorisation-and-authentication) for more detail).
 
-The AIS frontend will have seperate cookies from FAI.
+Specific cookies will be entirely isolated to either the existing FAI site or the AIS site.
+All cookies used by the AIS site will be prefixed `ais_` to allow this.
+The exception is the auth JWT, if it's encoded in a cookie (as opposed to a header).
 
 ![Architecture](./images/adr-010-architecture.png 'Architecture')
 
