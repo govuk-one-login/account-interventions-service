@@ -53,4 +53,3 @@ The JWT will be attached to every request using a cookie or a header and the AIS
 This would match FAI.
 However we would lose the benefits of Fastify.
 It doesn't seem that likely that we would want to combine the apps in the future.
-
