@@ -38,7 +38,7 @@ export function init() {
     ],
   });
 
-  server.get('/', async (_request, reply) => reply.view('index.njk', { stagePrefix, assetPath: `${stagePrefix}/assets` }));
+  server.get('/', async (_request, reply) => reply.view('index.njk', { assetPath: `${stagePrefix}/assets` }));
 
   return server;
 }
