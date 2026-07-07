@@ -1,7 +1,7 @@
 {
   "name": "Protect main",
   "target": "branch",
-  "enforcement": "evaluate",
+  "enforcement": "active",
   "conditions": {
     "ref_name": {
       "exclude": [],
