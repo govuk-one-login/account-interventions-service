@@ -1,4 +1,6 @@
-# Lambda retries
+# Incident 001: Lambda retries
+
+**Date:** 2026-06-18
 
 ## Summary
 

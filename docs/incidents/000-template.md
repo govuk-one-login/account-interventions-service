@@ -1,7 +1,9 @@
-# Incident report template
+# Incident 000: Report template
 
 This is a template for incident reports, based on recommendations from the [Google SRE Book](https://sre.google/workbook/postmortem-culture/); refer to it for more detail on the sections below.
 This document and the wider incident response process should be blame-free and focus on processes and systems and not people.
+
+**Date:** yyyy-mm-dd
 
 ## Summary
 
