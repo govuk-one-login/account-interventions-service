@@ -80,6 +80,7 @@ Conditions:
   UseCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, 'none']]
   IsDevBuildStaging:
     !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build], !Equals [!Ref Environment, staging]]
+  IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
 
 Mappings:
   EnvConfig:
@@ -176,6 +177,11 @@ Resources:
             - PrivateApiId:
                 Fn::ImportValue: !Sub '${MainStackName}-PrivateApiRestApiId'
           ENABLE_AIS_FRONTEND: !FindInMap [FeatureFlags, !Ref Environment, EnableAISFrontend]
+          TXMA_QUEUE_URL: !If
+            - IsInternal
+            - Fn::ImportValue: !Sub '${MainStackName}-TxMAIngressSqsQueueUrl'
+            - !Ref 'AWS::NoValue'
+            # - Fn::ImportValue: !Sub '${MainStackName}-TxMAEgressSqsQueueUrl'
       Events:
         ApiEvent:
           Type: Api
@@ -248,6 +254,20 @@ Resources:
                 - 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PrivateApiId}/main/*'
                 - PrivateApiId:
                     Fn::ImportValue: !Sub '${MainStackName}-PrivateApiRestApiId'
+          - Effect: Allow
+            Action:
+              - 'sqs:SendMessage'
+            Resource: !If
+              - IsInternal
+              - Fn::ImportValue: !Sub '${MainStackName}-TxMAIngressSqsQueueArn'
+              - !Ref 'AWS::NoValue'
+              # - Fn::ImportValue: !Sub '${MainStackName}-TxMAEgressSqsQueueArn'
+          - Effect: Allow
+            Action:
+              - 'kms:Decrypt'
+              - 'kms:GenerateDataKey'
+            Resource:
+              Fn::ImportValue: !Sub '${MainStackName}-SQSEncryptionKeyArn'
       Roles:
         - !Ref FrontendFunctionRole
 
