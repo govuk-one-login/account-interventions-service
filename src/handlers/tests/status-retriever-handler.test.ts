@@ -1,6 +1,5 @@
 /* eslint-disable unicorn/no-null */
 import type { APIGatewayEvent, APIGatewayProxyEventQueryStringParameters } from 'aws-lambda';
-import { handle } from '../status-retriever-handler';
 import logger from '../../commons/logger';
 import { addMetric } from '../../commons/metrics';
 import jestOpenAPI from 'jest-openapi';
@@ -8,6 +7,7 @@ import { InMemoryInterventionEventsService } from '../../tables/intervention-eve
 import { InterventionState } from '../../data-types/constants';
 import { InterventionName } from '../../data-types/intervention-name';
 import { AccountStatus, InMemoryAccountStatusService } from '../../tables/account-status';
+import { retrieveStatus } from '../status-retriever';
 
 jestOpenAPI(`${__dirname}/../../specs/main.yaml`);
 
@@ -63,27 +63,6 @@ const testEvent: APIGatewayEvent = {
   resource: '/{proxy+}',
 };
 
-const mockConfig = {
-  callbackWaitsForEmptyEventLoop: true,
-  functionVersion: '$LATEST',
-  functionName: 'foo-bar-function',
-  memoryLimitInMB: '128',
-  logGroupName: '/aws/lambda/foo-bar-function-123456abcdef',
-  logStreamName: '2021/03/09/[$LATEST]abcdef123456abcdef123456abcdef123456',
-  invokedFunctionArn: 'arn:aws:lambda:eu-west-1:123456789012:function:foo-bar-function',
-  awsRequestId: 'c6af9ac6-7b61-11e6-9a41-93e812345678',
-  getRemainingTimeInMillis: () => 1234,
-  done: () => {
-    console.log('Done!');
-  },
-  fail: () => {
-    console.log('Failed!');
-  },
-  succeed: () => {
-    console.log('Succeeded!');
-  },
-};
-
 describe('status-retriever-handler', () => {
   beforeAll(() => {
     vi.useFakeTimers();
@@ -136,7 +115,7 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
     };
 
-    const response = await handle(testEvent, mockConfig, new InMemoryAccountStatusService({ status: suspendedRecord }));
+    const response = await retrieveStatus(testEvent, new InMemoryAccountStatusService({ status: suspendedRecord }), new InMemoryInterventionEventsService([]));
     expect(response.statusCode).toBe(200);
 
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
@@ -161,9 +140,8 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
     };
 
-    const response = await handle(
+    const response = await retrieveStatus(
       testEvent,
-      mockConfig,
       new InMemoryAccountStatusService(),
       new InMemoryInterventionEventsService([]),
     );
@@ -214,10 +192,10 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
     };
 
-    const response = await handle(
+    const response = await retrieveStatus(
       testEvent,
-      mockConfig,
       new InMemoryAccountStatusService({ status: accountFoundNotSuspendedRecord }),
+      new InMemoryInterventionEventsService([]),
     );
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
@@ -231,7 +209,7 @@ describe('status-retriever-handler', () => {
       userId: undefined,
     };
     const invalidTestEvent = { ...testEvent, pathParameters: invalidPathParameters };
-    const response = await handle(invalidTestEvent, mockConfig);
+    const response = await retrieveStatus(invalidTestEvent, new InMemoryAccountStatusService({}), new InMemoryInterventionEventsService([]));
     expect(response.statusCode).toBe(400);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual({ message: 'Invalid Request.' });
@@ -275,7 +253,7 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
     };
 
-    const response = await handle(testEvent, mockConfig, new InMemoryAccountStatusService({ status: suspendedRecord }));
+    const response = await retrieveStatus(testEvent, new InMemoryAccountStatusService({ status: suspendedRecord }), new InMemoryInterventionEventsService([]));
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(suspendedAccount);
@@ -288,9 +266,8 @@ describe('status-retriever-handler', () => {
       userId: ' ',
     };
     const invalidTestEvent = { ...testEvent, pathParameters: invalidPathParameters };
-    const response = await handle(
+    const response = await retrieveStatus(
       invalidTestEvent,
-      mockConfig,
       new InMemoryAccountStatusService(),
       new InMemoryInterventionEventsService([]),
     );
@@ -300,10 +277,10 @@ describe('status-retriever-handler', () => {
   });
 
   it('will return the correct response if there is a problem with the query to dynamoDB', async () => {
-    const response = await handle(
+    const response = await retrieveStatus(
       testEvent,
-      mockConfig,
       new InMemoryAccountStatusService({ error: new Error('There was a problem with the query operation') }),
+      new InMemoryInterventionEventsService([]),
     );
     expect(response.statusCode).toBe(500);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
@@ -348,7 +325,11 @@ describe('status-retriever-handler', () => {
       auditLevel: 'standard',
     };
 
-    const response = await handle(testEvent, mockConfig, new InMemoryAccountStatusService({ status: nullUpdatedAt }));
+    const response = await retrieveStatus(
+      testEvent,
+      new InMemoryAccountStatusService({ status: nullUpdatedAt }),
+      new InMemoryInterventionEventsService([]),
+    );
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
     expect(payload).toEqual(updatedTime);
@@ -375,9 +356,8 @@ describe('status-retriever-handler', () => {
     };
 
     const addedQueryParameterTestEvent = { ...testEvent, queryStringParameters: queryParameters };
-    const response = await handle(
+    const response = await retrieveStatus(
       addedQueryParameterTestEvent,
-      mockConfig,
       new InMemoryAccountStatusService(),
       new InMemoryInterventionEventsService([]),
     );
@@ -427,10 +407,10 @@ describe('status-retriever-handler', () => {
 
     const queryParameters: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
     const addedQueryParameterTestEvent = { ...testEvent, queryStringParameters: queryParameters };
-    const response = await handle(
+    const response = await retrieveStatus(
       addedQueryParameterTestEvent,
-      mockConfig,
       new InMemoryAccountStatusService({ status: accountFoundNotSuspendedRecord }),
+      new InMemoryInterventionEventsService([]),
     );
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
@@ -489,10 +469,10 @@ describe('status-retriever-handler', () => {
 
     const queryParameters: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
     const addedQueryParameterTestEvent = { ...testEvent, queryStringParameters: queryParameters };
-    const response = await handle(
+    const response = await retrieveStatus(
       addedQueryParameterTestEvent,
-      mockConfig,
       new InMemoryAccountStatusService({ status: accountFoundNotSuspendedRecord }),
+      new InMemoryInterventionEventsService([]),
     );
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
@@ -568,10 +548,10 @@ describe('status-retriever-handler', () => {
 
     const queryParameters: APIGatewayProxyEventQueryStringParameters = { ['history']: 'true' };
     const addedQueryParameterTestEvent = { ...testEvent, queryStringParameters: queryParameters };
-    const response = await handle(
+    const response = await retrieveStatus(
       addedQueryParameterTestEvent,
-      mockConfig,
       new InMemoryAccountStatusService({ status: accountFoundNotSuspendedRecord }),
+      new InMemoryInterventionEventsService([])
     );
     expect(response.statusCode).toBe(200);
     const payload = JSON.parse(response.body) as unknown as Record<string, unknown>;
@@ -599,9 +579,8 @@ describe('v2 Status API handler', () => {
   });
 
   it("returns an empty list of interventions if the requested account doesn't exist", async () => {
-    const response = await handle(
+    const response = await retrieveStatus(
       { ...testEvent, resource: '/v2/ais/{userId}' },
-      mockConfig,
       new InMemoryAccountStatusService(),
       new InMemoryInterventionEventsService([]),
     );
@@ -634,9 +613,8 @@ describe('v2 Status API handler', () => {
       isAccountDeleted: false,
     };
 
-    const response = await handle(
+    const response = await retrieveStatus(
       { ...testEvent, resource: '/v2/ais/{userId}' },
-      mockConfig,
       new InMemoryAccountStatusService({ status: accountFound }),
       new InMemoryInterventionEventsService([]),
     );
@@ -673,9 +651,8 @@ describe('v2 Status API handler', () => {
       isAccountDeleted: false,
     };
 
-    const response = await handle(
+    const response = await retrieveStatus(
       { ...testEvent, resource: '/v2/ais/{userId}' },
-      mockConfig,
       new InMemoryAccountStatusService({ status: accountFound }),
       new InMemoryInterventionEventsService([
         {
