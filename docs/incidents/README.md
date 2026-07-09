@@ -6,7 +6,7 @@ An action for holding a post-incident review meeting and writing up a report sho
 
 ## Running a post-incident review meeting
 
-You should write the first draft of the incident report before the meeting, based on the [report template](./template.md).
+You should write the first draft of the incident report before the meeting, based on the [report template](./000-template.md).
 
 The meeting is designed to spread context about what happened and consolidate learnings and improvements.
 The invite list is flexible but a good place to start is the whole team, plus representatives of any other teams affected.
