@@ -246,3 +246,12 @@ END_POINT
 ```
 
 Note: that at the moment the lambda is not set up to work for a post request, so changes to the lambda will need to be made if post requests become a requirement.
+
+### npm package repositories
+
+This project uses `@govuk-one-login` scoped packages from both [npmjs.com](npmjs.com) and GitHub's package repository.
+
+The repositories [.npmrc](./.npmrc) file sets `@govuk-one-login:registry=https://npm.pkg.github.com` which points all scoped packages to the GitHub private package repository.
+
+To install a public package from npmjs.com you need to comment this line out, run `npm install` and then uncomment it.
+The `package-lock.json` file should correctly reference the npmjs.com repository for just the one package and successfully install it.

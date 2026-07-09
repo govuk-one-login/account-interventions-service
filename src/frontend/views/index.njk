@@ -1,6 +1,21 @@
 {% extends "base.njk" %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
 {% block content %}
   <h1 class="govuk-heading-xl">Account Interventions Service</h1>
-  {{ govukButton({ text: "Get started" }) }}
+  <form method="post" action="{{ stagePrefix }}/search">
+    {{ govukInput({
+      label: {
+        text: "GOV.UK One Login Subject Identifier",
+        classes: "govuk-label--m"
+      },
+      hint: {
+        text: "For example, urn:fdc:gov.uk:2022:pgt1qOf7zW2tMCZg4V5LEu-mT-_GTSX7xqJ6RJekw9I"
+      },
+      autocomplete: "off",
+      id: "user-id",
+      name: "userId"
+    }) }}
+    {{ govukButton({ text: "Submit" }) }}
+  </form>
 {% endblock %}

@@ -26,7 +26,10 @@
     "resolveJsonModule": true,
     "rootDir": "",
     "ignoreDeprecations": "6.0",
-    "types": ["node", "vitest/globals"]
+    "types": ["node", "vitest/globals"],
+    "paths": {
+      "@govuk-one-login/ais-status-sdk": ["./packages/ais-status-sdk/src/index.ts"]
+    }
   },
   "exclude": ["feature-tests", "coverage", "**/dist", "**/rollup.config.ts"]
 }
