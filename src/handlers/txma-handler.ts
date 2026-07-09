@@ -1,24 +1,22 @@
 import { SQSEvent, Context } from 'aws-lambda';
 import logger from '../commons/logger';
 import { processTxmaEvents } from './txma-processor';
+import { createSqsClient, SqsMessageService } from '../services/message-service';
+import { SQSClient } from '@aws-sdk/client-sqs';
+import getEnvironmentOrThrow from '../commons/get-environment-or-throw';
 
-const accountInterventionEventsQueue = process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'];
-const accountDeletionSqsQueue = process.env['ACCOUNT_DELETION_SQS_QUEUE'];
+const generateSqsMessageService = (queueName: string, client: SQSClient) =>
+  new SqsMessageService(getEnvironmentOrThrow(queueName), {
+    client,
+  });
 
-export async function handler(event: SQSEvent,
-  context: Context
-): Promise<void> {
+export async function handler(event: SQSEvent, context: Context): Promise<void> {
   logger.addContext(context);
 
-  if (!accountDeletionSqsQueue) {
-    logger.error('ACCOUNT_DELETION_SQS_QUEUE env variable is not set');
-    throw new Error('ACCOUNT_DELETION_SQS_QUEUE env variable is not set');
-  }
+  const sqsClient = createSqsClient();
 
-  if (!accountInterventionEventsQueue) {
-    logger.error('ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set');
-    throw new Error('ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set');
-  }
-
-  await processTxmaEvents(event, accountDeletionSqsQueue, accountInterventionEventsQueue);
+  await processTxmaEvents(event, {
+    interventionMessageService: generateSqsMessageService('ACCOUNT_INTERVENTION_SQS_QUEUE', sqsClient),
+    deletionMessageService: generateSqsMessageService('ACCOUNT_DELETION_SQS_QUEUE', sqsClient),
+  });
 }

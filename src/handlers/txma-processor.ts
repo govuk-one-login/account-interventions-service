@@ -1,16 +1,16 @@
-import { SQSEvent } from "aws-lambda";
+import { SQSEvent } from 'aws-lambda';
 import logger from '../commons/logger';
-import { createSqsClient, sendBatchSqsMessage } from '../services/send-sqs-message';
 import { addMetric, metric } from '../commons/metrics';
 import { MetricNames } from '../data-types/constants';
 import jsonSafeParse from '../commons/json-safe-parse';
+import { MessageService } from '../services/message-service';
 
-export async function processTxmaEvents(
-  event: SQSEvent,
-  accountDeletionSqsQueue: string,
-  accountInterventionEventsQueue: string,
-): Promise<void> {
+export interface Config {
+  interventionMessageService: MessageService;
+  deletionMessageService: MessageService;
+}
 
+export async function processTxmaEvents(event: SQSEvent, config: Config): Promise<void> {
   if (!event.Records[0]) {
     logger.error('The event does not contain any records.');
     return;
@@ -50,14 +50,11 @@ export async function processTxmaEvents(
     }
   }
 
-  const sqsClient = createSqsClient();
-
   const promiseList = [];
 
-  if (deletionMessages.length > 0)
-    promiseList.push(sendBatchSqsMessage(deletionMessages, accountDeletionSqsQueue, sqsClient));
+  if (deletionMessages.length > 0) promiseList.push(config.deletionMessageService.sendBatchMessage(deletionMessages));
   if (interventionMessages.length > 0)
-    promiseList.push(sendBatchSqsMessage(interventionMessages, accountInterventionEventsQueue, sqsClient));
+    promiseList.push(config.interventionMessageService.sendBatchMessage(interventionMessages));
 
   await Promise.all(promiseList);
 
