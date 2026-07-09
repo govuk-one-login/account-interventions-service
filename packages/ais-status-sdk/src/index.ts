@@ -10,7 +10,7 @@ export class InterventionClient implements InterventionClientInterface {
   private readonly baseUrl: string;
   private readonly headers: Record<string, string>;
 
-  constructor(config: InterventionClientConfig) {
+  constructor(readonly config: InterventionClientConfig) {
     if (!config.baseUrl) throw new InterventionMissingBaseUrl('Missing required baseUrl');
 
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
@@ -22,6 +22,7 @@ export class InterventionClient implements InterventionClientInterface {
     const response = await fetch(url, { headers: this.headers });
 
     if (!response.ok) {
+      this.config.logger?.error(`AIS request failed: ${response.status.toString()} ${response.statusText}`);
       throw new InterventionRequestFailed(`AIS request failed: ${response.status.toString()} ${response.statusText}`);
     }
 
@@ -29,8 +30,10 @@ export class InterventionClient implements InterventionClientInterface {
 
     const parseResult = V2ResponseSchema.safeParse(responseBody);
 
-    if (!parseResult.success)
+    if (!parseResult.success) {
+      this.config.logger?.error('AIS Invalid Response', { cause: parseResult.error });
       throw new InterventionInvalidResponse('AIS Invalid Response', { cause: parseResult.error });
+    }
 
     return parseResult.data;
   }

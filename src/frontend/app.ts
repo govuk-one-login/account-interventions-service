@@ -6,6 +6,7 @@ import nunjucks from 'nunjucks';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { InterventionClient, InterventionClientInterface } from '@govuk-one-login/ais-status-sdk';
+import logger from '../commons/logger';
 
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).
@@ -19,6 +20,7 @@ const statusApiUrl = process.env['STATUS_API_URL'];
 export function init(
   interventionClient: InterventionClientInterface = new InterventionClient({
     baseUrl: statusApiUrl,
+    logger,
   }),
 ) {
   const server = fastify();

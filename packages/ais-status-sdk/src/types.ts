@@ -13,8 +13,17 @@ export interface AccountStatusResult {
   interventions: Intervention[];
 }
 
+type LogAttributes = Record<string, unknown>;
+
+type LogItemExtraInput = [Error | string] | LogAttributes[];
+
+interface Logger {
+  error(input: string, ...extraInput: LogItemExtraInput): void;
+}
+
 export interface InterventionClientConfig {
   baseUrl: string | undefined;
+  logger?: Logger;
 }
 
 export interface InterventionClientInterface {
