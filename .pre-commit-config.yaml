@@ -6,7 +6,7 @@ repos:
     rev: v4.4.0
     hooks:
       - id: end-of-file-fixer
-        exclude: '\.json$'
+        exclude: '\.json$|packages/ais-status-sdk/CHANGELOG.md'
       - id: trailing-whitespace
       - id: detect-private-key
       - id: detect-aws-credentials

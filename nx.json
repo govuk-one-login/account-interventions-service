@@ -23,7 +23,8 @@
     "publish": {
       "executor": "@nx/js:release-publish",
       "options": {
-        "registry": "https://registry.npmjs.org"
+        "registry": "https://registry.npmjs.org",
+        "args": "--provenance --access public"
       }
     }
   },

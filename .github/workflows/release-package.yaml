@@ -97,10 +97,20 @@ jobs:
           git config --global user.email "297960032+ais-package-publisher[bot]@users.noreply.github.com"
           git config --global user.name "ais-package-publisher[bot]"
 
+      - name: Switch npm registry to npmjs.com for publishing
+        if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release-') }}
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # pin@v6.3.0
+        with:
+          node-version-file: '.node-version'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@govuk-one-login'
+          package-manager-cache: false
+
       - name: Publish packages
         if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release-') }}
         run: npx nx release ${{ github.event.inputs.increment }} --projects=${{ github.event.inputs.target }} ${{ github.event.inputs.first_release == 'true' && '--first-release' || '' }} ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '--yes' }}
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          # NODE_AUTH_TOKEN is intentionally absent — authentication is handled via OIDC trusted publishing
           # See here for why legacy peer deps setting is required: https://github.com/nrwl/nx/issues/22066
           npm_config_legacy_peer_deps: false
