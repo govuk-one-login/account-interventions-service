@@ -1,75 +1,24 @@
 import { SQSEvent, Context } from 'aws-lambda';
 import logger from '../commons/logger';
-import { createSqsClient, sendBatchSqsMessage } from '../services/send-sqs-message';
-import { addMetric, metric } from '../commons/metrics';
-import { MetricNames } from '../data-types/constants';
-import jsonSafeParse from '../commons/json-safe-parse';
+import { processTxmaEvents } from './txma-processor';
 
-export async function handler(event: SQSEvent, context: Context): Promise<void> {
+const accountInterventionEventsQueue = process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'];
+const accountDeletionSqsQueue = process.env['ACCOUNT_DELETION_SQS_QUEUE'];
+
+export async function handler(event: SQSEvent,
+  context: Context
+): Promise<void> {
   logger.addContext(context);
 
-  if (!process.env['ACCOUNT_DELETION_SQS_QUEUE']) {
+  if (!accountDeletionSqsQueue) {
     logger.error('ACCOUNT_DELETION_SQS_QUEUE env variable is not set');
     throw new Error('ACCOUNT_DELETION_SQS_QUEUE env variable is not set');
   }
-
-  if (!process.env['ACCOUNT_INTERVENTION_SQS_QUEUE']) {
+  
+  if (!accountInterventionEventsQueue) {
     logger.error('ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set');
     throw new Error('ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set');
   }
 
-  if (!event.Records[0]) {
-    logger.error('The event does not contain any records.');
-    return;
-  }
-
-  const deletionMessages = [];
-  const interventionMessages = [];
-
-  for (const [id, record] of event.Records.entries()) {
-    const parseResult = jsonSafeParse(record.body);
-
-    if (!parseResult.success) {
-      logger.error('The event contains an invalid record.');
-      addMetric(MetricNames.TXMA_HANDLER_INVALID_EVENT);
-      continue;
-    }
-
-    const body = parseResult.data;
-
-    if (!(typeof body === 'object' && body && 'event_name' in body)) {
-      logger.error('The event contains an invalid record.');
-      addMetric(MetricNames.TXMA_HANDLER_INVALID_EVENT);
-      continue;
-    }
-
-    const message = {
-      Id: String(id),
-      MessageBody: record.body,
-    };
-
-    if (body.event_name === 'AUTH_DELETE_ACCOUNT') {
-      addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_DELETE);
-      deletionMessages.push(message);
-    } else {
-      addMetric(MetricNames.RECIEVED_TXMA_ACCOUNT_INTERVENTION);
-      interventionMessages.push(message);
-    }
-  }
-
-  const sqsClient = createSqsClient();
-
-  const promiseList = [];
-
-  const accountInterventionEventsQueue = process.env['ACCOUNT_INTERVENTION_SQS_QUEUE'];
-  const accountDeletionSqsQueue = process.env['ACCOUNT_DELETION_SQS_QUEUE'];
-
-  if (deletionMessages.length > 0)
-    promiseList.push(sendBatchSqsMessage(deletionMessages, accountDeletionSqsQueue, sqsClient));
-  if (interventionMessages.length > 0)
-    promiseList.push(sendBatchSqsMessage(interventionMessages, accountInterventionEventsQueue, sqsClient));
-
-  await Promise.all(promiseList);
-
-  metric.publishStoredMetrics();
+  await processTxmaEvents(event, accountDeletionSqsQueue, accountInterventionEventsQueue);
 }
