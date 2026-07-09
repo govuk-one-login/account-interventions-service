@@ -4,11 +4,11 @@
 {% from "govuk/components/tag/macro.njk" import govukTag %}
 {% block content %}
   {{ govukBackLink({ text: "Back", href: stagePrefix + "/" }) }}
-  <h1 class="govuk-heading-xl">Account Status</h1>
-  <p class="govuk-body">User ID:
+  <h1 class="govuk-heading-l">Account Status</h1>
+  <p class="govuk-body-s">User ID:
     <strong>{{ userId }}</strong>
   </p>
-  <h1 class="govuk-heading-l">Active Interventions</h1>
+  <h2 class="govuk-heading-m">Active Interventions</h2>
   {% if accountStatus %}
     {% if accountStatus.interventions.length %}
       {% set rows = [] %}
@@ -20,9 +20,35 @@
       {% endfor %}
       {{ govukSummaryList({ rows: rows }) }}
     {% else %}
-      <p class="govuk-body">There are no active interventions on this account.</p>
+      <p class="govuk-body-s">There are no active interventions on this account.</p>
     {% endif %}
   {% else %}
-    <p class="govuk-body">No account found for this identifier.</p>
+    <p class="govuk-body-s">No account found for this identifier.</p>
+  {% endif %}
+  <h2 class="govuk-heading-m">History</h2>
+  {% if history and history.history and history.history.length %}
+    {% for item in history.history %}
+      {% set historyRows = [
+        { key: { text: "Code" },      value: { text: item.code } },
+        { key: { text: "Component" }, value: { text: item.component } },
+        { key: { text: "Reason" },    value: { text: item.reason } }
+      ] %}
+      {% if item.originatingComponent %}
+        {% set historyRows = historyRows.concat([{ key: { text: "Originating Component" }, value: { text: item.originatingComponent } }]) %}
+      {% endif %}
+      {% if item.originatorReferenceId %}
+        {% set historyRows = historyRows.concat([{ key: { text: "Originator Reference ID" }, value: { text: item.originatorReferenceId } }]) %}
+      {% endif %}
+      {% if item.requesterId %}
+        {% set historyRows = historyRows.concat([{ key: { text: "Requester ID" }, value: { text: item.requesterId } }]) %}
+      {% endif %}
+      <div class="govuk-inset-text govuk-!-margin-bottom-5">
+        <h3 class="govuk-heading-s govuk-!-margin-bottom-1">{{ item.intervention }}</h3>
+        <p class="govuk-body-xs govuk-hint govuk-!-margin-bottom-4">Sent: <strong>{{ item.sentAt }}</strong></p>
+        {{ govukSummaryList({ classes: "govuk-!-margin-bottom-0 govuk-!-font-size-16", rows: historyRows }) }}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="govuk-body-s">No history available for this account.</p>
   {% endif %}
 {% endblock %}

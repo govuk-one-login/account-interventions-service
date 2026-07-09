@@ -7,6 +7,7 @@ import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { InterventionClient, InterventionClientInterface } from '@govuk-one-login/ais-status-sdk';
 import logger from '../commons/logger';
+import { InterventionClientInterfaceV1, InterventionClientV1 } from './intervention-client-v1';
 
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).
@@ -17,11 +18,23 @@ const stagePrefix = process.env['STAGE_PREFIX'] ?? '';
 
 const statusApiUrl = process.env['STATUS_API_URL'];
 
+// Format an ISO date string into a human-readable UK date/time, e.g. "10 October 2023 at 20:22:02 UTC"
+function formatDate(isoString: string): string {
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return isoString;
+  return (
+    date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) +
+    ' at ' +
+    date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  );
+}
+
 export function init(
   interventionClient: InterventionClientInterface = new InterventionClient({
     baseUrl: statusApiUrl,
     logger,
   }),
+  interventionClientV1: InterventionClientInterfaceV1 = new InterventionClientV1(),
 ) {
   const server = fastify();
 
@@ -64,7 +77,16 @@ export function init(
 
     const accountStatus = await interventionClient.getAccountStatus(userId);
 
-    return reply.view('user-details.njk', { stagePrefix, assetPath, accountStatus, userId });
+    const accountStatusV1 = await interventionClientV1.getAccountHistory(userId);
+
+    const formattedHistory = accountStatusV1.history
+      ? {
+          ...accountStatusV1,
+          history: accountStatusV1.history.map((item) => ({ ...item, sentAt: formatDate(item.sentAt) })),
+        }
+      : accountStatusV1;
+
+    return reply.view('user-details.njk', { stagePrefix, assetPath, accountStatus, userId, history: formattedHistory });
   });
 
   return server;
