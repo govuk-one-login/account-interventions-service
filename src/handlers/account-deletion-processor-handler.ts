@@ -18,4 +18,3 @@ export async function handler(
   logger.addContext(context);
   await processAccountDeletion(event, accountStatusService)
 }
-

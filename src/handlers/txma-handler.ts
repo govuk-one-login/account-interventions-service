@@ -14,7 +14,7 @@ export async function handler(event: SQSEvent,
     logger.error('ACCOUNT_DELETION_SQS_QUEUE env variable is not set');
     throw new Error('ACCOUNT_DELETION_SQS_QUEUE env variable is not set');
   }
-  
+
   if (!accountInterventionEventsQueue) {
     logger.error('ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set');
     throw new Error('ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set');

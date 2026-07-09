@@ -117,4 +117,3 @@ async function updateDeleteStatusId(userId: string, accountStatusService: Accoun
     throw new Error('Failed to update the account status.', { cause: error });
   }
 }
-

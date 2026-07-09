@@ -20,4 +20,3 @@ export async function handle(
   logger.addContext(context);
   return retrieveStatus(event, accountStatusService, interventionEventsService);
 }
-
