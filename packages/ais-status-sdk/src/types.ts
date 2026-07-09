@@ -14,7 +14,7 @@ export interface AccountStatusResult {
 }
 
 export interface InterventionClientConfig {
-  baseUrl: string;
+  baseUrl: string | undefined;
 }
 
 export interface InterventionClientInterface {
