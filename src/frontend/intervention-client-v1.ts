@@ -1,3 +1,4 @@
+import getEnvironmentOrThrow from '../commons/get-environment-or-throw';
 import { V1Response, V1ResponseSchema } from '../data-types/api-schemas-v1';
 
 export interface InterventionClientInterfaceV1 {
@@ -6,9 +7,7 @@ export interface InterventionClientInterfaceV1 {
 
 export class InterventionClientV1 implements InterventionClientInterfaceV1 {
   async fetchAccountHistory(userId: string): Promise<V1Response> {
-    const url = process.env['STATUS_API_URL'];
-
-    if (!url) throw new Error('Missing required environment variable: STATUS_API_URL');
+    const url = getEnvironmentOrThrow('STATUS_API_URL');
 
     const baseUrl = url.replace(/\/$/, '');
 

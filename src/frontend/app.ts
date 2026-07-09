@@ -21,7 +21,7 @@ const statusApiUrl = process.env['STATUS_API_URL'];
 // Format an ISO date string into a human-readable UK date/time, e.g. "10 October 2023 at 20:22:02 UTC"
 function formatDate(isoString: string): string {
   const date = new Date(isoString);
-  if (Number.isNaN(date.getTime())) return isoString;
+
   return (
     date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) +
     ' at ' +

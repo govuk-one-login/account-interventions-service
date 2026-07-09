@@ -78,7 +78,7 @@ describe('InterventionClientV1', () => {
       vi.stubEnv('STATUS_API_URL', '');
       const client = new InterventionClientV1();
       await expect(client.getAccountHistory('test-user')).rejects.toThrow(
-        'Missing required environment variable: STATUS_API_URL',
+        'Environment variable STATUS_API_URL not found',
       );
     });
   });
