@@ -5,10 +5,7 @@ import formbody from '@fastify/formbody';
 import nunjucks from 'nunjucks';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
-import {
-  InterventionClient,
-  InterventionClientInterface,
-} from '@govuk-one-login/ais-status-sdk';
+import { InterventionClient, InterventionClientInterface } from '@govuk-one-login/ais-status-sdk';
 
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).
@@ -19,16 +16,11 @@ const stagePrefix = process.env['STAGE_PREFIX'] ?? '';
 
 const statusApiUrl = process.env['STATUS_API_URL'];
 
-/* istanbul ignore next */
-const generateInterventionClient = () => {
-  if (!statusApiUrl) throw new Error('Missing required environment variable: STATUS_API_URL');
-
-  return new InterventionClient({
+export function init(
+  interventionClient: InterventionClientInterface = new InterventionClient({
     baseUrl: statusApiUrl,
-  });
-};
-
-export function init(interventionClient: InterventionClientInterface = generateInterventionClient()) {
+  }),
+) {
   const server = fastify();
 
   // Parse URL-encoded form bodies (application/x-www-form-urlencoded)
@@ -52,7 +44,7 @@ export function init(interventionClient: InterventionClientInterface = generateI
     templates: [path.join(__dirname, 'views'), path.join(nodeModulesRoot, 'node_modules/govuk-frontend/dist')],
   });
 
-  const assetPath = `${stagePrefix}/assets`
+  const assetPath = `${stagePrefix}/assets`;
 
   server.get('/', async (_request, reply) => reply.view('index.njk', { stagePrefix, assetPath }));
 
