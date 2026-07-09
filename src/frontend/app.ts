@@ -56,7 +56,9 @@ export function init(
 
   // Fetches account status for the given userId and renders the details page.
   server.get<{ Params: { userId: string } }>('/user/:userId', async (request, reply) => {
-    const userId = decodeURIComponent(request.params.userId);
+    const userId = decodeURIComponent(request.params.userId).trim();
+
+    if (!userId) return reply.code(400).send();
 
     const accountStatus = await interventionClient.getAccountStatus(userId);
 

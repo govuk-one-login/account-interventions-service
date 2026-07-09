@@ -99,5 +99,11 @@ describe('frontend app', () => {
       await server.inject({ method: 'GET', url: `/user/${encodeURIComponent(userId)}` });
       expect(queriedUserId).toBe(userId);
     });
+
+    it('returns 400 for missing :userId', async () => {
+      const server = init(new InterventionStub({ result: { interventions: [] } }));
+      const response = await server.inject({ method: 'GET', url: '/user/%20' });
+      expect(response.statusCode).toBe(400);
+    });
   });
 });
