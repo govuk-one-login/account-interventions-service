@@ -1,11 +1,11 @@
 import { Mock } from 'vitest';
-import { handler } from '../account-deletion-processor-handler';
 import logger from '../../commons/logger';
 import 'aws-sdk-client-mock-vitest/extend';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { Metrics } from '@aws-lambda-powertools/metrics';
 import { MetricNames } from '../../data-types/constants';
 import { InMemoryAccountStatusService } from '../../tables/account-status';
+import { processAccountDeletion } from '../account-deletion-processor';
 
 vi.mock('../../commons/logger');
 vi.mock('@aws-lambda-powertools/metrics');
@@ -24,26 +24,6 @@ const loggerErrorSpy = vi.spyOn(logger, 'error');
 describe('Account Deletion Processor', () => {
   let mockEvent: SQSEvent;
   let mockRecord: SQSRecord;
-  const mockContext = {
-    callbackWaitsForEmptyEventLoop: true,
-    functionVersion: '$LATEST',
-    functionName: 'foo-bar-function',
-    memoryLimitInMB: '128',
-    logGroupName: '/aws/lambda/foo-bar-function-123456abcdef',
-    logStreamName: '2021/03/09/[$LATEST]abcdef123456abcdef123456abcdef123456',
-    invokedFunctionArn: 'arn:aws:lambda:eu-west-1:123456789012:function:foo-bar-function',
-    awsRequestId: 'c6af9ac6-7b61-11e6-9a41-93e812345678',
-    getRemainingTimeInMillis: () => 1234,
-    done: () => {
-      console.log('Done!');
-    },
-    fail: () => {
-      console.log('Failed!');
-    },
-    succeed: () => {
-      console.log('Succeeded!');
-    },
-  };
 
   beforeAll(() => {
     vi.useFakeTimers();
@@ -83,7 +63,7 @@ describe('Account Deletion Processor', () => {
 
   it('does nothing if SQS event contains no record', async () => {
     mockEvent = { Records: [] };
-    await handler(mockEvent, mockContext, new InMemoryAccountStatusService());
+    await processAccountDeletion(mockEvent, new InMemoryAccountStatusService());
     expect(mockPublishStoredMetric).toHaveBeenCalledTimes(0);
     expect(loggerErrorSpy).toHaveBeenCalledWith('The event does not contain any records.');
   });
@@ -92,7 +72,7 @@ describe('Account Deletion Processor', () => {
     const mockBody = 'non-JSON mockRecordBody';
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext, new InMemoryAccountStatusService());
+    await processAccountDeletion(mockEvent, new InMemoryAccountStatusService());
     expect(loggerErrorSpy).toHaveBeenCalledWith('The SQS message can not be parsed.');
 
     expect(mockAddMetric).toHaveBeenCalledTimes(1);
@@ -106,7 +86,7 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ Message: 'invalid JSON message in the message body' });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext, new InMemoryAccountStatusService());
+    await processAccountDeletion(mockEvent, new InMemoryAccountStatusService());
     expect(loggerErrorSpy)
       .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ Invalid input: expected "AUTH_DELETE_ACCOUNT"
   → at event_name
@@ -118,7 +98,7 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT' });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext, new InMemoryAccountStatusService());
+    await processAccountDeletion(mockEvent, new InMemoryAccountStatusService());
     expect(loggerErrorSpy)
       .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ Invalid input: expected object, received undefined
   → at user`);
@@ -128,7 +108,7 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user: { user_id: '' } });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext, new InMemoryAccountStatusService());
+    await processAccountDeletion(mockEvent, new InMemoryAccountStatusService());
     expect(loggerErrorSpy)
       .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ String cannot be empty or just spaces
   → at user.user_id`);
@@ -138,7 +118,7 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user: { user_id: ' '.repeat(3) } });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext, new InMemoryAccountStatusService());
+    await processAccountDeletion(mockEvent, new InMemoryAccountStatusService());
     expect(loggerErrorSpy)
       .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ String cannot be empty or just spaces
   → at user.user_id`);
@@ -148,7 +128,7 @@ describe('Account Deletion Processor', () => {
     const mockBody = JSON.stringify({ event_name: 'AUTH_DELETE_ACCOUNT', user: { user_id: 123 } });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext, new InMemoryAccountStatusService());
+    await processAccountDeletion(mockEvent, new InMemoryAccountStatusService());
     expect(loggerErrorSpy)
       .toHaveBeenCalledWith(`The SQS message can not be parsed. ✖ Invalid input: expected string, received number
   → at user.user_id`);
@@ -165,7 +145,7 @@ describe('Account Deletion Processor', () => {
     });
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext, service);
+    await processAccountDeletion(mockEvent, service);
     expect(mockPublishStoredMetric).toHaveBeenCalled();
     expect(onUpdateDeleteStatusSpy).toHaveBeenCalledWith('abcdef');
   });
@@ -180,7 +160,7 @@ describe('Account Deletion Processor', () => {
     mockRecord = { ...mockRecord, body: mockBody };
     mockEvent = { Records: [mockRecord] };
     const error = new Error('Error');
-    await expect(handler(mockEvent, mockContext, new InMemoryAccountStatusService({ error }))).rejects.toThrow(
+    await expect(processAccountDeletion(mockEvent, new InMemoryAccountStatusService({ error }))).rejects.toThrow(
       'Failed to update the account status.',
     );
     expect(mockPublishStoredMetric).toHaveBeenCalled();
@@ -196,7 +176,7 @@ describe('Account Deletion Processor', () => {
 
     const onUpdateDeleteStatusSpy = vi.spyOn(service, 'updateDeleteStatus');
 
-    await handler(mockEvent, mockContext, service);
+    await processAccountDeletion(mockEvent, service);
     expect(mockPublishStoredMetric).toHaveBeenCalled();
     expect(onUpdateDeleteStatusSpy).toHaveBeenCalledTimes(1);
   });
@@ -214,7 +194,7 @@ describe('Account Deletion Processor', () => {
       }),
     };
     const mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext, service);
+    await processAccountDeletion(mockEvent, service);
     expect(mockPublishStoredMetric).toHaveBeenCalled();
     expect(onUpdateDeleteStatusSpy).toHaveBeenCalledTimes(1);
   });
@@ -254,7 +234,7 @@ describe('Account Deletion Processor', () => {
       }),
     };
     const mockEvent = { Records: [mockRecord] };
-    await handler(mockEvent, mockContext, service);
+    await processAccountDeletion(mockEvent, service);
     expect(mockPublishStoredMetric).toHaveBeenCalledTimes(1);
     expect(mockAddMetric).not.toHaveBeenCalledWith('INVALID_EVENT_RECEIVED_EVENT_CATALOGUE', 'Count', 1);
     expect(onUpdateDeleteStatusSpy).toHaveBeenCalledTimes(1);
@@ -275,7 +255,7 @@ describe('Account Deletion Processor', () => {
       }),
     };
     const mockEvent = { Records: [mockRecord, mockRecord2] };
-    await handler(mockEvent, mockContext, service);
+    await processAccountDeletion(mockEvent, service);
     expect(mockPublishStoredMetric).toHaveBeenCalled();
     expect(onUpdateDeleteStatusSpy).toHaveBeenCalledTimes(2);
   });
