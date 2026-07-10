@@ -2113,8 +2113,31 @@ Outputs:
   TxMAEgressSqsQueueUrl:
     Description: 'Endpoint URL for TxMA Egress Queue'
     Value: !Ref TxMAEgressQueue
+    Export:
+      Name: !Sub '${AWS::StackName}-TxMAEgressSqsQueueUrl'
+
+  TxMAEgressSqsQueueArn:
+    Description: 'ARN of the TxMA Egress Queue'
+    Value: !GetAtt TxMAEgressQueue.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-TxMAEgressSqsQueueArn'
 
   TxMAIngressSqsQueueUrl:
     Condition: IsInternal
     Description: 'Endpoint URL for TxMA Ingress Queue'
     Value: !Ref TxMAIngressQueue
+    Export:
+      Name: !Sub '${AWS::StackName}-TxMAIngressSqsQueueUrl'
+
+  TxMAIngressSqsQueueArn:
+    Condition: IsInternal
+    Description: 'ARN of the TxMA Ingress Queue'
+    Value: !GetAtt TxMAIngressQueue.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-TxMAIngressSqsQueueArn'
+
+  SQSEncryptionKeyArn:
+    Description: 'ARN of the KMS key used to encrypt SQS queue messages'
+    Value: !GetAtt SQSEncryptionKey.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-SQSEncryptionKeyArn'
