@@ -47,6 +47,22 @@ jobs:
         with:
           ref: ${{ inputs.gitRef }}
 
+      - name: Setup NodeJS
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # pin@v6.3.0
+        with:
+          node-version-file: '.node-version'
+          registry-url: 'https://npm.pkg.github.com/'
+          scope: '@govuk-one-login'
+          cache: npm
+
+      - name: Run npm install
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+
+      - name: Run npm ui:package
+        run: npm run ui:package
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # pin@6.0.0
         with:
