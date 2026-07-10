@@ -5,6 +5,7 @@ import TableConfig from './table-config';
 import { getDBDocumentClient } from '../services/database-client';
 import { InterventionState } from '../data-types/constants';
 import { InterventionName } from '../data-types/intervention-name';
+import { BatchWriteCommandOutput } from '@aws-sdk/lib-dynamodb';
 
 const appConfig = AppConfigService.getInstance();
 
@@ -36,7 +37,7 @@ export type InterventionEvent = z.infer<typeof schema>;
 
 export interface InterventionEventsService {
   fetchEventsForAccount(accountId: string): Promise<InterventionEvent[]>;
-  appendEvents(events: InterventionEvent[]): Promise<void>;
+  appendEvents(events: InterventionEvent[]): Promise<BatchWriteCommandOutput>;
 }
 
 export class InMemoryInterventionEventsService implements InterventionEventsService {
@@ -46,8 +47,10 @@ export class InMemoryInterventionEventsService implements InterventionEventsServ
     return Promise.resolve(this.events);
   }
 
-  async appendEvents() {
-    await Promise.resolve();
+  appendEvents() {
+    return Promise.resolve({
+      $metadata: {},
+    });
   }
 }
 
@@ -58,8 +61,8 @@ export class PersistentInterventionEventsService implements InterventionEventsSe
     return this.recordService.queryByPkAndValidate(accountId);
   }
 
-  async appendEvents(events: InterventionEvent[]) {
-    await this.recordService.batchWrite(events);
+  appendEvents(events: InterventionEvent[]) {
+    return this.recordService.batchWrite(events);
   }
 }
 

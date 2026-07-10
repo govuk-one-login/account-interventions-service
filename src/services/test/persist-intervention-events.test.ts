@@ -3,6 +3,7 @@ import { EventsEnum, InterventionState, TriggerEventsEnum } from '../../data-typ
 import { InterventionName } from '../../data-types/intervention-name';
 import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
 import persistInterventionEvents, {
+  enrichEvents,
   generateEventsToAppend,
   persistIgnoredInterventionEvent,
   setTtlOnInactiveEvents,
@@ -27,16 +28,16 @@ const baseMessage: InterventionEventMessage = {
 
 const FIXED_TIMESTAMP = 1781253284370;
 
+beforeAll(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(FIXED_TIMESTAMP);
+});
+
+afterAll(() => {
+  vi.useRealTimers();
+});
+
 describe('persistInterventionEvents', () => {
-  beforeAll(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(FIXED_TIMESTAMP);
-  });
-
-  afterAll(() => {
-    vi.useRealTimers();
-  });
-
   test('persists a new intervention event when no existing events are present', async () => {
     const service = new InMemoryInterventionEventsService([]);
     const fetchEventsSpy = vi.spyOn(service, 'fetchEventsForAccount');
@@ -66,15 +67,6 @@ describe('persistInterventionEvents', () => {
 });
 
 describe('generateEventsToAppend', () => {
-  beforeAll(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(FIXED_TIMESTAMP);
-  });
-
-  afterAll(() => {
-    vi.useRealTimers();
-  });
-
   test('add one intervention', () => {
     const response = generateEventsToAppend(
       [
@@ -190,15 +182,6 @@ describe('generateEventsToAppend', () => {
 });
 
 describe('persistIgnoredInterventionEvent', () => {
-  beforeAll(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(FIXED_TIMESTAMP);
-  });
-
-  afterAll(() => {
-    vi.useRealTimers();
-  });
-
   test('persists exactly one ignored row when attempted intervention matches the active intervention', async () => {
     const service = new InMemoryInterventionEventsService([
       {
@@ -277,15 +260,6 @@ describe('persistIgnoredInterventionEvent', () => {
 describe('setTtlOnInactiveEvents', () => {
   const FIXED_TIMESTAMP = 1781253284370;
   const EXPECTED_TTL = Math.floor(FIXED_TIMESTAMP / 1000) + 12345;
-
-  beforeAll(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(FIXED_TIMESTAMP);
-  });
-
-  afterAll(() => {
-    vi.useRealTimers();
-  });
 
   test('sets ttl on inactive events that do not already have a ttl', async () => {
     const service = new InMemoryInterventionEventsService([
@@ -432,6 +406,169 @@ describe('setTtlOnInactiveEvents', () => {
     expect(appendEventsSpy).toHaveBeenCalledExactlyOnceWith([
       expect.objectContaining({ eventId: 'event-1', ttl: EXPECTED_TTL }),
       expect.objectContaining({ eventId: 'event-2', ttl: EXPECTED_TTL }),
+    ]);
+  });
+});
+
+const ticfAccountInterventionEvent: InterventionEventMessage = {
+  event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+  extensions: {
+    intervention: { intervention_code: '01', intervention_reason: 'Lost' },
+  },
+  component_id: 'TEST',
+  timestamp: 123,
+  event_timestamp_ms: 123,
+  user: { user_id: 'abc123' },
+};
+
+describe('enrichEvents', () => {
+  test('empty event list', () => {
+    const result = enrichEvents([], ticfAccountInterventionEvent);
+
+    expect(result).toEqual([]);
+  });
+
+  test('single event', () => {
+    const result = enrichEvents(
+      [
+        {
+          interventionName: InterventionName.PERMANENT_SUSPENSION,
+          interventionState: InterventionState.ACTIVE,
+        },
+      ],
+      ticfAccountInterventionEvent,
+    );
+
+    expect(result).toEqual([
+      {
+        accountId: 'abc123',
+        componentId: 'TEST',
+        createdAt: FIXED_TIMESTAMP,
+        eventId: expect.any(String) as string,
+        interventionName: 'PERMANENT_SUSPENSION',
+        interventionReason: 'Lost',
+        interventionState: 'ACTIVE',
+        originatingComponentId: undefined,
+        originatorReferenceId: undefined,
+        requesterId: undefined,
+        sentAt: 123,
+        transactionId: expect.any(String) as string,
+      },
+    ]);
+  });
+
+  test('message with more extensions', () => {
+    const result = enrichEvents(
+      [
+        {
+          interventionName: InterventionName.PERMANENT_SUSPENSION,
+          interventionState: InterventionState.ACTIVE,
+        },
+      ],
+      {
+        ...ticfAccountInterventionEvent,
+        extensions: {
+          ...ticfAccountInterventionEvent.extensions,
+          intervention: {
+            ...ticfAccountInterventionEvent.extensions.intervention,
+            originating_component_id: 'TEST',
+            requester_id: 'req1234',
+            originator_reference_id: 'ref1',
+          },
+        },
+      },
+    );
+
+    expect(result).toEqual([
+      {
+        accountId: 'abc123',
+        componentId: 'TEST',
+        createdAt: FIXED_TIMESTAMP,
+        eventId: expect.any(String) as string,
+        interventionName: 'PERMANENT_SUSPENSION',
+        interventionReason: 'Lost',
+        interventionState: 'ACTIVE',
+        originatingComponentId: 'TEST',
+        originatorReferenceId: 'ref1',
+        requesterId: 'req1234',
+        sentAt: 123,
+        transactionId: expect.any(String) as string,
+      },
+    ]);
+  });
+
+  test('message without extensions', () => {
+    const result = enrichEvents(
+      [
+        {
+          interventionName: InterventionName.PERMANENT_SUSPENSION,
+          interventionState: InterventionState.ACTIVE,
+        },
+      ],
+      {
+        event_name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+        component_id: '',
+        timestamp: 0,
+        event_timestamp_ms: 1234,
+        user: {
+          user_id: 'abc1234',
+        },
+      },
+    );
+
+    expect(result).toEqual([
+      {
+        accountId: 'abc1234',
+        componentId: '',
+        createdAt: FIXED_TIMESTAMP,
+        eventId: expect.any(String) as string,
+        interventionName: 'PERMANENT_SUSPENSION',
+        interventionReason: '',
+        interventionState: 'ACTIVE',
+        originatingComponentId: undefined,
+        originatorReferenceId: undefined,
+        requesterId: undefined,
+        sentAt: 1234,
+        transactionId: expect.any(String) as string,
+      },
+    ]);
+  });
+
+  test('message with other extensions', () => {
+    const result = enrichEvents(
+      [
+        {
+          interventionName: InterventionName.PERMANENT_SUSPENSION,
+          interventionState: InterventionState.ACTIVE,
+        },
+      ],
+      {
+        event_name: EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+        component_id: '',
+        timestamp: 0,
+        event_timestamp_ms: 1234,
+        user: {
+          user_id: 'abc1234',
+        },
+        extensions: {},
+      } as InterventionEventMessage,
+    );
+
+    expect(result).toEqual([
+      {
+        accountId: 'abc1234',
+        componentId: '',
+        createdAt: FIXED_TIMESTAMP,
+        eventId: expect.any(String) as string,
+        interventionName: 'PERMANENT_SUSPENSION',
+        interventionReason: '',
+        interventionState: 'ACTIVE',
+        originatingComponentId: undefined,
+        originatorReferenceId: undefined,
+        requesterId: undefined,
+        sentAt: 1234,
+        transactionId: expect.any(String) as string,
+      },
     ]);
   });
 });

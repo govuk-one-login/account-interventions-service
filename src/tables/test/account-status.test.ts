@@ -142,7 +142,9 @@ describe('PersistentAccountStatusService', () => {
 
     const res = await service.updateDeleteStatus('1234');
 
-    expect(res).toEqual(undefined);
+    expect(res).toEqual({
+      $metadata: {},
+    });
 
     expect(recordServiceUpdateSpy).toHaveBeenLastCalledWith(
       '1234',

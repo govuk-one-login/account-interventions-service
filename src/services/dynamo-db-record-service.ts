@@ -1,6 +1,7 @@
 import { z, ZodArray, ZodObject, ZodRawShape } from 'zod';
 import {
   BatchWriteCommand,
+  BatchWriteCommandOutput,
   DynamoDBDocumentClient,
   NativeAttributeValue,
   QueryCommand,
@@ -71,7 +72,7 @@ export interface RecordService<T extends ZodObject<ZodRawShape>> {
    * Note this will update if the partitionKey and sortKey match an existing row.
    * @param input - Array of objects to insert or update.
    */
-  batchWrite(input: ArrayFromT<T>): Promise<void>;
+  batchWrite(input: ArrayFromT<T>): Promise<BatchWriteCommandOutput>;
 
   /**
    * Update a row in the database
@@ -142,8 +143,8 @@ export class DynamoDBRecordService<
     return res[0];
   }
 
-  async batchWrite(input: ArrayFromT<T>): Promise<void> {
-    await this.databaseClient.send(
+  async batchWrite(input: ArrayFromT<T>): Promise<BatchWriteCommandOutput> {
+    return await this.databaseClient.send(
       new BatchWriteCommand({
         RequestItems: {
           [this.config.tableName]: input.map((item) => ({
@@ -204,10 +205,14 @@ export class InMemoryRecordService<T extends ZodObject<ZodRawShape>> implements 
   }
 
   batchWrite() {
-    return Promise.resolve();
+    return Promise.resolve({
+      $metadata: { attempts: 1 },
+    });
   }
 
   update() {
-    return Promise.resolve(undefined);
+    return Promise.resolve({
+      $metadata: {},
+    });
   }
 }
