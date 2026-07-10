@@ -63,6 +63,7 @@ describe('build-partial-update-state-command', () => {
   afterAll(() => {
     vi.useRealTimers();
   });
+
   it('should return a partial update command given Auth successful password reset is applied', () => {
     const state: StateDetails = {
       blocked: false,
