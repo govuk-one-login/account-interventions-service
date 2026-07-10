@@ -26,6 +26,7 @@ on:
 permissions:
   id-token: write
   contents: read
+  packages: read
 
 jobs:
   validate_deployment:
