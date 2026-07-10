@@ -1,5 +1,4 @@
 import { Mock } from 'vitest';
-import { handler } from '../interventions-processor-handler';
 import logger from '../../commons/logger';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { addMetric } from '../../commons/metrics';
@@ -13,6 +12,7 @@ import { publishTimeToResolveMetrics } from '../../commons/metrics-helper';
 import { InterventionEventMessage, TicfAccountIntervention } from '../../contracts/intervention-events';
 import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
 import { InMemoryAccountStatusService } from '../../tables/account-status';
+import { processInterventions } from '../interventions-processor';
 
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
@@ -84,26 +84,6 @@ const emptyInterventionEventsService = new InMemoryInterventionEventsService([])
 describe('intervention processor handler', () => {
   let mockEvent: SQSEvent;
   let mockRecord: SQSRecord;
-  const mockContext = {
-    callbackWaitsForEmptyEventLoop: true,
-    functionVersion: '$LATEST',
-    functionName: 'foo-bar-function',
-    memoryLimitInMB: '128',
-    logGroupName: '/aws/lambda/foo-bar-function-123456abcdef',
-    logStreamName: '2021/03/09/[$LATEST]abcdef123456abcdef123456abcdef123456',
-    invokedFunctionArn: 'arn:aws:lambda:eu-west-1:123456789012:function:foo-bar-function',
-    awsRequestId: 'c6af9ac6-7b61-11e6-9a41-93e812345678',
-    getRemainingTimeInMillis: () => 1234,
-    done: () => {
-      console.log('Done!');
-    },
-    fail: () => {
-      console.log('Failed!');
-    },
-    succeed: () => {
-      console.log('Succeeded!');
-    },
-  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -136,9 +116,8 @@ describe('intervention processor handler', () => {
   describe('handle', () => {
     it('does nothing if SQS event contains no record', async () => {
       const loggerWarnSpy = vi.spyOn(logger, 'warn');
-      await handler(
+      await processInterventions(
         { Records: [] },
-        mockContext,
         new InMemoryAccountStatusService({
           baseStatus: {
             blocked: false,
@@ -162,7 +141,7 @@ describe('intervention processor handler', () => {
     it('should not retry if message body cannot be parsed to valid JSON', async () => {
       mockRecord.body = ' ';
       expect(
-        await handler(mockEvent, mockContext, new InMemoryAccountStatusService(), emptyInterventionEventsService),
+        await processInterventions(mockEvent, new InMemoryAccountStatusService(), emptyInterventionEventsService),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -187,9 +166,8 @@ describe('intervention processor handler', () => {
         });
       });
       expect(
-        await handler(
+        await processInterventions(
           mockEvent,
-          mockContext,
           new InMemoryAccountStatusService({
             baseStatus: {
               blocked: false,
@@ -242,7 +220,7 @@ describe('intervention processor handler', () => {
         nextAllowableInterventions: [],
       });
       expect(
-        await handler(mockEvent, mockContext, new InMemoryAccountStatusService(), emptyInterventionEventsService),
+        await processInterventions(mockEvent, new InMemoryAccountStatusService(), emptyInterventionEventsService),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -280,7 +258,7 @@ describe('intervention processor handler', () => {
         nextAllowableInterventions: [],
       });
       expect(
-        await handler(mockEvent, mockContext, new InMemoryAccountStatusService(), emptyInterventionEventsService),
+        await processInterventions(mockEvent, new InMemoryAccountStatusService(), emptyInterventionEventsService),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -320,7 +298,7 @@ describe('intervention processor handler', () => {
       mockRecord.body = JSON.stringify(resetPasswordEventBody);
       mockEvent.Records = [mockRecord];
       expect(
-        await handler(mockEvent, mockContext, new InMemoryAccountStatusService(), emptyInterventionEventsService),
+        await processInterventions(mockEvent, new InMemoryAccountStatusService(), emptyInterventionEventsService),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -358,9 +336,8 @@ describe('intervention processor handler', () => {
 
     it('should not process the event if the user account is marked as deleted', async () => {
       expect(
-        await handler(
+        await processInterventions(
           mockEvent,
-          mockContext,
           new InMemoryAccountStatusService({
             baseStatus: {
               blocked: false,
@@ -409,9 +386,8 @@ describe('intervention processor handler', () => {
 
       mockRecord.body = JSON.stringify(interventionEventBodyInTheFuture);
       expect(
-        await handler(
+        await processInterventions(
           { Records: [mockRecord] },
-          mockContext,
           new InMemoryAccountStatusService(),
           emptyInterventionEventsService,
         ),
@@ -444,7 +420,7 @@ describe('intervention processor handler', () => {
         throw new ValidationError('invalid event');
       });
       expect(
-        await handler(mockEvent, mockContext, new InMemoryAccountStatusService(), emptyInterventionEventsService),
+        await processInterventions(mockEvent, new InMemoryAccountStatusService(), emptyInterventionEventsService),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -454,9 +430,8 @@ describe('intervention processor handler', () => {
     it('should return message id to be retried if dynamo db operation fails', async () => {
       const error = new Error('Error');
       expect(
-        await handler(
+        await processInterventions(
           mockEvent,
-          mockContext,
           new InMemoryAccountStatusService({ error }),
           emptyInterventionEventsService,
         ),
@@ -474,9 +449,8 @@ describe('intervention processor handler', () => {
 
     it('should not process the event and return if the event timestamp predates the latest applied intervention for the user ', async () => {
       expect(
-        await handler(
+        await processInterventions(
           { Records: [mockRecord] },
-          mockContext,
           new InMemoryAccountStatusService({
             baseStatus: {
               blocked: false,
@@ -557,9 +531,8 @@ describe('intervention processor handler', () => {
         nextAllowableInterventions: [],
       });
       expect(
-        await handler(
+        await processInterventions(
           { Records: [mockRecord] },
-          mockContext,
           new InMemoryAccountStatusService({
             baseStatus: {
               blocked: false,
@@ -585,9 +558,8 @@ describe('intervention processor handler', () => {
       const error = new TooManyRecordsError('Too many records');
 
       expect(
-        await handler(
+        await processInterventions(
           mockEvent,
-          mockContext,
           new InMemoryAccountStatusService({ error }),
           emptyInterventionEventsService,
         ),
@@ -633,9 +605,8 @@ describe('intervention processor handler', () => {
         awsRegion: '',
       };
       expect(
-        await handler(
+        await processInterventions(
           { Records: [mockRecord] },
-          mockContext,
           new InMemoryAccountStatusService(),
           emptyInterventionEventsService,
         ),
@@ -652,9 +623,8 @@ describe('intervention processor handler', () => {
     });
 
     it('should log the expected error line when a message is retried - this line is used by a metric filter for canary deployment alarm', async () => {
-      await handler(
+      await processInterventions(
         mockEvent,
-        mockContext,
         new InMemoryAccountStatusService({ error: new Error('Error') }),
         emptyInterventionEventsService,
       );

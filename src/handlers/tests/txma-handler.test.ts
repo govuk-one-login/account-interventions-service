@@ -1,8 +1,8 @@
 import { Mock } from 'vitest';
-import { handler } from '../txma-handler';
 import { sendBatchSqsMessage } from '../../services/send-sqs-message';
 import { Metrics } from '@aws-lambda-powertools/metrics';
 import logger from '../../commons/logger';
+import { processTxmaEvents } from '../txma-processor';
 
 vi.mock('../../services/send-sqs-message');
 vi.mock('@aws-lambda-powertools/metrics');
@@ -62,6 +62,37 @@ describe('TxMA Handler', () => {
     },
   };
 
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('throws an error if delete queue not configured', async () => {
+    vi.stubEnv('ACCOUNT_INTERVENTION_SQS_QUEUE', 'intervention_queue');
+    const { handler } = await import('../txma-handler');
+
+    await expect(handler({ Records: [] }, mockContext)).rejects.toThrow(
+      'ACCOUNT_DELETION_SQS_QUEUE env variable is not set',
+    );
+    expect(mockSendBatchSqsMessage).not.toHaveBeenCalled();
+  });
+
+  it('throws an error if intervention queue not configured', async () => {
+    vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'delete_queue');
+    const { handler } = await import('../txma-handler');
+
+    await expect(handler({ Records: [] }, mockContext)).rejects.toThrow(
+      'ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set',
+    );
+    expect(mockSendBatchSqsMessage).not.toHaveBeenCalled();
+  });
+});
+
+describe('TxMA Processor', () => {
+
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.clearAllMocks();
@@ -76,9 +107,7 @@ describe('TxMA Handler', () => {
     const mockRecord = createMockRecord(authDeleteEvent);
     const mockEvent = { Records: [mockRecord] };
 
-    vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'delete_queue');
-    vi.stubEnv('ACCOUNT_INTERVENTION_SQS_QUEUE', 'intervention_queue');
-    await handler(mockEvent, mockContext);
+    await processTxmaEvents(mockEvent, 'delete_queue', 'intervention_queue');
     expect(mockSendBatchSqsMessage).toHaveBeenCalledWith(
       [
         {
@@ -99,9 +128,8 @@ describe('TxMA Handler', () => {
     };
     const mockRecord = createMockRecord(otherInterventionEvent);
     const mockEvent = { Records: [mockRecord] };
-    vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'delete_queue');
-    vi.stubEnv('ACCOUNT_INTERVENTION_SQS_QUEUE', 'intervention_queue');
-    await handler(mockEvent, mockContext);
+
+    await processTxmaEvents(mockEvent, 'delete_queue', 'intervention_queue');
     expect(mockSendBatchSqsMessage).toHaveBeenCalledWith(
       [
         {
@@ -114,32 +142,9 @@ describe('TxMA Handler', () => {
     );
   });
 
-  it('Sends throw an error if delete queue not configured', async () => {
-    vi.stubEnv('ACCOUNT_INTERVENTION_SQS_QUEUE', 'intervention_queue');
-    try {
-      await handler({ Records: [] }, mockContext);
-    } catch (error) {
-      expect((error as Error).message).toEqual('ACCOUNT_DELETION_SQS_QUEUE env variable is not set');
-    }
-    expect(mockSendBatchSqsMessage).not.toHaveBeenCalled();
-  });
-
-  it('Sends throw an error if intervention queue not configured', async () => {
-    vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'queue');
-    try {
-      await handler({ Records: [] }, mockContext);
-    } catch (error) {
-      expect((error as Error).message).toEqual('ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set');
-    }
-    expect(mockSendBatchSqsMessage).not.toHaveBeenCalled();
-  });
-
   it('does nothing if SQS event contains no record', async () => {
-    vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'delete_queue');
-    vi.stubEnv('ACCOUNT_INTERVENTION_SQS_QUEUE', 'intervention_queue');
-
     const mockEvent = { Records: [] };
-    await handler(mockEvent, mockContext);
+    await processTxmaEvents(mockEvent, 'delete_queue', 'intervention_queue');
     expect(loggerErrorSpy).toHaveBeenCalledWith('The event does not contain any records.');
   });
 
@@ -163,9 +168,7 @@ describe('TxMA Handler', () => {
     };
     const mockEvent = { Records: [mockRecord] };
 
-    vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'delete_queue');
-    vi.stubEnv('ACCOUNT_INTERVENTION_SQS_QUEUE', 'intervention_queue');
-    await handler(mockEvent, mockContext);
+    await processTxmaEvents(mockEvent, 'delete_queue', 'intervention_queue');
     expect(loggerErrorSpy).toHaveBeenCalledWith('The event contains an invalid record.');
   });
 
@@ -173,9 +176,7 @@ describe('TxMA Handler', () => {
     const mockRecord = createMockRecord({});
     const mockEvent = { Records: [mockRecord] };
 
-    vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'delete_queue');
-    vi.stubEnv('ACCOUNT_INTERVENTION_SQS_QUEUE', 'intervention_queue');
-    await handler(mockEvent, mockContext);
+    await processTxmaEvents(mockEvent, 'delete_queue', 'intervention_queue');
     expect(loggerErrorSpy).toHaveBeenCalledWith('The event contains an invalid record.');
   });
 });
