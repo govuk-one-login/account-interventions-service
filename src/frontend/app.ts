@@ -7,6 +7,7 @@ import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { InterventionClient, InterventionClientInterface } from '@govuk-one-login/ais-status-sdk';
 import logger from '../commons/logger';
+import { FeatureFlagsFromEnvironmentVariables, FeatureFlags } from '../services/feature-flags';
 
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).
@@ -22,8 +23,11 @@ export function init(
     baseUrl: statusApiUrl,
     logger,
   }),
+  featureFlags: FeatureFlags = FeatureFlagsFromEnvironmentVariables.getInstance(),
 ) {
   const server = fastify();
+
+  if (!featureFlags.isEnabled('aisFrontend')) return server;
 
   // Parse URL-encoded form bodies (application/x-www-form-urlencoded)
   server.register(formbody);
