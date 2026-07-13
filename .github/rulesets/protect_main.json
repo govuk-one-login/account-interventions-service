@@ -45,19 +45,10 @@
             "context": "Build, Test, Lint & Scan"
           },
           {
-            "context": "CodeQL"
-          },
-          {
             "context": "SonarCloud Code Analysis"
           },
           {
             "context": "contract-testing"
-          },
-          {
-            "context": "Analyze (actions)"
-          },
-          {
-            "context": "Analyze (javascript-typescript)"
           }
         ]
       }
