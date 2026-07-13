@@ -1,5 +1,7 @@
 import { init } from '../app';
 import { InterventionStub, InterventionName, InterventionState } from '@govuk-one-login/ais-status-sdk';
+import { StubMessageService } from '../../services/message-service';
+import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
 
 describe('frontend app', () => {
   it('returns 200 for GET /', async () => {
@@ -136,6 +138,118 @@ describe('frontend app', () => {
       const server = init(new InterventionStub({ result: { interventions: [] } }));
       const response = await server.inject({ method: 'GET', url: '/user/%20' });
       expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe('POST /send', () => {
+    const successOutput: SendMessageCommandOutput = { $metadata: { httpStatusCode: 200 }, MessageId: 'msg-1' };
+
+    it('redirects to /user/:userId with status 303', async () => {
+      const server = init(
+        new InterventionStub({ result: { interventions: [] } }),
+        new StubMessageService(successOutput),
+      );
+      const response = await server.inject({
+        method: 'POST',
+        url: '/send',
+        payload: 'userId=test-user-id',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      });
+      expect(response.statusCode).toBe(303);
+      expect(response.headers.location).toBe('/user/test-user-id');
+    });
+
+    it('URL-encodes the userId in the redirect location', async () => {
+      const userId = 'urn:fdc:gov.uk:2022:abc123';
+      const server = init(
+        new InterventionStub({ result: { interventions: [] } }),
+        new StubMessageService(successOutput),
+      );
+      const response = await server.inject({
+        method: 'POST',
+        url: '/send',
+        payload: `userId=${encodeURIComponent(userId)}`,
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      });
+      expect(response.statusCode).toBe(303);
+      expect(response.headers.location).toBe(`/user/${encodeURIComponent(userId)}`);
+    });
+
+    it('calls sendMessage with the correct userId', async () => {
+      const messageService = new StubMessageService(successOutput);
+      const sendMessageSpy = vi.spyOn(messageService, 'sendMessage');
+
+      const server = init(new InterventionStub({ result: { interventions: [] } }), messageService);
+      await server.inject({
+        method: 'POST',
+        url: '/send',
+        payload: 'userId=test-user-id',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      });
+
+      expect(sendMessageSpy).toHaveBeenCalledOnce();
+      expect(sendMessageSpy).toHaveBeenCalledWith(expect.objectContaining({ user: { user_id: 'test-user-id' } }));
+    });
+
+    it('sets the flash_message_sent cookie on the redirect response', async () => {
+      const server = init(
+        new InterventionStub({ result: { interventions: [] } }),
+        new StubMessageService(successOutput),
+      );
+      const response = await server.inject({
+        method: 'POST',
+        url: '/send',
+        payload: 'userId=test-user-id',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      });
+
+      // eslint-disable-next-line unicorn/no-non-function-verb-prefix
+      const setCookie = response.headers['set-cookie'];
+      const cookies = Array.isArray(setCookie) ? setCookie : [setCookie ?? ''];
+      expect(cookies.some((c) => c.startsWith('flash_message_sent=true'))).toBe(true);
+    });
+
+    it('shows the success banner on the subsequent GET and not on a second GET', async () => {
+      const server = init(
+        new InterventionStub({ result: { interventions: [] } }),
+        new StubMessageService(successOutput),
+      );
+
+      // POST to /send — capture the flash cookie
+      const postResponse = await server.inject({
+        method: 'POST',
+        url: '/send',
+        payload: 'userId=test-user-id',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      });
+
+      // eslint-disable-next-line unicorn/no-non-function-verb-prefix
+      const setCookieHeader = postResponse.headers['set-cookie'] as string;
+      const cookieValue = setCookieHeader.split(';', 1)[0]; // e.g. "flash_message_sent=true"
+
+      // First GET — banner should appear
+      const firstGet = await server.inject({
+        method: 'GET',
+        url: '/user/test-user-id',
+        headers: { cookie: cookieValue },
+      });
+      expect(firstGet.body).toContain('TxMA message sent');
+
+      // Second GET without cookie — banner should not appear
+      const secondGet = await server.inject({ method: 'GET', url: '/user/test-user-id' });
+      expect(secondGet.body).not.toContain('TxMA message sent');
+    });
+
+    it('returns 500 when sendMessage rejects', async () => {
+      // MessageStub with no successOutput will reject sendMessage
+      const server = init(new InterventionStub({ result: { interventions: [] } }), new StubMessageService());
+      const response = await server.inject({
+        method: 'POST',
+        url: '/send',
+        payload: 'userId=test-user-id',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      });
+      expect(response.statusCode).toBe(500);
     });
   });
 });
