@@ -10,23 +10,9 @@ env:
 
 on:
   push:
-    paths:
-      - src/**
-      - package.json
-      - package-lock.json
-      - tsconfig.json
-      - .node-version
-      - .github/workflows/pact-test-message-consumer.yaml
     branches:
       - main
   pull_request:
-    paths:
-      - src/**
-      - package.json
-      - package-lock.json
-      - tsconfig.json
-      - .node-version
-      - .github/workflows/pact-test-message-consumer.yaml
     branches:
       - main
     types:
