@@ -11,23 +11,9 @@ env:
 
 on:
   push:
-    paths:
-      - src/**
-      - package.json
-      - package-lock.json
-      - tsconfig.json
-      - .node-version
-      - .github/workflows/pact-test-api-provider.yaml
     branches:
       - main
   pull_request:
-    paths:
-      - src/**
-      - package.json
-      - package-lock.json
-      - tsconfig.json
-      - .node-version
-      - .github/workflows/pact-test-api-provider.yaml
     branches:
       - main
     types:
@@ -49,6 +35,7 @@ permissions:
 
 jobs:
   contract-testing:
+    name: Contract testing (provider)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6.0.2
