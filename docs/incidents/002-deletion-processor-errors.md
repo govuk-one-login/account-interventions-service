@@ -6,19 +6,34 @@
 
 The account status service was changed to use a new DynamoDB client with improved static typing.
 This change contained a bug which caused the `AccountDeletionProcessor` Lambda to throw an error if the input was a deletion request for an account with no record in the intervention status table.
-These failed requests were retried multiple times before being sent to a DLQ.
+These failed requests were retried multiple times before being sent to a dead-letter queue (DLQ).
 The amount of errors being produce caused the `AccountDeletionProcessorErrorsOver10Mins` alarm [to fire](https://gds.slack.com/archives/C06R67X2EBC/p1782894367327679).
-The issue was mitigated by rolling forwards with a new commit to fix the bug, silencing the alarm by manually adjusting its threshold in order to allow the canaries to deploy in production, and redriving the events in the DLQ
+The issue was mitigated by rolling forwards with a new commit to fix the bug, silencing the alarm by manually adjusting its threshold in order to allow the canaries to deploy in production, and redriving the events in the DLQ.
 
 ## Learnings
 
 ### What went well
 
+- Edward Louth chose not to deploy this change the evening before, meaning that when the issue happened everyone was online and available.
+- Multiple developers were available to approve TEAM requests, necessary for silencing alarms.
+- An alarm went off.
+- The technical service desk (TSD) noticed the errors being emitted by the Lambda and notified us.
+- The issue was resolved quickly (~1 hour) and smoothly (no further issues).
+- There was no user impact, and no lasting impact.
+- The issue was easy to diagnose thanks to AIS's monitoring.
+
 ### What went poorly
+
+- This wasn't caught by a unit test.
+- This wasn't caught by a feature test.
 
 ### Where we got lucky
 
 ## Actions
+
+- Ed and Caroline to write a list of happy paths for the new AIS/FAI intervention history feature.
+- Ed to add a ticket for writing down our monitoring and alerting strategy in an ADR.
+- Ed and Edward to add a ticket for alerting for the AIS/FAI frontend lambda.
 
 ## Timeline
 
