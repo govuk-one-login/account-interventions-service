@@ -13,7 +13,7 @@ interface FlagDefinition {
 }
 
 const FLAGS = {
-  aisFrontend: { envVar: 'ENABLED_AIS_FRONTEND', defaultValue: false },
+  aisFrontend: { envVar: 'ENABLE_AIS_FRONTEND', defaultValue: false },
 } as const satisfies Record<string, FlagDefinition>;
 
 type FlagName = keyof typeof FLAGS;
