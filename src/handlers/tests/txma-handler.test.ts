@@ -1,10 +1,9 @@
 import { Mock } from 'vitest';
-import { sendBatchSqsMessage } from '../../services/send-sqs-message';
+import { StubMessageService } from '../../services/message-service';
 import { Metrics } from '@aws-lambda-powertools/metrics';
 import logger from '../../commons/logger';
 import { processTxmaEvents } from '../txma-processor';
 
-vi.mock('../../services/send-sqs-message');
 vi.mock('@aws-lambda-powertools/metrics');
 vi.mock('../../commons/logger');
 
@@ -12,8 +11,6 @@ const loggerErrorSpy = vi.spyOn(logger, 'error');
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const mockSerializeMetrics = Metrics.prototype.serializeMetrics as Mock;
-
-const mockSendBatchSqsMessage = sendBatchSqsMessage as Mock;
 
 const createMockRecord = (eventDetails: unknown) => ({
   messageId: '',
@@ -75,9 +72,8 @@ describe('TxMA Handler', () => {
     const { handler } = await import('../txma-handler');
 
     await expect(handler({ Records: [] }, mockContext)).rejects.toThrow(
-      'ACCOUNT_DELETION_SQS_QUEUE env variable is not set',
+      'Environment variable ACCOUNT_DELETION_SQS_QUEUE not found',
     );
-    expect(mockSendBatchSqsMessage).not.toHaveBeenCalled();
   });
 
   it('throws an error if intervention queue not configured', async () => {
@@ -85,14 +81,12 @@ describe('TxMA Handler', () => {
     const { handler } = await import('../txma-handler');
 
     await expect(handler({ Records: [] }, mockContext)).rejects.toThrow(
-      'ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set',
+      'Environment variable ACCOUNT_INTERVENTION_SQS_QUEUE not found',
     );
-    expect(mockSendBatchSqsMessage).not.toHaveBeenCalled();
   });
 });
 
 describe('TxMA Processor', () => {
-
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.clearAllMocks();
@@ -107,18 +101,30 @@ describe('TxMA Processor', () => {
     const mockRecord = createMockRecord(authDeleteEvent);
     const mockEvent = { Records: [mockRecord] };
 
-    await processTxmaEvents(mockEvent, 'delete_queue', 'intervention_queue');
-    expect(mockSendBatchSqsMessage).toHaveBeenCalledWith(
-      [
-        {
-          Id: '0',
-          MessageBody:
-            '{"event_name":"AUTH_DELETE_ACCOUNT","user":{"user_id":"urn:fdc:gov.uk:2022:USER_ONE"},"txma":{"configVersion":"1.0.4"}}',
-        },
-      ],
-      'delete_queue',
-      undefined,
-    );
+    vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'delete_queue');
+    vi.stubEnv('ACCOUNT_INTERVENTION_SQS_QUEUE', 'intervention_queue');
+    vi.stubEnv('AWS_REGION', 'eu-west-2');
+
+    const messageService = new StubMessageService(undefined, {
+      Successful: [],
+      Failed: [],
+      $metadata: {},
+    });
+
+    const sendBatchMessageSpy = vi.spyOn(messageService, 'sendBatchMessage');
+
+    await processTxmaEvents(mockEvent, {
+      interventionMessageService: messageService,
+      deletionMessageService: messageService,
+    });
+
+    expect(sendBatchMessageSpy).toHaveBeenCalledWith([
+      {
+        Id: '0',
+        MessageBody:
+          '{"event_name":"AUTH_DELETE_ACCOUNT","user":{"user_id":"urn:fdc:gov.uk:2022:USER_ONE"},"txma":{"configVersion":"1.0.4"}}',
+      },
+    ]);
   });
 
   it('Sends an SQS message to the intervention queue', async () => {
@@ -128,23 +134,86 @@ describe('TxMA Processor', () => {
     };
     const mockRecord = createMockRecord(otherInterventionEvent);
     const mockEvent = { Records: [mockRecord] };
+    vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'delete_queue');
+    vi.stubEnv('ACCOUNT_INTERVENTION_SQS_QUEUE', 'intervention_queue');
 
-    await processTxmaEvents(mockEvent, 'delete_queue', 'intervention_queue');
-    expect(mockSendBatchSqsMessage).toHaveBeenCalledWith(
-      [
+    const messageService = new StubMessageService(undefined, {
+      Successful: [],
+      Failed: [],
+      $metadata: {},
+    });
+
+    const sendBatchMessageSpy = vi.spyOn(messageService, 'sendBatchMessage');
+
+    await processTxmaEvents(mockEvent, {
+      interventionMessageService: messageService,
+      deletionMessageService: messageService,
+    });
+
+    expect(sendBatchMessageSpy).toHaveBeenCalledWith([
+      {
+        Id: '0',
+        MessageBody: '{"event_name":"TICF_ACCOUNT_INTERVENTION","user_id":"hello"}',
+      },
+    ]);
+  });
+
+  it('Sends throw an error if delete queue not configured', async () => {
+    vi.stubEnv('ACCOUNT_INTERVENTION_SQS_QUEUE', 'intervention_queue');
+
+    const messageService = new StubMessageService(undefined, {
+      Successful: [],
+      Failed: [],
+      $metadata: {},
+    });
+
+    const sendBatchMessageSpy = vi.spyOn(messageService, 'sendBatchMessage');
+
+    try {
+      await processTxmaEvents(
+        { Records: [] },
         {
-          Id: '0',
-          MessageBody: '{"event_name":"TICF_ACCOUNT_INTERVENTION","user_id":"hello"}',
+          interventionMessageService: messageService,
+          deletionMessageService: messageService,
         },
-      ],
-      'intervention_queue',
-      undefined,
-    );
+      );
+    } catch (error) {
+      expect((error as Error).message).toEqual('Environment variable ACCOUNT_DELETION_SQS_QUEUE not found');
+    }
+    expect(sendBatchMessageSpy).not.toHaveBeenCalled();
+  });
+
+  it('Sends throw an error if intervention queue not configured', async () => {
+    vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'queue');
+
+    const messageService = new StubMessageService(undefined, {
+      Successful: [],
+      Failed: [],
+      $metadata: {},
+    });
+
+    const sendBatchMessageSpy = vi.spyOn(messageService, 'sendBatchMessage');
+
+    try {
+      await processTxmaEvents(
+        { Records: [] },
+        {
+          interventionMessageService: messageService,
+          deletionMessageService: messageService,
+        },
+      );
+    } catch (error) {
+      expect((error as Error).message).toEqual('ACCOUNT_INTERVENTION_SQS_QUEUE env variable is not set');
+    }
+    expect(sendBatchMessageSpy).not.toHaveBeenCalled();
   });
 
   it('does nothing if SQS event contains no record', async () => {
     const mockEvent = { Records: [] };
-    await processTxmaEvents(mockEvent, 'delete_queue', 'intervention_queue');
+    await processTxmaEvents(mockEvent, {
+      interventionMessageService: new StubMessageService(),
+      deletionMessageService: new StubMessageService(),
+    });
     expect(loggerErrorSpy).toHaveBeenCalledWith('The event does not contain any records.');
   });
 
@@ -168,7 +237,16 @@ describe('TxMA Processor', () => {
     };
     const mockEvent = { Records: [mockRecord] };
 
-    await processTxmaEvents(mockEvent, 'delete_queue', 'intervention_queue');
+    const messageService = new StubMessageService(undefined, {
+      Successful: [],
+      Failed: [],
+      $metadata: {},
+    });
+
+    await processTxmaEvents(mockEvent, {
+      interventionMessageService: messageService,
+      deletionMessageService: messageService,
+    });
     expect(loggerErrorSpy).toHaveBeenCalledWith('The event contains an invalid record.');
   });
 
@@ -176,7 +254,16 @@ describe('TxMA Processor', () => {
     const mockRecord = createMockRecord({});
     const mockEvent = { Records: [mockRecord] };
 
-    await processTxmaEvents(mockEvent, 'delete_queue', 'intervention_queue');
+    const messageService = new StubMessageService(undefined, {
+      Successful: [],
+      Failed: [],
+      $metadata: {},
+    });
+
+    await processTxmaEvents(mockEvent, {
+      interventionMessageService: messageService,
+      deletionMessageService: messageService,
+    });
     expect(loggerErrorSpy).toHaveBeenCalledWith('The event contains an invalid record.');
   });
 });
