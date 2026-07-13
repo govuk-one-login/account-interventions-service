@@ -215,7 +215,7 @@ function buildConfigError(metricName: MetricNames, errorMessage: string) {
  * @param aState - first account state
  * @param anotherState - second account state
  */
-// eslint-disable-next-line unicorn/consistent-boolean-name
+
 export function areAccountStatesTheSame(aState: StateDetails, anotherState: StateDetails) {
   return (
     aState.resetPassword === anotherState.resetPassword &&
