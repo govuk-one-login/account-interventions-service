@@ -48,7 +48,10 @@
             "context": "SonarCloud Code Analysis"
           },
           {
-            "context": "contract-testing"
+            "context": "Contract testing (consumer)"
+          },
+          {
+            "context": "Contract testing (provider)"
           }
         ]
       }
