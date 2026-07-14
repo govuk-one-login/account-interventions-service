@@ -38,7 +38,7 @@ The remediation for the deployment failing was to increase the thresholds on the
 
 # Timeline
 
-[2026-06-09]
-[19:27] An alarm goes off
-[2026-06-10]
+#### [2026-06-09]
+[18:27] An alarm goes off
+#### [2026-06-10]
 [The morning] Edward and Kirsty fix the issue
