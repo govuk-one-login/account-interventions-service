@@ -1,4 +1,4 @@
-# FAI Walled Garden
+# Host a subpath of the FAI website in the AIS AWS environment
 
 ## What
 
