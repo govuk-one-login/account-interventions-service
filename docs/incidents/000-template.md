@@ -39,5 +39,5 @@ Note the backslashes are necessary on the ends of some lines to create a non-par
 [23:46] Alice gets paged because the server has gone down \
 [23:52] Alice finds the root cause
 
-#### [2026-05-11] 
+#### [2026-05-11]
 [00:11] Alice brings the server back up
