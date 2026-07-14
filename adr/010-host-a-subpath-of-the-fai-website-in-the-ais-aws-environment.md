@@ -2,26 +2,26 @@
 
 ## What
 
-Deploy a frontend hosted within the Account Interventions Service (AIS) AWS accounts.
-This will sit behind an API Gateway in the AIS account, with the Fraud Admin Interface (FAI) forwarding a subpath `/interventions` to the AIS API Gateway and frontend.
+Deploy a frontend Lambda hosted within the Account Interventions Service (AIS) AWS accounts.
+In production this Lambda will only by invoked when the Fraud Admin Interface (FAI) forwards a subpath `/interventions` to it.
 
 FAI will handle authentication and pass through a verifiable JWT with authorisation data (see [notes](#authorisation-and-authentication) for more detail).
 
 Specific cookies will be entirely isolated to either the existing FAI site or the AIS site.
 All cookies used by the AIS site will be prefixed `ais_` to allow this.
-The exception is the auth JWT, if it's encoded in a cookie (as opposed to a header).
+The exception is the auth JWT, if it's encoded in a cookie (as opposed to a header or in execution context data).
 
 ![Architecture](./images/adr-010-architecture.png 'Architecture')
 
 ## Why
 
-1. This decouples the two development teams, two different pipelines to production, two different GitHub repositories.
+1. This decouples the two development teams - two different pipelines to production, two different GitHub repositories.
 1. The AIS frontend can have access to different resources to FAI, including the AIS Status API, which isn't accessible over the internet.
 
 ## Consequences
 
 1. We will need to support an additional Lambda.
-1. Authentication may be complicated, particularly if we need RBAC. FAI uses a custom authoriser.
+1. Authentication is slightly complicated because FAI uses a custom authoriser.
 1. We may have to adapt to changes to the FAI authoriser over time.
 
 ## Notes
