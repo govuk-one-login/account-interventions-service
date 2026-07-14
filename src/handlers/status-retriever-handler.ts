@@ -13,10 +13,7 @@ const interventionEventsService = getPersistentInterventionEventsService();
  * @param context - This object provides methods and properties that provide information about the invocation, function, and execution environment.
  * @returns - The status of the account when matched with the User ID. Returns a default object if unable to do so. Also returns the relevant status code.
  */
-export async function handle(
-  event: APIGatewayEvent,
-  context: Context
-): Promise<APIGatewayProxyResult> {
+export async function handle(event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> {
   logger.addContext(context);
   return retrieveStatus(event, accountStatusService, interventionEventsService);
 }

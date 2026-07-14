@@ -6,7 +6,7 @@ import { ResponseObject } from 'openapi3-ts/oas30';
 import { stringify } from 'yaml';
 import { z } from 'zod';
 import { V1ResponseSchema } from '../data-types/api-schemas-v1';
-import { V2ResponseSchema } from '../data-types/api-schemas-v2';
+import { V2ResponseSchema, V2HistoryResponseSchema } from '../data-types/api-schemas-v2';
 import { UserIdParameterSchema, V1QuerySchema } from '../data-types/api-parameters';
 
 const registry = new OpenAPIRegistry();
@@ -68,6 +68,7 @@ const errorResponses = {
 
 registry.register('InterventionStatusResponse', V1ResponseSchema);
 registry.register('AccountStatusResponse', V2ResponseSchema);
+registry.register('AccountHistoryResponse', V2HistoryResponseSchema);
 
 registry.registerPath({
   method: 'get',
@@ -111,6 +112,33 @@ registry.registerPath({
     200: {
       description: 'Ok',
       content: { 'application/json': { schema: { $ref: '#/components/schemas/AccountStatusResponse' } } },
+    },
+    ...errorResponses,
+  }),
+  'x-amazon-apigateway-integration': {
+    httpMethod: 'POST',
+    type: 'aws_proxy',
+    uri: {
+      'Fn::Sub':
+        'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StatusRetrieverFunction.Arn}:live/invocations',
+    },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/v2/ais/{userId}/history',
+  operationId: 'aisV2History',
+  tags: ['Status'],
+  summary: 'Get User Account Intervention History',
+  description: "Returns the full intervention history for a user's account",
+  request: {
+    params: RegisteredUserIdParameterSchema,
+  },
+  responses: hoistResponses({
+    200: {
+      description: 'Ok',
+      content: { 'application/json': { schema: { $ref: '#/components/schemas/AccountHistoryResponse' } } },
     },
     ...errorResponses,
   }),
