@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { InterventionClient } from './index';
 import { InterventionInvalidResponse } from './errors';
+import type { HistoryObject } from './types';
+import { InterventionName, InterventionState } from './types';
+import { ZodError } from 'zod';
 
 const mockFetch = vi.fn<typeof fetch>();
 vi.stubGlobal('fetch', mockFetch);
@@ -12,6 +15,17 @@ function mockResponse(body: unknown, status = 200): Response {
     statusText: status === 200 ? 'OK' : 'Error',
     json: () => Promise.resolve(body),
   } as unknown as Response;
+}
+
+function makeHistoryObject(overrides: Partial<HistoryObject> = {}): HistoryObject {
+  return {
+    sentAt: 1_696_869_003_456,
+    componentId: 'TICF_CRI',
+    interventionName: InterventionName.PERMANENT_SUSPENSION,
+    interventionState: InterventionState.ACTIVE,
+    interventionReason: 'suspend account due to fraud',
+    ...overrides,
+  };
 }
 
 describe('InterventionClient', () => {
@@ -69,6 +83,183 @@ describe('InterventionClient', () => {
       await clientWithSlash.getAccountStatus('user-1');
 
       expect(mockFetch).toHaveBeenCalledWith('https://example.com/v2/ais/user-1', expect.anything());
+    });
+  });
+
+  describe('getAccountHistory', () => {
+    it('calls the v2 history endpoint with the encoded userId', async () => {
+      const client = new InterventionClient({ baseUrl });
+
+      const userId = 'urn:fdc:gov.uk:2022:user123';
+      mockFetch.mockResolvedValue(mockResponse({ history: [] }));
+
+      await client.getAccountHistory(userId);
+
+      const [calledUrl, calledOptions] = mockFetch.mock.calls[0] as [string, RequestInit];
+      expect(calledUrl).toBe(`${baseUrl}/v2/ais/${encodeURIComponent(userId)}/history`);
+      expect(new Headers(calledOptions.headers).get('Content-Type')).toBe('application/json');
+    });
+
+    it('returns an empty history array when there are no history entries', async () => {
+      const client = new InterventionClient({ baseUrl });
+
+      mockFetch.mockResolvedValue(mockResponse({ history: [] }));
+
+      const result = await client.getAccountHistory('user-1');
+
+      expect(result).toEqual({ history: [] });
+    });
+
+    it('returns the parsed AccountHistory with a single entry', async () => {
+      const client = new InterventionClient({ baseUrl });
+
+      const historyEntry = makeHistoryObject();
+      mockFetch.mockResolvedValue(mockResponse({ history: [historyEntry] }));
+
+      const result = await client.getAccountHistory('user-1');
+
+      expect(result).toEqual({ history: [historyEntry] });
+    });
+
+    it('returns history with multiple entries in order', async () => {
+      const client = new InterventionClient({ baseUrl });
+
+      const entries = [
+        makeHistoryObject({ sentAt: 1_696_869_003_000, interventionName: InterventionName.PERMANENT_SUSPENSION }),
+        makeHistoryObject({ sentAt: 1_696_869_004_000, interventionName: InterventionName.TEMPORARY_SUSPENSION }),
+        makeHistoryObject({ sentAt: 1_696_869_005_000, interventionName: InterventionName.REPROVE_IDENTITY }),
+      ];
+      mockFetch.mockResolvedValue(mockResponse({ history: entries }));
+
+      const result = await client.getAccountHistory('user-1');
+
+      expect(result.history).toHaveLength(3);
+      expect(result.history).toEqual(entries);
+    });
+
+    it('returns history entries with all optional fields present', async () => {
+      const client = new InterventionClient({ baseUrl });
+
+      const fullEntry = makeHistoryObject({
+        interventionCode: '01',
+        originatingComponent: 'CMS',
+        originatorReferenceId: 'ref-abc-123',
+        requesterId: 'requester-xyz',
+        transactionId: 'txn-456',
+        messageEventId: 'msg-789',
+      });
+      mockFetch.mockResolvedValue(mockResponse({ history: [fullEntry] }));
+
+      const result = await client.getAccountHistory('user-1');
+
+      expect(result.history[0]).toEqual(fullEntry);
+    });
+
+    it('returns history entries where originatorReferenceId is an array', async () => {
+      const client = new InterventionClient({ baseUrl });
+
+      const entry = makeHistoryObject({ originatorReferenceId: ['ref-1', 'ref-2'] });
+      mockFetch.mockResolvedValue(mockResponse({ history: [entry] }));
+
+      const result = await client.getAccountHistory('user-1');
+
+      expect(result.history[0]?.originatorReferenceId).toEqual(['ref-1', 'ref-2']);
+    });
+
+    it('returns history entries with all known interventionState values', async () => {
+      const client = new InterventionClient({ baseUrl });
+
+      const entries = Object.values(InterventionState).map((state) => makeHistoryObject({ interventionState: state }));
+      mockFetch.mockResolvedValue(mockResponse({ history: entries }));
+
+      const result = await client.getAccountHistory('user-1');
+
+      const returnedStates = result.history.map((h) => h.interventionState);
+      expect(returnedStates).toEqual(Object.values(InterventionState));
+    });
+
+    it('throws InterventionRequestFailed when the response is not ok (404)', async () => {
+      const client = new InterventionClient({ baseUrl });
+
+      mockFetch.mockResolvedValue(mockResponse({}, 404));
+
+      await expect(client.getAccountHistory('user-1')).rejects.toThrow('AIS request failed: 404');
+    });
+
+    it('throws InterventionRequestFailed when the response is not ok (500)', async () => {
+      const client = new InterventionClient({ baseUrl });
+
+      mockFetch.mockResolvedValue(mockResponse({}, 500));
+
+      await expect(client.getAccountHistory('user-1')).rejects.toThrow('AIS request failed: 500');
+    });
+
+    it('throws InterventionInvalidResponse when the response body is missing the history key', async () => {
+      const client = new InterventionClient({ baseUrl });
+
+      mockFetch.mockResolvedValue(mockResponse({ unexpected: 'shape' }));
+
+      await expect(client.getAccountHistory('user-1')).rejects.toThrow(InterventionInvalidResponse);
+    });
+
+    it('throws InterventionInvalidResponse when a history entry is missing a required field', async () => {
+      const client = new InterventionClient({ baseUrl });
+
+      // Missing required `interventionReason`
+      const invalidEntry = { sentAt: 1_696_869_003_456, componentId: 'TICF_CRI' };
+      mockFetch.mockResolvedValue(mockResponse({ history: [invalidEntry] }));
+
+      await expect(client.getAccountHistory('user-1')).rejects.toThrow(InterventionInvalidResponse);
+    });
+
+    it('throws InterventionInvalidResponse when a history entry has an invalid interventionName', async () => {
+      const client = new InterventionClient({ baseUrl });
+
+      const invalidEntry = makeHistoryObject({ interventionName: 'NOT_A_VALID_INTERVENTION' as InterventionName });
+      mockFetch.mockResolvedValue(mockResponse({ history: [invalidEntry] }));
+
+      await expect(client.getAccountHistory('user-1')).rejects.toThrow(InterventionInvalidResponse);
+    });
+
+    it('throws InterventionInvalidResponse when a history entry has an invalid interventionState', async () => {
+      const client = new InterventionClient({ baseUrl });
+
+      const invalidEntry = makeHistoryObject({ interventionState: 'NOT_A_VALID_STATE' as InterventionState });
+      mockFetch.mockResolvedValue(mockResponse({ history: [invalidEntry] }));
+
+      await expect(client.getAccountHistory('user-1')).rejects.toThrow(InterventionInvalidResponse);
+    });
+
+    it('logs the error when the response is not ok', async () => {
+      const logger = { error: vi.fn() };
+      const client = new InterventionClient({ baseUrl, logger });
+
+      mockFetch.mockResolvedValue(mockResponse({}, 503));
+
+      await expect(client.getAccountHistory('user-1')).rejects.toThrow('AIS request failed: 503');
+      expect(logger.error).toHaveBeenCalledWith('AIS request failed: 503 Error');
+    });
+
+    it('logs the error when the response body does not match the schema', async () => {
+      const logger = { error: vi.fn() };
+      const client = new InterventionClient({ baseUrl, logger });
+
+      mockFetch.mockResolvedValue(mockResponse({ unexpected: 'shape' }));
+
+      await expect(client.getAccountHistory('user-1')).rejects.toThrow(InterventionInvalidResponse);
+      expect(logger.error).toHaveBeenCalledWith(
+        'AIS Invalid Response',
+        expect.objectContaining({ cause: expect.anything() as ZodError<object> }),
+      );
+    });
+
+    it('strips trailing slash from baseUrl on history requests', async () => {
+      const clientWithSlash = new InterventionClient({ baseUrl: 'https://example.com/' });
+      mockFetch.mockResolvedValue(mockResponse({ history: [] }));
+
+      await clientWithSlash.getAccountHistory('user-1');
+
+      expect(mockFetch).toHaveBeenCalledWith('https://example.com/v2/ais/user-1/history', expect.anything());
     });
   });
 });
