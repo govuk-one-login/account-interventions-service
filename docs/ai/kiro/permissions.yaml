@@ -1,0 +1,22 @@
+# Example kiro-cli permissions.yaml
+# See https://kiro.dev/docs/cli/v3/permissions/
+# This needs to be copied to ~/.kiro/settings/permissions.yaml
+# To read this file kiro-cli needs to be started with --v3
+rules:
+  - capability: shell
+    effect: allow
+    match:
+      - ls *
+      - cd *
+      - cat *
+      - grep *
+      - head *
+      - tail *
+      - npm test *
+      - npm run test*
+      - npm run lint*
+      - git show*
+      - git log*
+      - git status*
+      - npx tsc*
+      - npx vitest*
