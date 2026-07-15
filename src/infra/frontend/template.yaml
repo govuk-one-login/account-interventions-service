@@ -98,6 +98,17 @@ Mappings:
     production:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables # pragma: allowlist secret
+  FeatureFlags:
+    dev:
+      EnableAISFrontend: true
+    build:
+      EnableAISFrontend: false
+    staging:
+      EnableAISFrontend: false
+    integration:
+      EnableAISFrontend: false
+    production:
+      EnableAISFrontend: false
 
 Globals:
   Function:
@@ -164,6 +175,7 @@ Resources:
             - 'https://${PrivateApiId}.execute-api.${AWS::Region}.amazonaws.com/main'
             - PrivateApiId:
                 Fn::ImportValue: !Sub '${MainStackName}-PrivateApiRestApiId'
+          ENABLE_AIS_FRONTEND: !FindInMap [FeatureFlags, !Ref Environment, EnableAISFrontend]
       Events:
         ApiEvent:
           Type: Api
