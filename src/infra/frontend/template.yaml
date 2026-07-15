@@ -29,13 +29,6 @@ Parameters:
     Description: The stage name of the API
     Type: String
     Default: v1
-  StagePrefix:
-    Description: >-
-      The URL path prefix for the API stage, used for asset URLs in templates.
-      Set to /v1 when behind API Gateway without a custom domain.
-      Set to empty string when a custom domain with base path mapping is in use.
-    Type: String
-    Default: /v1
   VpcStackName:
     Description: The name of the stack that defines the VPC
     Type: String
@@ -80,6 +73,7 @@ Conditions:
   UseCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, 'none']]
   IsDevBuildStaging:
     !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build], !Equals [!Ref Environment, staging]]
+  IsDev: !Equals [!Ref Environment, dev]
 
 Mappings:
   EnvConfig:
@@ -170,7 +164,6 @@ Resources:
       CodeSigningConfigArn: !If [UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
       Environment:
         Variables:
-          STAGE_PREFIX: !Ref StagePrefix
           STATUS_API_URL: !Sub
             - 'https://${PrivateApiId}.execute-api.${AWS::Region}.amazonaws.com/main'
             - PrivateApiId:

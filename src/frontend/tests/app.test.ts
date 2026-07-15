@@ -107,3 +107,28 @@ describe('frontend app', () => {
     });
   });
 });
+
+describe('GET /assets/govuk-frontend.min.css', () => {
+  it('returns 200 with a text/css content-type', async () => {
+    const server = init(new InterventionStub({ result: { interventions: [] } }));
+    const response = await server.inject({ method: 'GET', url: '/assets/govuk-frontend.min.css' });
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toMatch(/text\/css/);
+  });
+
+  it('serves the CSS without rewriting asset paths when there is no stage prefix', async () => {
+    const server = init(new InterventionStub({ result: { interventions: [] } }));
+    const response = await server.inject({ method: 'GET', url: '/assets/govuk-frontend.min.css' });
+    expect(response.body).toContain('url(/assets/');
+  });
+
+  it('does not rewrite asset paths when running without an API Gateway event', async () => {
+    // server.inject() cannot attach an awsLambda event the way @fastify/aws-lambda does
+    // at runtime, so getStagePrefixForRequest returns '' and no rewriting occurs.
+    // The rewrite branch is covered by the stage-prefix unit tests.
+    const server = init(new InterventionStub({ result: { interventions: [] } }));
+    const response = await server.inject({ method: 'GET', url: '/assets/govuk-frontend.min.css' });
+    expect(response.body).not.toContain('url(/interventions/assets/');
+    expect(response.body).not.toContain('url(/v1/assets/');
+  });
+});
