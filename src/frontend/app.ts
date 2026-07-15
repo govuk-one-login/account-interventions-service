@@ -18,6 +18,18 @@ const stagePrefix = process.env['STAGE_PREFIX'] ?? '';
 
 const statusApiUrl = process.env['STATUS_API_URL'];
 
+// Format an ISO date string or Unix timestamp (ms) into a human-readable UK date/time, e.g. "10 October 2023 at 20:22:02 UTC"
+function formatDate(value: string | number): string {
+  const date = new Date(value);
+
+  return (
+    date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) +
+    ' at ' +
+    date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'UTC' }) +
+    ' UTC'
+  );
+}
+
 export function init(
   interventionClient: InterventionClientInterface = new InterventionClient({
     baseUrl: statusApiUrl,
@@ -67,8 +79,18 @@ export function init(
     if (!userId) return reply.code(400).send();
 
     const accountStatus = await interventionClient.getAccountStatus(userId);
+    const accountHistory = await interventionClient.getAccountHistory(userId);
 
-    return reply.view('user-details.njk', { stagePrefix, assetPath, accountStatus, userId });
+    return reply.view('user-details.njk', {
+      stagePrefix,
+      assetPath,
+      accountStatus,
+      userId,
+      accountHistory: {
+        ...accountHistory,
+        history: accountHistory.history.map((line) => ({ ...line, sentAt: formatDate(line.sentAt) })),
+      },
+    });
   });
 
   return server;

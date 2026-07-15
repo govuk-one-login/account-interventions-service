@@ -1,5 +1,5 @@
 import { init } from '../app';
-import { InterventionStub, InterventionName } from '@govuk-one-login/ais-status-sdk';
+import { InterventionStub, InterventionName, InterventionState } from '@govuk-one-login/ais-status-sdk';
 
 describe('frontend app', () => {
   it('returns 200 for GET /', async () => {
@@ -62,7 +62,33 @@ describe('frontend app', () => {
 
   describe('GET /user/:userId', () => {
     it('returns 200 and renders the details page when user is found', async () => {
-      const server = init(new InterventionStub({ result: { interventions: [] } }));
+      const server = init(new InterventionStub({ result: { interventions: [] }, historyResult: { history: [] } }));
+      const response = await server.inject({ method: 'GET', url: '/user/test-user-id' });
+      expect(response.statusCode).toBe(200);
+      expect(response.headers['content-type']).toMatch(/html/);
+      expect(response.body).toContain('Account Status');
+    });
+
+    it('renders the history when user is found', async () => {
+      const server = init(
+        new InterventionStub({
+          result: { interventions: [] },
+          historyResult: {
+            history: [
+              {
+                sentAt: 1784021279000,
+                componentId: 'TEST',
+                interventionName: InterventionName.TEMPORARY_SUSPENSION,
+                interventionState: InterventionState.ACTIVE,
+                interventionReason: 'Reason',
+                interventionCode: '01',
+                originatingComponent: 'TICF',
+                requesterId: 'interventions@digital.cabinet-office.gov.uk',
+              },
+            ],
+          },
+        }),
+      );
       const response = await server.inject({ method: 'GET', url: '/user/test-user-id' });
       expect(response.statusCode).toBe(200);
       expect(response.headers['content-type']).toMatch(/html/);
@@ -70,14 +96,19 @@ describe('frontend app', () => {
     });
 
     it('displays active interventions when the account has them', async () => {
-      const server = init(new InterventionStub({ interventionNames: [InterventionName.PERMANENT_SUSPENSION] }));
+      const server = init(
+        new InterventionStub({
+          interventionNames: [InterventionName.PERMANENT_SUSPENSION],
+          historyResult: { history: [] },
+        }),
+      );
       const response = await server.inject({ method: 'GET', url: '/user/test-user-id' });
       expect(response.statusCode).toBe(200);
       expect(response.body).toContain('PERMANENT_SUSPENSION');
     });
 
     it('displays a no interventions message when the account exists but has no interventions', async () => {
-      const server = init(new InterventionStub({ result: { interventions: [] } }));
+      const server = init(new InterventionStub({ result: { interventions: [] }, historyResult: { history: [] } }));
       const response = await server.inject({ method: 'GET', url: '/user/test-user-id' });
       expect(response.statusCode).toBe(200);
       expect(response.body).toContain('There are no active interventions on this account.');
@@ -93,6 +124,7 @@ describe('frontend app', () => {
           queriedUserId = id;
           return Promise.resolve({ interventions: [] });
         },
+        getAccountHistory: () => Promise.reject(new Error('Blah')),
       };
 
       const server = init(mockClient);

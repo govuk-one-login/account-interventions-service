@@ -201,7 +201,7 @@ describe('History Service', () => {
     });
   });
 
-  it.only('deduplicates events', async () => {
+  it('deduplicates events', async () => {
     const service = new HistoryService(
       new InMemoryAccountStatusService({
         status: {
@@ -249,5 +249,33 @@ describe('History Service', () => {
         },
       ],
     });
+  });
+
+  it('handles invalid history string', async () => {
+    const service = new HistoryService(
+      new InMemoryAccountStatusService({
+        status: {
+          pk: 'user1234',
+          sentAt: 123456,
+          appliedAt: 123456789,
+          isAccountDeleted: false,
+          history: ['invalid'],
+          intervention: '01',
+          blocked: false,
+          suspended: true,
+          resetPassword: false,
+          reproveIdentity: false,
+        },
+      }),
+      new InMemoryInterventionEventsService([]),
+    );
+
+    const result = await service.fetchHistory('user1234');
+
+    expect(result).toEqual({
+      history: [],
+    });
+
+    expect(result.history[0]?.transactionId).toBe(result.history[1]?.transactionId);
   });
 });
