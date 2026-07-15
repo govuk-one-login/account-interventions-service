@@ -3,7 +3,7 @@
 {% from "govuk/components/input/macro.njk" import govukInput %}
 {% block content %}
   <h1 class="govuk-heading-xl">Account Interventions Service</h1>
-  <form method="post" action="{{ stagePrefix }}/search">
+  <form method="post" action="{{ pathPrefix }}/search">
     {{ govukInput({
       label: {
         text: "GOV.UK One Login Subject Identifier",

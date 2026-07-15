@@ -5,7 +5,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% block content %}
-  {{ govukBackLink({ text: "Back", href: stagePrefix + "/" }) }}
+  {{ govukBackLink({ text: "Back", href: pathPrefix + "/" }) }}
   {% if messageSent %}
     {{ govukNotificationBanner({
       type: "success",
