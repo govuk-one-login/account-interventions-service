@@ -46,7 +46,7 @@ describe('History Service', () => {
           originatorReferenceId: '123',
           requesterId: 'abc',
           sentAt: 123456,
-          transactionId: expect.any(String) as string,
+          tagId: expect.any(String) as string,
         },
         {
           componentId: 'TCIF',
@@ -58,7 +58,7 @@ describe('History Service', () => {
           originatorReferenceId: '123',
           requesterId: 'abc',
           sentAt: 123456,
-          transactionId: expect.any(String) as string,
+          tagId: expect.any(String) as string,
         },
         {
           componentId: 'TCIF',
@@ -70,7 +70,7 @@ describe('History Service', () => {
           originatorReferenceId: '123',
           requesterId: 'abc',
           sentAt: 123456,
-          transactionId: expect.any(String) as string,
+          tagId: expect.any(String) as string,
         },
       ],
     });
@@ -110,6 +110,7 @@ describe('History Service', () => {
           interventionState: 'ACTIVE',
           sentAt: 12345,
           transactionId: 'abc1234',
+          tagId: 'abc1234',
         },
       ],
     });
@@ -160,7 +161,7 @@ describe('History Service', () => {
           originatorReferenceId: '123',
           requesterId: 'abc',
           sentAt: 123456,
-          transactionId: expect.any(String) as string,
+          tagId: expect.any(String) as string,
         },
         {
           componentId: 'TCIF',
@@ -172,7 +173,7 @@ describe('History Service', () => {
           originatorReferenceId: '123',
           requesterId: 'abc',
           sentAt: 123456,
-          transactionId: expect.any(String) as string,
+          tagId: expect.any(String) as string,
         },
         {
           componentId: 'TCIF',
@@ -184,7 +185,7 @@ describe('History Service', () => {
           originatorReferenceId: '123',
           requesterId: 'abc',
           sentAt: 123456,
-          transactionId: expect.any(String) as string,
+          tagId: expect.any(String) as string,
         },
         {
           accountId: 'user1234',
@@ -196,6 +197,7 @@ describe('History Service', () => {
           interventionState: 'ACTIVE',
           sentAt: 12345,
           transactionId: 'abc1234',
+          tagId: 'abc1234',
         },
       ],
     });
@@ -209,7 +211,7 @@ describe('History Service', () => {
           sentAt: 12345,
           appliedAt: 123456789,
           isAccountDeleted: false,
-          history: ['12346|TCIF|01|Reason1|TICF|123|abc'],
+          history: ['12345|TCIF|01|Reason1|TICF|123|abc'],
           intervention: '01',
           blocked: false,
           suspended: true,
@@ -246,6 +248,7 @@ describe('History Service', () => {
           interventionState: 'ACTIVE',
           sentAt: 12345,
           transactionId: 'abc1234',
+          tagId: 'abc1234',
         },
       ],
     });

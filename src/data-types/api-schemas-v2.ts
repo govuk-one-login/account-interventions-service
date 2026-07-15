@@ -59,6 +59,7 @@ const HistoryObjectSchema = z
     requesterId: z.string().optional().meta({ example: '12345' }),
     transactionId: z.string().optional(),
     messageEventId: z.string().optional(),
+    tagId: z.string().optional(),
   })
   .meta({
     id: 'HistoryObject',

@@ -27,7 +27,7 @@ export class HistoryService {
     };
   }
 
-  protected async fetchAccountStatus(accountId: string): Promise<HistoryObject[]> {
+  private async fetchAccountStatus(accountId: string): Promise<HistoryObject[]> {
     const response = await this.accountStatusService.getAccountStateInformation(accountId);
     if (!response) {
       logger.info('Query matched no records in DynamoDB.');
@@ -38,7 +38,7 @@ export class HistoryService {
     return this.constructHistoryObject(response.history);
   }
 
-  protected constructHistoryObject(input: string[]): HistoryObject[] {
+  private constructHistoryObject(input: string[]): HistoryObject[] {
     const historyStringBuilder = new HistoryStringBuilder();
 
     const historyLines = input
@@ -58,14 +58,14 @@ export class HistoryService {
     );
   }
 
-  protected mapHistoryObjectToInterventionEvents(input: HistoryLine): HistoryObject[] {
+  private mapHistoryObjectToInterventionEvents(input: HistoryLine): HistoryObject[] {
     if (!isCode(input.code)) throw new Error('Code not code');
 
     const eventEdge = transitionConfig.edges[input.code];
 
     const stateChanges = config[eventEdge.name];
 
-    const transactionId = randomUUID();
+    const tagId = randomUUID();
 
     return stateChanges.map((stateChange) => ({
       interventionName: stateChange.interventionName,
@@ -77,15 +77,17 @@ export class HistoryService {
       originatingComponent: input.originatingComponent,
       requesterId: input.requesterId,
       originatorReferenceId: input.originatorReferenceId,
-      transactionId,
+      tagId,
     }));
   }
 
-  protected async fetchInterventionEvents(accountId: string) {
-    return await this.interventionEventsService.fetchEventsForAccount(accountId);
+  private async fetchInterventionEvents(accountId: string) {
+    const interventionEvents = await this.interventionEventsService.fetchEventsForAccount(accountId);
+
+    return interventionEvents.map((event) => ({ ...event, tagId: event.transactionId }));
   }
 
-  protected deduplicateEvents(
+  private deduplicateEvents(
     accountStatusEvents: HistoryObject[],
     interventionEvents: HistoryObject[],
   ): HistoryObject[] {
@@ -96,7 +98,7 @@ export class HistoryService {
             (interventionEvent) =>
               interventionEvent.interventionName === event.interventionName &&
               interventionEvent.interventionState === event.interventionState &&
-              Math.abs(interventionEvent.sentAt - event.sentAt) < 10,
+              interventionEvent.sentAt === event.sentAt,
           ),
         )
         .map((event) => event.transactionId),
