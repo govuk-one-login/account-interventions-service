@@ -26,6 +26,7 @@ export default defineConfig({
       TXMA_QUEUE_URL: 'https://sqs.eu-west-2.amazonaws.com/111122223333/TxMAQueue',
       HISTORY_RETENTION_SECONDS: '63072000',
       ENABLE_AIS_FRONTEND: 'true',
+      ENABLE_AIS_SEND_TXMA: 'true',
     },
   },
 });

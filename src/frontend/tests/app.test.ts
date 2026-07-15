@@ -2,6 +2,7 @@ import { init } from '../app';
 import { InterventionStub, InterventionName, InterventionState } from '@govuk-one-login/ais-status-sdk';
 import { StubMessageService } from '../../services/message-service';
 import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
+import { FeatureFlagsStub } from '../../services/feature-flags';
 
 describe('frontend app', () => {
   it('returns 200 for GET /', async () => {
@@ -147,6 +148,7 @@ describe('frontend app', () => {
     it('redirects to /user/:userId with status 303', async () => {
       const server = init(
         new InterventionStub({ result: { interventions: [] } }),
+        new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         new StubMessageService(successOutput),
       );
       const response = await server.inject({
@@ -163,6 +165,7 @@ describe('frontend app', () => {
       const userId = 'urn:fdc:gov.uk:2022:abc123';
       const server = init(
         new InterventionStub({ result: { interventions: [] } }),
+        new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         new StubMessageService(successOutput),
       );
       const response = await server.inject({
@@ -179,7 +182,11 @@ describe('frontend app', () => {
       const messageService = new StubMessageService(successOutput);
       const sendMessageSpy = vi.spyOn(messageService, 'sendMessage');
 
-      const server = init(new InterventionStub({ result: { interventions: [] } }), messageService);
+      const server = init(
+        new InterventionStub({ result: { interventions: [] } }),
+        new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
+        messageService,
+      );
       await server.inject({
         method: 'POST',
         url: '/send',
@@ -194,6 +201,7 @@ describe('frontend app', () => {
     it('sets the flash_message_sent cookie on the redirect response', async () => {
       const server = init(
         new InterventionStub({ result: { interventions: [] } }),
+        new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         new StubMessageService(successOutput),
       );
       const response = await server.inject({
@@ -212,6 +220,7 @@ describe('frontend app', () => {
     it('shows the success banner on the subsequent GET and not on a second GET', async () => {
       const server = init(
         new InterventionStub({ result: { interventions: [] } }),
+        new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         new StubMessageService(successOutput),
       );
 
@@ -242,7 +251,11 @@ describe('frontend app', () => {
 
     it('returns 500 when sendMessage rejects', async () => {
       // MessageStub with no successOutput will reject sendMessage
-      const server = init(new InterventionStub({ result: { interventions: [] } }), new StubMessageService());
+      const server = init(
+        new InterventionStub({ result: { interventions: [] } }),
+        new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
+        new StubMessageService(),
+      );
       const response = await server.inject({
         method: 'POST',
         url: '/send',

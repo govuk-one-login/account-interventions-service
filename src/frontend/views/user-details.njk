@@ -79,8 +79,9 @@
   {% else %}
     <p class="govuk-body-s">No history available for this account.</p>
   {% endif %}
-  <form method="post" action="{{ stagePrefix }}/send">
-    <input type="hidden" name="userId" value="{{ userId }}">
-      {{ govukButton({ text: "Send TxMA Message" }) }}
+  {% if aisSendTxMA %}
+    <form method="post" action="{{ stagePrefix }}/send">
+      <input type="hidden" name="userId" value="{{ userId }}"/>{{ govukButton({ text: "Send TxMA Message" }) }}
     </form>
-  {% endblock %}
+  {% endif %}
+{% endblock %}

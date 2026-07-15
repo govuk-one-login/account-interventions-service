@@ -24,7 +24,7 @@ init(
       ],
     },
   }),
-  new FeatureFlagsStub({ aisFrontend: true }),
+  new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
   new StubMessageService({
     $metadata: {},
   }),

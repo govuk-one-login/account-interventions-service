@@ -14,6 +14,7 @@ interface FlagDefinition {
 
 const FLAGS = {
   aisFrontend: { envVar: 'ENABLE_AIS_FRONTEND', defaultValue: false },
+  aisSendTxMA: { envVar: 'ENABLE_AIS_SEND_TXMA', defaultValue: false },
 } as const satisfies Record<string, FlagDefinition>;
 
 type FlagName = keyof typeof FLAGS;
@@ -43,14 +44,10 @@ export class FeatureFlagsFromEnvironmentVariables implements FeatureFlags {
  * Provide explicit values for each flag rather than relying on environment variables.
  */
 export class FeatureFlagsStub implements FeatureFlags {
-  private readonly flags: Record<FlagName, boolean>;
-
-  constructor(flags: Record<FlagName, boolean>) {
-    this.flags = flags;
-  }
+  constructor(readonly flags?: Partial<Record<FlagName, boolean>>) {}
 
   public isEnabled(flag: FlagName): boolean {
-    return this.flags[flag];
+    return this.flags?.[flag] ?? false;
   }
 }
 

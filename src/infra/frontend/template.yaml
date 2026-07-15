@@ -102,14 +102,19 @@ Mappings:
   FeatureFlags:
     dev:
       EnableAISFrontend: true
+      EnableAISSendTxMA: true
     build:
       EnableAISFrontend: false
+      EnableAISSendTxMA: false
     staging:
       EnableAISFrontend: false
+      EnableAISSendTxMA: false
     integration:
       EnableAISFrontend: false
+      EnableAISSendTxMA: false
     production:
       EnableAISFrontend: false
+      EnableAISSendTxMA: false
 
 Globals:
   Function:
@@ -177,6 +182,7 @@ Resources:
             - PrivateApiId:
                 Fn::ImportValue: !Sub '${MainStackName}-PrivateApiRestApiId'
           ENABLE_AIS_FRONTEND: !FindInMap [FeatureFlags, !Ref Environment, EnableAISFrontend]
+          ENABLE_AIS_SEND_TXMA: !FindInMap [FeatureFlags, !Ref Environment, EnableAISSendTxMA]
           TXMA_QUEUE_URL: !If
             - IsInternal
             - Fn::ImportValue: !Sub '${MainStackName}-TxMAIngressSqsQueueUrl'

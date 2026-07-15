@@ -108,11 +108,15 @@ export function init(
         ...accountHistory,
         history: accountHistory.history.map((line) => ({ ...line, sentAt: formatDate(line.sentAt) })),
       },
+      messageSent,
+      aisSendTxMA: featureFlags.isEnabled('aisSendTxMA'),
     });
   });
 
   // Sends a TxMA audit event for the given userId and redirects back to the user details page.
   server.post<{ Body: { userId?: string } }>('/send', async (request, reply) => {
+    if (!featureFlags.isEnabled('aisSendTxMA')) return reply.code(404).send();
+
     const userId = request.body.userId?.trim() ?? '';
 
     const timestamp = getCurrentTimestamp();
