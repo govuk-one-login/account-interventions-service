@@ -31,10 +31,13 @@ All actions should be assigned to someone, as in the examples below.
 ## Timeline
 
 A timeline of the events important to the incident.
+All times are be in UTC unless otherwise stated.
 The example below demonstrates one way of formatting it.
+Note the backslashes are necessary on the ends of some lines to create a non-paragraph linebreak.
 
-[2026-05-10]
-[23:46] Alice gets paged because the server has gone down
+#### [2026-05-10]
+[23:46] Alice gets paged because the server has gone down \
 [23:52] Alice finds the root cause
-[2026-05-11]
+
+#### [2026-05-11]
 [00:11] Alice brings the server back up
