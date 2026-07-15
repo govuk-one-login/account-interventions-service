@@ -15,6 +15,10 @@ export class HistoryService {
   constructor(
     readonly accountStatusService: AccountStatusService,
     readonly interventionEventsService: InterventionEventsService,
+    readonly deduplicate: (
+      accountStatusHistory: HistoryObject[],
+      interventionEvents: HistoryObject[],
+    ) => HistoryObject[] = deduplicateEvents,
   ) {}
 
   async fetchHistory(accountId: string): Promise<V2HistoryResponse> {
@@ -23,7 +27,7 @@ export class HistoryService {
     const interventionEvents = await this.fetchInterventionEvents(accountId);
 
     return {
-      history: this.deduplicateEvents(accountStatusHistory, interventionEvents),
+      history: this.deduplicate(accountStatusHistory, interventionEvents),
     };
   }
 
@@ -86,28 +90,33 @@ export class HistoryService {
 
     return interventionEvents.map((event) => ({ ...event, tagId: event.transactionId }));
   }
+}
 
-  private deduplicateEvents(
-    accountStatusEvents: HistoryObject[],
-    interventionEvents: HistoryObject[],
-  ): HistoryObject[] {
-    const transactionIdsToRemove = new Set(
-      accountStatusEvents
-        .filter((event) =>
-          interventionEvents.some(
-            (interventionEvent) =>
-              interventionEvent.interventionName === event.interventionName &&
-              interventionEvent.interventionState === event.interventionState &&
-              interventionEvent.sentAt === event.sentAt,
-          ),
-        )
-        .map((event) => event.transactionId),
-    );
+// Deduplicate data from v1 and v2 history
+export function deduplicateEvents<T extends HistoryIdentifier>(accountStatusEvents: T[], interventionEvents: T[]): T[] {
+  const transactionIdsToRemove = new Set(
+    accountStatusEvents
+      .filter((event) =>
+        interventionEvents.some(
+          (interventionEvent) =>
+            interventionEvent.interventionName === event.interventionName &&
+            interventionEvent.interventionState === event.interventionState &&
+            interventionEvent.sentAt === event.sentAt,
+        ),
+      )
+      .map((event) => event.transactionId),
+  );
 
-    const remainingAccountStatusEvents = accountStatusEvents.filter(
-      (event) => !transactionIdsToRemove.has(event.transactionId),
-    );
+  const remainingAccountStatusEvents = accountStatusEvents.filter(
+    (event) => !transactionIdsToRemove.has(event.transactionId),
+  );
 
-    return [...remainingAccountStatusEvents, ...interventionEvents];
-  }
+  return [...remainingAccountStatusEvents, ...interventionEvents];
+}
+
+export interface HistoryIdentifier {
+  interventionName: string;
+  interventionState: string;
+  sentAt: number;
+  transactionId?: string | undefined;
 }
