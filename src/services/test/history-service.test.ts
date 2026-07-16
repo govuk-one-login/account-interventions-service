@@ -216,7 +216,7 @@ describe('History Service', () => {
     });
   });
 
-  it('handles invalid history string', async () => {
+  it('handles invalid history string with mark duplicated', async () => {
     const service = new HistoryService(
       new InMemoryAccountStatusService({
         status: {
