@@ -11,6 +11,7 @@ import {
   InterventionClient,
   InterventionClientInterface,
 } from '@govuk-one-login/ais-status-sdk';
+import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import logger from '../commons/logger';
 import { FeatureFlagsFromEnvironmentVariables, FeatureFlags } from '../services/feature-flags';
 import cookie from '@fastify/cookie';
@@ -21,6 +22,12 @@ import { randomUUID } from 'node:crypto';
 import { TicfAccountIntervention } from '../contracts/intervention-events';
 import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
 import { transitionConfig } from '../services/account-states/config';
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    awsLambda: { event: APIGatewayProxyEvent; context: Context };
+  }
+}
 
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).
@@ -69,6 +76,24 @@ export function init(
 
   // Parse cookies (used for flash messages)
   server.register(cookie);
+
+  // Check for a JWT from the API Gateway authorizer on every request.
+  // When running behind API Gateway with a JWT authorizer, the JWT claims and scopes are available
+  // at event.requestContext.authorizer.jwt. The awsLambda decorator is added by @fastify/aws-lambda
+  // by default (decorateRequest: true), so request.awsLambda is always present in Lambda.
+  server.addHook('onRequest', async (request, reply) => {
+    const authorizer = request.awsLambda.event.requestContext.authorizer as
+      { jwt?: { claims: Record<string, unknown>; scopes: string[] } } | undefined;
+
+    if (!authorizer?.jwt) {
+      logger.warn('Request has no JWT from API Gateway authorizer', { url: request.url });
+      return reply.code(401).send();
+    }
+
+    logger.info('Lambda context', {
+      authorizer,
+    });
+  });
 
   // Serve govuk assets under /assets/ — registers both the dist root (for CSS/JS)
   // and the assets subdirectory (for fonts, images, manifest) as a single plugin registration.
