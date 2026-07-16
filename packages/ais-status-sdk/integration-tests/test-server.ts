@@ -1,37 +1,51 @@
-import { createServer, IncomingMessage, ServerResponse } from 'node:http';
+import  express, { type Express, type Request, type Response } from 'express';
 import { once } from 'node:events';
 import { AddressInfo } from 'node:net';
 
 export interface TestServerConfig {
-  responseBody?: unknown;
-  statusCode?: number;
-  // delayMs?: number;
+  accounts?: Record<string, { interventions: { name: string }[] }>;
   malformed?: boolean;
-  // onRequest?: (req: IncomingMessage) => void;
+  simulateServerError?: boolean;
 }
 
-interface TestServer {
+export interface TestServer {
   baseUrl: string;
   stop: () => Promise<void>;
 }
 
 export async function createTestServer(config: TestServerConfig): Promise<TestServer> {
-  const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-    //set headers
-    const statusCode = config.statusCode ?? 200;
-    res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+  const app: Express = express();
 
-    if (config.malformed) {
-      res.end('not json {{{');
+  app.get('/v2/ais/:userId', (req: Request, res: Response) => {
+    if (config.simulateServerError) {
+      res.status(500).json({ message: 'Internal Server Error.' });
       return;
     }
 
-    const body = config.responseBody ?? { interventions: [] };
-    res.end(JSON.stringify(body));
-  
+    const userId = req.params['userId'] as string;
+
+    if (/[,\s]/.test(userId)) {
+      res.status(400).json({ message: 'Invalid Request.' });
+      return;
+    }
+
+    if (config.malformed) {
+      res.set('Content-Type', 'application/json');
+      res.status(200).send('not json {{{');
+      return;
+    }
+
+    const account = config.accounts?.[userId];
+
+    if (!account) {
+      res.status(200).json({ interventions: [] });
+      return;
+    }
+
+    res.status(200).json(account);
   });
 
-  server.listen(0, '127.0.0.1');
+  const server = app.listen(0, '127.0.0.1');
   await once(server, 'listening');
   const { port } = server.address() as AddressInfo;
   const baseUrl = `http://127.0.0.1:${port.toString()}`;
