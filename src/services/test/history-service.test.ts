@@ -1,17 +1,11 @@
+import { HistoryObject } from '../../data-types/api-schemas-v2';
 import { InterventionState } from '../../data-types/constants';
 import { InterventionName } from '../../data-types/intervention-name';
-import { HistoryObject as HistoryLine } from '../../data-types/interfaces';
 import { InMemoryAccountStatusService } from '../../tables/account-status';
 import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
 import { deduplicateEvents, HistoryIdentifier, HistoryService } from '../history-service';
 
-class TestableHistoryService extends HistoryService {
-  public callMapHistoryObjectToInterventionEvents(input: HistoryLine) {
-    return this.mapHistoryObjectToInterventionEvents(input);
-  }
-}
-
-const noDeduplicate = (accountStatus: unknown[], interventionEvents: unknown[]) => [
+const noDeduplicate = (accountStatus: HistoryObject[], interventionEvents: HistoryObject[]): HistoryObject[] => [
   ...accountStatus,
   ...interventionEvents,
 ];
@@ -247,27 +241,29 @@ describe('History Service', () => {
     expect(result).toEqual({ history: [] });
   });
 
-  describe('mapHistoryObjectToInterventionEvents', () => {
-    it('throws an error when the history object contains an invalid intervention code', () => {
-      const service = new TestableHistoryService(
-        new InMemoryAccountStatusService(),
-        new InMemoryInterventionEventsService([]),
-        noDeduplicate,
-      );
+  it('handles a history string with an invalid intervention code', async () => {
+    const service = new HistoryService(
+      new InMemoryAccountStatusService({
+        status: {
+          pk: 'user1234',
+          sentAt: 123456,
+          appliedAt: 123456789,
+          isAccountDeleted: false,
+          history: ['123456|TCIF|XX|SomeReason|TICF|123|abc'],
+          intervention: '01',
+          blocked: false,
+          suspended: true,
+          resetPassword: false,
+          reproveIdentity: false,
+        },
+      }),
+      new InMemoryInterventionEventsService([]),
+      noDeduplicate,
+    );
 
-      const invalidHistoryObject: HistoryLine = {
-        sentAt: '2023-10-09T12:30:03.456Z',
-        component: 'TCIF',
-        code: 'XX',
-        intervention: 'UNKNOWN',
-        reason: 'SomeReason',
-        originatingComponent: 'TICF',
-        originatorReferenceId: '123',
-        requesterId: 'abc',
-      };
+    const result = await service.fetchHistory('user1234');
 
-      expect(() => service.callMapHistoryObjectToInterventionEvents(invalidHistoryObject)).toThrow('Code not code');
-    });
+    expect(result).toEqual({ history: [] });
   });
 
   it('handles invalid history string', async () => {
