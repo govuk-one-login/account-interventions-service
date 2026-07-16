@@ -31,14 +31,14 @@ describe('Test InterventionClient (Integration Tests)', () => {
     });
 
     const client = new InterventionClient({ baseUrl: testServer.baseUrl });
-    
+
     const resultOne = await client.getAccountStatus('user-1234');
     expect(resultOne.interventions).toEqual([{ name: 'RESET_PASSWORD' }]);
 
     const resultTwo = await client.getAccountStatus('user-5678');
     expect(resultTwo.interventions).toEqual([{ name: 'TEMPORARY_SUSPENSION' }]);
   });
-  
+
   it('throw InterventionRequestFailed when response is NOT ok', async () => {
     testServer = await createTestServer({
       accounts: {
@@ -65,11 +65,11 @@ describe('Test InterventionClient (Integration Tests)', () => {
 
   it('throws when the connection from the server drops', async () => {
     testServer = await createTestServer({ accounts: {} });
-  
+
     const client = new InterventionClient({ baseUrl: testServer.baseUrl });
     // Stop server to simulate connection being dropped
     await testServer.stop();
-  
+
     await expect(client.getAccountStatus('user-1234')).rejects.toThrow();
   });
 })
