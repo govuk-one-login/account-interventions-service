@@ -3,7 +3,7 @@ import { HistoryStringBuilder } from '../commons/history-string-builder';
 import logger from '../commons/logger';
 import { addMetric } from '../commons/metrics';
 import { HistoryObject, V2HistoryResponse } from '../data-types/api-schemas-v2';
-import { isCode, MetricNames } from '../data-types/constants';
+import { MetricNames } from '../data-types/constants';
 import { HistoryObject as HistoryLine } from '../data-types/interfaces';
 import { AccountStatusService } from '../tables/account-status';
 import { InterventionEventsService } from '../tables/intervention-events';
@@ -63,8 +63,6 @@ export class HistoryService {
   }
 
   private mapHistoryObjectToInterventionEvents(input: HistoryLine): HistoryObject[] {
-    if (!isCode(input.code)) throw new Error('Code not code');
-
     const eventEdge = transitionConfig.edges[input.code];
 
     const stateChanges = config[eventEdge.name];
