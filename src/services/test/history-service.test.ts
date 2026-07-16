@@ -5,9 +5,9 @@ import { InMemoryAccountStatusService } from '../../tables/account-status';
 import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
 import { deduplicateEvents, HistoryIdentifier, HistoryService } from '../history-service';
 
-const noDeduplicate = (accountStatus: HistoryObject[], interventionEvents: HistoryObject[]): HistoryObject[] => [
-  ...accountStatus,
-  ...interventionEvents,
+const markDeduplicated = (accountStatus: HistoryObject[], interventionEvents: HistoryObject[]): HistoryObject[] => [
+  ...accountStatus.map((event) => ({ ...event, interventionReason: `deduplicated:${event.interventionReason}` })),
+  ...interventionEvents.map((event) => ({ ...event, interventionReason: `deduplicated:${event.interventionReason}` })),
 ];
 
 describe('History Service', () => {
@@ -15,7 +15,7 @@ describe('History Service', () => {
     const service = new HistoryService(
       new InMemoryAccountStatusService(),
       new InMemoryInterventionEventsService([]),
-      noDeduplicate,
+      markDeduplicated,
     );
 
     const result = await service.fetchHistory('user1234');
@@ -40,7 +40,7 @@ describe('History Service', () => {
         },
       }),
       new InMemoryInterventionEventsService([]),
-      noDeduplicate,
+      markDeduplicated,
     );
 
     const result = await service.fetchHistory('user1234');
@@ -51,7 +51,7 @@ describe('History Service', () => {
           componentId: 'TCIF',
           interventionCode: '01',
           interventionName: 'TEMPORARY_SUSPENSION',
-          interventionReason: 'Reason1',
+          interventionReason: 'deduplicated:Reason1',
           interventionState: 'ACTIVE',
           originatingComponent: 'TICF',
           originatorReferenceId: '123',
@@ -63,7 +63,7 @@ describe('History Service', () => {
           componentId: 'TCIF',
           interventionCode: '01',
           interventionName: 'RESET_PASSWORD',
-          interventionReason: 'Reason1',
+          interventionReason: 'deduplicated:Reason1',
           interventionState: 'REMOVED',
           originatingComponent: 'TICF',
           originatorReferenceId: '123',
@@ -75,7 +75,7 @@ describe('History Service', () => {
           componentId: 'TCIF',
           interventionCode: '01',
           interventionName: 'REPROVE_IDENTITY',
-          interventionReason: 'Reason1',
+          interventionReason: 'deduplicated:Reason1',
           interventionState: 'REMOVED',
           originatingComponent: 'TICF',
           originatorReferenceId: '123',
@@ -105,7 +105,7 @@ describe('History Service', () => {
           transactionId: 'abc1234',
         },
       ]),
-      noDeduplicate,
+      markDeduplicated,
     );
 
     const result = await service.fetchHistory('user1234');
@@ -118,7 +118,7 @@ describe('History Service', () => {
           createdAt: 123456,
           eventId: '123456789',
           interventionName: 'TEMPORARY_SUSPENSION',
-          interventionReason: 'Reason2',
+          interventionReason: 'deduplicated:Reason2',
           interventionState: 'ACTIVE',
           sentAt: 12345,
           transactionId: 'abc1234',
@@ -157,7 +157,7 @@ describe('History Service', () => {
           transactionId: 'abc1234',
         },
       ]),
-      noDeduplicate,
+      markDeduplicated,
     );
 
     const result = await service.fetchHistory('user1234');
@@ -168,7 +168,7 @@ describe('History Service', () => {
           componentId: 'TCIF',
           interventionCode: '01',
           interventionName: 'TEMPORARY_SUSPENSION',
-          interventionReason: 'Reason1',
+          interventionReason: 'deduplicated:Reason1',
           interventionState: 'ACTIVE',
           originatingComponent: 'TICF',
           originatorReferenceId: '123',
@@ -180,7 +180,7 @@ describe('History Service', () => {
           componentId: 'TCIF',
           interventionCode: '01',
           interventionName: 'RESET_PASSWORD',
-          interventionReason: 'Reason1',
+          interventionReason: 'deduplicated:Reason1',
           interventionState: 'REMOVED',
           originatingComponent: 'TICF',
           originatorReferenceId: '123',
@@ -192,7 +192,7 @@ describe('History Service', () => {
           componentId: 'TCIF',
           interventionCode: '01',
           interventionName: 'REPROVE_IDENTITY',
-          interventionReason: 'Reason1',
+          interventionReason: 'deduplicated:Reason1',
           interventionState: 'REMOVED',
           originatingComponent: 'TICF',
           originatorReferenceId: '123',
@@ -206,7 +206,7 @@ describe('History Service', () => {
           createdAt: 123456,
           eventId: '123456789',
           interventionName: 'TEMPORARY_SUSPENSION',
-          interventionReason: 'Reason2',
+          interventionReason: 'deduplicated:Reason2',
           interventionState: 'ACTIVE',
           sentAt: 12345,
           transactionId: 'abc1234',
@@ -233,7 +233,7 @@ describe('History Service', () => {
         },
       }),
       new InMemoryInterventionEventsService([]),
-      noDeduplicate,
+      markDeduplicated,
     );
 
     const result = await service.fetchHistory('user1234');
@@ -258,7 +258,7 @@ describe('History Service', () => {
         },
       }),
       new InMemoryInterventionEventsService([]),
-      noDeduplicate,
+      markDeduplicated,
     );
 
     const result = await service.fetchHistory('user1234');
