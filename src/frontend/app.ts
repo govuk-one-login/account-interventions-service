@@ -22,6 +22,7 @@ import { randomUUID } from 'node:crypto';
 import { TicfAccountIntervention } from '../contracts/intervention-events';
 import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
 import { transitionConfig } from '../services/account-states/config';
+import { KmsJwtVerifier, type JwtVerifierInterface } from '../services/jwt-verifier';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -66,6 +67,7 @@ export function init(
   }),
   featureFlags: FeatureFlags = FeatureFlagsFromEnvironmentVariables.getInstance(),
   messageService: MessageService = new SqsMessageService(txmaQueueUrl),
+  jwtVerifier: JwtVerifierInterface = new KmsJwtVerifier(),
 ) {
   const server = fastify();
 
@@ -77,22 +79,28 @@ export function init(
   // Parse cookies (used for flash messages)
   server.register(cookie);
 
-  // Check for a JWT from the API Gateway authorizer on every request.
-  // When running behind API Gateway with a JWT authorizer, the JWT claims and scopes are available
-  // at event.requestContext.authorizer.jwt. The awsLambda decorator is added by @fastify/aws-lambda
-  // by default (decorateRequest: true), so request.awsLambda is always present in Lambda.
+  // Verify the FAI-issued JWT on every request.
+  // FAI's Lambda authoriser puts the signed JWT string at requestContext.authorizer.jwt,
+  // alongside other flat string fields like principalId and redirect.
+  // We verify the signature here against FAI's KMS public key so we can trust the claims.
   server.addHook('onRequest', async (request, reply) => {
     const authorizer = request.awsLambda.event.requestContext.authorizer as
-      { jwt?: { claims: Record<string, unknown>; scopes: string[] } } | undefined;
+      { jwt?: string; principalId?: string } | undefined;
 
-    if (!authorizer?.jwt) {
-      logger.warn('Request has no JWT from API Gateway authorizer', { url: request.url });
+    const token = authorizer?.jwt;
+
+    if (!token) {
+      logger.warn('Request has no JWT in authorizer context', { url: request.url });
       return reply.code(401).send();
     }
 
-    logger.info('Lambda context', {
-      authorizer,
-    });
+    try {
+      const payload = await jwtVerifier.verify(token);
+      logger.info('JWT verified successfully', { sub: payload.sub, url: request.url });
+    } catch (error) {
+      logger.warn('JWT verification failed', { url: request.url, error });
+      return reply.code(401).send();
+    }
   });
 
   // Serve govuk assets under /assets/ — registers both the dist root (for CSS/JS)
@@ -169,17 +177,32 @@ export function init(
     const userId = request.body.userId?.trim();
 
     if (!userId) {
-      return reply.code(422).send({ error: 'Missing userId', message: 'A user ID is required to send an intervention event. Please provide a valid user ID.' });
+      return reply
+        .code(422)
+        .send({
+          error: 'Missing userId',
+          message: 'A user ID is required to send an intervention event. Please provide a valid user ID.',
+        });
     }
 
     const interventionCode = request.body.interventionCode;
 
     if (!interventionCode) {
-      return reply.code(422).send({ error: 'Missing interventionCode', message: 'An intervention code is required. Please select an intervention code before submitting.' });
+      return reply
+        .code(422)
+        .send({
+          error: 'Missing interventionCode',
+          message: 'An intervention code is required. Please select an intervention code before submitting.',
+        });
     }
 
     if (!isCode(interventionCode)) {
-      return reply.code(422).send({ error: 'Invalid interventionCode', message: `"${interventionCode}" is not a recognised intervention code. Please select a valid code from the list.` });
+      return reply
+        .code(422)
+        .send({
+          error: 'Invalid interventionCode',
+          message: `"${interventionCode}" is not a recognised intervention code. Please select a valid code from the list.`,
+        });
     }
 
     const timestamp = getCurrentTimestamp();

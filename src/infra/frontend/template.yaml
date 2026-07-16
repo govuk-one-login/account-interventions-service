@@ -59,6 +59,12 @@ Parameters:
     Type: String
     Description: CSLS Subscription endpoint
     Default: 'arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2'
+  FaiAuthSigningKeyArn:
+    Description: >-
+      The ARN of the FAI asymmetric KMS signing key used to verify JWTs passed
+      by the FAI Lambda authoriser. The key lives in the FAI AWS account; this
+      function's role must have kms:GetPublicKey permission on it.
+    Type: String
   CodeSigningConfigArn:
     Description: Asserts that lambdas are signed when deployed.
     Type: String
@@ -195,6 +201,7 @@ Resources:
             - Fn::ImportValue: !Sub '${MainStackName}-TxMAIngressSqsQueueUrl'
             - !Ref 'AWS::NoValue'
             # - Fn::ImportValue: !Sub '${MainStackName}-TxMAEgressSqsQueueUrl'
+          FAI_AUTH_SIGNING_KEY_ARN: !Ref FaiAuthSigningKeyArn
       Events:
         ApiEvent:
           Type: Api
@@ -281,6 +288,11 @@ Resources:
               - 'kms:GenerateDataKey'
             Resource:
               Fn::ImportValue: !Sub '${MainStackName}-SQSEncryptionKeyArn'
+          - Effect: Allow
+            Action:
+              - 'kms:GetPublicKey'
+            Resource:
+              - !Ref FaiAuthSigningKeyArn
       Roles:
         - !Ref FrontendFunctionRole
 
