@@ -160,7 +160,7 @@ export async function setTtlOnInactiveEvents(
 /**
  * Dictionary to turn EventsEnum into list of interventions to apply or remove
  */
-const config: Record<EventsEnum, InterventionUpdate[]> = {
+export const config: Record<EventsEnum, InterventionUpdate[]> = {
   [EventsEnum.FRAUD_SUSPEND_ACCOUNT]: [
     { interventionName: InterventionName.TEMPORARY_SUSPENSION, interventionState: InterventionState.ACTIVE },
     { interventionName: InterventionName.RESET_PASSWORD, interventionState: InterventionState.REMOVED },

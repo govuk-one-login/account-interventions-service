@@ -1,8 +1,26 @@
-import { V2ResponseSchema, type V2Response } from '../../../src/data-types/api-schemas-v2';
-import type { AccountStatusResult, InterventionClientConfig, InterventionClientInterface } from './types';
-export type { AccountStatusResult, InterventionClientConfig, InterventionClientInterface, Intervention } from './types';
-export { InterventionName } from './types';
+import {
+  V2HistoryResponse,
+  V2HistoryResponseSchema,
+  V2ResponseSchema,
+  type V2Response,
+} from '../../../src/data-types/api-schemas-v2';
+import type {
+  AccountHistoryResult,
+  AccountStatusResult,
+  InterventionClientConfig,
+  InterventionClientInterface,
+} from './types';
+export type {
+  AccountStatusResult,
+  InterventionClientConfig,
+  InterventionClientInterface,
+  Intervention,
+  AccountHistoryResult,
+  HistoryObject,
+} from './types';
+export { InterventionName, InterventionState } from './types';
 import { InterventionInvalidResponse, InterventionMissingBaseUrl, InterventionRequestFailed } from './errors';
+import { ZodSafeParseError } from 'zod';
 export type { InterventionInvalidResponse, InterventionRequestFailed, InterventionMissingBaseUrl } from './errors';
 export { InterventionStub } from './stub';
 
@@ -17,8 +35,7 @@ export class InterventionClient implements InterventionClientInterface {
     this.headers = { 'Content-Type': 'application/json' };
   }
 
-  private async fetchAccountStatus(userId: string): Promise<V2Response> {
-    const url = `${this.baseUrl}/v2/ais/${encodeURIComponent(userId)}`;
+  protected async fetch(url: string): Promise<unknown> {
     const response = await fetch(url, { headers: this.headers });
 
     if (!response.ok) {
@@ -28,18 +45,46 @@ export class InterventionClient implements InterventionClientInterface {
 
     const responseBody: unknown = await response.json();
 
-    const parseResult = V2ResponseSchema.safeParse(responseBody);
+    return responseBody;
+  }
 
-    if (!parseResult.success) {
-      this.config.logger?.error('AIS Invalid Response', { cause: parseResult.error });
-      throw new InterventionInvalidResponse('AIS Invalid Response', { cause: parseResult.error });
-    }
+  protected handleInvalidResponse(parseResult: ZodSafeParseError<object>): never {
+    this.config.logger?.error('AIS Invalid Response', { cause: parseResult.error });
+    throw new InterventionInvalidResponse('AIS Invalid Response', { cause: parseResult.error });
+  }
+
+  protected async fetchAccountStatus(userId: string): Promise<V2Response> {
+    const url = `${this.baseUrl}/v2/ais/${encodeURIComponent(userId)}`;
+
+    const response = await this.fetch(url);
+
+    const parseResult = V2ResponseSchema.safeParse(response);
+
+    if (!parseResult.success) this.handleInvalidResponse(parseResult);
+
+    return parseResult.data;
+  }
+
+  protected async fetchAccountHistory(userId: string): Promise<V2HistoryResponse> {
+    const url = `${this.baseUrl}/v2/ais/${encodeURIComponent(userId)}/history`;
+
+    const response = await this.fetch(url);
+
+    const parseResult = V2HistoryResponseSchema.safeParse(response);
+
+    if (!parseResult.success) this.handleInvalidResponse(parseResult);
 
     return parseResult.data;
   }
 
   async getAccountStatus(userId: string): Promise<AccountStatusResult> {
     const result = await this.fetchAccountStatus(userId);
+
+    return result;
+  }
+
+  async getAccountHistory(userId: string): Promise<AccountHistoryResult> {
+    const result = await this.fetchAccountHistory(userId);
 
     return result;
   }

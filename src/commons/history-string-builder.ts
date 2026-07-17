@@ -1,5 +1,5 @@
 import { TicfAccountIntervention } from '../contracts/intervention-events';
-import { HistoryStringParts, expectedHistoryStringLength } from '../data-types/constants';
+import { HistoryStringParts, expectedHistoryStringLength, isCode } from '../data-types/constants';
 import { HistoryObject } from '../data-types/interfaces';
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
 
@@ -83,6 +83,9 @@ export class HistoryStringBuilder {
   private buildHistoryObject(array: string[]): HistoryObject {
     const timestamp = array[HistoryStringParts.EVENT_TIMESTAMP_MS];
     const code = array[HistoryStringParts.INTERVENTION_CODE];
+    if (code !== undefined && !isCode(code)) {
+      throw new Error(`code: ${code} is not found in current configuration`);
+    }
     const component = array[HistoryStringParts.COMPONENT_ID];
     const reason = array[HistoryStringParts.INTERVENTION_REASON];
     if (!timestamp || !code || !component || !reason)

@@ -39,10 +39,7 @@ export type TxMAEgressInterventionEventName =
   | 'AIS_EVENT_IGNORED_ACCOUNT_DELETED';
 
 export type TxMAEgressEvent =
-  | AIS_EVENT_TRANSITION_APPLIED
-  | AIS_EVENT_TRANSITION_IGNORED
-  | AIS_EVENT_IGNORED_STALE
-  | AUTH_DELETE_ACCOUNT;
+  AIS_EVENT_TRANSITION_APPLIED | AIS_EVENT_TRANSITION_IGNORED | AIS_EVENT_IGNORED_STALE | AUTH_DELETE_ACCOUNT;
 
 export interface TxmaUser {
   user_id: string;
@@ -99,7 +96,7 @@ export interface History {
 export interface HistoryObject {
   sentAt: string;
   component: string;
-  code: string;
+  code: Codes;
   intervention: string;
   reason: string;
   originatingComponent: string | undefined;

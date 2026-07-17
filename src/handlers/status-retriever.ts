@@ -10,6 +10,7 @@ import { InterventionEventsService } from '../tables/intervention-events';
 import { UserIdParameterSchema, V1QuerySchema } from '../data-types/api-parameters';
 import { AccountStatus, AccountStatusService } from '../tables/account-status';
 import { V1Response } from '../data-types/api-schemas-v1';
+import { HistoryService } from '../services/history-service';
 
 export async function retrieveStatus(
   event: APIGatewayEvent,
@@ -33,6 +34,9 @@ export async function retrieveStatus(
   try {
     if (event.resource === '/v2/ais/{userId}')
       return await v2StatusApiHandler(userId, accountStatusService, interventionEventsService);
+
+    if (event.resource === '/v2/ais/{userId}/history')
+      return await v2HistoryApiHandler(userId, accountStatusService, interventionEventsService);
 
     const { history: historyQuery } = V1QuerySchema.parse(event.queryStringParameters ?? {});
 
@@ -112,6 +116,21 @@ async function v2StatusApiHandler(
         name,
       })),
     }),
+  };
+}
+
+async function v2HistoryApiHandler(
+  userId: string,
+  accountStatusService: AccountStatusService,
+  interventionEventsService: InterventionEventsService,
+): Promise<APIGatewayProxyResult> {
+  const historyService = new HistoryService(accountStatusService, interventionEventsService);
+
+  const history = await historyService.fetchHistory(userId);
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify(history),
   };
 }
 

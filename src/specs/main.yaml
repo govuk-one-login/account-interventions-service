@@ -277,6 +277,18 @@ components:
         - RESET_PASSWORD
         - REPROVE_IDENTITY
       description: Enum of possible Intervention names
+    AccountHistoryResponse:
+      type: object
+      properties:
+        history:
+          allOf:
+            - $ref: "#/components/schemas/HistoryList"
+            - description: History of interventions applied to an account
+              readOnly: true
+      required:
+        - history
+      description: The intervention history of the User's OneLogin Account
+      readOnly: true
   parameters:
     UserId:
       schema:
@@ -349,6 +361,37 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AccountStatusResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/ServerError"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "504":
+          $ref: "#/components/responses/GatewayTimeout"
+        default:
+          $ref: "#/components/responses/UnexpectedError"
+  /v2/ais/{userId}/history:
+    get:
+      operationId: aisV2History
+      tags:
+        - Status
+      summary: Get User Account Intervention History
+      description: Returns the full intervention history for a user's account
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: aws_proxy
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StatusRetrieverFunction.Arn}:live/invocations
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountHistoryResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "500":
