@@ -219,7 +219,7 @@ describe('frontend app', () => {
 
     it('shows the success banner on the subsequent GET and not on a second GET', async () => {
       const server = init(
-        new InterventionStub({ result: { interventions: [] } }),
+        new InterventionStub({ result: { interventions: [] }, historyResult: { history: [] } }),
         new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         new StubMessageService(successOutput),
       );
