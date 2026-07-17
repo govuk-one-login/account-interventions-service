@@ -2,8 +2,16 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 {% block content %}
   {{ govukBackLink({ text: "Back", href: stagePrefix + "/" }) }}
+  {% if messageSent %}
+    {{ govukNotificationBanner({
+      type: "success",
+      html: "<p class=\"govuk-body\">TxMA message sent for user <strong>" + userId + "</strong>.</p>"
+    }) }}
+  {% endif %}
   <h1 class="govuk-heading-xl">Account Status</h1>
   <p class="govuk-body">User ID:
     <strong>{{ userId }}</strong>
@@ -70,5 +78,10 @@
     {% endfor %}
   {% else %}
     <p class="govuk-body-s">No history available for this account.</p>
+  {% endif %}
+  {% if aisSendTxMA %}
+    <form method="post" action="{{ stagePrefix }}/send">
+      <input type="hidden" name="userId" value="{{ userId }}"/>{{ govukButton({ text: "Send TxMA Message" }) }}
+    </form>
   {% endif %}
 {% endblock %}

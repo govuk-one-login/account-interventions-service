@@ -8,6 +8,12 @@ import { existsSync } from 'node:fs';
 import { InterventionClient, InterventionClientInterface } from '@govuk-one-login/ais-status-sdk';
 import logger from '../commons/logger';
 import { FeatureFlagsFromEnvironmentVariables, FeatureFlags } from '../services/feature-flags';
+import cookie from '@fastify/cookie';
+import { MessageService, SqsMessageService } from '../services/message-service';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { TriggerEventsEnum } from '../data-types/constants';
+import { randomUUID } from 'node:crypto';
+import { TicfAccountIntervention } from '../contracts/intervention-events';
 
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).
@@ -17,6 +23,7 @@ const nodeModulesRoot = existsSync(path.join(__dirname, 'node_modules')) ? __dir
 const stagePrefix = process.env['STAGE_PREFIX'] ?? '';
 
 const statusApiUrl = process.env['STATUS_API_URL'];
+const txmaQueueUrl = process.env['TXMA_QUEUE_URL'];
 
 // Format an ISO date string or Unix timestamp (ms) into a human-readable UK date/time, e.g. "10 October 2023 at 20:22:02 UTC"
 function formatDate(value: string | number): string {
@@ -36,6 +43,7 @@ export function init(
     logger,
   }),
   featureFlags: FeatureFlags = FeatureFlagsFromEnvironmentVariables.getInstance(),
+  messageService: MessageService = new SqsMessageService(txmaQueueUrl),
 ) {
   const server = fastify();
 
@@ -43,6 +51,9 @@ export function init(
 
   // Parse URL-encoded form bodies (application/x-www-form-urlencoded)
   server.register(formbody);
+
+  // Parse cookies (used for flash messages)
+  server.register(cookie);
 
   // Serve govuk assets under /assets/ — registers both the dist root (for CSS/JS)
   // and the assets subdirectory (for fonts, images, manifest) as a single plugin registration.
@@ -78,6 +89,13 @@ export function init(
 
     if (!userId) return reply.code(400).send();
 
+    // Read and immediately clear the flash cookie so the banner only shows once.
+    // eslint-disable-next-line unicorn/consistent-boolean-name
+    const messageSent = request.cookies['flash_message_sent'] === 'true';
+    if (messageSent) {
+      void reply.clearCookie('flash_message_sent', { path: '/' });
+    }
+
     const accountStatus = await interventionClient.getAccountStatus(userId);
     const accountHistory = await interventionClient.getAccountHistory(userId);
 
@@ -90,7 +108,45 @@ export function init(
         ...accountHistory,
         history: accountHistory.history.map((line) => ({ ...line, sentAt: formatDate(line.sentAt) })),
       },
+      messageSent,
+      aisSendTxMA: featureFlags.isEnabled('aisSendTxMA'),
     });
+  });
+
+  // Sends a TxMA audit event for the given userId and redirects back to the user details page.
+  server.post<{ Body: { userId?: string } }>('/send', async (request, reply) => {
+    if (!featureFlags.isEnabled('aisSendTxMA')) return reply.code(404).send();
+
+    const userId = request.body.userId?.trim() ?? '';
+
+    const timestamp = getCurrentTimestamp();
+
+    const event: TicfAccountIntervention = {
+      event_id: randomUUID(),
+      event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+      component_id: 'AIS',
+      timestamp: timestamp.seconds,
+      event_timestamp_ms: timestamp.milliseconds,
+      user: { user_id: userId },
+      extensions: {
+        intervention: {
+          intervention_code: '01',
+          intervention_reason: '',
+          requester_id: 'interventions@digital.cabinet-office.gov.uk',
+        },
+      },
+    };
+
+    await messageService.sendMessage(event);
+
+    reply.setCookie('flash_message_sent', 'true', {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 60, // expires in 60 seconds — more than enough for the redirect round-trip
+    });
+
+    return reply.redirect(`${stagePrefix}/user/${encodeURIComponent(userId)}`, 303);
   });
 
   return server;

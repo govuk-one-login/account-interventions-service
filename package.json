@@ -48,6 +48,7 @@
     "@aws-sdk/util-dynamodb": "^3.996.0",
     "@babel/helpers": "^7.26.10",
     "@fastify/aws-lambda": "^6.4.0",
+    "@fastify/cookie": "11.0.1",
     "@fastify/formbody": "8.0.2",
     "@fastify/static": "^9.1.3",
     "@fastify/view": "^12.0.0",
