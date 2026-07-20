@@ -38,7 +38,7 @@ describe('InterventionClient', () => {
 
   describe('getAccountStatus', () => {
     it('calls the v2 endpoint with the encoded userId', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       const userId = 'urn:fdc:gov.uk:2022:user123';
       mockFetch.mockResolvedValue(mockResponse({ interventions: [] }));
@@ -51,7 +51,7 @@ describe('InterventionClient', () => {
     });
 
     it('returns the parsed AccountStatus', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       const status = { interventions: [{ name: 'FRAUD_SUSPEND_ACCOUNT' }] };
       mockFetch.mockResolvedValue(mockResponse(status));
@@ -62,7 +62,7 @@ describe('InterventionClient', () => {
     });
 
     it('throws when the response is not ok', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       mockFetch.mockResolvedValue(mockResponse({}, 404));
 
@@ -70,7 +70,7 @@ describe('InterventionClient', () => {
     });
 
     it('throws AisInvalidResponse when the response body does not match the schema', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       mockFetch.mockResolvedValue(mockResponse({ unexpected: 'shape' }));
 
@@ -78,7 +78,7 @@ describe('InterventionClient', () => {
     });
 
     it('strips trailing slash from baseUrl', async () => {
-      const clientWithSlash = new InterventionClient({ baseUrl: 'https://example.com/' });
+      const clientWithSlash = new InterventionClient('https://example.com/');
       mockFetch.mockResolvedValue(mockResponse({ interventions: [] }));
 
       await clientWithSlash.getAccountStatus('user-1');
@@ -89,7 +89,7 @@ describe('InterventionClient', () => {
 
   describe('getAccountHistory', () => {
     it('calls the v2 history endpoint with the encoded userId', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       const userId = 'urn:fdc:gov.uk:2022:user123';
       mockFetch.mockResolvedValue(mockResponse({ lines: [] }));
@@ -102,7 +102,7 @@ describe('InterventionClient', () => {
     });
 
     it('returns an empty history array when there are no history entries', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       mockFetch.mockResolvedValue(mockResponse({ lines: [] }));
 
@@ -112,7 +112,7 @@ describe('InterventionClient', () => {
     });
 
     it('returns the parsed AccountHistory with a single entry', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       const historyEntry = makeHistoryObject();
       mockFetch.mockResolvedValue(mockResponse({ lines: [historyEntry] }));
@@ -123,7 +123,7 @@ describe('InterventionClient', () => {
     });
 
     it('returns history with multiple entries in order', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       const entries = [
         makeHistoryObject({ sentAt: 1_696_869_003_000, interventionName: InterventionName.PERMANENT_SUSPENSION }),
@@ -139,7 +139,7 @@ describe('InterventionClient', () => {
     });
 
     it('returns history entries with all optional fields present', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       const fullEntry = makeHistoryObject({
         interventionCode: '01',
@@ -157,7 +157,7 @@ describe('InterventionClient', () => {
     });
 
     it('returns history entries where originatorReferenceId is an array', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       const entry = makeHistoryObject({ originatorReferenceId: ['ref-1', 'ref-2'] });
       mockFetch.mockResolvedValue(mockResponse({ lines: [entry] }));
@@ -168,7 +168,7 @@ describe('InterventionClient', () => {
     });
 
     it('returns history entries with all known interventionState values', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       const entries = Object.values(InterventionState).map((state) => makeHistoryObject({ interventionState: state }));
       mockFetch.mockResolvedValue(mockResponse({ lines: entries }));
@@ -180,7 +180,7 @@ describe('InterventionClient', () => {
     });
 
     it('throws InterventionRequestFailed when the response is not ok (404)', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       mockFetch.mockResolvedValue(mockResponse({}, 404));
 
@@ -188,7 +188,7 @@ describe('InterventionClient', () => {
     });
 
     it('throws InterventionRequestFailed when the response is not ok (500)', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       mockFetch.mockResolvedValue(mockResponse({}, 500));
 
@@ -196,7 +196,7 @@ describe('InterventionClient', () => {
     });
 
     it('throws InterventionInvalidResponse when the response body is missing the history key', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       mockFetch.mockResolvedValue(mockResponse({ unexpected: 'shape' }));
 
@@ -204,7 +204,7 @@ describe('InterventionClient', () => {
     });
 
     it('throws InterventionInvalidResponse when a history entry is missing a required field', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       // Missing required `interventionReason`
       const invalidEntry = { sentAt: 1_696_869_003_456, componentId: 'TICF_CRI' };
@@ -214,7 +214,7 @@ describe('InterventionClient', () => {
     });
 
     it('throws InterventionInvalidResponse when a history entry has an invalid interventionName', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       const invalidEntry = makeHistoryObject({ interventionName: 'NOT_A_VALID_INTERVENTION' as InterventionName });
       mockFetch.mockResolvedValue(mockResponse({ lines: [invalidEntry] }));
@@ -223,7 +223,7 @@ describe('InterventionClient', () => {
     });
 
     it('throws InterventionInvalidResponse when a history entry has an invalid interventionState', async () => {
-      const client = new InterventionClient({ baseUrl });
+      const client = new InterventionClient(baseUrl);
 
       const invalidEntry = makeHistoryObject({ interventionState: 'NOT_A_VALID_STATE' as InterventionState });
       mockFetch.mockResolvedValue(mockResponse({ lines: [invalidEntry] }));
@@ -233,7 +233,7 @@ describe('InterventionClient', () => {
 
     it('logs the error when the response is not ok', async () => {
       const logger = { error: vi.fn() };
-      const client = new InterventionClient({ baseUrl, logger });
+      const client = new InterventionClient(baseUrl, { logger });
 
       mockFetch.mockResolvedValue(mockResponse({}, 503));
 
@@ -243,7 +243,7 @@ describe('InterventionClient', () => {
 
     it('logs the error when the response body does not match the schema', async () => {
       const logger = { error: vi.fn() };
-      const client = new InterventionClient({ baseUrl, logger });
+      const client = new InterventionClient(baseUrl, { logger });
 
       mockFetch.mockResolvedValue(mockResponse({ unexpected: 'shape' }));
 
@@ -255,7 +255,7 @@ describe('InterventionClient', () => {
     });
 
     it('strips trailing slash from baseUrl on history requests', async () => {
-      const clientWithSlash = new InterventionClient({ baseUrl: 'https://example.com/' });
+      const clientWithSlash = new InterventionClient('https://example.com/');
       mockFetch.mockResolvedValue(mockResponse({ lines: [] }));
 
       await clientWithSlash.getAccountHistory('user-1');

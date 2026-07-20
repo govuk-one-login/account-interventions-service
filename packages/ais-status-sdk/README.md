@@ -19,7 +19,7 @@ Node.js ≥ 20 (uses native `fetch`).
 ```ts
 import { AisClient } from '@govuk-one-login/ais-status-sdk';
 
-const client = new AisClient({ baseUrl: 'https://your-ais-endpoint.example.com' });
+const client = new AisClient('https://your-ais-endpoint.example.com');
 
 const status = await client.getAccountStatus('urn:fdc:gov.uk:2022:user123');
 // { interventions: [{ name: 'RESET_PASSWORD' }] }
@@ -27,11 +27,12 @@ const status = await client.getAccountStatus('urn:fdc:gov.uk:2022:user123');
 
 ## API
 
-### `new AisClient(config)`
+### `new AisClient(baseUrl)`
 
 | Option    | Type     | Required | Description                  |
 | --------- | -------- | -------- | ---------------------------- |
 | `baseUrl` | `string` | ✓        | Base URL of the AIS endpoint |
+
 
 ### `client.getAccountStatus(userId)`
 
