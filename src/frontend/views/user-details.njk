@@ -1,9 +1,146 @@
 {% extends "base.njk" %}
+{% extends "base.njk" %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
-{% from "govuk/components/tag/macro.njk" import govukTag %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% block head %}
+  {{ super() }}
+  <style>
+    /*
+      Each lane is a position:relative container.
+      A ::before pseudo-element draws the 4px coloured line — full height for
+      CONTINUE, top-half only for START, bottom-half only for END, nothing for absent.
+      The blob div is position:absolute at the top, overlaid on the line.
+      This means the line is one unbroken element with no gaps.
+
+      Rows are newest→oldest top→bottom, so:
+        START   → line in top half    (goes up toward newer END row above)
+        END     → line in bottom half (comes from older START row below)
+        CONTINUE→ full height line
+        absent  → no line, no blob */
+    .ais-timeline__row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0 20px;
+      align-items: stretch;
+      padding-bottom: 10px;
+    }
+    .ais-timeline__lanes {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 10px;
+    }
+    .ais-timeline__lane {
+      width: 24px;
+      flex-shrink: 0;
+      position: relative;
+      overflow: visible;
+    }
+    /* The line: a 4px bar centred horizontally, height controlled per state. Lines that exit the bottom (end, continue)
+   extend 20px beyond the lane to bridge the padding-bottom gap between rows. */
+    .ais-timeline__lane::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      background-color: var(--lane-color);
+    }
+    .ais-timeline__lane--start::before {
+      top: 0;
+      height: 24px;
+    }
+    .ais-timeline__lane--end::before {
+      top: 24px;
+      bottom: -10px; /* extends through the row gap */
+    }
+    .ais-timeline__lane--continue::before {
+      top: 0;
+      bottom: -10px; /* extends through the row gap */
+    }
+    .ais-timeline__lane--absent::before {
+      display: none;
+    }
+    /* Blob: absolutely positioned, centred horizontally, 12px from top */
+    .ais-timeline__lane-blob {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      background: #f8f8f8; /* matches page bg to mask the line behind it */
+      border: 2px solid var(--lane-color);
+      color: var(--lane-color);
+    }
+    .ais-timeline__lane-blob svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+      display: block;
+    }
+    /* Lane colours */
+    .ais-lane--PERMANENT_SUSPENSION {
+      --lane-color: #d4351c;
+    }
+    .ais-lane--TEMPORARY_SUSPENSION {
+      --lane-color: #f47738;
+    }
+    .ais-lane--RESET_PASSWORD {
+      --lane-color: #1d70b8;
+    }
+    .ais-lane--REPROVE_IDENTITY {
+      --lane-color: #4c2c92;
+    }
+    .ais-summary-list--no-last-border .govuk-summary-list__row:last-child {
+      border-bottom: none;
+    }
+    .ais-timeline__card {
+      border-style: solid;
+      border-width: 1px;
+      border-radius: 6px;
+      border-color: #d1d9e0;
+    }
+    .ais-timeline__card-header {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #d1d9e0;
+      padding: 15px 20px;
+      background-color: #818b981f
+    }
+    .ais-timeline__timestamp {
+      color: #505a5f;
+    }
+    .ais-timeline__card-body {
+      padding: 0 20px;
+      border-bottom: 1px solid #d1d9e0;
+    }
+    .ais-timeline__card-body:last-child {
+      border-bottom: none;
+    }
+    .ais-timeline__events {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .ais-timeline__event {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+  </style>
+{% endblock %}
 {% block content %}
   {{ govukBackLink({ text: "Back", href: stagePrefix + "/" }) }}
   {% if messageSent %}
@@ -16,7 +153,7 @@
   <p class="govuk-body">User ID:
     <strong>{{ userId }}</strong>
   </p>
-  <h1 class="govuk-heading-m">Active Interventions</h1>
+  <h2 class="govuk-heading-m">Active Interventions</h2>
   {% if accountStatus %}
     {% if accountStatus.interventions.length %}
       {% set rows = [] %}
@@ -33,53 +170,100 @@
   {% else %}
     <p class="govuk-body">No account found for this identifier.</p>
   {% endif %}
-  <h2 class="govuk-heading-m">History</h2>
-  {% if accountHistory and accountHistory.length %}
-    {% for transaction in accountHistory %}
-      <div class="govuk-inset-text govuk-!-margin-bottom-5">
-        <p class="govuk-body-xs govuk-hint govuk-!-margin-bottom-4">Sent at:
-          <strong>{{ transaction.sentAtFormatted }}</strong>
-        </p>
-        {% set transactionRows = [
-          { key: { text: "Component" },  value: { text: transaction.componentId } },
-          { key: { text: "Reason" },     value: { text: transaction.interventionReason } }
-        ] %}
-        {% if transaction.interventionCode %}
-          {% set transactionRows = transactionRows.concat([{ key: { text: "Code" }, value: { text: transaction.interventionCode } }]) %}
-        {% endif %}
-        {% if transaction.originatingComponent %}
-          {% set transactionRows = transactionRows.concat([{ key: { text: "Originating Component" }, value: { text: transaction.originatingComponent } }]) %}
-        {% endif %}
-        {% if transaction.originatorReferenceId %}
-          {% set transactionRows = transactionRows.concat([{ key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId } }]) %}
-        {% endif %}
-        {% if transaction.requesterId %}
-          {% set transactionRows = transactionRows.concat([{ key: { text: "Requester ID" }, value: { text: transaction.requesterId } }]) %}
-        {% endif %}
-        {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4 govuk-!-font-size-16", rows: transactionRows }) }}
-        {% if transaction.interventionEvents.length %}
-          {% set eventRows = [] %}
-          {% for event in transaction.interventionEvents %}
-            {% if event.interventionState == "ACTIVE" %}
-              {% set stateColour = "red" %}
-            {% elif event.interventionState == "MITIGATED" %}
-              {% set stateColour = "green" %}
-            {% elif event.interventionState == "REMOVED" %}
-              {% set stateColour = "grey" %}
-            {% elif event.interventionState == "SUPERSEDED" %}
-              {% set stateColour = "orange" %}
-            {% elif event.interventionState == "IGNORED" %}
-              {% set stateColour = "yellow" %}
+  <h2 class="govuk-heading-m govuk-!-margin-top-6">History</h2>
+  {% if transactions and transactions.length %}
+    {% for transaction in transactions %}
+      <div
+        class="ais-timeline__row">
+        {# Lane column #}
+        <div class="ais-timeline__lanes">
+          {% for name in allInterventionNames %}
+            {% set lineState = transaction.activeInterventions[name] %}
+            {% if lineState == "START" %}
+              {% set topLit = true %}
+              {% set showBlob = true %}
+              {% set bottomLit = false %}
+            {% elif lineState == "END" %}
+              {% set topLit = false %}
+              {% set showBlob = true %}
+              {% set bottomLit = true %}
+            {% elif lineState == "CONTINUE" %}
+              {% set topLit = true %}
+              {% set showBlob = false %}
+              {% set bottomLit = true %}
             {% else %}
-              {% set stateColour = "blue" %}
+              {% set topLit = false %}
+              {% set showBlob = false %}
+              {% set bottomLit = false %}
             {% endif %}
-            {% set eventRows = eventRows.concat([{
-              key: { text: event.interventionName },
-              value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.interventionState + '</strong>' }
-            }]) %}
+            <div class="ais-timeline__lane ais-lane--{{ name }} ais-timeline__lane--{{ lineState | lower if lineState else 'absent' }}">
+              {% if showBlob %}
+                <div class="ais-timeline__lane-blob">
+                  {% if lineState == "START" %}
+                    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                      <path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                  {% else %}
+                    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                      <path
+                        d="M3 8.5l3.5 3.5 6.5-6.5"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"/>
+                    </svg>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
           {% endfor %}
-          {{ govukSummaryList({ classes: "govuk-!-margin-bottom-0 govuk-!-font-size-16", rows: eventRows }) }}
-        {% endif %}
+        </div>
+        {# Card #}
+        <div class="ais-timeline__card">
+          <div class="ais-timeline__card-header">
+            <span class="ais-timeline__requester govuk-body-s govuk-!-margin-bottom-0">{{ transaction.requesterId }}</span>
+            <span class="ais-timeline__timestamp govuk-body-s govuk-!-margin-bottom-0">{{ transaction.sentAtFormatted }}</span>
+          </div>
+          <div class="ais-timeline__card-body">
+            {% if transaction.interventionEvents.length %}
+              {% set eventHtml = "" %}
+              {% for event in transaction.interventionEvents %}
+                {% if event.interventionState == "ACTIVE" %}
+                  {% set stateColour = "red" %}
+                {% elif event.interventionState == "MITIGATED" %}
+                  {% set stateColour = "green" %}
+                {% elif event.interventionState == "REMOVED" %}
+                  {% set stateColour = "grey" %}
+                {% elif event.interventionState == "SUPERSEDED" %}
+                  {% set stateColour = "orange" %}
+                {% elif event.interventionState == "IGNORED" %}
+                  {% set stateColour = "yellow" %}
+                {% else %}
+                  {% set stateColour = "blue" %}
+                {% endif %}
+                {% set eventHtml = eventHtml + '<span class="govuk-body-s govuk-!-margin-right-1">' + event.interventionName.replace("_", " ") + '</span><strong class="govuk-tag govuk-tag--' + stateColour + ' govuk-!-margin-right-3" style="font-size:15px">' + event.interventionState + '</strong>' %}
+              {% endfor %}
+              <p class="govuk-!-margin-bottom-3">{{ eventHtml | safe }}</p>
+            {% endif %}
+          </div>
+          <div class="ais-timeline__card-body">
+            {% set detailRows = [
+            { key: { text: "Component" }, value: { text: transaction.componentId } },
+            { key: { text: "Reason" },    value: { text: transaction.interventionReason } }
+          ] %}
+            {% if transaction.interventionCode %}
+              {% set detailRows = detailRows.concat([{ key: { text: "Code" }, value: { text: transaction.interventionCode } }]) %}
+            {% endif %}
+            {% if transaction.originatingComponent %}
+              {% set detailRows = detailRows.concat([{ key: { text: "Originating Component" }, value: { text: transaction.originatingComponent } }]) %}
+            {% endif %}
+            {% if transaction.originatorReferenceId %}
+              {% set detailRows = detailRows.concat([{ key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId } }]) %}
+            {% endif %}
+            {{ govukSummaryList({ classes: "govuk-!-margin-bottom-0 govuk-!-font-size-16 ais-summary-list--no-last-border", rows: detailRows }) }}
+          </div>
+        </div>
       </div>
     {% endfor %}
   {% else %}

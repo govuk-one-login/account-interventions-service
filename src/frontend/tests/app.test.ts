@@ -384,7 +384,7 @@ describe('formatHistory', () => {
         originatingComponent: 'TICF',
         requesterId: 'interventions@digital.cabinet-office.gov.uk',
         sentAt: 1784021279020,
-        sentAtFormatted: '14 July 2026 at 09:27:59 UTC',
+        sentAtFormatted: '14 July 2026 at 10:27:59 UTC',
         tagId: 'abc1235',
       },
       {
@@ -407,7 +407,7 @@ describe('formatHistory', () => {
         originatingComponent: 'TICF',
         requesterId: 'interventions@digital.cabinet-office.gov.uk',
         sentAt: 1784021279000,
-        sentAtFormatted: '14 July 2026 at 09:27:59 UTC',
+        sentAtFormatted: '14 July 2026 at 10:27:59 UTC',
         tagId: 'abc1234',
       },
     ]);

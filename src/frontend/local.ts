@@ -23,6 +23,17 @@ init(
           tagId: 'tag1',
         },
         {
+          sentAt: 1784021289000,
+          componentId: 'TEST',
+          interventionName: InterventionName.REPROVE_IDENTITY,
+          interventionState: InterventionState.ACTIVE,
+          interventionReason: 'Reason',
+          interventionCode: '03',
+          originatingComponent: 'TICF',
+          requesterId: 'interventions@digital.cabinet-office.gov.uk',
+          tagId: 'tag2a',
+        },
+        {
           sentAt: 1784022279000,
           componentId: 'TEST',
           interventionName: InterventionName.TEMPORARY_SUSPENSION,

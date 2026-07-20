@@ -10,6 +10,8 @@ import {
   HistoryLine,
   InterventionClient,
   InterventionClientInterface,
+  InterventionName,
+  InterventionState,
 } from '@govuk-one-login/ais-status-sdk';
 import logger from '../commons/logger';
 import { FeatureFlagsFromEnvironmentVariables, FeatureFlags } from '../services/feature-flags';
@@ -35,9 +37,9 @@ function formatDate(value: string | number): string {
   const date = new Date(value);
 
   return (
-    date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) +
+    date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) +
     ' at ' +
-    date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'UTC' }) +
+    date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) +
     ' UTC'
   );
 }
@@ -103,12 +105,21 @@ export function init(
     const accountStatus = await interventionClient.getAccountStatus(userId);
     const accountHistory = await interventionClient.getAccountHistory(userId);
 
+    const baseTransactions = formatHistory(accountHistory);
+    const transactions = historyToTransactions(baseTransactions);
+
+    // Collect all unique intervention names across all transactions (for lane columns)
+    const allInterventionNames = [
+      ...new Set(transactions.flatMap((t) => Object.keys(t.activeInterventions) as InterventionName[])),
+    ];
+
     return reply.view('user-details.njk', {
       stagePrefix,
       assetPath,
       accountStatus,
       userId,
-      accountHistory: formatHistory(accountHistory),
+      transactions,
+      allInterventionNames,
       messageSent,
       aisSendTxMA: featureFlags.isEnabled('aisSendTxMA'),
     });
@@ -174,3 +185,47 @@ export const formatHistory = (history: AccountHistory): HistoryTransaction[] =>
       return result;
     }, {}),
   ).toSorted((a, b) => b.sentAt - a.sentAt);
+
+enum InterventionLineState {
+  START = 'START',
+  END = 'END',
+  CONTINUE = 'CONTINUE',
+}
+
+type ActiveInterventions = Partial<Record<InterventionName, InterventionLineState>>;
+
+interface Transaction extends HistoryTransaction {
+  activeInterventions: ActiveInterventions;
+}
+
+export function historyToTransactions(history: HistoryTransaction[]): Transaction[] {
+  const result: Transaction[] = [];
+
+  const runnningActiveInterventions = new Set<InterventionName>();
+
+  for (const value of history.toReversed()) {
+    const activeInterventions: ActiveInterventions = {};
+
+    for (const interventionEvent of value.interventionEvents) {
+      if (interventionEvent.interventionState === InterventionState.ACTIVE) {
+        runnningActiveInterventions.add(interventionEvent.interventionName);
+        activeInterventions[interventionEvent.interventionName] = InterventionLineState.START;
+      } else if (interventionEvent.interventionState !== InterventionState.IGNORED) {
+        runnningActiveInterventions.delete(interventionEvent.interventionName);
+        activeInterventions[interventionEvent.interventionName] = InterventionLineState.END;
+      }
+    }
+
+    for (const intervention of runnningActiveInterventions) {
+      if (!value.interventionEvents.map((event) => event.interventionName).includes(intervention))
+        activeInterventions[intervention] = InterventionLineState.CONTINUE;
+    }
+
+    result.push({
+      ...value,
+      activeInterventions,
+    });
+  }
+
+  return result.toReversed();
+}
