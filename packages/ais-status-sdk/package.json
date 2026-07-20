@@ -46,7 +46,7 @@
     "@swc/core": "^1.15.43",
     "rollup": "^4.62.2",
     "rollup-plugin-dts": "^6.4.1",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.9",
     "zod": "^4.4.3"
   }
