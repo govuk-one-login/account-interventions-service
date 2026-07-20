@@ -4,19 +4,14 @@ import {
   V2ResponseSchema,
   type V2Response,
 } from '../../../src/data-types/api-schemas-v2';
-import type {
-  AccountHistoryResult,
-  AccountStatusResult,
-  InterventionClientConfig,
-  InterventionClientInterface,
-} from './types';
+import type { AccountHistory, AccountStatus, InterventionClientConfig, InterventionClientInterface } from './types';
 export type {
-  AccountStatusResult,
+  AccountStatus,
   InterventionClientConfig,
   InterventionClientInterface,
   Intervention,
-  AccountHistoryResult,
-  HistoryObject,
+  AccountHistory,
+  HistoryLine,
 } from './types';
 export { InterventionName, InterventionState } from './types';
 import { InterventionInvalidResponse, InterventionMissingBaseUrl, InterventionRequestFailed } from './errors';
@@ -77,13 +72,13 @@ export class InterventionClient implements InterventionClientInterface {
     return parseResult.data;
   }
 
-  async getAccountStatus(userId: string): Promise<AccountStatusResult> {
+  async getAccountStatus(userId: string): Promise<AccountStatus> {
     const result = await this.fetchAccountStatus(userId);
 
     return result;
   }
 
-  async getAccountHistory(userId: string): Promise<AccountHistoryResult> {
+  async getAccountHistory(userId: string): Promise<AccountHistory> {
     const result = await this.fetchAccountHistory(userId);
 
     return result;

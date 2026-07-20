@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { InterventionClient } from './index';
 import { InterventionInvalidResponse } from './errors';
-import type { HistoryObject } from './types';
+import type { HistoryLine } from './types';
 import { InterventionName, InterventionState } from './types';
 import { ZodError } from 'zod';
 
@@ -17,7 +17,7 @@ function mockResponse(body: unknown, status = 200): Response {
   } as unknown as Response;
 }
 
-function makeHistoryObject(overrides: Partial<HistoryObject> = {}): HistoryObject {
+function makeHistoryObject(overrides: Partial<HistoryLine> = {}): HistoryLine {
   return {
     sentAt: 1_696_869_003_456,
     componentId: 'TICF_CRI',
@@ -91,7 +91,7 @@ describe('InterventionClient', () => {
       const client = new InterventionClient({ baseUrl });
 
       const userId = 'urn:fdc:gov.uk:2022:user123';
-      mockFetch.mockResolvedValue(mockResponse({ history: [] }));
+      mockFetch.mockResolvedValue(mockResponse({ lines: [] }));
 
       await client.getAccountHistory(userId);
 
@@ -103,22 +103,22 @@ describe('InterventionClient', () => {
     it('returns an empty history array when there are no history entries', async () => {
       const client = new InterventionClient({ baseUrl });
 
-      mockFetch.mockResolvedValue(mockResponse({ history: [] }));
+      mockFetch.mockResolvedValue(mockResponse({ lines: [] }));
 
       const result = await client.getAccountHistory('user-1');
 
-      expect(result).toEqual({ history: [] });
+      expect(result).toEqual({ lines: [] });
     });
 
     it('returns the parsed AccountHistory with a single entry', async () => {
       const client = new InterventionClient({ baseUrl });
 
       const historyEntry = makeHistoryObject();
-      mockFetch.mockResolvedValue(mockResponse({ history: [historyEntry] }));
+      mockFetch.mockResolvedValue(mockResponse({ lines: [historyEntry] }));
 
       const result = await client.getAccountHistory('user-1');
 
-      expect(result).toEqual({ history: [historyEntry] });
+      expect(result).toEqual({ lines: [historyEntry] });
     });
 
     it('returns history with multiple entries in order', async () => {
@@ -129,12 +129,12 @@ describe('InterventionClient', () => {
         makeHistoryObject({ sentAt: 1_696_869_004_000, interventionName: InterventionName.TEMPORARY_SUSPENSION }),
         makeHistoryObject({ sentAt: 1_696_869_005_000, interventionName: InterventionName.REPROVE_IDENTITY }),
       ];
-      mockFetch.mockResolvedValue(mockResponse({ history: entries }));
+      mockFetch.mockResolvedValue(mockResponse({ lines: entries }));
 
       const result = await client.getAccountHistory('user-1');
 
-      expect(result.history).toHaveLength(3);
-      expect(result.history).toEqual(entries);
+      expect(result.lines).toHaveLength(3);
+      expect(result.lines).toEqual(entries);
     });
 
     it('returns history entries with all optional fields present', async () => {
@@ -148,33 +148,33 @@ describe('InterventionClient', () => {
         transactionId: 'txn-456',
         messageEventId: 'msg-789',
       });
-      mockFetch.mockResolvedValue(mockResponse({ history: [fullEntry] }));
+      mockFetch.mockResolvedValue(mockResponse({ lines: [fullEntry] }));
 
       const result = await client.getAccountHistory('user-1');
 
-      expect(result.history[0]).toEqual(fullEntry);
+      expect(result.lines[0]).toEqual(fullEntry);
     });
 
     it('returns history entries where originatorReferenceId is an array', async () => {
       const client = new InterventionClient({ baseUrl });
 
       const entry = makeHistoryObject({ originatorReferenceId: ['ref-1', 'ref-2'] });
-      mockFetch.mockResolvedValue(mockResponse({ history: [entry] }));
+      mockFetch.mockResolvedValue(mockResponse({ lines: [entry] }));
 
       const result = await client.getAccountHistory('user-1');
 
-      expect(result.history[0]?.originatorReferenceId).toEqual(['ref-1', 'ref-2']);
+      expect(result.lines[0]?.originatorReferenceId).toEqual(['ref-1', 'ref-2']);
     });
 
     it('returns history entries with all known interventionState values', async () => {
       const client = new InterventionClient({ baseUrl });
 
       const entries = Object.values(InterventionState).map((state) => makeHistoryObject({ interventionState: state }));
-      mockFetch.mockResolvedValue(mockResponse({ history: entries }));
+      mockFetch.mockResolvedValue(mockResponse({ lines: entries }));
 
       const result = await client.getAccountHistory('user-1');
 
-      const returnedStates = result.history.map((h) => h.interventionState);
+      const returnedStates = result.lines.map((h) => h.interventionState);
       expect(returnedStates).toEqual(Object.values(InterventionState));
     });
 
@@ -207,7 +207,7 @@ describe('InterventionClient', () => {
 
       // Missing required `interventionReason`
       const invalidEntry = { sentAt: 1_696_869_003_456, componentId: 'TICF_CRI' };
-      mockFetch.mockResolvedValue(mockResponse({ history: [invalidEntry] }));
+      mockFetch.mockResolvedValue(mockResponse({ lines: [invalidEntry] }));
 
       await expect(client.getAccountHistory('user-1')).rejects.toThrow(InterventionInvalidResponse);
     });
@@ -216,7 +216,7 @@ describe('InterventionClient', () => {
       const client = new InterventionClient({ baseUrl });
 
       const invalidEntry = makeHistoryObject({ interventionName: 'NOT_A_VALID_INTERVENTION' as InterventionName });
-      mockFetch.mockResolvedValue(mockResponse({ history: [invalidEntry] }));
+      mockFetch.mockResolvedValue(mockResponse({ lines: [invalidEntry] }));
 
       await expect(client.getAccountHistory('user-1')).rejects.toThrow(InterventionInvalidResponse);
     });
@@ -225,7 +225,7 @@ describe('InterventionClient', () => {
       const client = new InterventionClient({ baseUrl });
 
       const invalidEntry = makeHistoryObject({ interventionState: 'NOT_A_VALID_STATE' as InterventionState });
-      mockFetch.mockResolvedValue(mockResponse({ history: [invalidEntry] }));
+      mockFetch.mockResolvedValue(mockResponse({ lines: [invalidEntry] }));
 
       await expect(client.getAccountHistory('user-1')).rejects.toThrow(InterventionInvalidResponse);
     });
@@ -255,7 +255,7 @@ describe('InterventionClient', () => {
 
     it('strips trailing slash from baseUrl on history requests', async () => {
       const clientWithSlash = new InterventionClient({ baseUrl: 'https://example.com/' });
-      mockFetch.mockResolvedValue(mockResponse({ history: [] }));
+      mockFetch.mockResolvedValue(mockResponse({ lines: [] }));
 
       await clientWithSlash.getAccountHistory('user-1');
 

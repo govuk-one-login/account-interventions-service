@@ -39,7 +39,7 @@ export const V2ResponseSchema = z
 export type V2Response = z.infer<typeof V2ResponseSchema>;
 
 /* eslint-disable unicorn/max-nested-calls */
-const HistoryObjectSchema = z
+const HistoryLineSchema = z
   .object({
     sentAt: z.number().int().meta({
       description: 'A timestamp (ms) when the Intervention was sent by Fraud Analyst/Risk Engine.',
@@ -62,24 +62,24 @@ const HistoryObjectSchema = z
     tagId: z.string().optional(),
   })
   .meta({
-    id: 'HistoryObject',
-    title: 'History Object Schema',
-    description: 'JSON object representing an intervention previously applied on the account',
+    id: 'HistoryLine',
+    title: 'History Line Schema',
+    description: 'A single update to the intervention state of an account',
     readOnly: true,
   });
 
-export type HistoryObject = z.infer<typeof HistoryObjectSchema>;
+export type HistoryLine = z.infer<typeof HistoryLineSchema>;
 
-const HistoryListSchema = z.array(HistoryObjectSchema).meta({
-  id: 'HistoryList',
-  title: 'History List',
+const HistoryLinesSchema = z.array(HistoryLineSchema).meta({
+  id: 'HistoryLines',
+  title: 'History Lines',
   description: 'History of interventions applied to an account',
   readOnly: true,
 });
 
 export const V2HistoryResponseSchema = z
   .object({
-    history: HistoryListSchema,
+    lines: HistoryLinesSchema,
   })
   .meta({
     id: 'AccountHistoryResponse',

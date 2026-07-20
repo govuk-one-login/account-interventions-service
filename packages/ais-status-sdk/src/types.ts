@@ -17,11 +17,11 @@ export interface Intervention {
   name: InterventionName | string;
 }
 
-export interface AccountStatusResult {
+export interface AccountStatus {
   interventions: Intervention[];
 }
 
-export interface HistoryObject {
+export interface HistoryLine {
   sentAt: number;
   componentId: string;
   interventionName: InterventionName;
@@ -35,8 +35,8 @@ export interface HistoryObject {
   messageEventId?: string | undefined;
 }
 
-export interface AccountHistoryResult {
-  history: HistoryObject[];
+export interface AccountHistory {
+  lines: HistoryLine[];
 }
 
 type LogAttributes = Record<string, unknown>;
@@ -53,6 +53,6 @@ export interface InterventionClientConfig {
 }
 
 export interface InterventionClientInterface {
-  getAccountStatus(userId: string): Promise<AccountStatusResult>;
-  getAccountHistory(userId: string): Promise<AccountHistoryResult>;
+  getAccountStatus(userId: string): Promise<AccountStatus>;
+  getAccountHistory(userId: string): Promise<AccountHistory>;
 }

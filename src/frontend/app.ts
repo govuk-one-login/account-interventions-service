@@ -106,7 +106,7 @@ export function init(
       userId,
       accountHistory: {
         ...accountHistory,
-        history: accountHistory.history.map((line) => ({ ...line, sentAt: formatDate(line.sentAt) })),
+        history: accountHistory.lines.map((line) => ({ ...line, sentAt: formatDate(line.sentAt) })),
       },
       messageSent,
       aisSendTxMA: featureFlags.isEnabled('aisSendTxMA'),

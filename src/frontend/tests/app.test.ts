@@ -65,7 +65,7 @@ describe('frontend app', () => {
 
   describe('GET /user/:userId', () => {
     it('returns 200 and renders the details page when user is found', async () => {
-      const server = init(new InterventionStub({ result: { interventions: [] }, historyResult: { history: [] } }));
+      const server = init(new InterventionStub({ result: { interventions: [] }, historyResult: { lines: [] } }));
       const response = await server.inject({ method: 'GET', url: '/user/test-user-id' });
       expect(response.statusCode).toBe(200);
       expect(response.headers['content-type']).toMatch(/html/);
@@ -77,7 +77,7 @@ describe('frontend app', () => {
         new InterventionStub({
           result: { interventions: [] },
           historyResult: {
-            history: [
+            lines: [
               {
                 sentAt: 1784021279000,
                 componentId: 'TEST',
@@ -102,7 +102,7 @@ describe('frontend app', () => {
       const server = init(
         new InterventionStub({
           interventionNames: [InterventionName.PERMANENT_SUSPENSION],
-          historyResult: { history: [] },
+          historyResult: { lines: [] },
         }),
       );
       const response = await server.inject({ method: 'GET', url: '/user/test-user-id' });
@@ -111,7 +111,7 @@ describe('frontend app', () => {
     });
 
     it('displays a no interventions message when the account exists but has no interventions', async () => {
-      const server = init(new InterventionStub({ result: { interventions: [] }, historyResult: { history: [] } }));
+      const server = init(new InterventionStub({ result: { interventions: [] }, historyResult: { lines: [] } }));
       const response = await server.inject({ method: 'GET', url: '/user/test-user-id' });
       expect(response.statusCode).toBe(200);
       expect(response.body).toContain('There are no active interventions on this account.');
@@ -219,7 +219,7 @@ describe('frontend app', () => {
 
     it('shows the success banner on the subsequent GET and not on a second GET', async () => {
       const server = init(
-        new InterventionStub({ result: { interventions: [] }, historyResult: { history: [] } }),
+        new InterventionStub({ result: { interventions: [] }, historyResult: { lines: [] } }),
         new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         new StubMessageService(successOutput),
       );

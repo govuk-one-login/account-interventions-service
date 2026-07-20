@@ -10,7 +10,7 @@ init(
   new InterventionStub({
     interventionNames: [InterventionName.RESET_PASSWORD],
     historyResult: {
-      history: [
+      lines: [
         {
           sentAt: 1784021279000,
           componentId: 'TEST',
