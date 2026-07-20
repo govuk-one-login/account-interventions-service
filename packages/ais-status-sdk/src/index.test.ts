@@ -24,6 +24,7 @@ function makeHistoryObject(overrides: Partial<HistoryLine> = {}): HistoryLine {
     interventionName: InterventionName.PERMANENT_SUSPENSION,
     interventionState: InterventionState.ACTIVE,
     interventionReason: 'suspend account due to fraud',
+    tagId: 'abc123',
     ...overrides,
   };
 }
