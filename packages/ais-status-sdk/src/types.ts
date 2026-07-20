@@ -54,7 +54,6 @@ interface Logger {
 }
 
 export interface InterventionClientConfig {
-  baseUrl: string | undefined;
   logger?: Logger;
 }
 

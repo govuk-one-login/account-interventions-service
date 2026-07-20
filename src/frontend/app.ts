@@ -43,8 +43,7 @@ function formatDate(value: string | number): string {
 }
 
 export function init(
-  interventionClient: InterventionClientInterface = new InterventionClient({
-    baseUrl: statusApiUrl,
+  interventionClient: InterventionClientInterface = new InterventionClient(statusApiUrl, {
     logger,
   }),
   featureFlags: FeatureFlags = FeatureFlagsFromEnvironmentVariables.getInstance(),
