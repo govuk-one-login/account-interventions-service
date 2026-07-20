@@ -54,5 +54,5 @@ export class FeatureFlagsStub implements FeatureFlags {
 function getEnvironmentVariableAsBoolean(name: string): boolean | undefined {
   const value = process.env[name];
   if (!value) return undefined;
-  return Boolean(value);
+  return value.toLowerCase() === 'true';
 }
