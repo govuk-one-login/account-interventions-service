@@ -2,9 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { HistoryStringBuilder } from '../commons/history-string-builder';
 import logger from '../commons/logger';
 import { addMetric } from '../commons/metrics';
-import { HistoryObject, V2HistoryResponse } from '../data-types/api-schemas-v2';
+import { HistoryLine, V2HistoryResponse } from '../data-types/api-schemas-v2';
 import { MetricNames } from '../data-types/constants';
-import { HistoryObject as HistoryLine } from '../data-types/interfaces';
+import { HistoryObject } from '../data-types/interfaces';
 import { AccountStatusService } from '../tables/account-status';
 import { InterventionEventsService } from '../tables/intervention-events';
 import notEmpty from '../utils/not-empty';
@@ -16,9 +16,9 @@ export class HistoryService {
     readonly accountStatusService: AccountStatusService,
     readonly interventionEventsService: InterventionEventsService,
     readonly deduplicate: (
-      accountStatusHistory: HistoryObject[],
-      interventionEvents: HistoryObject[],
-    ) => HistoryObject[] = deduplicateEvents,
+      accountStatusHistory: HistoryLine[],
+      interventionEvents: HistoryLine[],
+    ) => HistoryLine[] = deduplicateEvents,
   ) {}
 
   async fetchHistory(accountId: string): Promise<V2HistoryResponse> {
@@ -27,11 +27,11 @@ export class HistoryService {
     const interventionEvents = await this.fetchInterventionEvents(accountId);
 
     return {
-      history: this.deduplicate(accountStatusHistory, interventionEvents),
+      lines: this.deduplicate(accountStatusHistory, interventionEvents),
     };
   }
 
-  private async fetchAccountStatus(accountId: string): Promise<HistoryObject[]> {
+  private async fetchAccountStatus(accountId: string): Promise<HistoryLine[]> {
     const response = await this.accountStatusService.getAccountStateInformation(accountId);
     if (!response) {
       logger.info('Query matched no records in DynamoDB.');
@@ -42,7 +42,7 @@ export class HistoryService {
     return this.constructHistoryObject(response.history);
   }
 
-  private constructHistoryObject(input: string[]): HistoryObject[] {
+  private constructHistoryObject(input: string[]): HistoryLine[] {
     const historyStringBuilder = new HistoryStringBuilder();
 
     const historyLines = input
@@ -56,13 +56,13 @@ export class HistoryService {
       })
       .filter(notEmpty);
 
-    return historyLines.reduce<HistoryObject[]>(
+    return historyLines.reduce<HistoryLine[]>(
       (result, historyLine) => [...result, ...this.mapHistoryObjectToInterventionEvents(historyLine)],
       [],
     );
   }
 
-  private mapHistoryObjectToInterventionEvents(input: HistoryLine): HistoryObject[] {
+  private mapHistoryObjectToInterventionEvents(input: HistoryObject): HistoryLine[] {
     const eventEdge = transitionConfig.edges[input.code];
 
     const stateChanges = config[eventEdge.name];

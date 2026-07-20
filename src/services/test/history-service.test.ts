@@ -1,11 +1,11 @@
-import { HistoryObject } from '../../data-types/api-schemas-v2';
+import { HistoryLine } from '../../data-types/api-schemas-v2';
 import { InterventionState } from '../../data-types/constants';
 import { InterventionName } from '../../data-types/intervention-name';
 import { InMemoryAccountStatusService } from '../../tables/account-status';
 import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
 import { deduplicateEvents, HistoryIdentifier, HistoryService } from '../history-service';
 
-const markDeduplicated = (accountStatus: HistoryObject[], interventionEvents: HistoryObject[]): HistoryObject[] => [
+const markDeduplicated = (accountStatus: HistoryLine[], interventionEvents: HistoryLine[]): HistoryLine[] => [
   ...accountStatus.map((event) => ({ ...event, interventionReason: `deduplicated:${event.interventionReason}` })),
   ...interventionEvents.map((event) => ({ ...event, interventionReason: `deduplicated:${event.interventionReason}` })),
 ];
@@ -20,7 +20,7 @@ describe('History Service', () => {
 
     const result = await service.fetchHistory('user1234');
 
-    expect(result).toEqual({ history: [] });
+    expect(result).toEqual({ lines: [] });
   });
 
   it('returns expected result for a single account status history', async () => {
@@ -46,7 +46,7 @@ describe('History Service', () => {
     const result = await service.fetchHistory('user1234');
 
     expect(result).toEqual({
-      history: [
+      lines: [
         {
           componentId: 'TCIF',
           interventionCode: '01',
@@ -86,7 +86,7 @@ describe('History Service', () => {
       ],
     });
 
-    expect(result.history[0]?.transactionId).toBe(result.history[1]?.transactionId);
+    expect(result.lines[0]?.transactionId).toBe(result.lines[1]?.transactionId);
   });
 
   it('returns expected result for a single intervention event', async () => {
@@ -111,7 +111,7 @@ describe('History Service', () => {
     const result = await service.fetchHistory('user1234');
 
     expect(result).toEqual({
-      history: [
+      lines: [
         {
           accountId: 'user1234',
           componentId: 'TICF',
@@ -163,7 +163,7 @@ describe('History Service', () => {
     const result = await service.fetchHistory('user1234');
 
     expect(result).toEqual({
-      history: [
+      lines: [
         {
           componentId: 'TCIF',
           interventionCode: '01',
@@ -238,7 +238,7 @@ describe('History Service', () => {
 
     const result = await service.fetchHistory('user1234');
 
-    expect(result).toEqual({ history: [] });
+    expect(result).toEqual({ lines: [] });
   });
 
   it('handles a history string with an invalid intervention code', async () => {
@@ -263,7 +263,7 @@ describe('History Service', () => {
 
     const result = await service.fetchHistory('user1234');
 
-    expect(result).toEqual({ history: [] });
+    expect(result).toEqual({ lines: [] });
   });
 });
 
