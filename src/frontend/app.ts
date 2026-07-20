@@ -5,7 +5,12 @@ import formbody from '@fastify/formbody';
 import nunjucks from 'nunjucks';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
-import { InterventionClient, InterventionClientInterface } from '@govuk-one-login/ais-status-sdk';
+import {
+  AccountHistory,
+  HistoryLine,
+  InterventionClient,
+  InterventionClientInterface,
+} from '@govuk-one-login/ais-status-sdk';
 import logger from '../commons/logger';
 import { FeatureFlagsFromEnvironmentVariables, FeatureFlags } from '../services/feature-flags';
 import cookie from '@fastify/cookie';
@@ -104,10 +109,7 @@ export function init(
       assetPath,
       accountStatus,
       userId,
-      accountHistory: {
-        ...accountHistory,
-        history: accountHistory.lines.map((line) => ({ ...line, sentAt: formatDate(line.sentAt) })),
-      },
+      accountHistory: formatHistory(accountHistory),
       messageSent,
       aisSendTxMA: featureFlags.isEnabled('aisSendTxMA'),
     });
@@ -151,3 +153,25 @@ export function init(
 
   return server;
 }
+
+interface HistoryTransaction extends Omit<HistoryLine, 'interventionName' | 'interventionState'> {
+  tagId: string;
+  sentAtFormatted: string;
+  interventionEvents: HistoryLine[];
+}
+
+export const formatHistory = (history: AccountHistory): HistoryTransaction[] =>
+  Object.values(
+    history.lines.reduce<Record<string, HistoryTransaction>>((result, line) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { interventionName, interventionState, ...rest } = line;
+
+      result[line.tagId] = {
+        ...rest,
+        sentAtFormatted: formatDate(line.sentAt),
+        interventionEvents: [...(result[line.tagId]?.interventionEvents ?? []), line],
+      };
+
+      return result;
+    }, {}),
+  ).toSorted((a, b) => b.sentAt - a.sentAt);

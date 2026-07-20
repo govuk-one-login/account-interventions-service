@@ -33,6 +33,12 @@ export interface HistoryLine {
   requesterId?: string | undefined;
   transactionId?: string | undefined;
   messageEventId?: string | undefined;
+  /**
+   * Internal grouping id for several HistoryLines which were created by one user action
+   *
+   * For lines from InterventionEvents will be transactionId, otherwise random UUID.
+   */
+  tagId: string;
 }
 
 export interface AccountHistory {

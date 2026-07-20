@@ -16,14 +16,14 @@
   <p class="govuk-body">User ID:
     <strong>{{ userId }}</strong>
   </p>
-  <h1 class="govuk-heading-l">Active Interventions</h1>
+  <h1 class="govuk-heading-m">Active Interventions</h1>
   {% if accountStatus %}
     {% if accountStatus.interventions.length %}
       {% set rows = [] %}
       {% for intervention in accountStatus.interventions %}
         {% set rows = rows.concat([{
           key: { text: intervention.name },
-          value: { html: '<strong class="govuk-tag govuk-tag--red">Active</strong>' }
+          value: { html: '<strong class="govuk-tag govuk-tag--red">ACTIVE</strong>' }
         }]) %}
       {% endfor %}
       {{ govukSummaryList({ rows: rows }) }}
@@ -34,53 +34,59 @@
     <p class="govuk-body">No account found for this identifier.</p>
   {% endif %}
   <h2 class="govuk-heading-m">History</h2>
-  {% if accountHistory and accountHistory.history and accountHistory.history.length %}
-    {% for item in accountHistory.history %}
-      {% if item.interventionState == "ACTIVE" %}
-        {% set stateColour = "red" %}
-      {% elif item.interventionState == "MITIGATED" %}
-        {% set stateColour = "green" %}
-      {% elif item.interventionState == "REMOVED" %}
-        {% set stateColour = "grey" %}
-      {% elif item.interventionState == "SUPERSEDED" %}
-        {% set stateColour = "orange" %}
-      {% elif item.interventionState == "IGNORED" %}
-        {% set stateColour = "yellow" %}
-      {% else %}
-        {% set stateColour = "blue" %}
-      {% endif %}
-      {% set historyRows = [
-        { key: { text: "Component" },  value: { text: item.componentId } },
-        { key: { text: "Reason" },     value: { text: item.interventionReason } }
-      ] %}
-      {% if item.interventionCode %}
-        {% set historyRows = historyRows.concat([{ key: { text: "Code" }, value: { text: item.interventionCode } }]) %}
-      {% endif %}
-      {% if item.originatingComponent %}
-        {% set historyRows = historyRows.concat([{ key: { text: "Originating Component" }, value: { text: item.originatingComponent } }]) %}
-      {% endif %}
-      {% if item.originatorReferenceId %}
-        {% set historyRows = historyRows.concat([{ key: { text: "Originator Reference ID" }, value: { text: item.originatorReferenceId } }]) %}
-      {% endif %}
-      {% if item.requesterId %}
-        {% set historyRows = historyRows.concat([{ key: { text: "Requester ID" }, value: { text: item.requesterId } }]) %}
-      {% endif %}
+  {% if accountHistory and accountHistory.length %}
+    {% for transaction in accountHistory %}
       <div class="govuk-inset-text govuk-!-margin-bottom-5">
-        <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
-          {{ item.interventionName }}
-          <strong class="govuk-tag govuk-tag--{{ stateColour }} govuk-!-margin-left-2">{{ item.interventionState }}</strong>
-        </h3>
-        <p class="govuk-body-xs govuk-hint govuk-!-margin-bottom-4">Sent:
-          <strong>{{ item.sentAt }}</strong>
+        <p class="govuk-body-xs govuk-hint govuk-!-margin-bottom-4">Sent at:
+          <strong>{{ transaction.sentAtFormatted }}</strong>
         </p>
-        {{ govukSummaryList({ classes: "govuk-!-margin-bottom-0 govuk-!-font-size-16", rows: historyRows }) }}
+        {% set transactionRows = [
+          { key: { text: "Component" },  value: { text: transaction.componentId } },
+          { key: { text: "Reason" },     value: { text: transaction.interventionReason } }
+        ] %}
+        {% if transaction.interventionCode %}
+          {% set transactionRows = transactionRows.concat([{ key: { text: "Code" }, value: { text: transaction.interventionCode } }]) %}
+        {% endif %}
+        {% if transaction.originatingComponent %}
+          {% set transactionRows = transactionRows.concat([{ key: { text: "Originating Component" }, value: { text: transaction.originatingComponent } }]) %}
+        {% endif %}
+        {% if transaction.originatorReferenceId %}
+          {% set transactionRows = transactionRows.concat([{ key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId } }]) %}
+        {% endif %}
+        {% if transaction.requesterId %}
+          {% set transactionRows = transactionRows.concat([{ key: { text: "Requester ID" }, value: { text: transaction.requesterId } }]) %}
+        {% endif %}
+        {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4 govuk-!-font-size-16", rows: transactionRows }) }}
+        {% if transaction.interventionEvents.length %}
+          {% set eventRows = [] %}
+          {% for event in transaction.interventionEvents %}
+            {% if event.interventionState == "ACTIVE" %}
+              {% set stateColour = "red" %}
+            {% elif event.interventionState == "MITIGATED" %}
+              {% set stateColour = "green" %}
+            {% elif event.interventionState == "REMOVED" %}
+              {% set stateColour = "grey" %}
+            {% elif event.interventionState == "SUPERSEDED" %}
+              {% set stateColour = "orange" %}
+            {% elif event.interventionState == "IGNORED" %}
+              {% set stateColour = "yellow" %}
+            {% else %}
+              {% set stateColour = "blue" %}
+            {% endif %}
+            {% set eventRows = eventRows.concat([{
+              key: { text: event.interventionName },
+              value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.interventionState + '</strong>' }
+            }]) %}
+          {% endfor %}
+          {{ govukSummaryList({ classes: "govuk-!-margin-bottom-0 govuk-!-font-size-16", rows: eventRows }) }}
+        {% endif %}
       </div>
     {% endfor %}
   {% else %}
     <p class="govuk-body-s">No history available for this account.</p>
   {% endif %}
   {% if aisSendTxMA %}
-    <form method="post" action="{{ stagePrefix }}/send">
+    <form method="post" action="{{ stagePrefix }}/send" class="govuk-!-padding-top-6">
       <input type="hidden" name="userId" value="{{ userId }}"/>{{ govukButton({ text: "Send TxMA Message" }) }}
     </form>
   {% endif %}

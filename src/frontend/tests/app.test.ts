@@ -1,4 +1,4 @@
-import { init } from '../app';
+import { formatHistory, init } from '../app';
 import { InterventionStub, InterventionName, InterventionState } from '@govuk-one-login/ais-status-sdk';
 import { StubMessageService } from '../../services/message-service';
 import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
@@ -87,6 +87,7 @@ describe('frontend app', () => {
                 interventionCode: '01',
                 originatingComponent: 'TICF',
                 requesterId: 'interventions@digital.cabinet-office.gov.uk',
+                tagId: 'abc1234',
               },
             ],
           },
@@ -264,5 +265,151 @@ describe('frontend app', () => {
       });
       expect(response.statusCode).toBe(500);
     });
+  });
+});
+
+describe('formatHistory', () => {
+  it('sorts history objects by most recent first', () => {
+    const result = formatHistory({
+      lines: [
+        {
+          sentAt: 1784021279020,
+          componentId: 'TEST',
+          interventionName: InterventionName.RESET_PASSWORD,
+          interventionState: InterventionState.ACTIVE,
+          interventionReason: 'Reason',
+          interventionCode: '04',
+          originatingComponent: 'TICF',
+          requesterId: 'interventions@digital.cabinet-office.gov.uk',
+          tagId: 'abc1236',
+        },
+        {
+          sentAt: 1784021279000,
+          componentId: 'TEST',
+          interventionName: InterventionName.TEMPORARY_SUSPENSION,
+          interventionState: InterventionState.ACTIVE,
+          interventionReason: 'Reason',
+          interventionCode: '01',
+          originatingComponent: 'TICF',
+          requesterId: 'interventions@digital.cabinet-office.gov.uk',
+          tagId: 'abc1234',
+        },
+        {
+          sentAt: 1784021279010,
+          componentId: 'TEST',
+          interventionName: InterventionName.TEMPORARY_SUSPENSION,
+          interventionState: InterventionState.REMOVED,
+          interventionReason: 'Reason',
+          interventionCode: '02',
+          originatingComponent: 'TICF',
+          requesterId: 'interventions@digital.cabinet-office.gov.uk',
+          tagId: 'abc1235',
+        },
+      ],
+    });
+
+    expect(result[0]?.sentAt).toEqual(1784021279020);
+    expect(result[1]?.sentAt).toEqual(1784021279010);
+    expect(result[2]?.sentAt).toEqual(1784021279000);
+  });
+
+  it('groups history objects with same tagId', () => {
+    const result = formatHistory({
+      lines: [
+        {
+          sentAt: 1784021279000,
+          componentId: 'TEST',
+          interventionName: InterventionName.TEMPORARY_SUSPENSION,
+          interventionState: InterventionState.ACTIVE,
+          interventionReason: 'Reason',
+          interventionCode: '01',
+          originatingComponent: 'TICF',
+          requesterId: 'interventions@digital.cabinet-office.gov.uk',
+          tagId: 'abc1234',
+        },
+        {
+          sentAt: 1784021279020,
+          componentId: 'TEST',
+          interventionName: InterventionName.TEMPORARY_SUSPENSION,
+          interventionState: InterventionState.REMOVED,
+          interventionReason: 'Reason',
+          interventionCode: '04',
+          originatingComponent: 'TICF',
+          requesterId: 'interventions@digital.cabinet-office.gov.uk',
+          tagId: 'abc1235',
+        },
+        {
+          sentAt: 1784021279020,
+          componentId: 'TEST',
+          interventionName: InterventionName.RESET_PASSWORD,
+          interventionState: InterventionState.ACTIVE,
+          interventionReason: 'Reason',
+          interventionCode: '04',
+          originatingComponent: 'TICF',
+          requesterId: 'interventions@digital.cabinet-office.gov.uk',
+          tagId: 'abc1235',
+        },
+      ],
+    });
+
+    expect(result).toEqual([
+      {
+        componentId: 'TEST',
+        interventionCode: '04',
+        interventionEvents: [
+          {
+            componentId: 'TEST',
+            interventionCode: '04',
+            interventionName: 'TEMPORARY_SUSPENSION',
+            interventionReason: 'Reason',
+            interventionState: 'REMOVED',
+            originatingComponent: 'TICF',
+            requesterId: 'interventions@digital.cabinet-office.gov.uk',
+            sentAt: 1784021279020,
+            tagId: 'abc1235',
+          },
+          {
+            componentId: 'TEST',
+            interventionCode: '04',
+            interventionName: 'RESET_PASSWORD',
+            interventionReason: 'Reason',
+            interventionState: 'ACTIVE',
+            originatingComponent: 'TICF',
+            requesterId: 'interventions@digital.cabinet-office.gov.uk',
+            sentAt: 1784021279020,
+            tagId: 'abc1235',
+          },
+        ],
+        interventionReason: 'Reason',
+        originatingComponent: 'TICF',
+        requesterId: 'interventions@digital.cabinet-office.gov.uk',
+        sentAt: 1784021279020,
+        sentAtFormatted: '14 July 2026 at 09:27:59 UTC',
+        tagId: 'abc1235',
+      },
+      {
+        componentId: 'TEST',
+        interventionCode: '01',
+        interventionEvents: [
+          {
+            componentId: 'TEST',
+            interventionCode: '01',
+            interventionName: 'TEMPORARY_SUSPENSION',
+            interventionReason: 'Reason',
+            interventionState: 'ACTIVE',
+            originatingComponent: 'TICF',
+            requesterId: 'interventions@digital.cabinet-office.gov.uk',
+            sentAt: 1784021279000,
+            tagId: 'abc1234',
+          },
+        ],
+        interventionReason: 'Reason',
+        originatingComponent: 'TICF',
+        requesterId: 'interventions@digital.cabinet-office.gov.uk',
+        sentAt: 1784021279000,
+        sentAtFormatted: '14 July 2026 at 09:27:59 UTC',
+        tagId: 'abc1234',
+      },
+    ]);
   });
 });
