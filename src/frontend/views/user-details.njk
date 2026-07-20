@@ -1,5 +1,4 @@
 {% extends "base.njk" %}
-{% extends "base.njk" %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
@@ -7,97 +6,13 @@
 {% block head %}
   {{ super() }}
   <style>
-    /*
-      Each lane is a position:relative container.
-      A ::before pseudo-element draws the 4px coloured line — full height for
-      CONTINUE, top-half only for START, bottom-half only for END, nothing for absent.
-      The blob div is position:absolute at the top, overlaid on the line.
-      This means the line is one unbroken element with no gaps.
-
-      Rows are newest→oldest top→bottom, so:
-        START   → line in top half    (goes up toward newer END row above)
-        END     → line in bottom half (comes from older START row below)
-        CONTINUE→ full height line
-        absent  → no line, no blob */
-    .ais-timeline__row {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 0 20px;
-      align-items: stretch;
-      padding-bottom: 10px;
+    .ais-timeline-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 10px; /* vertical gap between rows */
     }
-    .ais-timeline__lanes {
-      display: flex;
-      flex-direction: row;
-      align-items: stretch;
-      gap: 10px;
-    }
-    .ais-timeline__lane {
-      width: 24px;
-      flex-shrink: 0;
-      position: relative;
-      overflow: visible;
-    }
-    /* The line: a 4px bar centred horizontally, height controlled per state. Lines that exit the bottom (end, continue)
-   extend 20px beyond the lane to bridge the padding-bottom gap between rows. */
-    .ais-timeline__lane::before {
-      content: '';
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 4px;
-      background-color: var(--lane-color);
-    }
-    .ais-timeline__lane--start::before {
-      top: 0;
-      height: 24px;
-    }
-    .ais-timeline__lane--end::before {
-      top: 24px;
-      bottom: -10px; /* extends through the row gap */
-    }
-    .ais-timeline__lane--continue::before {
-      top: 0;
-      bottom: -10px; /* extends through the row gap */
-    }
-    .ais-timeline__lane--absent::before {
-      display: none;
-    }
-    /* Blob: absolutely positioned, centred horizontally, 12px from top */
-    .ais-timeline__lane-blob {
-      position: absolute;
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-sizing: border-box;
-      background: #f8f8f8; /* matches page bg to mask the line behind it */
-      border: 2px solid var(--lane-color);
-      color: var(--lane-color);
-    }
-    .ais-timeline__lane-blob svg {
-      width: 15px;
-      height: 15px;
-      flex-shrink: 0;
-      display: block;
-    }
-    /* Lane colours */
-    .ais-lane--PERMANENT_SUSPENSION {
-      --lane-color: #d4351c;
-    }
-    .ais-lane--TEMPORARY_SUSPENSION {
-      --lane-color: #f47738;
-    }
-    .ais-lane--RESET_PASSWORD {
-      --lane-color: #1d70b8;
-    }
-    .ais-lane--REPROVE_IDENTITY {
-      --lane-color: #4c2c92;
+    .ais-timeline-table td {
+      vertical-align: top;
     }
     .ais-summary-list--no-last-border .govuk-summary-list__row:last-child {
       border-bottom: none;
@@ -115,7 +30,7 @@
       flex-wrap: wrap;
       border-bottom: 1px solid #d1d9e0;
       padding: 15px 20px;
-      background-color: #818b981f
+      background-color: #818b981f;
     }
     .ais-timeline__timestamp {
       color: #505a5f;
@@ -127,17 +42,45 @@
     .ais-timeline__card-body:last-child {
       border-bottom: none;
     }
-    .ais-timeline__events {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-bottom: 12px;
+    /* State tag cells — padding-top aligns tag centre with card header centre. Card header: 15px padding-top + 20px
+   line-height (govuk-body-s 16px * 1.25) → centre at 25px. govuk-tag ~22px tall → padding-top = 25 - 11 = 14px. */
+    .ais-intervention-table__cell {
+      padding: 14px 10px;
+      text-align: center;
+      vertical-align: top;
+      white-space: nowrap;
+      position: relative;
     }
-    .ais-timeline__event {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
+    /* Vertical connector line through state cells. Rows are newest→oldest top→bottom: START → line in top half only
+   (connects up to END row above) END → line in bottom half only (connects down to START row below) CONTINUE → full
+   height line absent → no line */
+    .ais-intervention-table__cell::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 3px;
+      /* 5px dash / 5px gap = 10px period, matching the border-spacing row gap exactly. background-position-y: -10px anchors
+   the gradient 10px above the element's top (i.e. at the row gap above), so adjacent cells always start in phase. */
+      background-image: linear-gradient(#aaaaaa 50%, transparent 50%);
+      background-size: 2px 10px;
+      background-position-y: -10px;
+      background-repeat: repeat-y;
+    }
+    .ais-intervention-table__cell--start::before {
+      top: -10px;
+      height: 35px; /* 10px gap above + 25px to tag centre */
+    }
+    .ais-intervention-table__cell--end::before {
+      top: 25px;
+      bottom: -10px;
+    }
+    .ais-intervention-table__cell--continue::before {
+      top: -10px;
+      bottom: -10px;
+    }
+    .ais-intervention-table__cell--absent::before {
+      display: none;
     }
   </style>
 {% endblock %}
@@ -170,102 +113,106 @@
   {% else %}
     <p class="govuk-body">No account found for this identifier.</p>
   {% endif %}
-  <h2 class="govuk-heading-m govuk-!-margin-top-6">History</h2>
+  <h2 class="govuk-heading-m govuk-!-margin-top-6 govuk-!-margin-bottom-0">History</h2>
   {% if transactions and transactions.length %}
-    {% for transaction in transactions %}
-      <div
-        class="ais-timeline__row">
-        {# Lane column #}
-        <div class="ais-timeline__lanes">
+    <table class="ais-timeline-table" aria-label="Intervention history">
+      <thead>
+        <tr>
+          <th scope="col" style="border-bottom:2px solid #0b0c0c; width:100%;"></th>
           {% for name in allInterventionNames %}
-            {% set lineState = transaction.activeInterventions[name] %}
-            {% if lineState == "START" %}
-              {% set topLit = true %}
-              {% set showBlob = true %}
-              {% set bottomLit = false %}
-            {% elif lineState == "END" %}
-              {% set topLit = false %}
-              {% set showBlob = true %}
-              {% set bottomLit = true %}
-            {% elif lineState == "CONTINUE" %}
-              {% set topLit = true %}
-              {% set showBlob = false %}
-              {% set bottomLit = true %}
-            {% else %}
-              {% set topLit = false %}
-              {% set showBlob = false %}
-              {% set bottomLit = false %}
-            {% endif %}
-            <div class="ais-timeline__lane ais-lane--{{ name }} ais-timeline__lane--{{ lineState | lower if lineState else 'absent' }}">
-              {% if showBlob %}
-                <div class="ais-timeline__lane-blob">
-                  {% if lineState == "START" %}
-                    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-                      <path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                    </svg>
-                  {% else %}
-                    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-                      <path
-                        d="M3 8.5l3.5 3.5 6.5-6.5"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2.5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"/>
-                    </svg>
-                  {% endif %}
-                </div>
-              {% endif %}
-            </div>
+            <th
+              scope="col"
+              class="govuk-body-s"
+              style="font-size:16px; padding:0 1px 6px; text-align:center; border-bottom:2px solid #0b0c0c; font-weight: 100">
+              {{ name | replace("_", " ") }}
+            </th>
           {% endfor %}
-        </div>
-        {# Card #}
-        <div class="ais-timeline__card">
-          <div class="ais-timeline__card-header">
-            <span class="ais-timeline__requester govuk-body-s govuk-!-margin-bottom-0">{{ transaction.requesterId }}</span>
-            <span class="ais-timeline__timestamp govuk-body-s govuk-!-margin-bottom-0">{{ transaction.sentAtFormatted }}</span>
-          </div>
-          <div class="ais-timeline__card-body">
-            {% if transaction.interventionEvents.length %}
-              {% set eventHtml = "" %}
-              {% for event in transaction.interventionEvents %}
-                {% if event.interventionState == "ACTIVE" %}
-                  {% set stateColour = "red" %}
-                {% elif event.interventionState == "MITIGATED" %}
-                  {% set stateColour = "green" %}
-                {% elif event.interventionState == "REMOVED" %}
-                  {% set stateColour = "grey" %}
-                {% elif event.interventionState == "SUPERSEDED" %}
-                  {% set stateColour = "orange" %}
-                {% elif event.interventionState == "IGNORED" %}
-                  {% set stateColour = "yellow" %}
-                {% else %}
-                  {% set stateColour = "blue" %}
+        </tr>
+      </thead>
+      <tbody>
+        {# Current state row — sits above the history, shows ACTIVE tag for each currently active intervention.
+                                                                                           Uses --end so the dashed line runs downward from the tag into the history below. #}
+        <tr>
+          <td style="padding: 0 0 10px 0; vertical-align: top; box-shadow: 0 2px 0 #0b0c0c;">
+            <div style="padding: 14px 20px; font-weight: bold;" class="govuk-body-m govuk-!-margin-bottom-0">Current state</div>
+          </td>
+          {% for name in allInterventionNames %}
+            {% set isActive = false %}
+            {% if accountStatus %}
+              {% for intervention in accountStatus.interventions %}
+                {% if intervention.name == name %}
+                  {% set isActive = true %}
                 {% endif %}
-                {% set eventHtml = eventHtml + '<span class="govuk-body-s govuk-!-margin-right-1">' + event.interventionName.replace("_", " ") + '</span><strong class="govuk-tag govuk-tag--' + stateColour + ' govuk-!-margin-right-3" style="font-size:15px">' + event.interventionState + '</strong>' %}
               {% endfor %}
-              <p class="govuk-!-margin-bottom-3">{{ eventHtml | safe }}</p>
             {% endif %}
-          </div>
-          <div class="ais-timeline__card-body">
-            {% set detailRows = [
-            { key: { text: "Component" }, value: { text: transaction.componentId } },
-            { key: { text: "Reason" },    value: { text: transaction.interventionReason } }
-          ] %}
-            {% if transaction.interventionCode %}
-              {% set detailRows = detailRows.concat([{ key: { text: "Code" }, value: { text: transaction.interventionCode } }]) %}
-            {% endif %}
-            {% if transaction.originatingComponent %}
-              {% set detailRows = detailRows.concat([{ key: { text: "Originating Component" }, value: { text: transaction.originatingComponent } }]) %}
-            {% endif %}
-            {% if transaction.originatorReferenceId %}
-              {% set detailRows = detailRows.concat([{ key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId } }]) %}
-            {% endif %}
-            {{ govukSummaryList({ classes: "govuk-!-margin-bottom-0 govuk-!-font-size-16 ais-summary-list--no-last-border", rows: detailRows }) }}
-          </div>
-        </div>
-      </div>
-    {% endfor %}
+            <td
+              class="ais-intervention-table__cell ais-intervention-table__cell--{{ 'end' if isActive else 'absent' }}"
+              style="box-shadow: 0 2px 0 #0b0c0c;">
+              {% if isActive %}
+                <strong class="govuk-tag govuk-tag--red" style="font-size:16px; position:relative; z-index:1;">ACTIVE</strong>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+        {% for transaction in transactions %}
+          <tr>
+            {# Card cell #}
+            <td style="vertical-align:top; padding:0 10px 10px 0;">
+              <div class="ais-timeline__card">
+                <div class="ais-timeline__card-header">
+                  <span class="govuk-body-s govuk-!-margin-bottom-0">{{ transaction.requesterId }}</span>
+                  <span class="ais-timeline__timestamp govuk-body-s govuk-!-margin-bottom-0">{{ transaction.sentAtFormatted }}</span>
+                </div>
+                <div class="ais-timeline__card-body">
+                  {% set detailRows = [
+                    { key: { text: "Component" }, value: { text: transaction.componentId } },
+                    { key: { text: "Reason" },    value: { text: transaction.interventionReason } }
+                  ] %}
+                  {% if transaction.interventionCode %}
+                    {% set detailRows = detailRows.concat([{ key: { text: "Code" }, value: { text: transaction.interventionCode } }]) %}
+                  {% endif %}
+                  {% if transaction.originatingComponent %}
+                    {% set detailRows = detailRows.concat([{ key: { text: "Originating Component" }, value: { text: transaction.originatingComponent } }]) %}
+                  {% endif %}
+                  {% if transaction.originatorReferenceId %}
+                    {% set detailRows = detailRows.concat([{ key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId } }]) %}
+                  {% endif %}
+                  {{ govukSummaryList({ classes: "govuk-!-margin-bottom-0 govuk-!-font-size-16 ais-summary-list--no-last-border", rows: detailRows }) }}
+                </div>
+              </div>
+            </td>
+            {# State tag cells #}
+            {% for name in allInterventionNames %}
+              {% set lineState = transaction.activeInterventions[name] %}
+              <td class="ais-intervention-table__cell ais-intervention-table__cell--{{ lineState | lower if lineState else 'absent' }}">
+                {% set stateForName = null %}
+                {% for event in transaction.interventionEvents %}
+                  {% if event.interventionName == name %}
+                    {% set stateForName = event.interventionState %}
+                  {% endif %}
+                {% endfor %}
+                {% if stateForName %}
+                  {% if stateForName == "ACTIVE" %}
+                    {% set tagColour = "red" %}
+                  {% elif stateForName == "MITIGATED" %}
+                    {% set tagColour = "green" %}
+                  {% elif stateForName == "REMOVED" %}
+                    {% set tagColour = "grey" %}
+                  {% elif stateForName == "SUPERSEDED" %}
+                    {% set tagColour = "orange" %}
+                  {% elif stateForName == "IGNORED" %}
+                    {% set tagColour = "yellow" %}
+                  {% else %}
+                    {% set tagColour = "blue" %}
+                  {% endif %}
+                  <strong class="govuk-tag govuk-tag--{{ tagColour }}" style="font-size:16px; position:relative; z-index:1;">{{ stateForName }}</strong>
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   {% else %}
     <p class="govuk-body-s">No history available for this account.</p>
   {% endif %}

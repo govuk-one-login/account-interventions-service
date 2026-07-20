@@ -8,7 +8,7 @@ import { StubMessageService } from '../services/message-service';
 
 init(
   new InterventionStub({
-    interventionNames: [InterventionName.RESET_PASSWORD],
+    interventionNames: [InterventionName.RESET_PASSWORD, InterventionName.REPROVE_IDENTITY],
     historyResult: {
       lines: [
         {
