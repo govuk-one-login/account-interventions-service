@@ -1,4 +1,4 @@
-/* v8 ignore file -- production only */
+/* istanbul ignore start -- production only */
 
 import awsLambdaFastify from '@fastify/aws-lambda';
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
@@ -16,3 +16,4 @@ const rewriteEventPath = (event: APIGatewayProxyEvent): APIGatewayProxyEvent => 
   }
   return event;
 };
+/* istanbul ignore stop */

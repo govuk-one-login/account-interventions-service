@@ -12,7 +12,7 @@
  */
 export function normalisePathSegment(value: string): string {
   let trimmed = value.trim();
-  while (trimmed.endsWith('/')) trimmed = trimmed.slice(0, -1); // strip trailing slashes
+  if (trimmed.endsWith('/')) trimmed = trimmed.slice(0, -1); // strip trailing slashes
   if (!trimmed) return '';
   return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
 }
