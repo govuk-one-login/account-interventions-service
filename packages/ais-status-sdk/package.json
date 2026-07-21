@@ -32,6 +32,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:types": "tsc --noEmit",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "prepublishOnly": "npm run build && npm test"
   },
   "publishConfig": {
@@ -44,6 +45,7 @@
     "@rollup/plugin-swc": "^0.4.1",
     "@rollup/plugin-typescript": "^12.3.0",
     "@swc/core": "^1.15.43",
+    "express": "^5.2.1",
     "rollup": "^4.62.2",
     "rollup-plugin-dts": "^6.4.1",
     "typescript": "^6.0.3",
