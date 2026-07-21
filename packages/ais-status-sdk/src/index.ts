@@ -30,7 +30,10 @@ export class InterventionClient implements InterventionClientInterface {
     if (!baseUrl) throw new InterventionMissingBaseUrl('Missing required baseUrl');
 
     this.baseUrl = baseUrl.replace(/\/$/, '');
-    this.headers = { 'Content-Type': 'application/json' };
+    this.headers = {
+      'Content-Type': 'application/json',
+      ...(config?.clientId && { 'x-client-id': config.clientId }),
+    };
   }
 
   protected async fetch(url: string): Promise<unknown> {
