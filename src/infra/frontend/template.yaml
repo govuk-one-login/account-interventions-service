@@ -36,6 +36,11 @@ Parameters:
       Set to empty string when a custom domain with base path mapping is in use.
     Type: String
     Default: /v1
+  Subpath:
+    Description: >-
+      The URL subpath, rewrite paths and used for asset URLs in templates.
+    Type: String
+    Default: ''
   VpcStackName:
     Description: The name of the stack that defines the VPC
     Type: String
@@ -81,6 +86,7 @@ Conditions:
   IsDevBuildStaging:
     !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build], !Equals [!Ref Environment, staging]]
   IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
+  IsDev: !Equals [!Ref Environment, dev]
 
 Mappings:
   EnvConfig:
@@ -177,6 +183,7 @@ Resources:
       Environment:
         Variables:
           STAGE_PREFIX: !Ref StagePrefix
+          SUBPATH: !Ref Subpath
           STATUS_API_URL: !Sub
             - 'https://${PrivateApiId}.execute-api.${AWS::Region}.amazonaws.com/main'
             - PrivateApiId:
@@ -315,6 +322,15 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
       SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FrontendApi}/*/*'
+
+  FrontendFunctionCrossAccountApiGatewayPermission:
+    Type: AWS::Lambda::Permission
+    Condition: IsDev
+    Properties:
+      FunctionName: !Ref FrontendFunctionAliaslive
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:301631959974:*/*/*'
 
   ### API Gateway ###
 

@@ -19,13 +19,23 @@ import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { TriggerEventsEnum } from '../data-types/constants';
 import { randomUUID } from 'node:crypto';
 import { TicfAccountIntervention } from '../contracts/intervention-events';
+import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
 
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).
 const nodeModulesRoot = existsSync(path.join(__dirname, 'node_modules')) ? __dirname : process.cwd();
 
-// Stage prefix for asset URLs — empty string locally, /v1 when behind API Gateway without a custom domain
-const stagePrefix = process.env['STAGE_PREFIX'] ?? '';
+/**
+ * Stage prefix for asset URLs — empty string locally, /v1 when behind API Gateway without a custom domain
+ */
+const stagePrefix = normalisePathSegment(process.env['STAGE_PREFIX'] ?? '');
+
+/**
+ * Subpath prefix — prepended to asset URLs so the browser requests assets through the correct API Gateway path.
+ * e.g. if SUBPATH=/interventions, assets are served at /interventions/assets/* and the Lambda strips
+ * the subpath prefix before routing (see frontend-handler.ts rewriteEventPath).
+ */
+const subpath = normalisePathSegment(process.env['SUBPATH'] ?? '');
 
 const statusApiUrl = process.env['STATUS_API_URL'];
 const txmaQueueUrl = process.env['TXMA_QUEUE_URL'];
@@ -77,14 +87,19 @@ export function init(
     templates: [path.join(__dirname, 'views'), path.join(nodeModulesRoot, 'node_modules/govuk-frontend/dist')],
   });
 
-  const assetPath = `${stagePrefix}/assets`;
+  /**
+   * pathPrefix combines subpath and stagePrefix for constructing page-level navigation URLs.
+   * Templates and redirects use this so links resolve correctly through the API Gateway subpath.
+   */
+  const pathPrefix = `${subpath}${stagePrefix}`;
+  const assetPath = `${pathPrefix}/assets`;
 
-  server.get('/', async (_request, reply) => reply.view('index.njk', { stagePrefix, assetPath }));
+  server.get('/', async (_request, reply) => reply.view('index.njk', { pathPrefix, assetPath }));
 
   // Accepts the submitted userId from the search form and redirects to the user details page.
   server.post<{ Body: { userId?: string } }>('/search', async (request, reply) => {
     const userId = request.body.userId?.trim() ?? '';
-    return reply.redirect(`${stagePrefix}/user/${encodeURIComponent(userId)}`, 303);
+    return reply.redirect(`${pathPrefix}/user/${encodeURIComponent(userId)}`, 303);
   });
 
   // Fetches account status for the given userId and renders the details page.
@@ -104,7 +119,7 @@ export function init(
     const accountHistory = await interventionClient.getAccountHistory(userId);
 
     return reply.view('user-details.njk', {
-      stagePrefix,
+      pathPrefix,
       assetPath,
       accountStatus,
       userId,
@@ -147,7 +162,7 @@ export function init(
       maxAge: 60, // expires in 60 seconds — more than enough for the redirect round-trip
     });
 
-    return reply.redirect(`${stagePrefix}/user/${encodeURIComponent(userId)}`, 303);
+    return reply.redirect(`${pathPrefix}/user/${encodeURIComponent(userId)}`, 303);
   });
 
   return server;
