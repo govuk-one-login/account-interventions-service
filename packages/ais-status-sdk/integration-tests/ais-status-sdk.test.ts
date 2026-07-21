@@ -16,7 +16,7 @@ describe('Test InterventionClient (Integration Tests)', () => {
       },
     });
 
-    const client = new InterventionClient({ baseUrl: testServer.baseUrl });
+    const client = new InterventionClient(testServer.baseUrl);
     const result = await client.getAccountStatus('user-1234');
 
     expect(result.interventions).toEqual([{ name: 'RESET_PASSWORD' }]);
@@ -30,7 +30,7 @@ describe('Test InterventionClient (Integration Tests)', () => {
       },
     });
 
-    const client = new InterventionClient({ baseUrl: testServer.baseUrl });
+    const client = new InterventionClient(testServer.baseUrl);
 
     const resultOne = await client.getAccountStatus('user-1234');
     expect(resultOne.interventions).toEqual([{ name: 'RESET_PASSWORD' }]);
@@ -48,7 +48,7 @@ describe('Test InterventionClient (Integration Tests)', () => {
       simulateServerError: true,
     });
 
-    const client = new InterventionClient({ baseUrl: testServer.baseUrl });
+    const client = new InterventionClient(testServer.baseUrl);
     await expect(client.getAccountStatus('user-1234')).rejects.toThrow(InterventionRequestFailed);
   });
 
@@ -59,14 +59,14 @@ describe('Test InterventionClient (Integration Tests)', () => {
       }
     });
 
-    const client = new InterventionClient({ baseUrl: testServer.baseUrl });
+    const client = new InterventionClient(testServer.baseUrl);
     await expect(client.getAccountStatus('user-1234')).rejects.toThrow(InterventionInvalidResponse);
   });
 
   it('throws when the connection from the server drops', async () => {
     testServer = await createTestServer({ accounts: {} });
 
-    const client = new InterventionClient({ baseUrl: testServer.baseUrl });
+    const client = new InterventionClient(testServer.baseUrl);
     // Stop server to simulate connection being dropped
     await testServer.stop();
 
