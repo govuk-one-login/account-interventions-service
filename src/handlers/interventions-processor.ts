@@ -26,15 +26,13 @@ import { InterventionEventMessage } from '../contracts/intervention-events';
 import persistInterventionEvents, { persistIgnoredInterventionEvent } from '../services/persist-intervention-events';
 import { InterventionEventsService } from '../tables/intervention-events';
 import { AccountStatusService } from '../tables/account-status';
-export interface Config {
-  accountStatusService: AccountStatusService,
-  interventionEventsService: InterventionEventsService,
-  accountStateEngine: AccountStateEngine,
-}
 
 export async function processInterventions(
   event: SQSEvent,
-  config: Config,
+  accountStatusService: AccountStatusService,
+  interventionEventsService: InterventionEventsService,
+  accountStateEngine: AccountStateEngine,
+  config: { historyRetentionSeconds: number },
 ): Promise<SQSBatchResponse> {
   if (event.Records.length === 0) {
     logger.warn('Received no records.');
@@ -49,7 +47,7 @@ export async function processInterventions(
 
   const promiseArray = event.Records.map(async (record: SQSRecord) => {
     try {
-      await processSQSRecord(record, config.accountStatusService, config.interventionEventsService, config.accountStateEngine);
+      await processSQSRecord(record, accountStatusService, interventionEventsService, accountStateEngine, config.historyRetentionSeconds);
     } catch (error: unknown) {
       const itemIdentifier = handleError(error, record);
       if (itemIdentifier) itemFailures.push({ itemIdentifier });
@@ -74,6 +72,7 @@ async function processSQSRecord(
   accountStatusService: AccountStatusService,
   interventionEventsService: InterventionEventsService,
   accountStateEngine: AccountStateEngine,
+  historyRetentionSeconds: number,
 ) {
   const currentTimestamp = getCurrentTimestamp();
 
@@ -123,7 +122,7 @@ async function processSQSRecord(
   await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, result, statusResult);
 
   try {
-    await persistInterventionEvents(result, eventName, itemFromDB, interventionEventsService);
+    await persistInterventionEvents(result, eventName, itemFromDB, interventionEventsService, historyRetentionSeconds);
   } catch (error) {
     logger.error('Error caught while persisting intervention events.', { errorMessage: (error as Error).message });
     addMetric(MetricNames.PERSIST_INTERVENTION_EVENTS_ERROR);
