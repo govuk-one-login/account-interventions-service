@@ -4,6 +4,7 @@ import { InterventionInvalidResponse } from './errors';
 import type { HistoryLine } from './types';
 import { InterventionName, InterventionState } from './types';
 import { ZodError } from 'zod';
+import { version } from '../package.json';
 
 const mockFetch = vi.fn<typeof fetch>();
 vi.stubGlobal('fetch', mockFetch);
@@ -48,6 +49,7 @@ describe('InterventionClient', () => {
       const [calledUrl, calledOptions] = mockFetch.mock.calls[0] as [string, RequestInit];
       expect(calledUrl).toBe(`${baseUrl}/v2/ais/${encodeURIComponent(userId)}`);
       expect(new Headers(calledOptions.headers).get('Content-Type')).toBe('application/json');
+      expect(new Headers(calledOptions.headers).get('x-sdk-version')).toBe(version);
     });
 
     it('returns the parsed AccountStatus', async () => {
@@ -99,6 +101,7 @@ describe('InterventionClient', () => {
       const [calledUrl, calledOptions] = mockFetch.mock.calls[0] as [string, RequestInit];
       expect(calledUrl).toBe(`${baseUrl}/v2/ais/${encodeURIComponent(userId)}/history`);
       expect(new Headers(calledOptions.headers).get('Content-Type')).toBe('application/json');
+      expect(new Headers(calledOptions.headers).get('x-sdk-version')).toBe(version);
     });
 
     it('returns an empty history array when there are no history entries', async () => {

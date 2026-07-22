@@ -42,6 +42,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-swc": "^0.4.1",
     "@rollup/plugin-typescript": "^12.3.0",
     "@swc/core": "^1.15.43",
