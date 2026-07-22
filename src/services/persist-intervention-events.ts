@@ -145,7 +145,7 @@ export async function setTtlOnInactiveEvents(
 ) {
   const allEvents = await interventionEventsService.fetchEventsForAccount(accountId);
   const now = getCurrentTimestamp();
-  const ttl = now.seconds + appConfig.maxRetentionSeconds;
+  const ttl = now.seconds + appConfig.historyRetentionSeconds;
 
   const eventsNeedingTtl = allEvents.filter(
     (event) => closedInterventionNames.includes(event.interventionName) && !event.ttl,
