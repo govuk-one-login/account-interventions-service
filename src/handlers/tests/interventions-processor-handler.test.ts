@@ -143,7 +143,7 @@ describe('intervention processor handler', () => {
         await processInterventions(
           mockEvent,
           {
-            accountStatusService: new InMemoryAccountStatusService(), 
+            accountStatusService: new InMemoryAccountStatusService(),
             interventionEventsService: emptyInterventionEventsService,
             accountStateEngine
           }
