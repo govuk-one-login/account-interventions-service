@@ -55,6 +55,7 @@ interface Logger {
 
 export interface InterventionClientConfig {
   logger?: Logger;
+  clientId?: string;
 }
 
 export interface InterventionClientInterface {
