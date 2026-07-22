@@ -1,4 +1,4 @@
-import type { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
+import type { APIGatewayEvent, APIGatewayProxyEventHeaders, APIGatewayProxyResult } from 'aws-lambda';
 import logger from '../commons/logger';
 import { addMetric, metric } from '../commons/metrics';
 import { MetricNames, AISInterventionTypes } from '../data-types/constants';
@@ -33,7 +33,7 @@ export async function retrieveStatus(
 
   try {
     if (event.resource === '/v2/ais/{userId}')
-      return await v2StatusApiHandler(userId, accountStatusService, interventionEventsService);
+      return await v2StatusApiHandler(userId, accountStatusService, interventionEventsService, event.headers);
 
     if (event.resource === '/v2/ais/{userId}/history')
       return await v2HistoryApiHandler(userId, accountStatusService, interventionEventsService);
@@ -90,8 +90,10 @@ async function v2StatusApiHandler(
   userId: string,
   accountStatusService: AccountStatusService,
   interventionEventsService: InterventionEventsService,
+  headers: APIGatewayProxyEventHeaders,
 ) {
-  logger.debug('v2 endpoint');
+  const sdkVersion = headers['x-sdk-version'];
+  addMetric(MetricNames.STATUS_REQUESTED, [], 1, sdkVersion ? { sdkVersion } : undefined);
 
   const response = await accountStatusService.getAccountStateInformation(userId);
   if (!response) {
