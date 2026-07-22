@@ -102,7 +102,6 @@ describe('intervention processor handler', () => {
       awsRegion: '',
     };
     mockEvent = { Records: [mockRecord] };
-    // accountStateEngine.getInterventionEnumFromCode = vi.fn().mockImplementation(() => EventsEnum.FRAUD_BLOCK_ACCOUNT);
   });
 
   afterAll(() => {
