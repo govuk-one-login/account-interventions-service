@@ -12,7 +12,6 @@ import {
 } from '../../data-types/constants';
 import { addMetric } from '../../commons/metrics';
 import logger from '../../commons/logger';
-import { AppConfigService } from '../app-config-service';
 import 'aws-sdk-client-mock-vitest/extend';
 
 vi.mock('@aws-lambda-powertools/logger');
@@ -73,8 +72,10 @@ const ingressUserActionEvent = {
 };
 
 const sqsMock = mockClient(SQSClient);
+const testSqsClient = new SQSClient({});
+const testQueueUrl = 'https://test-queue';
 const sqsCommandInputForUserAction = {
-  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  QueueUrl: testQueueUrl,
   MessageBody: JSON.stringify({
     timestamp: 1234567,
     event_timestamp_ms: 1234567890,
@@ -95,7 +96,7 @@ const sqsCommandInputForUserAction = {
 };
 
 const sqsCommandInputForBlockIntervention = {
-  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  QueueUrl: testQueueUrl,
   MessageBody: JSON.stringify({
     timestamp: 1234567,
     event_timestamp_ms: 1234567890,
@@ -115,7 +116,7 @@ const sqsCommandInputForBlockIntervention = {
 };
 
 const sqsCommandInputForDeletedAccount = {
-  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  QueueUrl: testQueueUrl,
   MessageBody: JSON.stringify({
     timestamp: 1234567,
     event_timestamp_ms: 1234567890,
@@ -135,7 +136,7 @@ const sqsCommandInputForDeletedAccount = {
 };
 
 const sqsCommandInputForSuspendIntervention = {
-  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  QueueUrl: testQueueUrl,
   MessageBody: JSON.stringify({
     timestamp: 1234567,
     event_timestamp_ms: 1234567890,
@@ -155,7 +156,7 @@ const sqsCommandInputForSuspendIntervention = {
 };
 
 const sqsCommandInputForUnsuspendIntervention = {
-  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  QueueUrl: testQueueUrl,
   MessageBody: JSON.stringify({
     timestamp: 1234567,
     event_timestamp_ms: 1234567890,
@@ -175,7 +176,7 @@ const sqsCommandInputForUnsuspendIntervention = {
 };
 
 const sqsCommandInputForFutureInterventions = {
-  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  QueueUrl: testQueueUrl,
   MessageBody: JSON.stringify({
     timestamp: 1234567,
     event_timestamp_ms: 1234567890,
@@ -192,7 +193,7 @@ const sqsCommandInputForFutureInterventions = {
 };
 
 const sqsCommandInputForSuspendUserAction = {
-  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  QueueUrl: testQueueUrl,
   MessageBody: JSON.stringify({
     timestamp: 1234567,
     event_timestamp_ms: 1234567890,
@@ -213,7 +214,7 @@ const sqsCommandInputForSuspendUserAction = {
 };
 
 const sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass = {
-  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  QueueUrl: testQueueUrl,
   MessageBody: JSON.stringify({
     timestamp: 1234567,
     event_timestamp_ms: 1234567890,
@@ -234,7 +235,7 @@ const sqsCommandInputForSuspendUserActionReproveIdentityAndResetPass = {
 };
 
 const sqsInputWithExtraFields = {
-  QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+  QueueUrl: testQueueUrl,
   MessageBody: JSON.stringify({
     timestamp: 1234567,
     event_timestamp_ms: 1234567890,
@@ -277,6 +278,8 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
       ingressUserActionEvent,
+      testSqsClient,
+      testQueueUrl,
       {
         nextAllowableInterventions: [],
         interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
@@ -296,6 +299,8 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
+      testSqsClient,
+      testQueueUrl,
       {
         nextAllowableInterventions: [Codes.C01],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
@@ -315,6 +320,8 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_BLOCK_ACCOUNT,
       ingressInterventionEvent,
+      testSqsClient,
+      testQueueUrl,
       {
         nextAllowableInterventions: [],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
@@ -334,6 +341,8 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
+      testSqsClient,
+      testQueueUrl,
       {
         nextAllowableInterventions: [Codes.C01],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
@@ -356,6 +365,8 @@ describe('send-audit-events', () => {
       'AIS_EVENT_IGNORED_ACCOUNT_DELETED',
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
+      testSqsClient,
+      testQueueUrl,
       {
         nextAllowableInterventions: [],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
@@ -375,6 +386,8 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
+      testSqsClient,
+      testQueueUrl,
       {
         nextAllowableInterventions: [Codes.C01, Codes.C91],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
@@ -394,6 +407,8 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION,
       ingressInterventionEvent,
+      testSqsClient,
+      testQueueUrl,
       {
         nextAllowableInterventions: [],
         interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
@@ -413,6 +428,8 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
       ingressInterventionEvent,
+      testSqsClient,
+      testQueueUrl,
       {
         nextAllowableInterventions: [],
         interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
@@ -436,6 +453,8 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
       ingressEventWithExtraInterventionData,
+      testSqsClient,
+      testQueueUrl,
       {
         nextAllowableInterventions: [],
         interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
@@ -452,7 +471,7 @@ describe('send-audit-events', () => {
   it('should successfully send the audit event with any extra fields from the intervention event when there is no state engine output', async () => {
     sqsMock.on(SendMessageCommand).resolves({ $metadata: { httpStatusCode: 200 } });
     const sqsCommandInput = {
-      QueueUrl: AppConfigService.getInstance().txmaEgressQueueUrl,
+      QueueUrl: testQueueUrl,
       MessageBody: JSON.stringify({
         timestamp: 1234567,
         event_timestamp_ms: 1234567890,
@@ -473,6 +492,8 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
       ingressEventWithExtraInterventionData,
+      testSqsClient,
+      testQueueUrl,
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
@@ -487,6 +508,8 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_APPLIED',
       EventsEnum.FRAUD_UNSUSPEND_ACCOUNT,
       ingressInterventionEvent,
+      testSqsClient,
+      testQueueUrl,
       {
         nextAllowableInterventions: [Codes.C01],
         interventionName: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
@@ -506,6 +529,8 @@ describe('send-audit-events', () => {
       'AIS_EVENT_IGNORED_IN_FUTURE',
       EventsEnum.FRAUD_SUSPEND_ACCOUNT,
       ingressInterventionEvent,
+      testSqsClient,
+      testQueueUrl,
     );
     expect(response).toEqual({ $metadata: { httpStatusCode: 200 } });
     expect(addMetric).toHaveBeenCalledWith('PUBLISHED_EVENT_TO_TXMA');
@@ -520,6 +545,8 @@ describe('send-audit-events', () => {
       'AIS_EVENT_TRANSITION_IGNORED',
       EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
       ingressUserActionEvent,
+      testSqsClient,
+      testQueueUrl,
       {
         interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
         stateResult: {

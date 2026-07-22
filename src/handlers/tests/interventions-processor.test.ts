@@ -213,6 +213,8 @@ describe('intervention processor handler', () => {
         'AIS_EVENT_TRANSITION_IGNORED',
         EventsEnum.FRAUD_SUSPEND_ACCOUNT,
         interventionEventBody,
+        mockSqsClient,
+        config.txmaEgressQueueUrl,
         {
           stateResult: {
             blocked: true,
@@ -223,8 +225,6 @@ describe('intervention processor handler', () => {
           interventionName: 'AIS_NO_INTERVENTION',
           nextAllowableInterventions: ['07'],
         },
-        mockSqsClient,
-        config.txmaEgressQueueUrl,
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
@@ -276,6 +276,8 @@ describe('intervention processor handler', () => {
         'AIS_EVENT_TRANSITION_APPLIED',
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
         blockEventBody,
+        mockSqsClient,
+        config.txmaEgressQueueUrl,
         {
           stateResult: {
             blocked: true,
@@ -286,8 +288,6 @@ describe('intervention processor handler', () => {
           interventionName: 'AIS_ACCOUNT_BLOCKED',
           nextAllowableInterventions: ['07'],
         },
-        mockSqsClient,
-        config.txmaEgressQueueUrl,
       );
       expect(addMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
       expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
@@ -313,6 +313,8 @@ describe('intervention processor handler', () => {
         'AIS_EVENT_TRANSITION_APPLIED',
         EventsEnum.FRAUD_SUSPEND_ACCOUNT,
         interventionEventBody,
+        mockSqsClient,
+        config.txmaEgressQueueUrl,
         {
           stateResult: {
             blocked: false,
@@ -323,8 +325,6 @@ describe('intervention processor handler', () => {
           interventionName: 'AIS_ACCOUNT_SUSPENDED',
           nextAllowableInterventions: ['02', '03', '04', '05', '06'],
         },
-        mockSqsClient,
-        config.txmaEgressQueueUrl,
       );
       expect(addMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
       expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
@@ -373,6 +373,8 @@ describe('intervention processor handler', () => {
             user_id: 'abc',
           },
         },
+        mockSqsClient,
+        config.txmaEgressQueueUrl,
         {
           stateResult: {
             blocked: false,
@@ -383,8 +385,6 @@ describe('intervention processor handler', () => {
           interventionName: undefined,
           nextAllowableInterventions: ['01', '03', '04', '05', '06'],
         },
-        mockSqsClient,
-        config.txmaEgressQueueUrl,
       );
 
       expect(addMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
@@ -429,6 +429,8 @@ describe('intervention processor handler', () => {
         'AIS_EVENT_IGNORED_ACCOUNT_DELETED',
         EventsEnum.FRAUD_SUSPEND_ACCOUNT,
         interventionEventBody,
+        mockSqsClient,
+        config.txmaEgressQueueUrl,
         {
           stateResult: {
             blocked: false,
@@ -439,8 +441,6 @@ describe('intervention processor handler', () => {
           interventionName: 'AIS_NO_INTERVENTION',
           nextAllowableInterventions: ['01', '03', '04', '05', '06'],
         },
-        mockSqsClient,
-        config.txmaEgressQueueUrl,
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
@@ -468,7 +468,6 @@ describe('intervention processor handler', () => {
         'AIS_EVENT_IGNORED_IN_FUTURE',
         EventsEnum.FRAUD_SUSPEND_ACCOUNT,
         interventionEventBodyInTheFuture,
-        undefined,
         mockSqsClient,
         config.txmaEgressQueueUrl,
       );
@@ -570,6 +569,8 @@ describe('intervention processor handler', () => {
         'AIS_EVENT_IGNORED_STALE',
         EventsEnum.FRAUD_SUSPEND_ACCOUNT,
         interventionEventBody,
+        mockSqsClient,
+        config.txmaEgressQueueUrl,
         {
           stateResult: {
             blocked: false,
@@ -580,8 +581,6 @@ describe('intervention processor handler', () => {
           interventionName: 'AIS_NO_INTERVENTION',
           nextAllowableInterventions: ['01', '03', '04', '05', '06'],
         },
-        mockSqsClient,
-        config.txmaEgressQueueUrl,
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
