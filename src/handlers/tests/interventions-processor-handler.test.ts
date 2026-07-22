@@ -2,11 +2,10 @@ import { Mock } from 'vitest';
 import logger from '../../commons/logger';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { addMetric } from '../../commons/metrics';
-import * as validationModule from '../../services/validate-event';
 import { AccountStateEngine } from '../../services/account-states/account-state-engine';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
-import { StateTransitionError, TooManyRecordsError, ValidationError } from '../../data-types/errors';
-import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
+import { TooManyRecordsError } from '../../data-types/errors';
+import { EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { sendAuditEvent } from '../../services/send-audit-events';
 import { publishTimeToResolveMetrics } from '../../commons/metrics-helper';
 import { InterventionEventMessage, TicfAccountIntervention } from '../../contracts/intervention-events';
@@ -21,7 +20,6 @@ vi.mock('../../commons/metrics-helper');
 
 const FIXED_TIME_MS = 1234567890;
 const FIXED_TIME_S = 1234567;
-
 
 const interventionEventBody: InterventionEventMessage = {
   component_id: '',
@@ -75,8 +73,6 @@ const resetPasswordEventBody = {
   },
 };
 
-const mockValidateEventAgainstSchema = vi.spyOn(validationModule, 'validateEventAgainstSchema');
-
 const accountStateEngine = AccountStateEngine.getInstance();
 
 const emptyInterventionEventsService = new InMemoryInterventionEventsService([]);
@@ -106,7 +102,7 @@ describe('intervention processor handler', () => {
       awsRegion: '',
     };
     mockEvent = { Records: [mockRecord] };
-    accountStateEngine.getInterventionEnumFromCode = vi.fn().mockImplementation(() => EventsEnum.FRAUD_BLOCK_ACCOUNT);
+    // accountStateEngine.getInterventionEnumFromCode = vi.fn().mockImplementation(() => EventsEnum.FRAUD_BLOCK_ACCOUNT);
   });
 
   afterAll(() => {
@@ -118,57 +114,8 @@ describe('intervention processor handler', () => {
       const loggerWarnSpy = vi.spyOn(logger, 'warn');
       await processInterventions(
         { Records: [] },
-        new InMemoryAccountStatusService({
-          baseStatus: {
-            blocked: false,
-            reproveIdentity: false,
-            resetPassword: false,
-            suspended: false,
-            sentAt: 1234,
-            appliedAt: 7890,
-            isAccountDeleted: false,
-            history: [],
-            intervention: '',
-          },
-        }),
-        emptyInterventionEventsService,
-      );
-      expect(loggerWarnSpy).toHaveBeenCalledWith('Received no records.');
-      expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
-      expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
-    });
-
-    it('should not retry if message body cannot be parsed to valid JSON', async () => {
-      mockRecord.body = ' ';
-      expect(
-        await processInterventions(mockEvent, new InMemoryAccountStatusService(), emptyInterventionEventsService),
-      ).toEqual({
-        batchItemFailures: [],
-      });
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(logger.error).toHaveBeenCalledWith('Sensitive info - record body could not be parsed to valid JSON.', {
-        error: new SyntaxError('Unexpected end of JSON input'),
-      });
-      expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
-    });
-
-    it('should not retry the record if a StateTransitionError is received', async () => {
-      accountStateEngine.applyEventTransition = vi.fn().mockImplementationOnce(() => {
-        throw new StateTransitionError('State transition Error', EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, {
-          nextAllowableInterventions: [],
-          stateResult: {
-            blocked: false,
-            suspended: false,
-            resetPassword: false,
-            reproveIdentity: false,
-          },
-          interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-        });
-      });
-      expect(
-        await processInterventions(
-          mockEvent,
-          new InMemoryAccountStatusService({
+        {
+          accountStatusService: new InMemoryAccountStatusService({
             baseStatus: {
               blocked: false,
               reproveIdentity: false,
@@ -181,62 +128,158 @@ describe('intervention processor handler', () => {
               intervention: '',
             },
           }),
-          emptyInterventionEventsService,
+          interventionEventsService: emptyInterventionEventsService,
+          accountStateEngine
+        }
+      );
+      expect(loggerWarnSpy).toHaveBeenCalledWith('Received no records.');
+      expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
+      expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
+    });
+
+    it('should not retry if message body cannot be parsed to valid JSON', async () => {
+      mockRecord.body = ' ';
+      expect(
+        await processInterventions(
+          mockEvent,
+          {
+            accountStatusService: new InMemoryAccountStatusService(), 
+            interventionEventsService: emptyInterventionEventsService,
+            accountStateEngine
+          }
+        ),
+      ).toEqual({
+        batchItemFailures: [],
+      });
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(logger.error).toHaveBeenCalledWith('Sensitive info - record body could not be parsed to valid JSON.', {
+        error: new SyntaxError('Unexpected end of JSON input'),
+      });
+      expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
+    });
+
+    it('should not retry the record if a StateTransitionError is received', async () => {
+      // Set up account in 'blocked' state
+      const blockedAccount = {
+        blocked: true,
+        reproveIdentity: false,
+        resetPassword: false,
+        suspended: false,
+        sentAt: 1234,
+        appliedAt: 7890,
+        isAccountDeleted: false,
+        history: [],
+        intervention: 'AIS_ACCOUNT_BLOCKED',
+      };
+
+      // Set up event body for suspend account - this is not allowed from AccountIsBlocked state
+      const suspendEventBody = {
+        component_id: '',
+        timestamp: FIXED_TIME_S - 5,
+        event_timestamp_ms: FIXED_TIME_MS - 5000,
+        user: { user_id: 'abc' },
+        event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+        event_id: '123',
+        extensions: {
+          intervention: {
+            intervention_code: '01',
+            intervention_reason: 'reason',
+          },
+        },
+      };
+      mockRecord.body = JSON.stringify(suspendEventBody);
+      expect(
+        await processInterventions(
+          mockEvent,
+          {
+            accountStatusService: new InMemoryAccountStatusService({
+              baseStatus: blockedAccount,
+            }),
+            interventionEventsService: emptyInterventionEventsService,
+            accountStateEngine
+          }
         ),
       ).toEqual({
         batchItemFailures: [],
       });
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.warn).toHaveBeenCalledWith('StateTransitionError caught, message will not be retried.', {
-        errorMessage: 'State transition Error',
+        errorMessage: 'FRAUD_SUSPEND_ACCOUNT is not allowed from current state. Current state: AIS_ACCOUNT_BLOCKED',
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
         'AIS_EVENT_TRANSITION_IGNORED',
-        EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET,
+        EventsEnum.FRAUD_SUSPEND_ACCOUNT,
         interventionEventBody,
         {
           stateResult: {
-            blocked: false,
+            blocked: true,
             reproveIdentity: false,
             resetPassword: false,
             suspended: false,
           },
           interventionName: 'AIS_NO_INTERVENTION',
-          nextAllowableInterventions: [],
+          nextAllowableInterventions: ['07'],
         },
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
 
     it('should succeed when a valid intervention event is received', async () => {
-      accountStateEngine.applyEventTransition = vi.fn().mockReturnValueOnce({
-        stateResult: {
-          blocked: false,
-          suspended: true,
-          resetPassword: false,
-          reproveIdentity: false,
+      // Set up account in 'suspended' state
+      const suspendedAccount = {
+        blocked: false,
+        reproveIdentity: false,
+        resetPassword: false,
+        suspended: true,
+        sentAt: 1234,
+        appliedAt: 7890,
+        isAccountDeleted: false,
+        history: [],
+        intervention: 'AIS_ACCOUNT_SUSPENDED',
+      };
+      // Set up event to 'block' account
+      const blockEventBody = {
+        component_id: '',
+        timestamp: FIXED_TIME_S - 5,
+        event_timestamp_ms: FIXED_TIME_MS - 5000,
+        user: { user_id: 'abc' },
+        event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+        event_id: '123',
+        extensions: {
+          intervention: {
+            intervention_code: '03',
+            intervention_reason: 'reason',
+          },
         },
-        interventionName: EventsEnum.FRAUD_BLOCK_ACCOUNT,
-        nextAllowableInterventions: [],
-      });
+      };
+      mockRecord.body = JSON.stringify(blockEventBody);
       expect(
-        await processInterventions(mockEvent, new InMemoryAccountStatusService(), emptyInterventionEventsService),
+        await processInterventions(
+          mockEvent,
+          {
+            accountStatusService: new InMemoryAccountStatusService({
+              baseStatus: suspendedAccount
+            }),
+            interventionEventsService: emptyInterventionEventsService,
+            accountStateEngine,
+          }
+        )
       ).toEqual({
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
         'AIS_EVENT_TRANSITION_APPLIED',
         EventsEnum.FRAUD_BLOCK_ACCOUNT,
-        interventionEventBody,
+        blockEventBody,
         {
           stateResult: {
-            blocked: false,
+            blocked: true,
             reproveIdentity: false,
             resetPassword: false,
-            suspended: true,
+            suspended: false,
           },
-          interventionName: 'FRAUD_BLOCK_ACCOUNT',
-          nextAllowableInterventions: [],
+          interventionName: 'AIS_ACCOUNT_BLOCKED',
+          nextAllowableInterventions: ['07'],
         },
       );
       expect(addMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
@@ -247,24 +290,21 @@ describe('intervention processor handler', () => {
     });
 
     it('should succeed when an intervention event is received for a non existing user', async () => {
-      accountStateEngine.applyEventTransition = vi.fn().mockReturnValueOnce({
-        stateResult: {
-          blocked: false,
-          suspended: true,
-          resetPassword: false,
-          reproveIdentity: false,
-        },
-        interventionName: EventsEnum.FRAUD_BLOCK_ACCOUNT,
-        nextAllowableInterventions: [],
-      });
       expect(
-        await processInterventions(mockEvent, new InMemoryAccountStatusService(), emptyInterventionEventsService),
+        await processInterventions(
+          mockEvent,
+          {
+            accountStatusService: new InMemoryAccountStatusService(),
+            interventionEventsService: emptyInterventionEventsService,
+            accountStateEngine,
+          }
+        ),
       ).toEqual({
         batchItemFailures: [],
       });
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
         'AIS_EVENT_TRANSITION_APPLIED',
-        EventsEnum.FRAUD_BLOCK_ACCOUNT,
+        EventsEnum.FRAUD_SUSPEND_ACCOUNT,
         interventionEventBody,
         {
           stateResult: {
@@ -273,32 +313,41 @@ describe('intervention processor handler', () => {
             resetPassword: false,
             suspended: true,
           },
-          interventionName: 'FRAUD_BLOCK_ACCOUNT',
-          nextAllowableInterventions: [],
+          interventionName: 'AIS_ACCOUNT_SUSPENDED',
+          nextAllowableInterventions: ['02', '03', '04', '05', '06'],
         },
       );
       expect(addMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
       expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
-        eventName: 'FRAUD_BLOCK_ACCOUNT',
+        eventName: 'FRAUD_SUSPEND_ACCOUNT',
       });
       expect(publishTimeToResolveMetrics).toHaveBeenCalledTimes(1);
     });
 
     it('should succeed when a valid user action event is received', async () => {
-      accountStateEngine.applyEventTransition = vi.fn().mockReturnValueOnce({
-        stateResult: {
-          blocked: false,
-          suspended: false,
-          resetPassword: false,
-          reproveIdentity: false,
-        },
-        interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
-        nextAllowableInterventions: [],
-      });
+      const accountNeedingPasswordReset = {
+        blocked: false,
+        reproveIdentity: false,
+        resetPassword: true,
+        suspended: true,
+        sentAt: 1234,
+        appliedAt: 7890,
+        isAccountDeleted: false,
+        history: [],
+        intervention: 'AIS_FORCED_USER_PASSWORD_RESET',
+      };
+
       mockRecord.body = JSON.stringify(resetPasswordEventBody);
       mockEvent.Records = [mockRecord];
       expect(
-        await processInterventions(mockEvent, new InMemoryAccountStatusService(), emptyInterventionEventsService),
+        await processInterventions(
+          mockEvent,
+          {
+            accountStatusService: new InMemoryAccountStatusService({ baseStatus: accountNeedingPasswordReset }),
+            interventionEventsService: emptyInterventionEventsService,
+            accountStateEngine
+          }
+        )
       ).toEqual({
         batchItemFailures: [],
       });
@@ -322,8 +371,8 @@ describe('intervention processor handler', () => {
             resetPassword: false,
             suspended: false,
           },
-          interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
-          nextAllowableInterventions: [],
+          interventionName: undefined,
+          nextAllowableInterventions: ['01', '03', '04', '05', '06'],
         },
       );
 
@@ -335,23 +384,25 @@ describe('intervention processor handler', () => {
     });
 
     it('should not process the event if the user account is marked as deleted', async () => {
+      const deletedAccount = {
+        blocked: false,
+        reproveIdentity: false,
+        resetPassword: false,
+        suspended: false,
+        sentAt: 1234,
+        appliedAt: 7890,
+        isAccountDeleted: true,
+        history: [],
+        intervention: '',
+      }
       expect(
         await processInterventions(
           mockEvent,
-          new InMemoryAccountStatusService({
-            baseStatus: {
-              blocked: false,
-              reproveIdentity: false,
-              resetPassword: false,
-              suspended: false,
-              sentAt: 1234,
-              appliedAt: 7890,
-              isAccountDeleted: true,
-              history: [],
-              intervention: '',
-            },
-          }),
-          emptyInterventionEventsService,
+          {
+            accountStatusService: new InMemoryAccountStatusService({ baseStatus: deletedAccount }),
+            interventionEventsService: emptyInterventionEventsService,
+            accountStateEngine
+          }
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -365,7 +416,7 @@ describe('intervention processor handler', () => {
       ]);
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
         'AIS_EVENT_IGNORED_ACCOUNT_DELETED',
-        EventsEnum.FRAUD_BLOCK_ACCOUNT,
+        EventsEnum.FRAUD_SUSPEND_ACCOUNT,
         interventionEventBody,
         {
           stateResult: {
@@ -382,14 +433,16 @@ describe('intervention processor handler', () => {
     });
 
     it('should return message id to be retried if event is in the future', async () => {
-      mockValidateEventAgainstSchema.mockReturnValueOnce(interventionEventBodyInTheFuture);
 
       mockRecord.body = JSON.stringify(interventionEventBodyInTheFuture);
       expect(
         await processInterventions(
           { Records: [mockRecord] },
-          new InMemoryAccountStatusService(),
-          emptyInterventionEventsService,
+          {
+            accountStatusService: new InMemoryAccountStatusService(),
+            interventionEventsService: emptyInterventionEventsService,
+            accountStateEngine
+          }
         ),
       ).toEqual({
         batchItemFailures: [
@@ -401,7 +454,7 @@ describe('intervention processor handler', () => {
       expect(addMetric).toHaveBeenCalledWith('INTERVENTION_IGNORED_IN_FUTURE');
       expect(sendAuditEvent).toHaveBeenLastCalledWith(
         'AIS_EVENT_IGNORED_IN_FUTURE',
-        EventsEnum.FRAUD_BLOCK_ACCOUNT,
+        EventsEnum.FRAUD_SUSPEND_ACCOUNT,
         interventionEventBodyInTheFuture,
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
@@ -409,18 +462,38 @@ describe('intervention processor handler', () => {
       expect(logger.warn).toHaveBeenCalledWith('Event with timestamp in the future.', {
         currentTime: '1970-01-15T06:56:07.890Z',
         emittedAt: '1970-01-15T06:56:12.890Z',
-        event: 'FRAUD_BLOCK_ACCOUNT',
+        event: 'FRAUD_SUSPEND_ACCOUNT',
         eventName: 'TICF_ACCOUNT_INTERVENTION',
         msInTheFuture: 5000,
       });
     });
 
     it('should ignore the event if body is invalid', async () => {
-      mockValidateEventAgainstSchema.mockImplementationOnce(() => {
-        throw new ValidationError('invalid event');
-      });
+      const invalidBody = {
+        component_id: '',
+        timestamp: FIXED_TIME_S - 5,
+        user: {
+          user_id: 'abc',
+        },
+        event_name: TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION,
+        event_id: '123',
+        extensions: {
+          intervention: {
+            intervention_code: '01',
+            intervention_reason: 'reason',
+          },
+        },
+      }
+      mockRecord.body = JSON.stringify(invalidBody);
       expect(
-        await processInterventions(mockEvent, new InMemoryAccountStatusService(), emptyInterventionEventsService),
+        await processInterventions(
+          mockEvent,
+          {
+            accountStatusService: new InMemoryAccountStatusService(),
+            interventionEventsService: emptyInterventionEventsService,
+            accountStateEngine,
+          }
+        )
       ).toEqual({
         batchItemFailures: [],
       });
@@ -432,8 +505,11 @@ describe('intervention processor handler', () => {
       expect(
         await processInterventions(
           mockEvent,
-          new InMemoryAccountStatusService({ error }),
-          emptyInterventionEventsService,
+          {
+            accountStatusService: new InMemoryAccountStatusService({ error }),
+            interventionEventsService: emptyInterventionEventsService,
+            accountStateEngine,
+          }
         ),
       ).toEqual({
         batchItemFailures: [
@@ -451,20 +527,23 @@ describe('intervention processor handler', () => {
       expect(
         await processInterventions(
           { Records: [mockRecord] },
-          new InMemoryAccountStatusService({
-            baseStatus: {
-              blocked: false,
-              reproveIdentity: false,
-              resetPassword: false,
-              suspended: false,
-              appliedAt: FIXED_TIME_MS + 10,
-              sentAt: FIXED_TIME_MS + 10000,
-              isAccountDeleted: false,
-              history: [],
-              intervention: '',
-            },
-          }),
-          emptyInterventionEventsService,
+          {
+            accountStatusService: new InMemoryAccountStatusService({
+              baseStatus: {
+                blocked: false,
+                reproveIdentity: false,
+                resetPassword: false,
+                suspended: false,
+                appliedAt: FIXED_TIME_MS + 10,
+                sentAt: FIXED_TIME_MS + 10000,
+                isAccountDeleted: false,
+                history: [],
+                intervention: '',
+              },
+            }),
+            interventionEventsService: emptyInterventionEventsService,
+            accountStateEngine,
+          }
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -474,7 +553,7 @@ describe('intervention processor handler', () => {
       expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
       expect(sendAuditEvent).toHaveBeenCalledWith(
         'AIS_EVENT_IGNORED_STALE',
-        EventsEnum.FRAUD_BLOCK_ACCOUNT,
+        EventsEnum.FRAUD_SUSPEND_ACCOUNT,
         interventionEventBody,
         {
           stateResult: {
@@ -491,12 +570,14 @@ describe('intervention processor handler', () => {
     });
 
     it('should successfully process valid event from fraud', async () => {
-      mockValidateEventAgainstSchema.mockReturnValueOnce(interventionEventBody);
       mockRecord = {
         messageId: '123',
         receiptHandle: '',
         body: JSON.stringify({
+          component_id: '',
           timestamp: FIXED_TIME_S,
+          event_timestamp_ms: FIXED_TIME_MS - 5000,
+          event_id: '123',
           user: {
             user_id: 'abc',
           },
@@ -520,33 +601,26 @@ describe('intervention processor handler', () => {
         eventSourceARN: '',
         awsRegion: '',
       };
-      accountStateEngine.applyEventTransition = vi.fn().mockReturnValueOnce({
-        stateResult: {
-          blocked: false,
-          suspended: false,
-          resetPassword: false,
-          reproveIdentity: false,
-        },
-        interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
-        nextAllowableInterventions: [],
-      });
       expect(
         await processInterventions(
           { Records: [mockRecord] },
-          new InMemoryAccountStatusService({
-            baseStatus: {
-              blocked: false,
-              reproveIdentity: false,
-              resetPassword: false,
-              suspended: false,
-              sentAt: 1234,
-              appliedAt: 7890,
-              isAccountDeleted: false,
-              history: [],
-              intervention: '',
-            },
-          }),
-          emptyInterventionEventsService,
+          {
+            accountStatusService: new InMemoryAccountStatusService({
+              baseStatus: {
+                blocked: false,
+                reproveIdentity: false,
+                resetPassword: false,
+                suspended: false,
+                sentAt: 1234,
+                appliedAt: 7890,
+                isAccountDeleted: false,
+                history: [],
+                intervention: '',
+              },
+            }),
+            interventionEventsService: emptyInterventionEventsService,
+            accountStateEngine
+          }
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -560,8 +634,11 @@ describe('intervention processor handler', () => {
       expect(
         await processInterventions(
           mockEvent,
-          new InMemoryAccountStatusService({ error }),
-          emptyInterventionEventsService,
+          {
+            accountStatusService: new InMemoryAccountStatusService({ error }),
+            interventionEventsService: emptyInterventionEventsService,
+            accountStateEngine,
+          }
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -607,8 +684,11 @@ describe('intervention processor handler', () => {
       expect(
         await processInterventions(
           { Records: [mockRecord] },
-          new InMemoryAccountStatusService(),
-          emptyInterventionEventsService,
+          {
+            accountStatusService: new InMemoryAccountStatusService(),
+            interventionEventsService: emptyInterventionEventsService,
+            accountStateEngine,
+          }
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -625,8 +705,11 @@ describe('intervention processor handler', () => {
     it('should log the expected error line when a message is retried - this line is used by a metric filter for canary deployment alarm', async () => {
       await processInterventions(
         mockEvent,
-        new InMemoryAccountStatusService({ error: new Error('Error') }),
-        emptyInterventionEventsService,
+        {
+          accountStatusService: new InMemoryAccountStatusService({ error: new Error('Error') }),
+          interventionEventsService: emptyInterventionEventsService,
+          accountStateEngine
+        }
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
       // eslint-disable-next-line @typescript-eslint/unbound-method

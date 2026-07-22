@@ -3,9 +3,11 @@ import logger from '../commons/logger';
 import { getPersistentInterventionEventsService } from '../tables/intervention-events';
 import { getPersistentAccountStatusService } from '../tables/account-status';
 import { processInterventions } from './interventions-processor';
+import { AccountStateEngine } from '../services/account-states/account-state-engine';
 
 const accountStatusService = getPersistentAccountStatusService();
 const interventionEventsService = getPersistentInterventionEventsService();
+const accountStateEngine = AccountStateEngine.getInstance();
 
 /**
  * Main handler method for Intervention Processor Lambda
@@ -19,5 +21,9 @@ export async function handler(
   context: Context,
 ): Promise<SQSBatchResponse> {
   logger.addContext(context);
-  return processInterventions(event, accountStatusService, interventionEventsService);
+  return processInterventions(event, {
+    accountStatusService,
+    interventionEventsService,
+    accountStateEngine,
+  });
 }

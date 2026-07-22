@@ -26,13 +26,15 @@ import { InterventionEventMessage } from '../contracts/intervention-events';
 import persistInterventionEvents, { persistIgnoredInterventionEvent } from '../services/persist-intervention-events';
 import { InterventionEventsService } from '../tables/intervention-events';
 import { AccountStatusService } from '../tables/account-status';
-
-const accountStateEngine = AccountStateEngine.getInstance();
+export interface Config {
+  accountStatusService: AccountStatusService,
+  interventionEventsService: InterventionEventsService,
+  accountStateEngine: AccountStateEngine,
+}
 
 export async function processInterventions(
   event: SQSEvent,
-  accountStatusService: AccountStatusService,
-  interventionEventsService: InterventionEventsService,
+  config: Config,
 ): Promise<SQSBatchResponse> {
   if (event.Records.length === 0) {
     logger.warn('Received no records.');
@@ -47,7 +49,7 @@ export async function processInterventions(
 
   const promiseArray = event.Records.map(async (record: SQSRecord) => {
     try {
-      await processSQSRecord(record, accountStatusService, interventionEventsService);
+      await processSQSRecord(record, config.accountStatusService, config.interventionEventsService, config.accountStateEngine);
     } catch (error: unknown) {
       const itemIdentifier = handleError(error, record);
       if (itemIdentifier) itemFailures.push({ itemIdentifier });
@@ -71,12 +73,13 @@ async function processSQSRecord(
   record: SQSRecord,
   accountStatusService: AccountStatusService,
   interventionEventsService: InterventionEventsService,
+  accountStateEngine: AccountStateEngine,
 ) {
   const currentTimestamp = getCurrentTimestamp();
 
   const recordBody = attemptToParseJson(record.body);
 
-  const { result, eventName } = await validateRecord(recordBody);
+  const { result, eventName } = await validateRecord(recordBody, accountStateEngine);
 
   const userId = result.user.user_id;
 
@@ -97,6 +100,7 @@ async function processSQSRecord(
     itemFromDB?.intervention,
     result,
     interventionEventsService,
+    accountStateEngine,
   );
 
   await accountStatusService.updateUserStatus(
@@ -126,9 +130,9 @@ async function processSQSRecord(
   }
 }
 
-async function validateRecord(recordBody: unknown) {
+async function validateRecord(recordBody: unknown, accountStateEngine: AccountStateEngine) {
   const result = validateEventAgainstSchema(recordBody);
-  const eventName = getEventName(result);
+  const eventName = getEventName(result, accountStateEngine);
   logger.debug('Intervention received.', { intervention: eventName });
   validateIfIdentityAcquired(result);
   await validateEventIsNotInFuture(eventName, result);
@@ -145,6 +149,7 @@ async function applyEventTransition(
   interventionName: string | undefined,
   result: InterventionEventMessage,
   interventionEventsService: InterventionEventsService,
+  accountStateEngine: AccountStateEngine,
 ) {
   try {
     return accountStateEngine.applyEventTransition(event, initialState, interventionName);
@@ -194,7 +199,7 @@ function handleError(error: unknown, record: SQSRecord) {
  * @param recordBody - the record body from the SQS message
  * @returns - the Enum representation of the intervention
  */
-function getEventName(recordBody: InterventionEventMessage): EventsEnum {
+function getEventName(recordBody: InterventionEventMessage, accountStateEngine: AccountStateEngine): EventsEnum {
   logger.debug('event is valid, starting processing');
   if (recordBody.event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION) {
     const interventionCode = recordBody.extensions.intervention.intervention_code;
