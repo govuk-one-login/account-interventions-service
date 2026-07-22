@@ -1,0 +1,21 @@
+{
+  "component_id": "TICF_FAI",
+  "event_name": "TICF_ACCOUNT_INTERVENTION_V2",
+  "timestamp": 1730916601,
+  "event_timestamp_ms": 1730916601343,
+  "extensions": {
+    "interventions": {
+      "updates": [
+        { "name": "RESET_PASSWORD", "command": "ADD" },
+        { "name": "TEMPORARY_SUSPENSION", "command": "REMOVE" }
+      ],
+      "intervention_reason": "03",
+      "originating_component_id": "TICF_FAI",
+      "originator_reference_id": "",
+      "requester_id": "example@digital.cabinet-office.gov.uk"
+    }
+  },
+  "user": {
+    "user_id": "urn:fdc:gov.uk:2022:pgt1qOf7zW2tMCZg4V5LEu-mT-_GTSX7xqJ6RJekw9I"
+  }
+}
