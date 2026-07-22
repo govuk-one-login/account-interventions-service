@@ -83,7 +83,7 @@ export async function validateEventIsNotInFuture(
       event: eventEnum,
     });
     addMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
-    await sendAuditEvent('AIS_EVENT_IGNORED_IN_FUTURE', eventEnum, event, undefined, sqsClient, txmaEgressQueueUrl);
+    await sendAuditEvent('AIS_EVENT_IGNORED_IN_FUTURE', eventEnum, event, sqsClient, txmaEgressQueueUrl);
     throw new RetryEventError('Event has timestamp that is in the future.');
   }
 }
@@ -108,11 +108,11 @@ export async function validateEventIsNotStale(
   if (!isEventAfterLastEvent(eventTimestampInMs, itemFromDB.sentAt, itemFromDB.appliedAt)) {
     logger.warn('Event received predates last applied event for this user.');
     addMetric(MetricNames.INTERVENTION_EVENT_STALE);
-    await sendAuditEvent('AIS_EVENT_IGNORED_STALE', intervention, event, {
+    await sendAuditEvent('AIS_EVENT_IGNORED_STALE', intervention, event, sqsClient, txmaEgressQueueUrl, {
       stateResult: initialState,
       interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
       nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
-    }, sqsClient, txmaEgressQueueUrl);
+    });
     throw new ValidationError('Event received predates last applied event for this user.');
   }
 }

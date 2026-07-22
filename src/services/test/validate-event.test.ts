@@ -214,11 +214,11 @@ describe('validateEventAgainstSchema', () => {
       );
     }).rejects.toThrow(new ValidationError('Event received predates last applied event for this user.'));
     expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
-    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent, {
+    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent, mockSqsClient, mockQueueUrl, {
       stateResult: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
       interventionName: 'AIS_NO_INTERVENTION',
       nextAllowableInterventions: ['01', '03', '04', '05', '06'],
-    }, mockSqsClient, mockQueueUrl);
+    });
   });
 
   it('should throw an error if event is stale', async () => {
@@ -256,11 +256,11 @@ describe('validateEventAgainstSchema', () => {
       );
     }).rejects.toThrow(new ValidationError('Event received predates last applied event for this user.'));
     expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
-    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent, {
+    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent, mockSqsClient, mockQueueUrl, {
       stateResult: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
       interventionName: 'AIS_NO_INTERVENTION',
       nextAllowableInterventions: ['01', '03', '04', '05', '06'],
-    }, mockSqsClient, mockQueueUrl);
+    });
   });
 
   it('should not throw if event is not stale', async () => {
@@ -327,7 +327,6 @@ describe('validateEventAgainstSchema', () => {
       'AIS_EVENT_IGNORED_IN_FUTURE',
       'FRAUD_SUSPEND_ACCOUNT',
       eventInTheFuture,
-      undefined,
       mockSqsClient,
       mockQueueUrl,
     );

@@ -1,6 +1,3 @@
-import { AppConfigService } from './app-config-service';
-import tracer from '../commons/tracer';
-import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { SendMessageCommand, SendMessageCommandOutput, SQSClient } from '@aws-sdk/client-sqs';
 import { AccountStateEngineOutput, TxMAEgressEvent, TxMAEgressInterventionEventName } from '../data-types/interfaces';
 import logger from '../commons/logger';
@@ -19,16 +16,6 @@ import { transitionConfig } from './account-states/config';
 import { AisEventIgnoredStaleBasicExtensions, AisEventIgnoredStaleExtensions } from '../events/ais-event-ignored-stale';
 import { InterventionEventMessage } from '../contracts/intervention-events';
 
-const appConfig = AppConfigService.getInstance();
-
-const sqsClient = tracer.captureAWSv3Client(
-  new SQSClient({
-    region: appConfig.awsRegion,
-    maxAttempts: 2,
-    requestHandler: new NodeHttpHandler({ requestTimeout: 5000 }),
-  }),
-);
-
 /**
  * Function that sends Audit Events to the TxMA Egress queue.
  * @param egressEventName - The event name used for sending off the event to identify the action taken.
@@ -41,9 +28,9 @@ export async function sendAuditEvent(
   egressEventName: TxMAEgressInterventionEventName,
   ingressEventName: EventsEnum,
   ingressTxMAEvent: InterventionEventMessage,
+  client: SQSClient,
+  queueUrl: string,
   accountStateEngineOutput?: AccountStateEngineOutput,
-  client: SQSClient = sqsClient,
-  queueUrl: string = appConfig.txmaEgressQueueUrl,
 ): Promise<SendMessageCommandOutput | undefined> {
   logger.debug('sendAuditEvent function.');
 

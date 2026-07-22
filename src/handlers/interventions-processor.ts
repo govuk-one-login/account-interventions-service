@@ -125,7 +125,7 @@ async function processSQSRecord(
 
   updateAccountStateCountMetric(currentAccountState, statusResult.stateResult);
   addMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName });
-  await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, result, statusResult, sqsClient, txmaEgressQueueUrl);
+  await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, result, sqsClient, txmaEgressQueueUrl, statusResult);
 
   try {
     await persistInterventionEvents(result, eventName, itemFromDB, interventionEventsService, historyRetentionSeconds);
@@ -162,7 +162,7 @@ async function applyEventTransition(
     return accountStateEngine.applyEventTransition(event, initialState, interventionName);
   } catch (error) {
     if (error instanceof StateTransitionError) {
-      await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, result, error.output, sqsClient, txmaEgressQueueUrl);
+      await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, result, sqsClient, txmaEgressQueueUrl, error.output);
       try {
         await persistIgnoredInterventionEvent(result, event, initialState, interventionEventsService);
       } catch (error) {
@@ -236,11 +236,11 @@ async function validateAccountIsNotDeleted(
 
   logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
   addMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-  await sendAuditEvent('AIS_EVENT_IGNORED_ACCOUNT_DELETED', intervention, record, {
+  await sendAuditEvent('AIS_EVENT_IGNORED_ACCOUNT_DELETED', intervention, record, sqsClient, txmaEgressQueueUrl, {
     stateResult: initialState,
     interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
     nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
-  }, sqsClient, txmaEgressQueueUrl);
+  });
   throw new ValidationError('Account is marked as deleted.');
 }
 
