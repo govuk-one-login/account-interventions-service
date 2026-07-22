@@ -276,7 +276,7 @@ describe('persistIgnoredInterventionEvent', () => {
 
 describe('setTtlOnInactiveEvents', () => {
   const FIXED_TIMESTAMP = 1781253284370;
-  const EXPECTED_TTL = Math.floor(FIXED_TIMESTAMP / 1000) + 12345;
+  const EXPECTED_TTL = Math.floor(FIXED_TIMESTAMP / 1000) + 63072000;
 
   beforeAll(() => {
     vi.useFakeTimers();
