@@ -121,7 +121,7 @@ async function processSQSRecord(
   try {
     await persistInterventionEvents(result, eventName, itemFromDB, interventionEventsService);
   } catch (error) {
-    logger.error('Error caught during fetch intervention events.', { errorMessage: (error as Error).message });
+    logger.error('Error caught while persisting intervention events.', { errorMessage: (error as Error).message });
     addMetric(MetricNames.PERSIST_INTERVENTION_EVENTS_ERROR);
   }
 }
