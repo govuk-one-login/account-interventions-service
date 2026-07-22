@@ -10,13 +10,15 @@ const generateSqsMessageService = (queueName: string, client: SQSClient) =>
     client,
   });
 
+const sqsClient = createSqsClient();
+const interventionMessageService = generateSqsMessageService('ACCOUNT_INTERVENTION_SQS_QUEUE', sqsClient);
+const deletionMessageService= generateSqsMessageService('ACCOUNT_DELETION_SQS_QUEUE', sqsClient);
+
 export async function handler(event: SQSEvent, context: Context): Promise<void> {
   logger.addContext(context);
 
-  const sqsClient = createSqsClient();
-
   await processTxmaEvents(event, {
-    interventionMessageService: generateSqsMessageService('ACCOUNT_INTERVENTION_SQS_QUEUE', sqsClient),
-    deletionMessageService: generateSqsMessageService('ACCOUNT_DELETION_SQS_QUEUE', sqsClient),
+    interventionMessageService,
+    deletionMessageService,
   });
 }
