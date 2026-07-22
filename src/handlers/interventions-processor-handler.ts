@@ -7,11 +7,21 @@ import { getPersistentAccountStatusService } from '../tables/account-status';
 import { processInterventions } from './interventions-processor';
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
 import { AppConfigService } from '../services/app-config-service';
+import tracer from '../commons/tracer';
+import { NodeHttpHandler } from '@smithy/node-http-handler';
+import { SQSClient } from '@aws-sdk/client-sqs';
 
 const accountStatusService = getPersistentAccountStatusService();
 const interventionEventsService = getPersistentInterventionEventsService();
 const accountStateEngine = AccountStateEngine.getInstance();
-const config = AppConfigService.getInstance().getConfigObject(['historyRetentionSeconds']);
+const config = AppConfigService.getInstance().getConfigObject(['historyRetentionSeconds', 'txmaEgressQueueUrl', 'awsRegion']);
+const sqsClient = tracer.captureAWSv3Client(
+  new SQSClient({
+    region: config.awsRegion,
+    maxAttempts: 2,
+    requestHandler: new NodeHttpHandler({ requestTimeout: 5000 }),
+  }),
+);
 
 /**
  * Main handler method for Intervention Processor Lambda
@@ -25,7 +35,7 @@ export async function handler(
   context: Context,
 ): Promise<SQSBatchResponse> {
   logger.addContext(context);
-  return processInterventions(event, accountStatusService, interventionEventsService, accountStateEngine, config);
+  return processInterventions(event, accountStatusService, interventionEventsService, accountStateEngine, config, sqsClient);
 }
 
 /* istanbul ignore stop */

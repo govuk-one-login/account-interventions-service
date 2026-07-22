@@ -12,6 +12,7 @@ import { InterventionEventMessage, TicfAccountIntervention } from '../../contrac
 import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
 import { InMemoryAccountStatusService } from '../../tables/account-status';
 import { processInterventions } from '../interventions-processor';
+import { SQSClient } from '@aws-sdk/client-sqs';
 
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');
@@ -20,6 +21,8 @@ vi.mock('../../commons/metrics-helper');
 
 const FIXED_TIME_MS = 1234567890;
 const FIXED_TIME_S = 1234567;
+
+const mockSqsClient = {} as SQSClient;
 
 const interventionEventBody: InterventionEventMessage = {
   component_id: '',
@@ -76,6 +79,7 @@ const resetPasswordEventBody = {
 const accountStateEngine = AccountStateEngine.getInstance();
 
 const emptyInterventionEventsService = new InMemoryInterventionEventsService([]);
+const config = { historyRetentionSeconds: 1000, txmaEgressQueueUrl: 'https://sqs.eu-west-2.amazonaws.com/123456789/txma-egress-queue' };
 
 describe('intervention processor handler', () => {
   let mockEvent: SQSEvent;
@@ -128,7 +132,8 @@ describe('intervention processor handler', () => {
         }),
         emptyInterventionEventsService,
         accountStateEngine,
-        { historyRetentionSeconds: 1000 },
+        config,
+        mockSqsClient,
       );
       expect(loggerWarnSpy).toHaveBeenCalledWith('Received no records.');
       expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
@@ -143,7 +148,8 @@ describe('intervention processor handler', () => {
           new InMemoryAccountStatusService(),
           emptyInterventionEventsService,
           accountStateEngine,
-          { historyRetentionSeconds: 1000 },
+          config,
+          mockSqsClient,
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -193,7 +199,8 @@ describe('intervention processor handler', () => {
           }),
           emptyInterventionEventsService,
           accountStateEngine,
-          { historyRetentionSeconds: 1000 },
+          config,
+          mockSqsClient,
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -216,6 +223,8 @@ describe('intervention processor handler', () => {
           interventionName: 'AIS_NO_INTERVENTION',
           nextAllowableInterventions: ['07'],
         },
+        mockSqsClient,
+        config.txmaEgressQueueUrl,
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
@@ -257,7 +266,8 @@ describe('intervention processor handler', () => {
           }),
           emptyInterventionEventsService,
           accountStateEngine,
-          { historyRetentionSeconds: 1000 },
+          config,
+          mockSqsClient,
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -276,6 +286,8 @@ describe('intervention processor handler', () => {
           interventionName: 'AIS_ACCOUNT_BLOCKED',
           nextAllowableInterventions: ['07'],
         },
+        mockSqsClient,
+        config.txmaEgressQueueUrl,
       );
       expect(addMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
       expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
@@ -291,7 +303,8 @@ describe('intervention processor handler', () => {
           new InMemoryAccountStatusService(),
           emptyInterventionEventsService,
           accountStateEngine,
-          { historyRetentionSeconds: 1000 },
+          config,
+          mockSqsClient,
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -310,6 +323,8 @@ describe('intervention processor handler', () => {
           interventionName: 'AIS_ACCOUNT_SUSPENDED',
           nextAllowableInterventions: ['02', '03', '04', '05', '06'],
         },
+        mockSqsClient,
+        config.txmaEgressQueueUrl,
       );
       expect(addMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
       expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, {
@@ -339,7 +354,8 @@ describe('intervention processor handler', () => {
           new InMemoryAccountStatusService({ baseStatus: accountNeedingPasswordReset }),
           emptyInterventionEventsService,
           accountStateEngine,
-          { historyRetentionSeconds: 1000 },
+          config,
+          mockSqsClient,
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -367,6 +383,8 @@ describe('intervention processor handler', () => {
           interventionName: undefined,
           nextAllowableInterventions: ['01', '03', '04', '05', '06'],
         },
+        mockSqsClient,
+        config.txmaEgressQueueUrl,
       );
 
       expect(addMetric).toHaveBeenCalledWith(MetricNames.EVENT_DELIVERY_LATENCY, [], 5000);
@@ -394,7 +412,8 @@ describe('intervention processor handler', () => {
           new InMemoryAccountStatusService({ baseStatus: deletedAccount }),
           emptyInterventionEventsService,
           accountStateEngine,
-          { historyRetentionSeconds: 1000 },
+          config,
+          mockSqsClient,
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -420,6 +439,8 @@ describe('intervention processor handler', () => {
           interventionName: 'AIS_NO_INTERVENTION',
           nextAllowableInterventions: ['01', '03', '04', '05', '06'],
         },
+        mockSqsClient,
+        config.txmaEgressQueueUrl,
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
@@ -432,7 +453,8 @@ describe('intervention processor handler', () => {
           new InMemoryAccountStatusService(),
           emptyInterventionEventsService,
           accountStateEngine,
-          { historyRetentionSeconds: 1000 },
+          config,
+          mockSqsClient,
         ),
       ).toEqual({
         batchItemFailures: [
@@ -446,6 +468,9 @@ describe('intervention processor handler', () => {
         'AIS_EVENT_IGNORED_IN_FUTURE',
         EventsEnum.FRAUD_SUSPEND_ACCOUNT,
         interventionEventBodyInTheFuture,
+        undefined,
+        mockSqsClient,
+        config.txmaEgressQueueUrl,
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
       // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -481,7 +506,8 @@ describe('intervention processor handler', () => {
           new InMemoryAccountStatusService(),
           emptyInterventionEventsService,
           accountStateEngine,
-          { historyRetentionSeconds: 1000 },
+          config,
+          mockSqsClient,
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -497,7 +523,8 @@ describe('intervention processor handler', () => {
           new InMemoryAccountStatusService({ error }),
           emptyInterventionEventsService,
           accountStateEngine,
-          { historyRetentionSeconds: 1000 },
+          config,
+          mockSqsClient,
         ),
       ).toEqual({
         batchItemFailures: [
@@ -530,7 +557,8 @@ describe('intervention processor handler', () => {
           }),
           emptyInterventionEventsService,
           accountStateEngine,
-          { historyRetentionSeconds: 1000 },
+          config,
+          mockSqsClient,
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -552,6 +580,8 @@ describe('intervention processor handler', () => {
           interventionName: 'AIS_NO_INTERVENTION',
           nextAllowableInterventions: ['01', '03', '04', '05', '06'],
         },
+        mockSqsClient,
+        config.txmaEgressQueueUrl,
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
     });
@@ -606,7 +636,8 @@ describe('intervention processor handler', () => {
           }),
           emptyInterventionEventsService,
           accountStateEngine,
-          { historyRetentionSeconds: 1000 },
+          config,
+          mockSqsClient,
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -623,7 +654,8 @@ describe('intervention processor handler', () => {
           new InMemoryAccountStatusService({ error }),
           emptyInterventionEventsService,
           accountStateEngine,
-          { historyRetentionSeconds: 1000 },
+          config,
+          mockSqsClient,
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -672,7 +704,8 @@ describe('intervention processor handler', () => {
           new InMemoryAccountStatusService(),
           emptyInterventionEventsService,
           accountStateEngine,
-          { historyRetentionSeconds: 1000 },
+          config,
+          mockSqsClient,
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -692,7 +725,8 @@ describe('intervention processor handler', () => {
         new InMemoryAccountStatusService({ error: new Error('Error') }),
         emptyInterventionEventsService,
         accountStateEngine,
-        { historyRetentionSeconds: 1000 },
+        config,
+        mockSqsClient,
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
       // eslint-disable-next-line @typescript-eslint/unbound-method
