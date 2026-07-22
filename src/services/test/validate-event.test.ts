@@ -212,7 +212,7 @@ describe('validateEventAgainstSchema', () => {
       stateResult: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
       interventionName: 'AIS_NO_INTERVENTION',
       nextAllowableInterventions: ['01', '03', '04', '05', '06'],
-    });
+    }, undefined, undefined);
   });
 
   it('should throw an error if event is stale', async () => {
@@ -252,7 +252,7 @@ describe('validateEventAgainstSchema', () => {
       stateResult: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
       interventionName: 'AIS_NO_INTERVENTION',
       nextAllowableInterventions: ['01', '03', '04', '05', '06'],
-    });
+    }, undefined, undefined);
   });
 
   it('should not throw if event is not stale', async () => {
@@ -317,6 +317,9 @@ describe('validateEventAgainstSchema', () => {
       'AIS_EVENT_IGNORED_IN_FUTURE',
       'FRAUD_SUSPEND_ACCOUNT',
       eventInTheFuture,
+      undefined,
+      undefined,
+      undefined,
     );
   });
 
