@@ -76,6 +76,7 @@ describeFeature(feature, ({ Scenario, BeforeEachScenario }) => {
           sentAt: expect.any(Number),
           messageEventId: '123',
           transactionId: expect.any(String),
+          ttl: expect.any(Number),
         },
         {
           accountId: testUserId,
@@ -88,6 +89,7 @@ describeFeature(feature, ({ Scenario, BeforeEachScenario }) => {
           sentAt: expect.any(Number),
           messageEventId: '123',
           transactionId: expect.any(String),
+          ttl: expect.any(Number),
         },
       ]);
     });
