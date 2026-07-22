@@ -69,8 +69,8 @@ export function validateIfIdentityAcquired(event: InterventionEventMessage) {
 export async function validateEventIsNotInFuture(
   eventEnum: EventsEnum,
   event: InterventionEventMessage,
-  sqsClient?: SQSClient,
-  txmaEgressQueueUrl?: string,
+  sqsClient: SQSClient,
+  txmaEgressQueueUrl: string,
 ) {
   const eventTimestampInMs = event.event_timestamp_ms;
   const now = getCurrentTimestamp().milliseconds;
@@ -101,8 +101,8 @@ export async function validateEventIsNotStale(
   event: InterventionEventMessage,
   initialState: StateDetails,
   itemFromDB: DynamoDBStateResult,
-  sqsClient?: SQSClient,
-  txmaEgressQueueUrl?: string,
+  sqsClient: SQSClient,
+  txmaEgressQueueUrl: string,
 ) {
   const eventTimestampInMs = event.event_timestamp_ms;
   if (!isEventAfterLastEvent(eventTimestampInMs, itemFromDB.sentAt, itemFromDB.appliedAt)) {
