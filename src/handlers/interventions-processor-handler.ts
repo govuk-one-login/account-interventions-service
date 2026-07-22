@@ -6,10 +6,12 @@ import { getPersistentInterventionEventsService } from '../tables/intervention-e
 import { getPersistentAccountStatusService } from '../tables/account-status';
 import { processInterventions } from './interventions-processor';
 import { AccountStateEngine } from '../services/account-states/account-state-engine';
+import { AppConfigService } from '../services/app-config-service';
 
 const accountStatusService = getPersistentAccountStatusService();
 const interventionEventsService = getPersistentInterventionEventsService();
 const accountStateEngine = AccountStateEngine.getInstance();
+const config = AppConfigService.getInstance().getConfigObject(['historyRetentionSeconds']);
 
 /**
  * Main handler method for Intervention Processor Lambda
@@ -23,11 +25,7 @@ export async function handler(
   context: Context,
 ): Promise<SQSBatchResponse> {
   logger.addContext(context);
-  return processInterventions(event, {
-    accountStatusService,
-    interventionEventsService,
-    accountStateEngine,
-  });
+  return processInterventions(event, accountStatusService, interventionEventsService, accountStateEngine, config);
 }
 
 /* istanbul ignore stop */

@@ -42,7 +42,7 @@ describe('persistInterventionEvents', () => {
     const fetchEventsSpy = vi.spyOn(service, 'fetchEventsForAccount');
     const appendEventsSpy = vi.spyOn(service, 'appendEvents');
 
-    await persistInterventionEvents(baseMessage, EventsEnum.FRAUD_SUSPEND_ACCOUNT, undefined, service);
+    await persistInterventionEvents(baseMessage, EventsEnum.FRAUD_SUSPEND_ACCOUNT, undefined, service, 1000);
 
     expect(fetchEventsSpy).toHaveBeenCalledTimes(2);
     expect(appendEventsSpy).toHaveBeenCalledExactlyOnceWith([
@@ -276,7 +276,8 @@ describe('persistIgnoredInterventionEvent', () => {
 
 describe('setTtlOnInactiveEvents', () => {
   const FIXED_TIMESTAMP = 1781253284370;
-  const EXPECTED_TTL = Math.floor(FIXED_TIMESTAMP / 1000) + 63072000;
+  const HISTORY_RETENTION_SECONDS = 1000;
+  const EXPECTED_TTL = Math.floor(FIXED_TIMESTAMP / 1000) + HISTORY_RETENTION_SECONDS;
 
   beforeAll(() => {
     vi.useFakeTimers();
@@ -302,7 +303,7 @@ describe('setTtlOnInactiveEvents', () => {
     ]);
     const appendEventsSpy = vi.spyOn(service, 'appendEvents');
 
-    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION]);
+    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION], 1000);
 
     expect(appendEventsSpy).toHaveBeenCalledExactlyOnceWith([
       expect.objectContaining({ eventId: 'event-1', ttl: EXPECTED_TTL }),
@@ -324,7 +325,7 @@ describe('setTtlOnInactiveEvents', () => {
     ]);
     const appendEventsSpy = vi.spyOn(service, 'appendEvents');
 
-    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION]);
+    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION], 1000);
 
     expect(appendEventsSpy).not.toHaveBeenCalled();
   });
@@ -345,7 +346,7 @@ describe('setTtlOnInactiveEvents', () => {
     ]);
     const appendEventsSpy = vi.spyOn(service, 'appendEvents');
 
-    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION]);
+    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION], 1000);
 
     expect(appendEventsSpy).not.toHaveBeenCalled();
   });
@@ -354,7 +355,7 @@ describe('setTtlOnInactiveEvents', () => {
     const service = new InMemoryInterventionEventsService([]);
     const appendEventsSpy = vi.spyOn(service, 'appendEvents');
 
-    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION]);
+    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION], 1000);
 
     expect(appendEventsSpy).not.toHaveBeenCalled();
   });
@@ -384,7 +385,7 @@ describe('setTtlOnInactiveEvents', () => {
     ]);
     const appendEventsSpy = vi.spyOn(service, 'appendEvents');
 
-    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION]);
+    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION], 1000);
 
     expect(appendEventsSpy).toHaveBeenCalledExactlyOnceWith([
       expect.objectContaining({ eventId: 'event-1', ttl: EXPECTED_TTL }),
@@ -427,7 +428,7 @@ describe('setTtlOnInactiveEvents', () => {
 
     const appendEventsSpy = vi.spyOn(service, 'appendEvents');
 
-    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION]);
+    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION], 1000);
 
     expect(appendEventsSpy).toHaveBeenCalledExactlyOnceWith([
       expect.objectContaining({ eventId: 'event-1', ttl: EXPECTED_TTL }),

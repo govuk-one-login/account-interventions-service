@@ -113,23 +113,22 @@ describe('intervention processor handler', () => {
       const loggerWarnSpy = vi.spyOn(logger, 'warn');
       await processInterventions(
         { Records: [] },
-        {
-          accountStatusService: new InMemoryAccountStatusService({
-            baseStatus: {
-              blocked: false,
-              reproveIdentity: false,
-              resetPassword: false,
-              suspended: false,
-              sentAt: 1234,
-              appliedAt: 7890,
-              isAccountDeleted: false,
-              history: [],
-              intervention: '',
-            },
-          }),
-          interventionEventsService: emptyInterventionEventsService,
-          accountStateEngine
-        }
+        new InMemoryAccountStatusService({
+          baseStatus: {
+            blocked: false,
+            reproveIdentity: false,
+            resetPassword: false,
+            suspended: false,
+            sentAt: 1234,
+            appliedAt: 7890,
+            isAccountDeleted: false,
+            history: [],
+            intervention: '',
+          },
+        }),
+        emptyInterventionEventsService,
+        accountStateEngine,
+        { historyRetentionSeconds: 1000 },
       );
       expect(loggerWarnSpy).toHaveBeenCalledWith('Received no records.');
       expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
@@ -141,11 +140,10 @@ describe('intervention processor handler', () => {
       expect(
         await processInterventions(
           mockEvent,
-          {
-            accountStatusService: new InMemoryAccountStatusService(),
-            interventionEventsService: emptyInterventionEventsService,
-            accountStateEngine
-          }
+          new InMemoryAccountStatusService(),
+          emptyInterventionEventsService,
+          accountStateEngine,
+          { historyRetentionSeconds: 1000 },
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -190,13 +188,12 @@ describe('intervention processor handler', () => {
       expect(
         await processInterventions(
           mockEvent,
-          {
-            accountStatusService: new InMemoryAccountStatusService({
-              baseStatus: blockedAccount,
-            }),
-            interventionEventsService: emptyInterventionEventsService,
-            accountStateEngine
-          }
+          new InMemoryAccountStatusService({
+            baseStatus: blockedAccount,
+          }),
+          emptyInterventionEventsService,
+          accountStateEngine,
+          { historyRetentionSeconds: 1000 },
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -255,14 +252,13 @@ describe('intervention processor handler', () => {
       expect(
         await processInterventions(
           mockEvent,
-          {
-            accountStatusService: new InMemoryAccountStatusService({
-              baseStatus: suspendedAccount
-            }),
-            interventionEventsService: emptyInterventionEventsService,
-            accountStateEngine,
-          }
-        )
+          new InMemoryAccountStatusService({
+            baseStatus: suspendedAccount,
+          }),
+          emptyInterventionEventsService,
+          accountStateEngine,
+          { historyRetentionSeconds: 1000 },
+        ),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -292,11 +288,10 @@ describe('intervention processor handler', () => {
       expect(
         await processInterventions(
           mockEvent,
-          {
-            accountStatusService: new InMemoryAccountStatusService(),
-            interventionEventsService: emptyInterventionEventsService,
-            accountStateEngine,
-          }
+          new InMemoryAccountStatusService(),
+          emptyInterventionEventsService,
+          accountStateEngine,
+          { historyRetentionSeconds: 1000 },
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -341,12 +336,11 @@ describe('intervention processor handler', () => {
       expect(
         await processInterventions(
           mockEvent,
-          {
-            accountStatusService: new InMemoryAccountStatusService({ baseStatus: accountNeedingPasswordReset }),
-            interventionEventsService: emptyInterventionEventsService,
-            accountStateEngine
-          }
-        )
+          new InMemoryAccountStatusService({ baseStatus: accountNeedingPasswordReset }),
+          emptyInterventionEventsService,
+          accountStateEngine,
+          { historyRetentionSeconds: 1000 },
+        ),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -393,15 +387,14 @@ describe('intervention processor handler', () => {
         isAccountDeleted: true,
         history: [],
         intervention: '',
-      }
+      };
       expect(
         await processInterventions(
           mockEvent,
-          {
-            accountStatusService: new InMemoryAccountStatusService({ baseStatus: deletedAccount }),
-            interventionEventsService: emptyInterventionEventsService,
-            accountStateEngine
-          }
+          new InMemoryAccountStatusService({ baseStatus: deletedAccount }),
+          emptyInterventionEventsService,
+          accountStateEngine,
+          { historyRetentionSeconds: 1000 },
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -432,16 +425,14 @@ describe('intervention processor handler', () => {
     });
 
     it('should return message id to be retried if event is in the future', async () => {
-
       mockRecord.body = JSON.stringify(interventionEventBodyInTheFuture);
       expect(
         await processInterventions(
           { Records: [mockRecord] },
-          {
-            accountStatusService: new InMemoryAccountStatusService(),
-            interventionEventsService: emptyInterventionEventsService,
-            accountStateEngine
-          }
+          new InMemoryAccountStatusService(),
+          emptyInterventionEventsService,
+          accountStateEngine,
+          { historyRetentionSeconds: 1000 },
         ),
       ).toEqual({
         batchItemFailures: [
@@ -482,17 +473,16 @@ describe('intervention processor handler', () => {
             intervention_reason: 'reason',
           },
         },
-      }
+      };
       mockRecord.body = JSON.stringify(invalidBody);
       expect(
         await processInterventions(
           mockEvent,
-          {
-            accountStatusService: new InMemoryAccountStatusService(),
-            interventionEventsService: emptyInterventionEventsService,
-            accountStateEngine,
-          }
-        )
+          new InMemoryAccountStatusService(),
+          emptyInterventionEventsService,
+          accountStateEngine,
+          { historyRetentionSeconds: 1000 },
+        ),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -504,11 +494,10 @@ describe('intervention processor handler', () => {
       expect(
         await processInterventions(
           mockEvent,
-          {
-            accountStatusService: new InMemoryAccountStatusService({ error }),
-            interventionEventsService: emptyInterventionEventsService,
-            accountStateEngine,
-          }
+          new InMemoryAccountStatusService({ error }),
+          emptyInterventionEventsService,
+          accountStateEngine,
+          { historyRetentionSeconds: 1000 },
         ),
       ).toEqual({
         batchItemFailures: [
@@ -526,23 +515,22 @@ describe('intervention processor handler', () => {
       expect(
         await processInterventions(
           { Records: [mockRecord] },
-          {
-            accountStatusService: new InMemoryAccountStatusService({
-              baseStatus: {
-                blocked: false,
-                reproveIdentity: false,
-                resetPassword: false,
-                suspended: false,
-                appliedAt: FIXED_TIME_MS + 10,
-                sentAt: FIXED_TIME_MS + 10000,
-                isAccountDeleted: false,
-                history: [],
-                intervention: '',
-              },
-            }),
-            interventionEventsService: emptyInterventionEventsService,
-            accountStateEngine,
-          }
+          new InMemoryAccountStatusService({
+            baseStatus: {
+              blocked: false,
+              reproveIdentity: false,
+              resetPassword: false,
+              suspended: false,
+              appliedAt: FIXED_TIME_MS + 10,
+              sentAt: FIXED_TIME_MS + 10000,
+              isAccountDeleted: false,
+              history: [],
+              intervention: '',
+            },
+          }),
+          emptyInterventionEventsService,
+          accountStateEngine,
+          { historyRetentionSeconds: 1000 },
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -603,23 +591,22 @@ describe('intervention processor handler', () => {
       expect(
         await processInterventions(
           { Records: [mockRecord] },
-          {
-            accountStatusService: new InMemoryAccountStatusService({
-              baseStatus: {
-                blocked: false,
-                reproveIdentity: false,
-                resetPassword: false,
-                suspended: false,
-                sentAt: 1234,
-                appliedAt: 7890,
-                isAccountDeleted: false,
-                history: [],
-                intervention: '',
-              },
-            }),
-            interventionEventsService: emptyInterventionEventsService,
-            accountStateEngine
-          }
+          new InMemoryAccountStatusService({
+            baseStatus: {
+              blocked: false,
+              reproveIdentity: false,
+              resetPassword: false,
+              suspended: false,
+              sentAt: 1234,
+              appliedAt: 7890,
+              isAccountDeleted: false,
+              history: [],
+              intervention: '',
+            },
+          }),
+          emptyInterventionEventsService,
+          accountStateEngine,
+          { historyRetentionSeconds: 1000 },
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -633,11 +620,10 @@ describe('intervention processor handler', () => {
       expect(
         await processInterventions(
           mockEvent,
-          {
-            accountStatusService: new InMemoryAccountStatusService({ error }),
-            interventionEventsService: emptyInterventionEventsService,
-            accountStateEngine,
-          }
+          new InMemoryAccountStatusService({ error }),
+          emptyInterventionEventsService,
+          accountStateEngine,
+          { historyRetentionSeconds: 1000 },
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -683,11 +669,10 @@ describe('intervention processor handler', () => {
       expect(
         await processInterventions(
           { Records: [mockRecord] },
-          {
-            accountStatusService: new InMemoryAccountStatusService(),
-            interventionEventsService: emptyInterventionEventsService,
-            accountStateEngine,
-          }
+          new InMemoryAccountStatusService(),
+          emptyInterventionEventsService,
+          accountStateEngine,
+          { historyRetentionSeconds: 1000 },
         ),
       ).toEqual({
         batchItemFailures: [],
@@ -704,11 +689,10 @@ describe('intervention processor handler', () => {
     it('should log the expected error line when a message is retried - this line is used by a metric filter for canary deployment alarm', async () => {
       await processInterventions(
         mockEvent,
-        {
-          accountStatusService: new InMemoryAccountStatusService({ error: new Error('Error') }),
-          interventionEventsService: emptyInterventionEventsService,
-          accountStateEngine
-        }
+        new InMemoryAccountStatusService({ error: new Error('Error') }),
+        emptyInterventionEventsService,
+        accountStateEngine,
+        { historyRetentionSeconds: 1000 },
       );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
       // eslint-disable-next-line @typescript-eslint/unbound-method
