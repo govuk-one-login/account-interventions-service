@@ -1,3 +1,5 @@
+/* istanbul ignore start -- production only */
+
 import type { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import logger from '../commons/logger';
 import { getPersistentInterventionEventsService } from '../tables/intervention-events';
@@ -17,3 +19,5 @@ export async function handle(event: APIGatewayEvent, context: Context): Promise<
   logger.addContext(context);
   return retrieveStatus(event, accountStatusService, interventionEventsService);
 }
+
+/* istanbul ignore stop */

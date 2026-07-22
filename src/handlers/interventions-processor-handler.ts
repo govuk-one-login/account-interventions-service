@@ -1,3 +1,5 @@
+/* istanbul ignore start -- production only */
+
 import { Context, SQSBatchResponse, SQSEvent } from 'aws-lambda';
 import logger from '../commons/logger';
 import { getPersistentInterventionEventsService } from '../tables/intervention-events';
@@ -27,3 +29,5 @@ export async function handler(
     accountStateEngine,
   });
 }
+
+/* istanbul ignore stop */

@@ -1,3 +1,5 @@
+/* istanbul ignore start -- production only */
+
 import { SQSEvent, Context } from 'aws-lambda';
 import logger from '../commons/logger';
 import { processTxmaEvents } from './txma-processor';
@@ -22,3 +24,5 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
     deletionMessageService,
   });
 }
+
+/* istanbul ignore stop */

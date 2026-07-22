@@ -1,3 +1,5 @@
+/* istanbul ignore start -- production only */
+
 import logger from '../commons/logger';
 import type { Context, SQSEvent } from 'aws-lambda';
 import { getPersistentAccountStatusService } from '../tables/account-status';
@@ -18,3 +20,5 @@ export async function handler(
   logger.addContext(context);
   await processAccountDeletion(event, accountStatusService)
 }
+
+/* istanbul ignore stop */
