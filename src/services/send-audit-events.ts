@@ -42,6 +42,8 @@ export async function sendAuditEvent(
   ingressEventName: EventsEnum,
   ingressTxMAEvent: InterventionEventMessage,
   accountStateEngineOutput?: AccountStateEngineOutput,
+  client: SQSClient = sqsClient,
+  queueUrl: string = appConfig.txmaEgressQueueUrl,
 ): Promise<SendMessageCommandOutput | undefined> {
   logger.debug('sendAuditEvent function.');
 
@@ -60,11 +62,11 @@ export async function sendAuditEvent(
     extensions: buildExtensions(ingressTxMAEvent, ingressEventName, egressEventName, accountStateEngineOutput),
   };
 
-  const input = { MessageBody: JSON.stringify(txmaEvent), QueueUrl: appConfig.txmaEgressQueueUrl };
+  const input = { MessageBody: JSON.stringify(txmaEvent), QueueUrl: queueUrl };
 
   try {
     logger.debug('Attempting to send TxMA event to the queue.');
-    const response = await sqsClient.send(new SendMessageCommand(input));
+    const response = await client.send(new SendMessageCommand(input));
     addMetric(MetricNames.PUBLISHED_EVENT_TO_TXMA);
     return response;
   } catch (error) {
