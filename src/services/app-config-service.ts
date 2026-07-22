@@ -152,11 +152,12 @@ export class AppConfigService {
     return this.instance;
   }
 
-  public get metricServiceName(): string | undefined {
+  public get metricServiceName(): string {
     try {
       return this.validateConfiguration('METRIC_SERVICE_NAME');
     } catch {
       logger.warn('Unable to retrieve metrics config, METRIC_SERVICE_NAME not set');
+      return 'unset';
     }
   }
 
@@ -168,11 +169,12 @@ export class AppConfigService {
     return this.validateConfiguration('INTERVENTION_EVENTS_TABLE_NAME');
   }
 
-  public get cloudWatchMetricsWorkSpace(): string | undefined {
+  public get cloudWatchMetricsWorkSpace(): string {
     try {
       return this.validateConfiguration('CLOUDWATCH_METRICS_NAMESPACE');
     } catch {
       logger.warn('Unable to retrieve metrics config, CLOUDWATCH_METRICS_NAMESPACE not set');
+      return 'unset';
     }
   }
 

@@ -1,8 +1,8 @@
 import { AppConfigService } from '../services/app-config-service';
 import { Metrics, MetricUnit } from '@aws-lambda-powertools/metrics';
 
-const namespace = AppConfigService.getInstance().cloudWatchMetricsWorkSpace ?? 'unset';
-const service = AppConfigService.getInstance().metricServiceName ?? 'unset';
+const namespace = AppConfigService.getInstance().cloudWatchMetricsWorkSpace;
+const service = AppConfigService.getInstance().metricServiceName;
 
 /**
  * Metric utility which instantiate a Metrics object from aws-lambda-powertools/metrics.

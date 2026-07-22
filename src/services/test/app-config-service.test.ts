@@ -52,7 +52,7 @@ describe('AppConfigService', () => {
   it('should return undefined if the environment variable CLOUDWATCH_METRICS_NAMESPACE is equal to an empty string', () => {
     vi.stubEnv('CLOUDWATCH_METRICS_NAMESPACE', '');
     const appConfig = AppConfigService.getInstance();
-    expect(appConfig.cloudWatchMetricsWorkSpace).toBeUndefined();
+    expect(appConfig.cloudWatchMetricsWorkSpace).toEqual('unset');
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(logger.warn).toHaveBeenCalledWith('Unable to retrieve metrics config, CLOUDWATCH_METRICS_NAMESPACE not set');
   });
