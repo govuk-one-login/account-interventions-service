@@ -13,7 +13,6 @@ jestOpenAPI(`${__dirname}/../../specs/main.yaml`);
 
 vi.mock('../../commons/logger.ts');
 vi.mock('../../commons/metrics');
-vi.mock('@smithy/node-http-handler');
 
 const testEvent: APIGatewayEvent = {
   body: null,
