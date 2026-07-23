@@ -116,25 +116,21 @@ describe('intervention processor handler', () => {
     it('does nothing if SQS event contains no record', async () => {
       const loggerWarnSpy = vi.spyOn(logger, 'warn');
       await processInterventions(
-        { Records: [] },
-        new InMemoryAccountStatusService({
-          baseStatus: {
-            blocked: false,
-            reproveIdentity: false,
-            resetPassword: false,
-            suspended: false,
-            sentAt: 1234,
-            appliedAt: 7890,
-            isAccountDeleted: false,
-            history: [],
-            intervention: '',
-          },
-        }),
-        emptyInterventionEventsService,
-        accountStateEngine,
-        config,
-        mockSqsClient,
-      );
+              { Records: [] },
+              { accountStatusService: new InMemoryAccountStatusService({
+                baseStatus: {
+                  blocked: false,
+                  reproveIdentity: false,
+                  resetPassword: false,
+                  suspended: false,
+                  sentAt: 1234,
+                  appliedAt: 7890,
+                  isAccountDeleted: false,
+                  history: [],
+                  intervention: '',
+                },
+              }), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+            );
       expect(loggerWarnSpy).toHaveBeenCalledWith('Received no records.');
       expect(addMetric).toHaveBeenCalledWith('INVALID_EVENT_RECEIVED');
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
@@ -144,13 +140,9 @@ describe('intervention processor handler', () => {
       mockRecord.body = ' ';
       expect(
         await processInterventions(
-          mockEvent,
-          new InMemoryAccountStatusService(),
-          emptyInterventionEventsService,
-          accountStateEngine,
-          config,
-          mockSqsClient,
-        ),
+                mockEvent,
+                { accountStatusService: new InMemoryAccountStatusService(), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+              ),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -193,15 +185,11 @@ describe('intervention processor handler', () => {
       mockRecord.body = JSON.stringify(suspendEventBody);
       expect(
         await processInterventions(
-          mockEvent,
-          new InMemoryAccountStatusService({
-            baseStatus: blockedAccount,
-          }),
-          emptyInterventionEventsService,
-          accountStateEngine,
-          config,
-          mockSqsClient,
-        ),
+                mockEvent,
+                { accountStatusService: new InMemoryAccountStatusService({
+                  baseStatus: blockedAccount,
+                }), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+              ),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -260,15 +248,11 @@ describe('intervention processor handler', () => {
       mockRecord.body = JSON.stringify(blockEventBody);
       expect(
         await processInterventions(
-          mockEvent,
-          new InMemoryAccountStatusService({
-            baseStatus: suspendedAccount,
-          }),
-          emptyInterventionEventsService,
-          accountStateEngine,
-          config,
-          mockSqsClient,
-        ),
+                mockEvent,
+                { accountStatusService: new InMemoryAccountStatusService({
+                  baseStatus: suspendedAccount,
+                }), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+              ),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -299,13 +283,9 @@ describe('intervention processor handler', () => {
     it('should succeed when an intervention event is received for a non existing user', async () => {
       expect(
         await processInterventions(
-          mockEvent,
-          new InMemoryAccountStatusService(),
-          emptyInterventionEventsService,
-          accountStateEngine,
-          config,
-          mockSqsClient,
-        ),
+                mockEvent,
+                { accountStatusService: new InMemoryAccountStatusService(), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+              ),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -350,13 +330,9 @@ describe('intervention processor handler', () => {
       mockEvent.Records = [mockRecord];
       expect(
         await processInterventions(
-          mockEvent,
-          new InMemoryAccountStatusService({ baseStatus: accountNeedingPasswordReset }),
-          emptyInterventionEventsService,
-          accountStateEngine,
-          config,
-          mockSqsClient,
-        ),
+                mockEvent,
+                { accountStatusService: new InMemoryAccountStatusService({ baseStatus: accountNeedingPasswordReset }), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+              ),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -408,13 +384,9 @@ describe('intervention processor handler', () => {
       };
       expect(
         await processInterventions(
-          mockEvent,
-          new InMemoryAccountStatusService({ baseStatus: deletedAccount }),
-          emptyInterventionEventsService,
-          accountStateEngine,
-          config,
-          mockSqsClient,
-        ),
+                mockEvent,
+                { accountStatusService: new InMemoryAccountStatusService({ baseStatus: deletedAccount }), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+              ),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -449,13 +421,9 @@ describe('intervention processor handler', () => {
       mockRecord.body = JSON.stringify(interventionEventBodyInTheFuture);
       expect(
         await processInterventions(
-          { Records: [mockRecord] },
-          new InMemoryAccountStatusService(),
-          emptyInterventionEventsService,
-          accountStateEngine,
-          config,
-          mockSqsClient,
-        ),
+                { Records: [mockRecord] },
+                { accountStatusService: new InMemoryAccountStatusService(), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+              ),
       ).toEqual({
         batchItemFailures: [
           {
@@ -501,13 +469,9 @@ describe('intervention processor handler', () => {
       mockRecord.body = JSON.stringify(invalidBody);
       expect(
         await processInterventions(
-          mockEvent,
-          new InMemoryAccountStatusService(),
-          emptyInterventionEventsService,
-          accountStateEngine,
-          config,
-          mockSqsClient,
-        ),
+                mockEvent,
+                { accountStatusService: new InMemoryAccountStatusService(), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+              ),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -518,13 +482,9 @@ describe('intervention processor handler', () => {
       const error = new Error('Error');
       expect(
         await processInterventions(
-          mockEvent,
-          new InMemoryAccountStatusService({ error }),
-          emptyInterventionEventsService,
-          accountStateEngine,
-          config,
-          mockSqsClient,
-        ),
+                mockEvent,
+                { accountStatusService: new InMemoryAccountStatusService({ error }), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+              ),
       ).toEqual({
         batchItemFailures: [
           {
@@ -540,25 +500,21 @@ describe('intervention processor handler', () => {
     it('should not process the event and return if the event timestamp predates the latest applied intervention for the user ', async () => {
       expect(
         await processInterventions(
-          { Records: [mockRecord] },
-          new InMemoryAccountStatusService({
-            baseStatus: {
-              blocked: false,
-              reproveIdentity: false,
-              resetPassword: false,
-              suspended: false,
-              appliedAt: FIXED_TIME_MS + 10,
-              sentAt: FIXED_TIME_MS + 10000,
-              isAccountDeleted: false,
-              history: [],
-              intervention: '',
-            },
-          }),
-          emptyInterventionEventsService,
-          accountStateEngine,
-          config,
-          mockSqsClient,
-        ),
+                { Records: [mockRecord] },
+                { accountStatusService: new InMemoryAccountStatusService({
+                  baseStatus: {
+                    blocked: false,
+                    reproveIdentity: false,
+                    resetPassword: false,
+                    suspended: false,
+                    appliedAt: FIXED_TIME_MS + 10,
+                    sentAt: FIXED_TIME_MS + 10000,
+                    isAccountDeleted: false,
+                    history: [],
+                    intervention: '',
+                  },
+                }), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+              ),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -619,25 +575,21 @@ describe('intervention processor handler', () => {
       };
       expect(
         await processInterventions(
-          { Records: [mockRecord] },
-          new InMemoryAccountStatusService({
-            baseStatus: {
-              blocked: false,
-              reproveIdentity: false,
-              resetPassword: false,
-              suspended: false,
-              sentAt: 1234,
-              appliedAt: 7890,
-              isAccountDeleted: false,
-              history: [],
-              intervention: '',
-            },
-          }),
-          emptyInterventionEventsService,
-          accountStateEngine,
-          config,
-          mockSqsClient,
-        ),
+                { Records: [mockRecord] },
+                { accountStatusService: new InMemoryAccountStatusService({
+                  baseStatus: {
+                    blocked: false,
+                    reproveIdentity: false,
+                    resetPassword: false,
+                    suspended: false,
+                    sentAt: 1234,
+                    appliedAt: 7890,
+                    isAccountDeleted: false,
+                    history: [],
+                    intervention: '',
+                  },
+                }), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+              ),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -649,13 +601,9 @@ describe('intervention processor handler', () => {
 
       expect(
         await processInterventions(
-          mockEvent,
-          new InMemoryAccountStatusService({ error }),
-          emptyInterventionEventsService,
-          accountStateEngine,
-          config,
-          mockSqsClient,
-        ),
+                mockEvent,
+                { accountStatusService: new InMemoryAccountStatusService({ error }), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+              ),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -699,13 +647,9 @@ describe('intervention processor handler', () => {
       };
       expect(
         await processInterventions(
-          { Records: [mockRecord] },
-          new InMemoryAccountStatusService(),
-          emptyInterventionEventsService,
-          accountStateEngine,
-          config,
-          mockSqsClient,
-        ),
+                { Records: [mockRecord] },
+                { accountStatusService: new InMemoryAccountStatusService(), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+              ),
       ).toEqual({
         batchItemFailures: [],
       });
@@ -720,13 +664,9 @@ describe('intervention processor handler', () => {
 
     it('should log the expected error line when a message is retried - this line is used by a metric filter for canary deployment alarm', async () => {
       await processInterventions(
-        mockEvent,
-        new InMemoryAccountStatusService({ error: new Error('Error') }),
-        emptyInterventionEventsService,
-        accountStateEngine,
-        config,
-        mockSqsClient,
-      );
+              mockEvent,
+              { accountStatusService: new InMemoryAccountStatusService({ error: new Error('Error') }), interventionEventsService: emptyInterventionEventsService, accountStateEngine: accountStateEngine, config: config, sqsClient: mockSqsClient },
+            );
       expect(publishTimeToResolveMetrics).not.toHaveBeenCalled();
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.error).toHaveBeenCalledWith('Error caught, message will be retried.', { errorMessage: 'Error' });

@@ -28,13 +28,17 @@ import { InterventionEventsService } from '../tables/intervention-events';
 import { AccountStatusService } from '../tables/account-status';
 import { SQSClient } from '@aws-sdk/client-sqs';
 
+export interface ProcessInterventionsArgs {
+  accountStatusService: AccountStatusService;
+  interventionEventsService: InterventionEventsService;
+  accountStateEngine: AccountStateEngine;
+  config: { historyRetentionSeconds: number; txmaEgressQueueUrl: string };
+  sqsClient: SQSClient;
+}
+
 export async function processInterventions(
   event: SQSEvent,
-  accountStatusService: AccountStatusService,
-  interventionEventsService: InterventionEventsService,
-  accountStateEngine: AccountStateEngine,
-  config: { historyRetentionSeconds: number; txmaEgressQueueUrl: string },
-  sqsClient: SQSClient,
+  { accountStatusService, interventionEventsService, accountStateEngine, config, sqsClient }: ProcessInterventionsArgs,
 ): Promise<SQSBatchResponse> {
   if (event.Records.length === 0) {
     logger.warn('Received no records.');
