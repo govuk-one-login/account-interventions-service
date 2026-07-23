@@ -4,6 +4,7 @@ import {
   V2ResponseSchema,
   type V2Response,
 } from '../../../src/data-types/api-schemas-v2';
+import { version } from '../package.json';
 import type { AccountHistory, AccountStatus, InterventionClientConfig, InterventionClientInterface } from './types';
 export type {
   AccountStatus,
@@ -30,7 +31,7 @@ export class InterventionClient implements InterventionClientInterface {
     if (!baseUrl) throw new InterventionMissingBaseUrl('Missing required baseUrl');
 
     this.baseUrl = baseUrl.replace(/\/$/, '');
-    this.headers = { 'Content-Type': 'application/json' };
+    this.headers = { 'Content-Type': 'application/json', 'x-sdk-version': version };
   }
 
   protected async fetch(url: string): Promise<unknown> {
