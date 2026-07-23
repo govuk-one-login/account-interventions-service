@@ -35,7 +35,7 @@ export async function handler(
   context: Context,
 ): Promise<SQSBatchResponse> {
   logger.addContext(context);
-  return processInterventions(event, accountStatusService, interventionEventsService, accountStateEngine, config, sqsClient);
+  return processInterventions(event, { accountStatusService, interventionEventsService, accountStateEngine, config, sqsClient });
 }
 
 /* istanbul ignore stop */
