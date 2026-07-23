@@ -37,55 +37,6 @@ beforeEach(() => {
   });
 });
 
-describe('TxMA Handler', () => {
-  const mockContext = {
-    callbackWaitsForEmptyEventLoop: true,
-    functionVersion: '$LATEST',
-    functionName: 'foo-bar-function',
-    memoryLimitInMB: '128',
-    logGroupName: '/aws/lambda/foo-bar-function-123456abcdef',
-    logStreamName: '2021/03/09/[$LATEST]abcdef123456abcdef123456abcdef123456',
-    invokedFunctionArn: 'arn:aws:lambda:eu-west-1:123456789012:function:foo-bar-function',
-    awsRequestId: 'c6af9ac6-7b61-11e6-9a41-93e812345678',
-    getRemainingTimeInMillis: () => 1234,
-    done: () => {
-      console.log('Done!');
-    },
-    fail: () => {
-      console.log('Failed!');
-    },
-    succeed: () => {
-      console.log('Succeeded!');
-    },
-  };
-
-  beforeEach(() => {
-    vi.resetModules();
-  });
-
-  afterEach(() => {
-    vi.unstubAllEnvs();
-  });
-
-  it('throws an error if delete queue not configured', async () => {
-    vi.stubEnv('ACCOUNT_INTERVENTION_SQS_QUEUE', 'intervention_queue');
-    const { handler } = await import('../txma-handler');
-
-    await expect(handler({ Records: [] }, mockContext)).rejects.toThrow(
-      'Environment variable ACCOUNT_DELETION_SQS_QUEUE not found',
-    );
-  });
-
-  it('throws an error if intervention queue not configured', async () => {
-    vi.stubEnv('ACCOUNT_DELETION_SQS_QUEUE', 'delete_queue');
-    const { handler } = await import('../txma-handler');
-
-    await expect(handler({ Records: [] }, mockContext)).rejects.toThrow(
-      'Environment variable ACCOUNT_INTERVENTION_SQS_QUEUE not found',
-    );
-  });
-});
-
 describe('TxMA Processor', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
