@@ -62,6 +62,7 @@ export default defineConfig(
       'unicorn/prefer-spread': ['error'],
       'unicorn/prefer-ternary': ['error'],
       'unicorn/no-unreadable-new-expression': ['off'],
+      'unicorn/consistent-boolean-name': ['off'],
       'unicorn/consistent-class-member-order': ['off'],
       'unicorn/name-replacements': ['off'],
       'tsdoc/syntax': ['error'],
