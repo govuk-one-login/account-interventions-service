@@ -63,6 +63,7 @@ describe('build-partial-update-state-command', () => {
   afterAll(() => {
     vi.useRealTimers();
   });
+
   it('should return a partial update command given Auth successful password reset is applied', () => {
     const state: StateDetails = {
       blocked: false,
@@ -70,29 +71,20 @@ describe('build-partial-update-state-command', () => {
       resetPassword: true,
       reproveIdentity: true,
     };
-    const expectedOutput = {
-      ExpressionAttributeNames: {
-        '#B': 'blocked',
-        '#H': 'history',
-        '#S': 'suspended',
-        '#RP': 'resetPassword',
-        '#RI': 'reproveIdentity',
-        '#UA': 'updatedAt',
-        '#RPswdA': 'resetPasswordAt',
-      },
-      ExpressionAttributeValues: {
-        ':b': false,
-        ':h': [],
-        ':s': false,
-        ':rp': true,
-        ':ri': true,
-        ':ua': 4444,
-        ':rpswda': 10000000,
-      },
-      UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RPswdA = :rpswda, #H = :h',
-    };
+
     const command = buildPartialUpdateAccountStateCommand(state, 4444, resetPasswordEventBody, []);
-    expect(command).toEqual(expectedOutput);
+
+    expect(command).toEqual({
+      input: {
+        blocked: false,
+        history: [],
+        suspended: false,
+        resetPassword: true,
+        reproveIdentity: true,
+        updatedAt: 4444,
+        resetPasswordAt: 10000000,
+      },
+    });
   });
 
   it('should return a partial update command given IPV successful id reset is applied', () => {
@@ -102,27 +94,19 @@ describe('build-partial-update-state-command', () => {
       resetPassword: true,
       reproveIdentity: true,
     };
+
     const command = buildPartialUpdateAccountStateCommand(state, 4444, ipvAccountInterventionEventBody, []);
+
     expect(command).toEqual({
-      ExpressionAttributeNames: {
-        '#B': 'blocked',
-        '#H': 'history',
-        '#S': 'suspended',
-        '#RP': 'resetPassword',
-        '#RI': 'reproveIdentity',
-        '#UA': 'updatedAt',
-        '#RIdA': 'reprovedIdentityAt',
+      input: {
+        blocked: false,
+        history: [],
+        suspended: false,
+        resetPassword: true,
+        reproveIdentity: true,
+        updatedAt: 4444,
+        reprovedIdentityAt: 10000000,
       },
-      ExpressionAttributeValues: {
-        ':b': false,
-        ':h': [],
-        ':s': false,
-        ':rp': true,
-        ':ri': true,
-        ':ua': 4444,
-        ':rida': 10000000,
-      },
-      UpdateExpression: 'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #RIdA = :rida, #H = :h',
     });
   });
 
@@ -133,32 +117,7 @@ describe('build-partial-update-state-command', () => {
       resetPassword: true,
       reproveIdentity: false,
     };
-    const expectedOutput = {
-      ExpressionAttributeNames: {
-        '#B': 'blocked',
-        '#S': 'suspended',
-        '#RP': 'resetPassword',
-        '#RI': 'reproveIdentity',
-        '#UA': 'updatedAt',
-        '#SA': 'sentAt',
-        '#AA': 'appliedAt',
-        '#H': 'history',
-        '#INT': 'intervention',
-      },
-      ExpressionAttributeValues: {
-        ':b': false,
-        ':s': true,
-        ':rp': true,
-        ':ri': false,
-        ':ua': 4444,
-        ':sa': 123456,
-        ':aa': 4444,
-        ':h': ['123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id'],
-        ':int': 'AIS_FORCED_USER_PASSWORD_RESET',
-      },
-      UpdateExpression:
-        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = :h REMOVE resetPasswordAt',
-    };
+
     const command = buildPartialUpdateAccountStateCommand(
       state,
       4444,
@@ -166,7 +125,21 @@ describe('build-partial-update-state-command', () => {
       [],
       AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
     );
-    expect(command).toEqual(expectedOutput);
+
+    expect(command).toEqual({
+      input: {
+        blocked: false,
+        suspended: true,
+        resetPassword: true,
+        reproveIdentity: false,
+        updatedAt: 4444,
+        sentAt: 123456,
+        appliedAt: 4444,
+        history: ['123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id'],
+        intervention: 'AIS_FORCED_USER_PASSWORD_RESET',
+      },
+      keysToRemove: ['resetPasswordAt'],
+    });
   });
   it('should return a partial update command given an unsuspend intervention is applied', () => {
     const state: StateDetails = {
@@ -175,32 +148,7 @@ describe('build-partial-update-state-command', () => {
       resetPassword: false,
       reproveIdentity: false,
     };
-    const expectedOutput = {
-      ExpressionAttributeNames: {
-        '#B': 'blocked',
-        '#S': 'suspended',
-        '#RP': 'resetPassword',
-        '#RI': 'reproveIdentity',
-        '#UA': 'updatedAt',
-        '#SA': 'sentAt',
-        '#AA': 'appliedAt',
-        '#H': 'history',
-        '#INT': 'intervention',
-      },
-      ExpressionAttributeValues: {
-        ':b': false,
-        ':s': false,
-        ':rp': false,
-        ':ri': false,
-        ':ua': 4444,
-        ':sa': 123456,
-        ':aa': 4444,
-        ':h': ['123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id'],
-        ':int': 'AIS_ACCOUNT_UNSUSPENDED',
-      },
-      UpdateExpression:
-        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = :h',
-    };
+
     const command = buildPartialUpdateAccountStateCommand(
       state,
       4444,
@@ -208,7 +156,21 @@ describe('build-partial-update-state-command', () => {
       [],
       AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
     );
-    expect(command).toEqual(expectedOutput);
+
+    expect(command).toEqual({
+      input: {
+        blocked: false,
+        suspended: false,
+        resetPassword: false,
+        reproveIdentity: false,
+        updatedAt: 4444,
+        sentAt: 123456,
+        appliedAt: 4444,
+        history: ['123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id'],
+        intervention: 'AIS_ACCOUNT_UNSUSPENDED',
+      },
+      keysToRemove: [],
+    });
   });
 
   it('should return a partial update command given an intervention is applied and id reset user action is needed', () => {
@@ -218,32 +180,7 @@ describe('build-partial-update-state-command', () => {
       resetPassword: false,
       reproveIdentity: true,
     };
-    const expectedOutput = {
-      ExpressionAttributeNames: {
-        '#B': 'blocked',
-        '#S': 'suspended',
-        '#RP': 'resetPassword',
-        '#RI': 'reproveIdentity',
-        '#UA': 'updatedAt',
-        '#SA': 'sentAt',
-        '#AA': 'appliedAt',
-        '#H': 'history',
-        '#INT': 'intervention',
-      },
-      ExpressionAttributeValues: {
-        ':b': false,
-        ':s': true,
-        ':rp': false,
-        ':ri': true,
-        ':ua': 4444,
-        ':sa': 123456,
-        ':aa': 4444,
-        ':h': ['123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id'],
-        ':int': 'AIS_FORCED_USER_IDENTITY_VERIFY',
-      },
-      UpdateExpression:
-        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = :h REMOVE reprovedIdentityAt',
-    };
+
     const command = buildPartialUpdateAccountStateCommand(
       state,
       4444,
@@ -251,7 +188,21 @@ describe('build-partial-update-state-command', () => {
       [],
       AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
     );
-    expect(command).toEqual(expectedOutput);
+
+    expect(command).toEqual({
+      input: {
+        blocked: false,
+        suspended: true,
+        resetPassword: false,
+        reproveIdentity: true,
+        updatedAt: 4444,
+        sentAt: 123456,
+        appliedAt: 4444,
+        history: ['123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id'],
+        intervention: 'AIS_FORCED_USER_IDENTITY_VERIFY',
+      },
+      keysToRemove: ['reprovedIdentityAt'],
+    });
   });
 
   it('should return a partial update command given an intervention is applied and id reset and psw reset user actions are needed', () => {
@@ -261,32 +212,6 @@ describe('build-partial-update-state-command', () => {
       resetPassword: true,
       reproveIdentity: true,
     };
-    const expectedOutput = {
-      ExpressionAttributeNames: {
-        '#B': 'blocked',
-        '#S': 'suspended',
-        '#RP': 'resetPassword',
-        '#RI': 'reproveIdentity',
-        '#UA': 'updatedAt',
-        '#SA': 'sentAt',
-        '#AA': 'appliedAt',
-        '#H': 'history',
-        '#INT': 'intervention',
-      },
-      ExpressionAttributeValues: {
-        ':b': false,
-        ':s': true,
-        ':rp': true,
-        ':ri': true,
-        ':ua': 4444,
-        ':sa': 123456,
-        ':aa': 4444,
-        ':h': ['1000000|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id'],
-        ':int': 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY',
-      },
-      UpdateExpression:
-        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = :h REMOVE resetPasswordAt, reprovedIdentityAt',
-    };
 
     const command = buildPartialUpdateAccountStateCommand(
       state,
@@ -295,11 +220,24 @@ describe('build-partial-update-state-command', () => {
       ['1706544554234|TICF_CRI|02|reason|originating_component_id|originator_reference_id|requester_id'],
       AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
     );
-    expectedOutput.ExpressionAttributeValues[':h'] = [
-      '1706544554234|TICF_CRI|02|reason|originating_component_id|originator_reference_id|requester_id',
-      '123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id',
-    ];
-    expect(command).toEqual(expectedOutput);
+
+    expect(command).toEqual({
+      input: {
+        blocked: false,
+        suspended: true,
+        resetPassword: true,
+        reproveIdentity: true,
+        updatedAt: 4444,
+        sentAt: 123456,
+        appliedAt: 4444,
+        history: [
+          '1706544554234|TICF_CRI|02|reason|originating_component_id|originator_reference_id|requester_id',
+          '123456|TICF_CRI|01|reason|originating_component_id|originator_reference_id|requester_id',
+        ],
+        intervention: 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY',
+      },
+      keysToRemove: ['resetPasswordAt', 'reprovedIdentityAt'],
+    });
   });
 
   it('should throw an error if an intervention is passed without an intervention name', () => {
