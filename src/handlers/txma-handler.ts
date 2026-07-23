@@ -1,4 +1,4 @@
-/* istanbul ignore start -- production only */
+/* istanbul ignore start -- production only. File also added to sonar.coverage.exclusions in sonar-project.properties */
 
 import { SQSEvent, Context } from 'aws-lambda';
 import logger from '../commons/logger';
