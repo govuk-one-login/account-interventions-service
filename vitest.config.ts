@@ -12,6 +12,7 @@ export default defineConfig({
     environment: 'node',
     coverage: {
       provider: 'v8',
+      include: ['src/**/*.ts'],
       reporter: ['text', 'lcov'],
       reportsDirectory: './coverage',
     },
