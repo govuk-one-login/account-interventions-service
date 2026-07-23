@@ -1,0 +1,53 @@
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+<h2 class="govuk-heading-m">History</h2>
+{% if accountHistory and accountHistory.length %}
+  {% for transaction in accountHistory %}
+    <div class="govuk-inset-text govuk-!-margin-bottom-5">
+      <p class="govuk-body-xs govuk-hint govuk-!-margin-bottom-4">Sent at:
+        <strong>{{ transaction.sentAtFormatted }}</strong>
+      </p>
+      {% set transactionRows = [
+          { key: { text: "Component" },  value: { text: transaction.componentId } },
+          { key: { text: "Reason" },     value: { text: transaction.interventionReason } }
+        ] %}
+      {% if transaction.interventionCode %}
+        {% set transactionRows = transactionRows.concat([{ key: { text: "Code" }, value: { text: transaction.interventionCode } }]) %}
+      {% endif %}
+      {% if transaction.originatingComponent %}
+        {% set transactionRows = transactionRows.concat([{ key: { text: "Originating Component" }, value: { text: transaction.originatingComponent } }]) %}
+      {% endif %}
+      {% if transaction.originatorReferenceId %}
+        {% set transactionRows = transactionRows.concat([{ key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId } }]) %}
+      {% endif %}
+      {% if transaction.requesterId %}
+        {% set transactionRows = transactionRows.concat([{ key: { text: "Requester ID" }, value: { text: transaction.requesterId } }]) %}
+      {% endif %}
+      {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4 govuk-!-font-size-16", rows: transactionRows }) }}
+      {% if transaction.interventionEvents.length %}
+        {% set eventRows = [] %}
+        {% for event in transaction.interventionEvents %}
+          {% if event.interventionState == "ACTIVE" %}
+            {% set stateColour = "red" %}
+          {% elif event.interventionState == "MITIGATED" %}
+            {% set stateColour = "green" %}
+          {% elif event.interventionState == "REMOVED" %}
+            {% set stateColour = "grey" %}
+          {% elif event.interventionState == "SUPERSEDED" %}
+            {% set stateColour = "orange" %}
+          {% elif event.interventionState == "IGNORED" %}
+            {% set stateColour = "yellow" %}
+          {% else %}
+            {% set stateColour = "blue" %}
+          {% endif %}
+          {% set eventRows = eventRows.concat([{
+              key: { text: event.interventionName },
+              value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.interventionState + '</strong>' }
+            }]) %}
+        {% endfor %}
+        {{ govukSummaryList({ classes: "govuk-!-margin-bottom-0 govuk-!-font-size-16", rows: eventRows }) }}
+      {% endif %}
+    </div>
+  {% endfor %}
+{% else %}
+  <p class="govuk-body-s">No history available for this account.</p>
+{% endif %}

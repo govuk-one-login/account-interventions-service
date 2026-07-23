@@ -64,8 +64,10 @@ export class StubMessageService implements MessageService {
     private readonly batchMessageOutput?: SendMessageBatchCommandOutput,
   ) {}
 
-  sendMessage() {
+  sendMessage(messageBody: object) {
     if (!this.messageOutput) return Promise.reject(new Error('No message output provided to stub'));
+
+    logger.debug('Sending message', { messageBody });
 
     return Promise.resolve(this.messageOutput);
   }
