@@ -13,10 +13,14 @@ import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from
 import { sendAuditEvent } from '../send-audit-events';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
 import { TICF_ACCOUNT_INTERVENTION } from '@govuk-one-login/event-catalogue/TICF_ACCOUNT_INTERVENTION';
+import { SQSClient } from '@aws-sdk/client-sqs';
 
 vi.mock('../../commons/metrics');
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../send-audit-events');
+
+const mockSqsClient = {} as SQSClient;
+const mockQueueUrl = 'https://test-queue';
 const FIXED_TIME_MS = 1234567890;
 
 const dynamoDBResult: DynamoDBStateResult = {
@@ -205,10 +209,12 @@ describe('validateEventAgainstSchema', () => {
           reproveIdentity: false,
         },
         dynamoDBResult,
+        mockSqsClient,
+        mockQueueUrl,
       );
     }).rejects.toThrow(new ValidationError('Event received predates last applied event for this user.'));
     expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
-    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent, {
+    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent, mockSqsClient, mockQueueUrl, {
       stateResult: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
       interventionName: 'AIS_NO_INTERVENTION',
       nextAllowableInterventions: ['01', '03', '04', '05', '06'],
@@ -245,10 +251,12 @@ describe('validateEventAgainstSchema', () => {
           reproveIdentity: false,
         },
         dynamoDBResult,
+        mockSqsClient,
+        mockQueueUrl,
       );
     }).rejects.toThrow(new ValidationError('Event received predates last applied event for this user.'));
     expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_EVENT_STALE);
-    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent, {
+    expect(sendAuditEvent).toHaveBeenCalledWith('AIS_EVENT_IGNORED_STALE', 'FRAUD_SUSPEND_ACCOUNT', staleEvent, mockSqsClient, mockQueueUrl, {
       stateResult: { blocked: false, reproveIdentity: false, resetPassword: false, suspended: false },
       interventionName: 'AIS_NO_INTERVENTION',
       nextAllowableInterventions: ['01', '03', '04', '05', '06'],
@@ -285,6 +293,8 @@ describe('validateEventAgainstSchema', () => {
           reproveIdentity: false,
         },
         dynamoDBResult,
+        mockSqsClient,
+        mockQueueUrl,
       ),
     ).resolves.toEqual(undefined);
     expect(addMetric).not.toHaveBeenCalled();
@@ -310,13 +320,15 @@ describe('validateEventAgainstSchema', () => {
       },
     };
     await expect(async () => {
-      await validateEventIsNotInFuture(EventsEnum.FRAUD_SUSPEND_ACCOUNT, eventInTheFuture);
+      await validateEventIsNotInFuture(EventsEnum.FRAUD_SUSPEND_ACCOUNT, eventInTheFuture, mockSqsClient, mockQueueUrl);
     }).rejects.toThrow('Event has timestamp that is in the future.');
     expect(addMetric).toHaveBeenCalledWith(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
     expect(sendAuditEvent).toHaveBeenCalledWith(
       'AIS_EVENT_IGNORED_IN_FUTURE',
       'FRAUD_SUSPEND_ACCOUNT',
       eventInTheFuture,
+      mockSqsClient,
+      mockQueueUrl,
     );
   });
 
@@ -338,7 +350,7 @@ describe('validateEventAgainstSchema', () => {
         },
       },
     };
-    await expect(validateEventIsNotInFuture(EventsEnum.FRAUD_SUSPEND_ACCOUNT, eventNotInTheFuture)).resolves.toEqual(
+    await expect(validateEventIsNotInFuture(EventsEnum.FRAUD_SUSPEND_ACCOUNT, eventNotInTheFuture, mockSqsClient, mockQueueUrl)).resolves.toEqual(
       undefined,
     );
     expect(addMetric).not.toHaveBeenCalled();

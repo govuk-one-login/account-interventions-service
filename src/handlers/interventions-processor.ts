@@ -26,15 +26,19 @@ import { InterventionEventMessage } from '../contracts/intervention-events';
 import persistInterventionEvents, { persistIgnoredInterventionEvent } from '../services/persist-intervention-events';
 import { InterventionEventsService } from '../tables/intervention-events';
 import { AccountStatusService } from '../tables/account-status';
-export interface Config {
-  accountStatusService: AccountStatusService,
-  interventionEventsService: InterventionEventsService,
-  accountStateEngine: AccountStateEngine,
+import { SQSClient } from '@aws-sdk/client-sqs';
+
+export interface ProcessInterventionsArgs {
+  accountStatusService: AccountStatusService;
+  interventionEventsService: InterventionEventsService;
+  accountStateEngine: AccountStateEngine;
+  config: { historyRetentionSeconds: number; txmaEgressQueueUrl: string };
+  sqsClient: SQSClient;
 }
 
 export async function processInterventions(
   event: SQSEvent,
-  config: Config,
+  { accountStatusService, interventionEventsService, accountStateEngine, config, sqsClient }: ProcessInterventionsArgs,
 ): Promise<SQSBatchResponse> {
   if (event.Records.length === 0) {
     logger.warn('Received no records.');
@@ -49,7 +53,7 @@ export async function processInterventions(
 
   const promiseArray = event.Records.map(async (record: SQSRecord) => {
     try {
-      await processSQSRecord(record, config.accountStatusService, config.interventionEventsService, config.accountStateEngine);
+      await processSQSRecord(record, accountStatusService, interventionEventsService, accountStateEngine, config.historyRetentionSeconds, sqsClient, config.txmaEgressQueueUrl);
     } catch (error: unknown) {
       const itemIdentifier = handleError(error, record);
       if (itemIdentifier) itemFailures.push({ itemIdentifier });
@@ -74,12 +78,15 @@ async function processSQSRecord(
   accountStatusService: AccountStatusService,
   interventionEventsService: InterventionEventsService,
   accountStateEngine: AccountStateEngine,
+  historyRetentionSeconds: number,
+  sqsClient: SQSClient,
+  txmaEgressQueueUrl: string,
 ) {
   const currentTimestamp = getCurrentTimestamp();
 
   const recordBody = attemptToParseJson(record.body);
 
-  const { result, eventName } = await validateRecord(recordBody, accountStateEngine);
+  const { result, eventName } = await validateRecord(recordBody, accountStateEngine, sqsClient, txmaEgressQueueUrl);
 
   const userId = result.user.user_id;
 
@@ -90,8 +97,8 @@ async function processSQSRecord(
   const currentAccountState = formCurrentAccountStateObject(itemFromDB);
 
   if (itemFromDB) {
-    await validateAccountIsNotDeleted(eventName, userId, result, currentAccountState, itemFromDB);
-    await validateEventIsNotStale(eventName, result, currentAccountState, itemFromDB);
+    await validateAccountIsNotDeleted(eventName, userId, result, currentAccountState, itemFromDB, sqsClient, txmaEgressQueueUrl);
+    await validateEventIsNotStale(eventName, result, currentAccountState, itemFromDB, sqsClient, txmaEgressQueueUrl);
   }
 
   const statusResult = await applyEventTransition(
@@ -101,6 +108,8 @@ async function processSQSRecord(
     result,
     interventionEventsService,
     accountStateEngine,
+    sqsClient,
+    txmaEgressQueueUrl,
   );
 
   await accountStatusService.updateUserStatus(
@@ -120,22 +129,22 @@ async function processSQSRecord(
 
   updateAccountStateCountMetric(currentAccountState, statusResult.stateResult);
   addMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName });
-  await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, result, statusResult);
+  await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, result, sqsClient, txmaEgressQueueUrl, statusResult);
 
   try {
-    await persistInterventionEvents(result, eventName, itemFromDB, interventionEventsService);
+    await persistInterventionEvents(result, eventName, itemFromDB, interventionEventsService, historyRetentionSeconds);
   } catch (error) {
     logger.error('Error caught while persisting intervention events.', { errorMessage: (error as Error).message });
     addMetric(MetricNames.PERSIST_INTERVENTION_EVENTS_ERROR);
   }
 }
 
-async function validateRecord(recordBody: unknown, accountStateEngine: AccountStateEngine) {
+async function validateRecord(recordBody: unknown, accountStateEngine: AccountStateEngine, sqsClient: SQSClient, txmaEgressQueueUrl: string) {
   const result = validateEventAgainstSchema(recordBody);
   const eventName = getEventName(result, accountStateEngine);
   logger.debug('Intervention received.', { intervention: eventName });
   validateIfIdentityAcquired(result);
-  await validateEventIsNotInFuture(eventName, result);
+  await validateEventIsNotInFuture(eventName, result, sqsClient, txmaEgressQueueUrl);
 
   return {
     result,
@@ -150,12 +159,14 @@ async function applyEventTransition(
   result: InterventionEventMessage,
   interventionEventsService: InterventionEventsService,
   accountStateEngine: AccountStateEngine,
+  sqsClient: SQSClient,
+  txmaEgressQueueUrl: string,
 ) {
   try {
     return accountStateEngine.applyEventTransition(event, initialState, interventionName);
   } catch (error) {
     if (error instanceof StateTransitionError) {
-      await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, result, error.output);
+      await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, result, sqsClient, txmaEgressQueueUrl, error.output);
       try {
         await persistIgnoredInterventionEvent(result, event, initialState, interventionEventsService);
       } catch (error) {
@@ -222,12 +233,14 @@ async function validateAccountIsNotDeleted(
   record: InterventionEventMessage,
   initialState: StateDetails,
   itemFromDB: DynamoDBStateResult,
+  sqsClient: SQSClient,
+  txmaEgressQueueUrl: string,
 ) {
   if (!itemFromDB.isAccountDeleted) return;
 
   logger.warn(`${LOGS_PREFIX_SENSITIVE_INFO} user ${userId} account has been deleted.`);
   addMetric(MetricNames.ACCOUNT_IS_MARKED_AS_DELETED);
-  await sendAuditEvent('AIS_EVENT_IGNORED_ACCOUNT_DELETED', intervention, record, {
+  await sendAuditEvent('AIS_EVENT_IGNORED_ACCOUNT_DELETED', intervention, record, sqsClient, txmaEgressQueueUrl, {
     stateResult: initialState,
     interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
     nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
