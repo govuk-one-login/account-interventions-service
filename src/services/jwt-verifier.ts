@@ -1,16 +1,27 @@
 import { KMSClient, GetPublicKeyCommand } from '@aws-sdk/client-kms';
 import { importSPKI, jwtVerify, type JWTPayload } from 'jose';
 import logger from '../commons/logger';
+import getEnvironmentOrThrow from '../commons/get-environment-or-throw';
+
+export enum Role {
+  STANDARD_USER = 'standard-user',
+  ADMINISTRATOR = 'administrator',
+  JOINT_CSV_UPLOAD = 'joint-csv-upload',
+}
 
 /**
  * The subset of JWT claims we expect from the FAI authoriser.
  * Extend as the FAI contract evolves.
  */
 export interface FaiJwtPayload extends JWTPayload {
-  /** The authenticated user's identifier */
+  /** The authenticated user's email */
   sub: string;
-  /** The user's authorisation scope(s), space-separated */
-  scope?: string;
+  /** The authenticated user's email */
+  email: string;
+  /** The user's authorisation roles */
+  roles: Role[];
+  iat: number;
+  exp: number;
 }
 
 export interface JwtVerifierInterface {
@@ -33,9 +44,7 @@ export class KmsJwtVerifier implements JwtVerifierInterface {
 
   constructor(
     private readonly kmsClient: KMSClient = new KMSClient(),
-    // Defer env var resolution to first use so construction doesn't throw in test contexts
-    // where a stub verifier would be passed to init() anyway.
-    private readonly keyArn: string = process.env['FAI_AUTH_SIGNING_KEY_ARN'] ?? '',
+    private readonly keyArn: string = getEnvironmentOrThrow('FAI_AUTH_SIGNING_KEY_ARN'),
   ) {}
 
   /**

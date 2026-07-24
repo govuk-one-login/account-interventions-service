@@ -22,7 +22,7 @@ import { randomUUID } from 'node:crypto';
 import { TicfAccountIntervention } from '../contracts/intervention-events';
 import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
 import { transitionConfig } from '../services/account-states/config';
-import { KmsJwtVerifier, type JwtVerifierInterface } from '../services/jwt-verifier';
+import { Authoriser, JwtAuthoriser } from './authoriser';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -67,7 +67,7 @@ export function init(
   }),
   featureFlags: FeatureFlags = FeatureFlagsFromEnvironmentVariables.getInstance(),
   messageService: MessageService = new SqsMessageService(txmaQueueUrl),
-  jwtVerifier: JwtVerifierInterface = new KmsJwtVerifier(),
+  authoriser: Authoriser = new JwtAuthoriser(),
 ) {
   const server = fastify();
 
@@ -84,23 +84,9 @@ export function init(
   // alongside other flat string fields like principalId and redirect.
   // We verify the signature here against FAI's KMS public key so we can trust the claims.
   server.addHook('onRequest', async (request, reply) => {
-    const authorizer = request.awsLambda.event.requestContext.authorizer as
-      { jwt?: string; principalId?: string } | undefined;
+    const authoriserResult = await authoriser.verify(request);
 
-    const token = authorizer?.jwt;
-
-    if (!token) {
-      logger.warn('Request has no JWT in authorizer context', { url: request.url });
-      return reply.code(401).send();
-    }
-
-    try {
-      const payload = await jwtVerifier.verify(token);
-      logger.info('JWT verified successfully', { sub: payload.sub, url: request.url });
-    } catch (error) {
-      logger.warn('JWT verification failed', { url: request.url, error });
-      return reply.code(401).send();
-    }
+    if (!authoriserResult.success) return reply.status(401);
   });
 
   // Serve govuk assets under /assets/ — registers both the dist root (for CSS/JS)
@@ -177,32 +163,26 @@ export function init(
     const userId = request.body.userId?.trim();
 
     if (!userId) {
-      return reply
-        .code(422)
-        .send({
-          error: 'Missing userId',
-          message: 'A user ID is required to send an intervention event. Please provide a valid user ID.',
-        });
+      return reply.code(422).send({
+        error: 'Missing userId',
+        message: 'A user ID is required to send an intervention event. Please provide a valid user ID.',
+      });
     }
 
     const interventionCode = request.body.interventionCode;
 
     if (!interventionCode) {
-      return reply
-        .code(422)
-        .send({
-          error: 'Missing interventionCode',
-          message: 'An intervention code is required. Please select an intervention code before submitting.',
-        });
+      return reply.code(422).send({
+        error: 'Missing interventionCode',
+        message: 'An intervention code is required. Please select an intervention code before submitting.',
+      });
     }
 
     if (!isCode(interventionCode)) {
-      return reply
-        .code(422)
-        .send({
-          error: 'Invalid interventionCode',
-          message: `"${interventionCode}" is not a recognised intervention code. Please select a valid code from the list.`,
-        });
+      return reply.code(422).send({
+        error: 'Invalid interventionCode',
+        message: `"${interventionCode}" is not a recognised intervention code. Please select a valid code from the list.`,
+      });
     }
 
     const timestamp = getCurrentTimestamp();

@@ -5,6 +5,7 @@ import { FeatureFlagsStub } from '../services/feature-flags';
 import { init } from './app';
 import { InterventionState } from '../../packages/ais-status-sdk/src/types';
 import { StubMessageService } from '../services/message-service';
+import { StubAuthoriser } from './authoriser';
 
 init(
   new InterventionStub({
@@ -51,6 +52,7 @@ init(
   new StubMessageService({
     $metadata: {},
   }),
+  new StubAuthoriser(),
 ).listen({ port: 3000 }, (error) => {
   if (error) console.error(error);
   console.log('Server running at http://localhost:3000/');
