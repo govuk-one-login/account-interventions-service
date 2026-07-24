@@ -11,6 +11,7 @@ import {
   InterventionClient,
   InterventionClientInterface,
 } from '@govuk-one-login/ais-status-sdk';
+import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import logger from '../commons/logger';
 import { FeatureFlagsFromEnvironmentVariables, FeatureFlags } from '../services/feature-flags';
 import cookie from '@fastify/cookie';
@@ -21,6 +22,13 @@ import { randomUUID } from 'node:crypto';
 import { TicfAccountIntervention } from '../contracts/intervention-events';
 import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
 import { transitionConfig } from '../services/account-states/config';
+import { Authoriser, JwtAuthoriser } from './authoriser';
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    awsLambda: { event: APIGatewayProxyEvent; context: Context };
+  }
+}
 
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).
@@ -59,6 +67,7 @@ export function init(
   }),
   featureFlags: FeatureFlags = FeatureFlagsFromEnvironmentVariables.getInstance(),
   messageService: MessageService = new SqsMessageService(txmaQueueUrl),
+  authoriser: Authoriser = new JwtAuthoriser(),
 ) {
   const server = fastify();
 
@@ -69,6 +78,16 @@ export function init(
 
   // Parse cookies (used for flash messages)
   server.register(cookie);
+
+  // Verify the FAI-issued JWT on every request.
+  // FAI's Lambda authoriser puts the signed JWT string at requestContext.authorizer.jwt,
+  // alongside other flat string fields like principalId and redirect.
+  // We verify the signature here against FAI's KMS public key so we can trust the claims.
+  server.addHook('onRequest', async (request, reply) => {
+    const authoriserResult = await authoriser.verify(request);
+
+    if (!authoriserResult.success) return reply.status(401);
+  });
 
   // Serve govuk assets under /assets/ — registers both the dist root (for CSS/JS)
   // and the assets subdirectory (for fonts, images, manifest) as a single plugin registration.
@@ -144,17 +163,26 @@ export function init(
     const userId = request.body.userId?.trim();
 
     if (!userId) {
-      return reply.code(422).send({ error: 'Missing userId', message: 'A user ID is required to send an intervention event. Please provide a valid user ID.' });
+      return reply.code(422).send({
+        error: 'Missing userId',
+        message: 'A user ID is required to send an intervention event. Please provide a valid user ID.',
+      });
     }
 
     const interventionCode = request.body.interventionCode;
 
     if (!interventionCode) {
-      return reply.code(422).send({ error: 'Missing interventionCode', message: 'An intervention code is required. Please select an intervention code before submitting.' });
+      return reply.code(422).send({
+        error: 'Missing interventionCode',
+        message: 'An intervention code is required. Please select an intervention code before submitting.',
+      });
     }
 
     if (!isCode(interventionCode)) {
-      return reply.code(422).send({ error: 'Invalid interventionCode', message: `"${interventionCode}" is not a recognised intervention code. Please select a valid code from the list.` });
+      return reply.code(422).send({
+        error: 'Invalid interventionCode',
+        message: `"${interventionCode}" is not a recognised intervention code. Please select a valid code from the list.`,
+      });
     }
 
     const timestamp = getCurrentTimestamp();
