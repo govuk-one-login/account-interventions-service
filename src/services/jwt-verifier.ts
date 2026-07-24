@@ -79,7 +79,7 @@ export class KmsJwtVerifier implements JwtVerifierInterface {
     // KMS returns the public key as DER-encoded SubjectPublicKeyInfo (SPKI).
     // jose's importSPKI expects PEM, so we convert.
     const pem = derToPem(response.PublicKey);
-    this.cachedPublicKey = await importSPKI(pem, 'RS256', { extractable: false });
+    this.cachedPublicKey = await importSPKI(pem, 'ES384', { extractable: false });
 
     return this.cachedPublicKey;
   }

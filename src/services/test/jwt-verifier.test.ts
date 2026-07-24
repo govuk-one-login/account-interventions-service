@@ -34,9 +34,9 @@ function pemToDer(pem: string): Uint8Array {
   return Uint8Array.from(Buffer.from(b64, 'base64'));
 }
 
-/** Generate a fresh RSA-2048 key pair and return helpers for signing / spki */
+/** Generate a fresh P-384 key pair and return helpers for signing / spki */
 async function makeKeyPair() {
-  const { privateKey, publicKey } = await generateKeyPair('RS256', { extractable: true });
+  const { privateKey, publicKey } = await generateKeyPair('ES384', { extractable: true });
 
   const spkiPem = await exportSPKI(publicKey);
   const pkcs8Pem = await exportPKCS8(privateKey);
@@ -55,7 +55,7 @@ async function makeKeyPair() {
       exp: now + expOffsetSeconds,
       ...overrides,
     })
-      .setProtectedHeader({ alg: 'RS256', typ: 'JWT' })
+      .setProtectedHeader({ alg: 'ES384', typ: 'JWT' })
       .sign(privateKey);
   }
 
@@ -218,7 +218,7 @@ describe('KmsJwtVerifier', () => {
         iat: now,
         exp: now + 300,
       })
-        .setProtectedHeader({ alg: 'RS256' }) // no typ: 'JWT'
+        .setProtectedHeader({ alg: 'ES384' }) // no typ: 'JWT'
         .sign(privateKey);
 
       const verifier = new KmsJwtVerifier(new KMSClient(), KEY_ARN);
