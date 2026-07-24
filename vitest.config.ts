@@ -15,7 +15,7 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
       reportsDirectory: './coverage',
     },
-    exclude: ['**/node_modules/**', 'src/contract-testing/**', '.stryker-tmp/**', 'src/scripts/**'],
+    exclude: ['**/node_modules/**', 'src/contract-testing/**', '.stryker-tmp/**', 'src/scripts/**', 'packages/ais-status-sdk/integration-tests/**'],
     env: {
       CLOUDWATCH_METRICS_NAMESPACE: 'test_namespace',
       METRIC_SERVICE_NAME: 'test',
