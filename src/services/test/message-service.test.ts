@@ -109,7 +109,7 @@ describe('StubMessageService', () => {
   it('throws an error for sendMessage', async () => {
     const stubService = new StubMessageService();
 
-    await expect(stubService.sendMessage()).rejects.toThrow('No message output provided to stub');
+    await expect(stubService.sendMessage({})).rejects.toThrow('No message output provided to stub');
   });
 
   it('throws an error for sendBatchMessage', async () => {
@@ -123,7 +123,7 @@ describe('StubMessageService', () => {
       $metadata: {},
     });
 
-    const result = await stubService.sendMessage();
+    const result = await stubService.sendMessage({});
 
     expect(result).toEqual({ $metadata: {} });
   });

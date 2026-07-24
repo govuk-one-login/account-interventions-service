@@ -16,10 +16,11 @@ import { FeatureFlagsFromEnvironmentVariables, FeatureFlags } from '../services/
 import cookie from '@fastify/cookie';
 import { MessageService, SqsMessageService } from '../services/message-service';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-import { TriggerEventsEnum } from '../data-types/constants';
+import { isCode, TriggerEventsEnum } from '../data-types/constants';
 import { randomUUID } from 'node:crypto';
 import { TicfAccountIntervention } from '../contracts/intervention-events';
 import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
+import { transitionConfig } from '../services/account-states/config';
 
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).
@@ -109,7 +110,6 @@ export function init(
     if (!userId) return reply.code(400).send();
 
     // Read and immediately clear the flash cookie so the banner only shows once.
-    // eslint-disable-next-line unicorn/consistent-boolean-name
     const messageSent = request.cookies['flash_message_sent'] === 'true';
     if (messageSent) {
       void reply.clearCookie('flash_message_sent', { path: '/' });
@@ -117,6 +117,13 @@ export function init(
 
     const accountStatus = await interventionClient.getAccountStatus(userId);
     const accountHistory = await interventionClient.getAccountHistory(userId);
+
+    const interventions = Object.entries(transitionConfig.edges)
+      .filter(([_code, edge]) => edge.interventionName)
+      .map(([code, edge]) => ({
+        value: code,
+        text: `${code} - ${edge.name}`,
+      }));
 
     return reply.view('user-details.njk', {
       pathPrefix,
@@ -126,14 +133,29 @@ export function init(
       accountHistory: formatHistory(accountHistory),
       messageSent,
       aisSendTxMA: featureFlags.isEnabled('aisSendTxMA'),
+      interventions,
     });
   });
 
   // Sends a TxMA audit event for the given userId and redirects back to the user details page.
-  server.post<{ Body: { userId?: string } }>('/send', async (request, reply) => {
+  server.post<{ Body: { userId?: string; interventionCode?: string } }>('/send', async (request, reply) => {
     if (!featureFlags.isEnabled('aisSendTxMA')) return reply.code(404).send();
 
-    const userId = request.body.userId?.trim() ?? '';
+    const userId = request.body.userId?.trim();
+
+    if (!userId) {
+      return reply.code(422).send({ error: 'Missing userId', message: 'A user ID is required to send an intervention event. Please provide a valid user ID.' });
+    }
+
+    const interventionCode = request.body.interventionCode;
+
+    if (!interventionCode) {
+      return reply.code(422).send({ error: 'Missing interventionCode', message: 'An intervention code is required. Please select an intervention code before submitting.' });
+    }
+
+    if (!isCode(interventionCode)) {
+      return reply.code(422).send({ error: 'Invalid interventionCode', message: `"${interventionCode}" is not a recognised intervention code. Please select a valid code from the list.` });
+    }
 
     const timestamp = getCurrentTimestamp();
 
@@ -146,7 +168,7 @@ export function init(
       user: { user_id: userId },
       extensions: {
         intervention: {
-          intervention_code: '01',
+          intervention_code: interventionCode,
           intervention_reason: '',
           requester_id: 'interventions@digital.cabinet-office.gov.uk',
         },

@@ -1,0 +1,16 @@
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% if aisSendTxMA %}
+  <h2 class="govuk-heading-m">Send Intervention</h2>
+  <form method="post" action="{{ stagePrefix }}/send">
+    <input type="hidden" name="userId" value="{{ userId }}"/> {{ govukSelect({
+      id: "intervention-code",
+      name: "interventionCode",
+      label: {
+        text: "Intervention type"
+      },
+      items: interventions
+    }) }}
+    {{ govukButton({ text: "Send TxMA Message" }) }}
+  </form>
+{% endif %}

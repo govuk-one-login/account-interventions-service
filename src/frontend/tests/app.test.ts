@@ -4,6 +4,11 @@ import { StubMessageService } from '../../services/message-service';
 import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
 import { FeatureFlagsStub } from '../../services/feature-flags';
 
+interface ValidationErrorBody {
+  error: string;
+  message: string;
+}
+
 describe('frontend app', () => {
   it('returns 200 for GET /', async () => {
     const server = init(new InterventionStub({ result: { interventions: [] } }));
@@ -155,7 +160,7 @@ describe('frontend app', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/send',
-        payload: 'userId=test-user-id',
+        payload: 'userId=test-user-id&interventionCode=01',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
       });
       expect(response.statusCode).toBe(303);
@@ -172,7 +177,7 @@ describe('frontend app', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/send',
-        payload: `userId=${encodeURIComponent(userId)}`,
+        payload: `userId=${encodeURIComponent(userId)}&interventionCode=01`,
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
       });
       expect(response.statusCode).toBe(303);
@@ -191,7 +196,7 @@ describe('frontend app', () => {
       await server.inject({
         method: 'POST',
         url: '/send',
-        payload: 'userId=test-user-id',
+        payload: 'userId=test-user-id&interventionCode=01',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
       });
 
@@ -208,7 +213,7 @@ describe('frontend app', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/send',
-        payload: 'userId=test-user-id',
+        payload: 'userId=test-user-id&interventionCode=01',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
       });
 
@@ -229,7 +234,7 @@ describe('frontend app', () => {
       const postResponse = await server.inject({
         method: 'POST',
         url: '/send',
-        payload: 'userId=test-user-id',
+        payload: 'userId=test-user-id&interventionCode=01',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
       });
 
@@ -260,10 +265,65 @@ describe('frontend app', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/send',
-        payload: 'userId=test-user-id',
+        payload: 'userId=test-user-id&interventionCode=01',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
       });
       expect(response.statusCode).toBe(500);
+    });
+
+    it('returns 422 with a helpful message when userId is missing', async () => {
+      const server = init(
+        new InterventionStub({ result: { interventions: [] } }),
+        new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
+        new StubMessageService(successOutput),
+      );
+      const response = await server.inject({
+        method: 'POST',
+        url: '/send',
+        payload: 'interventionCode=01',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      });
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ValidationErrorBody;
+      expect(body.error).toBe('Missing userId');
+      expect(body.message).toContain('user ID is required');
+    });
+
+    it('returns 422 with a helpful message when interventionCode is missing', async () => {
+      const server = init(
+        new InterventionStub({ result: { interventions: [] } }),
+        new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
+        new StubMessageService(successOutput),
+      );
+      const response = await server.inject({
+        method: 'POST',
+        url: '/send',
+        payload: 'userId=test-user-id',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      });
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ValidationErrorBody;
+      expect(body.error).toBe('Missing interventionCode');
+      expect(body.message).toContain('intervention code is required');
+    });
+
+    it('returns 422 with a helpful message when interventionCode is not recognised', async () => {
+      const server = init(
+        new InterventionStub({ result: { interventions: [] } }),
+        new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
+        new StubMessageService(successOutput),
+      );
+      const response = await server.inject({
+        method: 'POST',
+        url: '/send',
+        payload: 'userId=test-user-id&interventionCode=INVALID',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      });
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ValidationErrorBody;
+      expect(body.error).toBe('Invalid interventionCode');
+      expect(body.message).toContain('INVALID');
+      expect(body.message).toContain('not a recognised intervention code');
     });
   });
 });
