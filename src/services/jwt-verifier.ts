@@ -2,6 +2,7 @@ import { KMSClient, GetPublicKeyCommand } from '@aws-sdk/client-kms';
 import { importSPKI, jwtVerify, type JWTPayload } from 'jose';
 import logger from '../commons/logger';
 import getEnvironmentOrThrow from '../commons/get-environment-or-throw';
+import { createPublicKey } from 'node:crypto';
 
 export enum Role {
   STANDARD_USER = 'standard-user',
@@ -89,7 +90,12 @@ export class KmsJwtVerifier implements JwtVerifierInterface {
  * Converts a DER-encoded SubjectPublicKeyInfo buffer to a PEM string.
  */
 function derToPem(der: Uint8Array): string {
-  const b64 = Buffer.from(der).toString('base64');
-  const lines = b64.match(/.{1,64}/g) ?? [];
-  return `-----BEGIN PUBLIC KEY-----\n${lines.join('\n')}\n-----END PUBLIC KEY-----\n`;
+  const key = createPublicKey({ key: Buffer.from(der), format: 'der', type: 'spki' });
+
+  const output = key.export({ format: 'pem', type: 'spki' });
+
+  if (typeof output !== 'string')
+    throw new Error('Error converting  DER-encoded SubjectPublicKeyInfo buffer to a PEM string');
+
+  return output;
 }
