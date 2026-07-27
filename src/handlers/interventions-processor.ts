@@ -53,7 +53,15 @@ export async function processInterventions(
 
   const promiseArray = event.Records.map(async (record: SQSRecord) => {
     try {
-      await processSQSRecord(record, accountStatusService, interventionEventsService, accountStateEngine, config.historyRetentionSeconds, sqsClient, config.txmaEgressQueueUrl);
+      await processSQSRecord(
+        record,
+        accountStatusService,
+        interventionEventsService,
+        accountStateEngine,
+        config.historyRetentionSeconds,
+        sqsClient,
+        config.txmaEgressQueueUrl,
+      );
     } catch (error: unknown) {
       const itemIdentifier = handleError(error, record);
       if (itemIdentifier) itemFailures.push({ itemIdentifier });
@@ -97,7 +105,15 @@ async function processSQSRecord(
   const currentAccountState = formCurrentAccountStateObject(itemFromDB);
 
   if (itemFromDB) {
-    await validateAccountIsNotDeleted(eventName, userId, result, currentAccountState, itemFromDB, sqsClient, txmaEgressQueueUrl);
+    await validateAccountIsNotDeleted(
+      eventName,
+      userId,
+      result,
+      currentAccountState,
+      itemFromDB,
+      sqsClient,
+      txmaEgressQueueUrl,
+    );
     await validateEventIsNotStale(eventName, result, currentAccountState, itemFromDB, sqsClient, txmaEgressQueueUrl);
   }
 
@@ -108,8 +124,10 @@ async function processSQSRecord(
     result,
     interventionEventsService,
     accountStateEngine,
-    sqsClient,
-    txmaEgressQueueUrl,
+    {
+      sqsClient,
+      txmaEgressQueueUrl,
+    },
   );
 
   await accountStatusService.updateUserStatus(
@@ -139,7 +157,12 @@ async function processSQSRecord(
   }
 }
 
-async function validateRecord(recordBody: unknown, accountStateEngine: AccountStateEngine, sqsClient: SQSClient, txmaEgressQueueUrl: string) {
+async function validateRecord(
+  recordBody: unknown,
+  accountStateEngine: AccountStateEngine,
+  sqsClient: SQSClient,
+  txmaEgressQueueUrl: string,
+) {
   const result = validateEventAgainstSchema(recordBody);
   const eventName = getEventName(result, accountStateEngine);
   logger.debug('Intervention received.', { intervention: eventName });
@@ -159,14 +182,23 @@ async function applyEventTransition(
   result: InterventionEventMessage,
   interventionEventsService: InterventionEventsService,
   accountStateEngine: AccountStateEngine,
-  sqsClient: SQSClient,
-  txmaEgressQueueUrl: string,
+  sqs: {
+    sqsClient: SQSClient;
+    txmaEgressQueueUrl: string;
+  },
 ) {
   try {
     return accountStateEngine.applyEventTransition(event, initialState, interventionName);
   } catch (error) {
     if (error instanceof StateTransitionError) {
-      await sendAuditEvent('AIS_EVENT_TRANSITION_IGNORED', error.transition, result, sqsClient, txmaEgressQueueUrl, error.output);
+      await sendAuditEvent(
+        'AIS_EVENT_TRANSITION_IGNORED',
+        error.transition,
+        result,
+        sqs.sqsClient,
+        sqs.txmaEgressQueueUrl,
+        error.output,
+      );
       try {
         await persistIgnoredInterventionEvent(result, event, initialState, interventionEventsService);
       } catch (error) {
