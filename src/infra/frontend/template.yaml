@@ -59,12 +59,6 @@ Parameters:
     Type: String
     Description: CSLS Subscription endpoint
     Default: 'arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2'
-  FaiAuthSigningKeyArn:
-    Description: >-
-      The ARN of the FAI asymmetric KMS signing key used to verify JWTs passed
-      by the FAI Lambda authoriser. The key lives in the FAI AWS account; this
-      function's role must have kms:GetPublicKey permission on it.
-    Type: String
   CodeSigningConfigArn:
     Description: Asserts that lambdas are signed when deployed.
     Type: String
@@ -93,24 +87,30 @@ Conditions:
     !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build], !Equals [!Ref Environment, staging]]
   IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
   IsDev: !Equals [!Ref Environment, dev]
+  HasFaiAuthSigningKey: !Not [!Equals [!FindInMap [EnvConfig, !Ref Environment, FaiAuthSigningKeyArn], '']]
 
 Mappings:
   EnvConfig:
     dev:
       LambdaLogLevel: DEBUG
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
+      FaiAuthSigningKeyArn: ''
     build:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
+      FaiAuthSigningKeyArn: ''
     staging:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
+      FaiAuthSigningKeyArn: ''
     integration:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
+      FaiAuthSigningKeyArn: ''
     production:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables # pragma: allowlist secret
+      FaiAuthSigningKeyArn: ''
   FeatureFlags:
     dev:
       EnableAISFrontend: true
@@ -201,7 +201,7 @@ Resources:
             - Fn::ImportValue: !Sub '${MainStackName}-TxMAIngressSqsQueueUrl'
             - !Ref 'AWS::NoValue'
             # - Fn::ImportValue: !Sub '${MainStackName}-TxMAEgressSqsQueueUrl'
-          FAI_AUTH_SIGNING_KEY_ARN: !Ref FaiAuthSigningKeyArn
+          FAI_AUTH_SIGNING_KEY_ARN: !FindInMap [EnvConfig, !Ref Environment, FaiAuthSigningKeyArn]
       Events:
         ApiEvent:
           Type: Api
@@ -288,11 +288,14 @@ Resources:
               - 'kms:GenerateDataKey'
             Resource:
               Fn::ImportValue: !Sub '${MainStackName}-SQSEncryptionKeyArn'
-          - Effect: Allow
-            Action:
-              - 'kms:GetPublicKey'
-            Resource:
-              - !Ref FaiAuthSigningKeyArn
+          - !If
+            - HasFaiAuthSigningKey
+            - Effect: Allow
+              Action:
+                - 'kms:GetPublicKey'
+              Resource:
+                - !FindInMap [EnvConfig, !Ref Environment, FaiAuthSigningKeyArn]
+            - !Ref AWS::NoValue
       Roles:
         - !Ref FrontendFunctionRole
 
