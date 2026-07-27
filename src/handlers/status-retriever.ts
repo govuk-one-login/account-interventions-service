@@ -93,7 +93,12 @@ async function v2StatusApiHandler(
   headers: APIGatewayProxyEventHeaders,
 ) {
   const clientId = headers['x-client-id'];
-  addMetric(MetricNames.STATUS_REQUESTED, [], 1, clientId ? { clientId } : undefined);
+  const sdkVersion = headers['x-sdk-version'];
+
+  addMetric(MetricNames.STATUS_REQUESTED, [], 1, {
+    clientId: clientId ?? 'not-provided',
+    sdkVersion: sdkVersion ?? 'not-provided',
+  });
 
   const response = await accountStatusService.getAccountStateInformation(userId);
   if (!response) {

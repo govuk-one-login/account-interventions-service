@@ -1,4 +1,5 @@
 import typescript from '@rollup/plugin-typescript';
+import json from '@rollup/plugin-json';
 import dts from 'rollup-plugin-dts';
 import { defineConfig, type RollupOptions } from 'rollup';
 
@@ -17,13 +18,13 @@ const config: RollupOptions[] = [
     input,
     external: ['zod'],
     output: { file: 'dist/index.cjs', format: 'cjs' },
-    plugins: [jsTs('dist')],
+    plugins: [json(), jsTs('dist')],
   },
   {
     input,
     external: ['zod'],
     output: { file: 'dist/index.js', format: 'es' },
-    plugins: [jsTs('dist')],
+    plugins: [json(), jsTs('dist')],
   },
   {
     input,
