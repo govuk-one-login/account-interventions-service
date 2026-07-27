@@ -7,14 +7,11 @@ import { InterventionEvent, InterventionEventsService } from '../tables/interven
 import { randomUUID } from 'node:crypto';
 import getActiveInterventions from './active-interventions-service';
 import { InterventionName } from '../data-types/intervention-name';
-import { AppConfigService } from './app-config-service';
 
 interface InterventionUpdate {
   interventionName: InterventionName;
   interventionState: InterventionState;
 }
-
-const appConfig = AppConfigService.getInstance();
 
 /**
  * Generate and append intervention events based on the received txma message
@@ -28,6 +25,7 @@ async function persistInterventionEvents(
   event: EventsEnum,
   previousState: StateDetails | undefined,
   interventionEventsService: InterventionEventsService,
+  historyRetentionSeconds: number,
 ) {
   const updates: InterventionUpdate[] = config[event];
 
@@ -46,7 +44,7 @@ async function persistInterventionEvents(
   const closedNames = eventsToAppend
     .filter((event) => event.interventionState !== InterventionState.ACTIVE)
     .map((event) => event.interventionName);
-  await setTtlOnInactiveEvents(message.user.user_id, interventionEventsService, closedNames);
+  await setTtlOnInactiveEvents(message.user.user_id, interventionEventsService, closedNames, historyRetentionSeconds);
 }
 
 export async function persistIgnoredInterventionEvent(
@@ -142,10 +140,11 @@ export async function setTtlOnInactiveEvents(
   accountId: string,
   interventionEventsService: InterventionEventsService,
   closedInterventionNames: InterventionName[],
+  historyRetentionSeconds: number,
 ) {
   const allEvents = await interventionEventsService.fetchEventsForAccount(accountId);
   const now = getCurrentTimestamp();
-  const ttl = now.seconds + appConfig.historyRetentionSeconds;
+  const ttl = now.seconds + historyRetentionSeconds;
 
   const eventsNeedingTtl = allEvents.filter(
     (event) => closedInterventionNames.includes(event.interventionName) && !event.ttl,
