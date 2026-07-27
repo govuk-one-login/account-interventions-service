@@ -65,7 +65,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@asteasolutions/zod-to-openapi": "^8.5.0",
+    "@asteasolutions/zod-to-openapi": "^9.1.0",
     "@aws-sdk/client-sso-oidc": "^3.1090.0",
     "@aws-sdk/client-sts": "^3.1090.0",
     "@eslint/js": "^10.0.1",
