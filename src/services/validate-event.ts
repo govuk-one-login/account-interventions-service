@@ -6,11 +6,9 @@ import { RetryEventError, ValidationError } from '../data-types/errors';
 import { compileSchema } from '../commons/compile-schema';
 import { EventCatalogueCombinedSchema } from '../data-types/event-catalogue-combined-schema';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-import { sendAuditEvent } from './send-audit-events';
 import { AccountStateEngine } from './account-states/account-state-engine';
 import jsonSafeParse from '../commons/json-safe-parse';
 import { InterventionEventMessage, interventionMessageSchema } from '../contracts/intervention-events';
-import { SQSClient } from '@aws-sdk/client-sqs';
 
 const validateEventCatalogue = compileSchema(EventCatalogueCombinedSchema);
 
@@ -61,17 +59,15 @@ export function validateIfIdentityAcquired(event: InterventionEventMessage) {
 }
 
 /**
- * A function to validate that the event received is not in the future
+ * A function to validate that the event received is not in the future.
+ * This function is pure: it performs no I/O. When the event is in the future it throws a
+ * {@link RetryEventError} carrying the audit-event intent, leaving the central processing
+ * function to actually emit the audit event.
  * @param eventEnum - the event name as an EventsEnum
  * @param event - the event received
  * @throws RetryEventError - if the timestamp of the event is in the future
  */
-export async function validateEventIsNotInFuture(
-  eventEnum: EventsEnum,
-  event: InterventionEventMessage,
-  sqsClient: SQSClient,
-  txmaEgressQueueUrl: string,
-) {
+export function validateEventIsNotInFuture(eventEnum: EventsEnum, event: InterventionEventMessage) {
   const eventTimestampInMs = event.event_timestamp_ms;
   const now = getCurrentTimestamp().milliseconds;
   if (now < eventTimestampInMs) {
@@ -83,37 +79,39 @@ export async function validateEventIsNotInFuture(
       event: eventEnum,
     });
     addMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
-    await sendAuditEvent('AIS_EVENT_IGNORED_IN_FUTURE', eventEnum, event, sqsClient, txmaEgressQueueUrl);
-    throw new RetryEventError('Event has timestamp that is in the future.');
+    throw new RetryEventError('Event has timestamp that is in the future.', {
+      egressEventName: 'AIS_EVENT_IGNORED_IN_FUTURE',
+    });
   }
 }
 
 /**
- * A function to validate that the event is not stale
- * @param intervention - the intervention name
+ * A function to validate that the event is not stale.
+ * This function is pure: it performs no I/O. When the event is stale it throws a
+ * {@link ValidationError} carrying the audit-event intent, leaving the central processing
+ * function to actually emit the audit event.
  * @param event - the event received
- * @param itemFromDB - the user data retrieved from the database
  * @param initialState - initial state of the account
+ * @param itemFromDB - the user data retrieved from the database
  * @throws ValidationError - if the time of the event pre-dates the timestamp of the latest intervention applied on the account
  */
-export async function validateEventIsNotStale(
-  intervention: EventsEnum,
+export function validateEventIsNotStale(
   event: InterventionEventMessage,
   initialState: StateDetails,
   itemFromDB: DynamoDBStateResult,
-  sqsClient: SQSClient,
-  txmaEgressQueueUrl: string,
 ) {
   const eventTimestampInMs = event.event_timestamp_ms;
   if (!isEventAfterLastEvent(eventTimestampInMs, itemFromDB.sentAt, itemFromDB.appliedAt)) {
     logger.warn('Event received predates last applied event for this user.');
     addMetric(MetricNames.INTERVENTION_EVENT_STALE);
-    await sendAuditEvent('AIS_EVENT_IGNORED_STALE', intervention, event, sqsClient, txmaEgressQueueUrl, {
-      stateResult: initialState,
-      interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-      nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+    throw new ValidationError('Event received predates last applied event for this user.', {
+      egressEventName: 'AIS_EVENT_IGNORED_STALE',
+      accountStateEngineOutput: {
+        stateResult: initialState,
+        interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+        nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+      },
     });
-    throw new ValidationError('Event received predates last applied event for this user.');
   }
 }
 

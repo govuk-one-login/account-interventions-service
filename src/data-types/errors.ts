@@ -1,6 +1,16 @@
 // Stryker disable StringLiteral: Testing against the name of an exception class is just a change-detector test
 import { EventsEnum } from './constants';
-import { AccountStateEngineOutput } from './interfaces';
+import { AccountStateEngineOutput, TxMAEgressInterventionEventName } from './interfaces';
+
+/**
+ * Describes the audit event that should be emitted as a consequence of an error, without
+ * performing the emission. Validation functions attach this to the error they throw so that
+ * the central SQS processing function remains the single place that actually sends audit events.
+ */
+export interface AuditEventIntent {
+  egressEventName: TxMAEgressInterventionEventName;
+  accountStateEngineOutput?: AccountStateEngineOutput;
+}
 
 export class InvalidEnvironmentVariableError extends Error {
   constructor(message: string | undefined) {
@@ -27,7 +37,10 @@ export class StateTransitionError extends Error {
 }
 
 export class ValidationError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    public readonly auditEvent?: AuditEventIntent,
+  ) {
     super(message);
     this.name = 'ValidationError';
   }
@@ -41,7 +54,10 @@ export class TooManyRecordsError extends Error {
 }
 
 export class RetryEventError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    public readonly auditEvent?: AuditEventIntent,
+  ) {
     super(message);
     this.name = 'RetryEventError';
   }
