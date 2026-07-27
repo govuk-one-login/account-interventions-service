@@ -1,5 +1,4 @@
-import { FastifyRequest } from 'fastify';
-import { JwtAuthoriser, StubAuthoriser } from '../authoriser';
+import { JwtAuthoriser, type AuthoriserContext } from '../authoriser';
 import { type JwtVerifierInterface, type FaiJwtPayload, Role } from '../../services/jwt-verifier';
 import logger from '../../commons/logger';
 
@@ -23,38 +22,16 @@ function makePayload(overrides: Partial<FaiJwtPayload> = {}): FaiJwtPayload {
 }
 
 /**
- * Build a minimal FastifyRequest-shaped object that satisfies the subset
- * of the interface that JwtAuthoriser.verify reads.
+ * Build a minimal authoriser context object as would come from
+ * requestContext.authorizer in the Lambda event.
  */
-function makeRequest(options: { jwt?: string; principalId?: string; url?: string } = {}): FastifyRequest {
-  return {
-    url: options.url ?? '/test',
-    awsLambda: {
-      event: {
-        requestContext: {
-          authorizer: {
-            jwt: options.jwt,
-            principalId: options.principalId,
-          },
-        },
-      },
-      context: {},
-    },
-  } as unknown as FastifyRequest;
-}
+const makeContext = (options: { jwt?: string; principalId?: string } = {}): AuthoriserContext => ({
+  jwt: options.jwt,
+  principalId: options.principalId,
+});
 
-/** Build a request where requestContext.authorizer is entirely absent */
-function makeRequestWithNoAuthorizer(url = '/test'): FastifyRequest {
-  return {
-    url,
-    awsLambda: {
-      event: {
-        requestContext: {},
-      },
-      context: {},
-    },
-  } as unknown as FastifyRequest;
-}
+/** URL constant reused across tests */
+const TEST_URL = '/test';
 
 // ---------------------------------------------------------------------------
 // JwtAuthoriser
@@ -80,19 +57,19 @@ describe('JwtAuthoriser', () => {
     it('returns { success: true, payload } when the token verifies successfully', async () => {
       const payload = makePayload();
       verifyMock.mockResolvedValue(payload);
-      const result = await authoriser.verify(makeRequest({ jwt: 'valid.token.here' }));
+      const result = await authoriser.verify(makeContext({ jwt: 'valid.token.here' }), TEST_URL);
       expect(result).toEqual({ success: true, payload });
     });
 
     it('passes the token from the authorizer context to the verifier', async () => {
       verifyMock.mockResolvedValue(makePayload());
-      await authoriser.verify(makeRequest({ jwt: 'my.signed.jwt' }));
+      await authoriser.verify(makeContext({ jwt: 'my.signed.jwt' }), TEST_URL);
       expect(verifyMock).toHaveBeenCalledWith('my.signed.jwt');
     });
 
     it('logs a success message including sub and url', async () => {
       verifyMock.mockResolvedValue(makePayload({ sub: 'admin@example.com' }));
-      await authoriser.verify(makeRequest({ jwt: 'valid.token.here', url: '/some/path' }));
+      await authoriser.verify(makeContext({ jwt: 'valid.token.here' }), '/some/path');
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.info).toHaveBeenCalledWith('JWT verified successfully', {
         url: '/some/path',
@@ -106,22 +83,22 @@ describe('JwtAuthoriser', () => {
 
   describe('missing JWT', () => {
     it('returns { success: false } when there is no jwt field in the authorizer context', async () => {
-      const result = await authoriser.verify(makeRequest());
+      const result = await authoriser.verify(makeContext(), TEST_URL);
       expect(result).toEqual({ success: false });
     });
 
     it('returns { success: false } when the authorizer context is entirely absent', async () => {
-      const result = await authoriser.verify(makeRequestWithNoAuthorizer());
+      const result = await authoriser.verify(undefined, TEST_URL);
       expect(result).toEqual({ success: false });
     });
 
     it('does not call the verifier when the token is missing', async () => {
-      await authoriser.verify(makeRequest());
+      await authoriser.verify(makeContext(), TEST_URL);
       expect(verifyMock).not.toHaveBeenCalled();
     });
 
     it('logs a warning including the url when the token is missing', async () => {
-      await authoriser.verify(makeRequest({ url: '/protected' }));
+      await authoriser.verify(makeContext(), '/protected');
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.warn).toHaveBeenCalledWith('Request has no JWT in authorizer context', { url: '/protected' });
     });
@@ -134,21 +111,21 @@ describe('JwtAuthoriser', () => {
   describe('failed verification', () => {
     it('returns { success: false } when the verifier throws', async () => {
       verifyMock.mockRejectedValue(new Error('signature mismatch'));
-      const result = await authoriser.verify(makeRequest({ jwt: 'bad.token.here' }));
+      const result = await authoriser.verify(makeContext({ jwt: 'bad.token.here' }), TEST_URL);
       expect(result).toEqual({ success: false });
     });
 
     it('logs a warning with the url and error when verification fails', async () => {
       const error = new Error('token expired');
       verifyMock.mockRejectedValue(error);
-      await authoriser.verify(makeRequest({ jwt: 'expired.token.here', url: '/dashboard' }));
+      await authoriser.verify(makeContext({ jwt: 'expired.token.here' }), '/dashboard');
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.warn).toHaveBeenCalledWith('JWT verification failed', { url: '/dashboard', error });
     });
 
     it('does not re-throw when the verifier throws', async () => {
       verifyMock.mockRejectedValue(new Error('unexpected error'));
-      await expect(authoriser.verify(makeRequest({ jwt: 'token' }))).resolves.toEqual({ success: false });
+      await expect(authoriser.verify(makeContext({ jwt: 'token' }), TEST_URL)).resolves.toEqual({ success: false });
     });
   });
 
@@ -162,22 +139,5 @@ describe('JwtAuthoriser', () => {
       expect(() => new JwtAuthoriser()).not.toThrow();
       vi.unstubAllEnvs();
     });
-  });
-});
-
-// ---------------------------------------------------------------------------
-// StubAuthoriser
-// ---------------------------------------------------------------------------
-
-describe('StubAuthoriser', () => {
-  it('always returns { success: true, payload: {} }', async () => {
-    const stub = new StubAuthoriser();
-    const result = await stub.verify();
-    expect(result).toEqual({ success: true, payload: {} });
-  });
-
-  it('resolves without calling any external dependencies', async () => {
-    const stub = new StubAuthoriser();
-    await expect(stub.verify()).resolves.toEqual({ success: true, payload: {} });
   });
 });

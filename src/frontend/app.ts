@@ -1,4 +1,4 @@
-import fastify from 'fastify';
+import fastify, { FastifyReply, FastifyRequest } from 'fastify';
 import view from '@fastify/view';
 import staticFiles from '@fastify/static';
 import formbody from '@fastify/formbody';
@@ -61,6 +61,13 @@ function formatDate(value: string | number): string {
   );
 }
 
+export const generateVerifyRequest =
+  (authoriser: Authoriser) => async (request: FastifyRequest, reply: FastifyReply) => {
+    const authoriserResult = await authoriser.verify(request.awsLambda.event.requestContext.authorizer, request.url);
+
+    if (!authoriserResult.success) return reply.status(401);
+  };
+
 export function init(
   interventionClient: InterventionClientInterface = new InterventionClient(statusApiUrl, {
     logger,
@@ -83,11 +90,7 @@ export function init(
   // FAI's Lambda authoriser puts the signed JWT string at requestContext.authorizer.jwt,
   // alongside other flat string fields like principalId and redirect.
   // We verify the signature here against FAI's KMS public key so we can trust the claims.
-  server.addHook('onRequest', async (request, reply) => {
-    const authoriserResult = await authoriser.verify(request);
-
-    if (!authoriserResult.success) return reply.status(401);
-  });
+  server.addHook('onRequest', generateVerifyRequest(authoriser));
 
   // Serve govuk assets under /assets/ — registers both the dist root (for CSS/JS)
   // and the assets subdirectory (for fonts, images, manifest) as a single plugin registration.
@@ -181,7 +184,7 @@ export function init(
     if (!isCode(interventionCode)) {
       return reply.code(422).send({
         error: 'Invalid interventionCode',
-        message: `"${interventionCode}" is not a recognised intervention code. Please select a valid code from the list.`,
+        message: `"${interventionCode}" is not a recognised intervention code. Please provide a valid code.`,
       });
     }
 

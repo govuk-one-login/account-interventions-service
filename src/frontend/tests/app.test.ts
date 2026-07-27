@@ -1,18 +1,134 @@
-import { formatHistory, init } from '../app';
+import { formatHistory, init, generateVerifyRequest } from '../app';
 import { InterventionStub, InterventionName, InterventionState } from '@govuk-one-login/ais-status-sdk';
 import { StubMessageService } from '../../services/message-service';
 import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
 import { FeatureFlagsStub } from '../../services/feature-flags';
-import { StubAuthoriser } from '../authoriser';
+import { JwtAuthoriser, StubAuthoriser } from '../authoriser';
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { APIGatewayProxyEvent, Context } from 'aws-lambda';
+import type { FaiJwtPayload, JwtVerifierInterface } from '../../services/jwt-verifier';
+import { Role } from '../../services/jwt-verifier';
+
+vi.mock('@aws-lambda-powertools/logger');
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a minimal FastifyRequest-shaped object with awsLambda populated,
+ * as it would be in a real Lambda invocation via \@fastify/aws-lambda.
+ */
+const makeRequest = (options: { jwt?: string; url?: string } = {}): FastifyRequest =>
+  ({
+    url: options.url ?? '/test',
+    awsLambda: {
+      event: {
+        requestContext: {
+          authorizer: options.jwt ? { jwt: options.jwt } : {},
+        },
+      },
+      context: {},
+    },
+  }) as unknown as FastifyRequest;
+
+const makeReply = (): FastifyReply =>
+  ({
+    status: vi.fn().mockReturnThis(),
+    send: vi.fn().mockReturnThis(),
+  }) as unknown as FastifyReply;
 
 interface ValidationErrorBody {
   error: string;
   message: string;
 }
 
+// ---------------------------------------------------------------------------
+// generateVerifyRequest — unit tests (tests the exported hook factory directly)
+// ---------------------------------------------------------------------------
+
+describe('generateVerifyRequest', () => {
+  let verifyMock: ReturnType<typeof vi.fn<(token: string) => Promise<FaiJwtPayload>>>;
+  let stubVerifier: JwtVerifierInterface;
+  let authoriser: JwtAuthoriser;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    verifyMock = vi.fn();
+    stubVerifier = { verify: verifyMock };
+    authoriser = new JwtAuthoriser(stubVerifier);
+  });
+
+  it('calls reply.status(401) when the JWT is missing', async () => {
+    verifyMock.mockResolvedValue({ sub: 'u', email: 'u@e.com', roles: [Role.STANDARD_USER], iat: 0, exp: 9999999999 });
+    const hook = generateVerifyRequest(authoriser);
+    const request = makeRequest(); // no jwt
+    const reply = makeReply();
+
+    await hook(request, reply);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(reply.status).toHaveBeenCalledWith(401);
+  });
+
+  it('does not call reply.status when the JWT verifies successfully', async () => {
+    verifyMock.mockResolvedValue({ sub: 'u', email: 'u@e.com', roles: [Role.STANDARD_USER], iat: 0, exp: 9999999999 });
+    const hook = generateVerifyRequest(authoriser);
+    const request = makeRequest({ jwt: 'valid.token.here' });
+    const reply = makeReply();
+
+    await hook(request, reply);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(reply.status).not.toHaveBeenCalled();
+  });
+
+  it('passes the authorizer context and url from the request to authoriser.verify', async () => {
+    const verifySpy = vi.spyOn(authoriser, 'verify').mockResolvedValue({ success: true, payload: {} });
+    const hook = generateVerifyRequest(authoriser);
+    const request = makeRequest({ jwt: 'my.token', url: '/some/path' });
+    const reply = makeReply();
+
+    await hook(request, reply);
+
+    expect(verifySpy).toHaveBeenCalledWith({ jwt: 'my.token' }, '/some/path');
+  });
+
+  it('calls reply.status(401) when verification fails', async () => {
+    verifyMock.mockRejectedValue(new Error('bad token'));
+    const hook = generateVerifyRequest(authoriser);
+    const request = makeRequest({ jwt: 'bad.token' });
+    const reply = makeReply();
+
+    await hook(request, reply);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(reply.status).toHaveBeenCalledWith(401);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Helper: init the server with a StubAuthoriser and a stub awsLambda decoration
+// so server.inject() requests satisfy the onRequest hook without a real Lambda event.
+// ---------------------------------------------------------------------------
+
+type InitArgs = Parameters<typeof init>;
+
+function initWithStubAuth(...args: InitArgs) {
+  const server = init(...args);
+  server.decorateRequest('awsLambda', {
+    getter: () =>
+      ({ event: { requestContext: { authorizer: {} } }, context: {} }) as {
+        event: APIGatewayProxyEvent;
+        context: Context;
+      },
+  });
+  return server;
+}
+
 describe('frontend app', () => {
   it('returns 200 for GET /', async () => {
-    const server = init(
+    const server = initWithStubAuth(
       new InterventionStub({ result: { interventions: [] } }),
       undefined,
       undefined,
@@ -23,7 +139,7 @@ describe('frontend app', () => {
   });
 
   it('returns HTML containing the page heading', async () => {
-    const server = init(
+    const server = initWithStubAuth(
       new InterventionStub({ result: { interventions: [] } }),
       undefined,
       undefined,
@@ -35,7 +151,7 @@ describe('frontend app', () => {
   });
 
   it('returns 404 for unknown routes', async () => {
-    const server = init(
+    const server = initWithStubAuth(
       new InterventionStub({ result: { interventions: [] } }),
       undefined,
       undefined,
@@ -47,7 +163,7 @@ describe('frontend app', () => {
 
   describe('POST /search', () => {
     it('redirects to /user/:userId with status 303', async () => {
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] } }),
         undefined,
         undefined,
@@ -64,7 +180,7 @@ describe('frontend app', () => {
     });
 
     it('URL-encodes the userId in the redirect location', async () => {
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] } }),
         undefined,
         undefined,
@@ -82,7 +198,7 @@ describe('frontend app', () => {
     });
 
     it('redirects to /user/ when userId is missing from the body', async () => {
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] } }),
         undefined,
         undefined,
@@ -101,7 +217,7 @@ describe('frontend app', () => {
 
   describe('GET /user/:userId', () => {
     it('returns 200 and renders the details page when user is found', async () => {
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] }, historyResult: { lines: [] } }),
         undefined,
         undefined,
@@ -114,7 +230,7 @@ describe('frontend app', () => {
     });
 
     it('renders the history when user is found', async () => {
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({
           result: { interventions: [] },
           historyResult: {
@@ -144,7 +260,7 @@ describe('frontend app', () => {
     });
 
     it('displays active interventions when the account has them', async () => {
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({
           interventionNames: [InterventionName.PERMANENT_SUSPENSION],
           historyResult: { lines: [] },
@@ -160,7 +276,7 @@ describe('frontend app', () => {
     });
 
     it('displays a no interventions message when the account exists but has no interventions', async () => {
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] }, historyResult: { lines: [] } }),
         undefined,
         undefined,
@@ -184,13 +300,13 @@ describe('frontend app', () => {
         getAccountHistory: () => Promise.reject(new Error('Blah')),
       };
 
-      const server = init(mockClient, undefined, undefined, new StubAuthoriser());
+      const server = initWithStubAuth(mockClient, undefined, undefined, new StubAuthoriser());
       await server.inject({ method: 'GET', url: `/user/${encodeURIComponent(userId)}` });
       expect(queriedUserId).toBe(userId);
     });
 
     it('returns 400 for missing :userId', async () => {
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] } }),
         undefined,
         undefined,
@@ -205,7 +321,7 @@ describe('frontend app', () => {
     const successOutput: SendMessageCommandOutput = { $metadata: { httpStatusCode: 200 }, MessageId: 'msg-1' };
 
     it('redirects to /user/:userId with status 303', async () => {
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] } }),
         new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         new StubMessageService(successOutput),
@@ -223,7 +339,7 @@ describe('frontend app', () => {
 
     it('URL-encodes the userId in the redirect location', async () => {
       const userId = 'urn:fdc:gov.uk:2022:abc123';
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] } }),
         new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         new StubMessageService(successOutput),
@@ -243,7 +359,7 @@ describe('frontend app', () => {
       const messageService = new StubMessageService(successOutput);
       const sendMessageSpy = vi.spyOn(messageService, 'sendMessage');
 
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] } }),
         new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         messageService,
@@ -261,7 +377,7 @@ describe('frontend app', () => {
     });
 
     it('sets the flash_message_sent cookie on the redirect response', async () => {
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] } }),
         new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         new StubMessageService(successOutput),
@@ -281,7 +397,7 @@ describe('frontend app', () => {
     });
 
     it('shows the success banner on the subsequent GET and not on a second GET', async () => {
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] }, historyResult: { lines: [] } }),
         new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         new StubMessageService(successOutput),
@@ -315,7 +431,7 @@ describe('frontend app', () => {
 
     it('returns 500 when sendMessage rejects', async () => {
       // MessageStub with no successOutput will reject sendMessage
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] } }),
         new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         new StubMessageService(),
@@ -331,7 +447,7 @@ describe('frontend app', () => {
     });
 
     it('returns 422 with a helpful message when userId is missing', async () => {
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] } }),
         new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         new StubMessageService(successOutput),
@@ -350,7 +466,7 @@ describe('frontend app', () => {
     });
 
     it('returns 422 with a helpful message when interventionCode is missing', async () => {
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] } }),
         new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         new StubMessageService(successOutput),
@@ -369,7 +485,7 @@ describe('frontend app', () => {
     });
 
     it('returns 422 with a helpful message when interventionCode is not recognised', async () => {
-      const server = init(
+      const server = initWithStubAuth(
         new InterventionStub({ result: { interventions: [] } }),
         new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
         new StubMessageService(successOutput),
