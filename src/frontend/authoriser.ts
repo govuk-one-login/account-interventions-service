@@ -32,7 +32,7 @@ export class JwtAuthoriser implements Authoriser {
 
     try {
       const payload = await this.jwtVerifier.verify(token);
-      logger.info('JWT verified successfully', { sub: payload.sub, url: request.url });
+      logger.info('JWT verified successfully', { url });
       return { success: true, payload };
     } catch (error) {
       logger.warn('JWT verification failed', { url: request.url, error });

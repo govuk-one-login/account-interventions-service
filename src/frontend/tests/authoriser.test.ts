@@ -95,7 +95,6 @@ describe('JwtAuthoriser', () => {
       await authoriser.verify(makeRequest({ jwt: 'valid.token.here', url: '/some/path' }));
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(logger.info).toHaveBeenCalledWith('JWT verified successfully', {
-        sub: 'admin@example.com',
         url: '/some/path',
       });
     });
