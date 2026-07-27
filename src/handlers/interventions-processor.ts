@@ -94,11 +94,20 @@ async function processSQSRecord(
 
   const recordBody = attemptToParseJson(record.body);
 
-  const { result, eventName } = await validateRecord(recordBody, accountStateEngine, sqsClient, txmaEgressQueueUrl);
+  const { result: eventMessage, eventName } = await validateRecord(
+    recordBody,
+    accountStateEngine,
+    sqsClient,
+    txmaEgressQueueUrl,
+  );
 
-  const userId = result.user.user_id;
+  const userId = eventMessage.user.user_id;
 
-  addMetric(MetricNames.EVENT_DELIVERY_LATENCY, noMetadata, currentTimestamp.milliseconds - result.event_timestamp_ms);
+  addMetric(
+    MetricNames.EVENT_DELIVERY_LATENCY,
+    noMetadata,
+    currentTimestamp.milliseconds - eventMessage.event_timestamp_ms,
+  );
 
   const itemFromDB = await accountStatusService.getAccountStateInformation(userId);
 
@@ -108,20 +117,27 @@ async function processSQSRecord(
     await validateAccountIsNotDeleted(
       eventName,
       userId,
-      result,
+      eventMessage,
       currentAccountState,
       itemFromDB,
       sqsClient,
       txmaEgressQueueUrl,
     );
-    await validateEventIsNotStale(eventName, result, currentAccountState, itemFromDB, sqsClient, txmaEgressQueueUrl);
+    await validateEventIsNotStale(
+      eventName,
+      eventMessage,
+      currentAccountState,
+      itemFromDB,
+      sqsClient,
+      txmaEgressQueueUrl,
+    );
   }
 
   const statusResult = await applyEventTransition(
     eventName,
     currentAccountState,
     itemFromDB?.intervention,
-    result,
+    eventMessage,
     interventionEventsService,
     accountStateEngine,
     {
@@ -134,7 +150,7 @@ async function processSQSRecord(
     userId,
     statusResult,
     currentTimestamp,
-    result,
+    eventMessage,
     itemFromDB?.history ?? [],
   );
   publishTimeToResolveMetrics(
@@ -147,10 +163,23 @@ async function processSQSRecord(
 
   updateAccountStateCountMetric(currentAccountState, statusResult.stateResult);
   addMetric(MetricNames.INTERVENTION_EVENT_APPLIED, [], 1, { eventName });
-  await sendAuditEvent('AIS_EVENT_TRANSITION_APPLIED', eventName, result, sqsClient, txmaEgressQueueUrl, statusResult);
+  await sendAuditEvent(
+    'AIS_EVENT_TRANSITION_APPLIED',
+    eventName,
+    eventMessage,
+    sqsClient,
+    txmaEgressQueueUrl,
+    statusResult,
+  );
 
   try {
-    await persistInterventionEvents(result, eventName, itemFromDB, interventionEventsService, historyRetentionSeconds);
+    await persistInterventionEvents(
+      eventMessage,
+      eventName,
+      itemFromDB,
+      interventionEventsService,
+      historyRetentionSeconds,
+    );
   } catch (error) {
     logger.error('Error caught while persisting intervention events.', { errorMessage: (error as Error).message });
     addMetric(MetricNames.PERSIST_INTERVENTION_EVENTS_ERROR);
@@ -176,10 +205,10 @@ async function validateRecord(
 }
 
 async function applyEventTransition(
-  event: EventsEnum,
+  eventType: EventsEnum,
   initialState: StateDetails,
   interventionName: string | undefined,
-  result: InterventionEventMessage,
+  eventMessage: InterventionEventMessage,
   interventionEventsService: InterventionEventsService,
   accountStateEngine: AccountStateEngine,
   sqs: {
@@ -188,19 +217,19 @@ async function applyEventTransition(
   },
 ) {
   try {
-    return accountStateEngine.applyEventTransition(event, initialState, interventionName);
+    return accountStateEngine.applyEventTransition(eventType, initialState, interventionName);
   } catch (error) {
     if (error instanceof StateTransitionError) {
       await sendAuditEvent(
         'AIS_EVENT_TRANSITION_IGNORED',
         error.transition,
-        result,
+        eventMessage,
         sqs.sqsClient,
         sqs.txmaEgressQueueUrl,
         error.output,
       );
       try {
-        await persistIgnoredInterventionEvent(result, event, initialState, interventionEventsService);
+        await persistIgnoredInterventionEvent(eventMessage, eventType, initialState, interventionEventsService);
       } catch (error) {
         logger.error('Error caught whilst attempting to persist ignored event.', {
           errorMessage: (error as Error).message,
