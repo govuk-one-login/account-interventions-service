@@ -47,19 +47,16 @@ interface ValidationErrorBody {
 // generateVerifyRequest — unit tests (tests the exported hook factory directly)
 // ---------------------------------------------------------------------------
 
+function makeAuthoriser() {
+  const verifyMock = vi.fn<(token: string) => Promise<FaiJwtPayload>>();
+  const stubVerifier: JwtVerifierInterface = { verify: verifyMock };
+  const authoriser = new JwtAuthoriser(stubVerifier);
+  return { verifyMock, authoriser };
+}
+
 describe('generateVerifyRequest', () => {
-  let verifyMock: ReturnType<typeof vi.fn<(token: string) => Promise<FaiJwtPayload>>>;
-  let stubVerifier: JwtVerifierInterface;
-  let authoriser: JwtAuthoriser;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    verifyMock = vi.fn();
-    stubVerifier = { verify: verifyMock };
-    authoriser = new JwtAuthoriser(stubVerifier);
-  });
-
   it('calls reply.status(401) when the JWT is missing', async () => {
+    const { verifyMock, authoriser } = makeAuthoriser();
     verifyMock.mockResolvedValue({ sub: 'u', email: 'u@e.com', roles: [Role.STANDARD_USER], iat: 0, exp: 9999999999 });
     const hook = generateVerifyRequest(authoriser);
     const request = makeRequest(); // no jwt
@@ -72,6 +69,7 @@ describe('generateVerifyRequest', () => {
   });
 
   it('does not call reply.status when the JWT verifies successfully', async () => {
+    const { verifyMock, authoriser } = makeAuthoriser();
     verifyMock.mockResolvedValue({ sub: 'u', email: 'u@e.com', roles: [Role.STANDARD_USER], iat: 0, exp: 9999999999 });
     const hook = generateVerifyRequest(authoriser);
     const request = makeRequest({ jwt: 'valid.token.here' });
@@ -84,6 +82,7 @@ describe('generateVerifyRequest', () => {
   });
 
   it('passes the authorizer context and url from the request to authoriser.verify', async () => {
+    const { authoriser } = makeAuthoriser();
     const verifySpy = vi.spyOn(authoriser, 'verify').mockResolvedValue({ success: true, payload: {} });
     const hook = generateVerifyRequest(authoriser);
     const request = makeRequest({ jwt: 'my.token', url: '/some/path' });
@@ -95,6 +94,7 @@ describe('generateVerifyRequest', () => {
   });
 
   it('calls reply.status(401) when verification fails', async () => {
+    const { verifyMock, authoriser } = makeAuthoriser();
     verifyMock.mockRejectedValue(new Error('bad token'));
     const hook = generateVerifyRequest(authoriser);
     const request = makeRequest({ jwt: 'bad.token' });
