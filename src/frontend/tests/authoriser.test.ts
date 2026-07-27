@@ -112,7 +112,9 @@ describe('JwtAuthoriser', () => {
       const authoriser = new JwtAuthoriser(verifier);
       await authoriser.verify(makeContext(), '/protected');
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(logger.warn).toHaveBeenCalledWith('Request has no JWT in authorizer context', { url: '/protected' });
+      expect(logger.warn).toHaveBeenCalledWith('Request has invalid or missing JWT in authorizer context', {
+        url: '/protected',
+      });
     });
   });
 

@@ -95,7 +95,7 @@ function derToPem(der: Uint8Array): string {
   const output = key.export({ format: 'pem', type: 'spki' });
 
   if (typeof output !== 'string')
-    throw new Error('Error converting  DER-encoded SubjectPublicKeyInfo buffer to a PEM string');
+    throw new Error('Error converting DER-encoded SubjectPublicKeyInfo buffer to a PEM string');
 
   return output;
 }

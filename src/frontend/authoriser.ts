@@ -29,7 +29,7 @@ export class JwtAuthoriser implements Authoriser {
     const context = this.validateContext(authoriserContext);
 
     if (!context.success) {
-      logger.warn('Request has no JWT in authorizer context', { url });
+      logger.warn('Request has invalid or missing JWT in authorizer context', { url });
       return { success: false };
     }
 
