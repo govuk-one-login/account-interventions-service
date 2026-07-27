@@ -3,25 +3,17 @@
 {% if accountHistory and accountHistory.length %}
   {% for transaction in accountHistory %}
     <div class="govuk-inset-text govuk-!-margin-bottom-5">
-      <p class="govuk-body-xs govuk-hint govuk-!-margin-bottom-4">Sent at:
+      <p class="govuk-body-xs govuk-hint govuk-!-margin-bottom-4">
         <strong>{{ transaction.sentAtFormatted }}</strong>
       </p>
       {% set transactionRows = [
           { key: { text: "Component" },  value: { text: transaction.componentId } },
-          { key: { text: "Reason" },     value: { text: transaction.interventionReason } }
+          { key: { text: "Reason" },     value: { text: transaction.interventionReason } },
+          { key: { text: "Code" },       value: { text: transaction.interventionCode if transaction.interventionCode else "N/A" } },
+          { key: { text: "Originating Component" }, value: { text: transaction.originatingComponent if transaction.originatingComponent else "N/A" } },
+          { key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId if transaction.originatorReferenceId else "N/A" } },
+          { key: { text: "Requester ID" }, value: { text: transaction.requesterId if transaction.requesterId else "N/A" } }
         ] %}
-      {% if transaction.interventionCode %}
-        {% set transactionRows = transactionRows.concat([{ key: { text: "Code" }, value: { text: transaction.interventionCode } }]) %}
-      {% endif %}
-      {% if transaction.originatingComponent %}
-        {% set transactionRows = transactionRows.concat([{ key: { text: "Originating Component" }, value: { text: transaction.originatingComponent } }]) %}
-      {% endif %}
-      {% if transaction.originatorReferenceId %}
-        {% set transactionRows = transactionRows.concat([{ key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId } }]) %}
-      {% endif %}
-      {% if transaction.requesterId %}
-        {% set transactionRows = transactionRows.concat([{ key: { text: "Requester ID" }, value: { text: transaction.requesterId } }]) %}
-      {% endif %}
       {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4 govuk-!-font-size-16", rows: transactionRows }) }}
       {% if transaction.interventionEvents.length %}
         {% set eventRows = [] %}
@@ -48,6 +40,35 @@
       {% endif %}
     </div>
   {% endfor %}
+  <h2 class="govuk-heading-m govuk-!-margin-top-7">Field descriptions</h2>
+  {{ govukSummaryList({
+    rows: [
+      {
+        key: {
+          text: 'Originating Component'
+        },
+        value: {
+          text: "The component id of the application in which the intervention originator, i.e., ticket, case, assessment, etc., that triggered the intervention"
+        }
+      },
+      {
+        key: {
+          text: "Originator Reference ID"
+        },
+        value: {
+          text: "The unique id of the ticket, case, risk assessment, etc., from which the intervention resulted"
+        }
+      },
+      {
+        key: {
+          text: "Requester ID"
+        },
+        value: {
+          text: "The unique id used by the originating component to identify the user who triggered the intervention - will be a number or GUID, must not be personal identifying - must be provided if a manual intervention"
+        }
+      }
+    ]
+  })}}
 {% else %}
   <p class="govuk-body-s">No history available for this account.</p>
 {% endif %}
