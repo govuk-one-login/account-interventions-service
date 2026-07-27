@@ -77,6 +77,26 @@ describe('InterventionClient', () => {
       await expect(client.getAccountStatus('user-1')).rejects.toThrow(InterventionInvalidResponse);
     });
 
+    it('sends x-client-id header when clientId is configured', async () => {
+      const client = new InterventionClient(baseUrl, { clientId: 'my-service' });
+      mockFetch.mockResolvedValue(mockResponse({ interventions: [] }));
+
+      await client.getAccountStatus('user-1');
+
+      const [, calledOptions] = mockFetch.mock.calls[0] as [string, RequestInit];
+      expect(new Headers(calledOptions.headers).get('x-client-id')).toBe('my-service');
+    });
+
+    it('does not send x-client-id header when clientId is not configured', async () => {
+      const client = new InterventionClient(baseUrl);
+      mockFetch.mockResolvedValue(mockResponse({ interventions: [] }));
+
+      await client.getAccountStatus('user-1');
+
+      const [, calledOptions] = mockFetch.mock.calls[0] as [string, RequestInit];
+      expect(new Headers(calledOptions.headers).get('x-client-id')).toBeNull();
+    });
+
     it('strips trailing slash from baseUrl', async () => {
       const clientWithSlash = new InterventionClient('https://example.com/');
       mockFetch.mockResolvedValue(mockResponse({ interventions: [] }));
