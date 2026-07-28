@@ -69,6 +69,8 @@ describe('AppConfigService', () => {
   });
 
   it('should return the value of all environment variables', () => {
+    vi.stubEnv('TXMA_QUEUE_URL', 'https://sqs.eu-west-2.amazonaws.com/111122223333/TxMAQueue');
+
     const appConfig = AppConfigService.getInstance();
     expect(appConfig.awsRegion).toEqual('aws_region');
     expect(appConfig.tableName).toEqual('table_name');
