@@ -10,6 +10,7 @@ Metadata:
         - E3031
         - E3510
         - E3033
+        - W8003
 
 Description: >-
   The Frontend layer for the Account Interventions Service (AIS) solution
@@ -79,6 +80,10 @@ Parameters:
     Description: Value for the Source Tag
     Type: String
     Default: govuk-one-login/account-interventions-service/src/infra/frontend/template.yaml
+  DisableAuth:
+    Description: Disable signed JWT authentication
+    Type: String
+    Default: ''
 
 Conditions:
   UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, 'none']]
@@ -88,6 +93,7 @@ Conditions:
   IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
   IsDev: !Equals [!Ref Environment, dev]
   HasFaiAuthSigningKey: !Not [!Equals [!FindInMap [EnvConfig, !Ref Environment, FaiAuthSigningKeyArn], '']]
+  IsAuthDisabled: !Equals [!Ref DisableAuth, 'true']
 
 Mappings:
   EnvConfig:
@@ -196,6 +202,7 @@ Resources:
                 Fn::ImportValue: !Sub '${MainStackName}-PrivateApiRestApiId'
           ENABLE_AIS_FRONTEND: !FindInMap [FeatureFlags, !Ref Environment, EnableAISFrontend]
           ENABLE_AIS_SEND_TXMA: !FindInMap [FeatureFlags, !Ref Environment, EnableAISSendTxMA]
+          DISABLE_AUTH: !If [IsAuthDisabled, true, false]
           TXMA_QUEUE_URL: !If
             - IsInternal
             - Fn::ImportValue: !Sub '${MainStackName}-TxMAIngressSqsQueueUrl'

@@ -20,7 +20,7 @@ import { Authoriser } from './authoriser';
 
 declare module 'fastify' {
   interface FastifyRequest {
-    awsLambda: { event: APIGatewayProxyEvent; context: Context };
+    awsLambda?: { event: APIGatewayProxyEvent; context: Context };
   }
 }
 
@@ -54,7 +54,7 @@ function formatDate(value: string | number): string {
 
 export const generateVerifyRequest =
   (authoriser: Authoriser) => async (request: FastifyRequest, reply: FastifyReply) => {
-    const authoriserResult = await authoriser.verify(request.awsLambda.event.requestContext.authorizer, request.url);
+    const authoriserResult = await authoriser.verify(request.awsLambda?.event.requestContext.authorizer, request.url);
 
     if (!authoriserResult.success) return reply.status(401);
   };

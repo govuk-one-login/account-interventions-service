@@ -30,8 +30,6 @@ export default defineConfig({
       AWS_REGION: 'aws_region',
       DELETED_ACCOUNT_RETENTION_SECONDS: '12345',
       HISTORY_RETENTION_SECONDS: '63072000',
-      ENABLE_AIS_FRONTEND: 'true',
-      ENABLE_AIS_SEND_TXMA: 'true',
     },
   },
 });
