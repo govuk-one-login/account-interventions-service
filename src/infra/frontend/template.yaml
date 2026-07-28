@@ -36,12 +36,14 @@ Parameters:
       Set to /v1 when behind API Gateway without a custom domain.
       Set to empty string when a custom domain with base path mapping is in use.
     Type: String
-    Default: /v1
+    Default: ''
   Subpath:
     Description: >-
       The URL subpath, rewrite paths and used for asset URLs in templates.
+      Set to empty string when behind an API Gateway without a custom domain.
+      Set to /{basePath} when a custom domain with base path mapping is in use.
     Type: String
-    Default: ''
+    Default: '/interventions'
   VpcStackName:
     Description: The name of the stack that defines the VPC
     Type: String
@@ -100,7 +102,7 @@ Mappings:
     dev:
       LambdaLogLevel: DEBUG
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
-      FaiAuthSigningKeyArn: ''
+      FaiAuthSigningKeyArn: arn:aws:kms:eu-west-2:301631959974:key/5e132a69-9c95-4e55-a5e3-7a49c685e79b # pragma: allowlist secret
     build:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
