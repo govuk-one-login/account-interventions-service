@@ -10,7 +10,7 @@ Metadata:
         - E3031
         - E3510
         - E3033
-        - W8003
+        - W8003 #Ignores warning that Equals will always return false as testing FaiAuthSigningKeyArn against empty string
 
 Description: >-
   The Frontend layer for the Account Interventions Service (AIS) solution
