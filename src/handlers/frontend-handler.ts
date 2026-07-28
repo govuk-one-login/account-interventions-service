@@ -8,20 +8,21 @@ import { InterventionClient } from '@govuk-one-login/ais-status-sdk';
 import { JwtAuthoriser } from '../frontend/authoriser';
 import { FeatureFlagsFromEnvironmentVariables } from '../services/feature-flags';
 import { SqsMessageService } from '../services/message-service';
+import { AppConfigService } from '../services/app-config-service';
 
 const subpath = process.env['SUBPATH'] ?? '';
-const statusApiUrl = process.env['STATUS_API_URL'];
-const txmaQueueUrl = process.env['TXMA_QUEUE_URL'];
+
+const config = AppConfigService.getInstance().getConfigObject(['statusApiUrl', 'txmaQueueUrl']);
 
 const featureFlags = FeatureFlagsFromEnvironmentVariables.getInstance();
 
 const authoriser = new JwtAuthoriser();
 
-const interventionClient = new InterventionClient(statusApiUrl, {
+const interventionClient = new InterventionClient(config.statusApiUrl, {
   logger,
 });
 
-const messageService = new SqsMessageService(txmaQueueUrl);
+const messageService = new SqsMessageService(config.txmaQueueUrl);
 
 const proxy = awsLambdaFastify(
   init(

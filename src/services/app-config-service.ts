@@ -53,6 +53,14 @@ const CONFIG_ENVIRONMENT_MAPPING = {
     envVar: 'HISTORY_RETENTION_SECONDS',
     type: 'number' as const,
   },
+  statusApiUrl: {
+    envVar: 'STATUS_API_URL',
+    type: 'string' as const,
+  },
+  txmaQueueUrl: {
+    envVar: 'TXMA_QUEUE_URL',
+    type: 'string' as const,
+  },
 } satisfies Record<string, ConfigDefinition>;
 
 /** The valid keys of CONFIG_ENVIRONMENT_MAPPING, used to constrain getConfigObject input. */
