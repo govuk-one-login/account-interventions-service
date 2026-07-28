@@ -302,8 +302,7 @@ Resources:
             - Effect: Allow
               Action:
                 - 'kms:GetPublicKey'
-              Resource:
-                - !FindInMap [EnvConfig, !Ref Environment, FaiAuthSigningKeyArn]
+              Resource: !FindInMap [EnvConfig, !Ref Environment, FaiAuthSigningKeyArn]
             - !Ref AWS::NoValue
       Roles:
         - !Ref FrontendFunctionRole
