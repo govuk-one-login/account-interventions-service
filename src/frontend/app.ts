@@ -5,24 +5,18 @@ import formbody from '@fastify/formbody';
 import nunjucks from 'nunjucks';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
-import {
-  AccountHistory,
-  HistoryLine,
-  InterventionClient,
-  InterventionClientInterface,
-} from '@govuk-one-login/ais-status-sdk';
+import { AccountHistory, HistoryLine, InterventionClientInterface } from '@govuk-one-login/ais-status-sdk';
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
-import logger from '../commons/logger';
-import { FeatureFlagsFromEnvironmentVariables, FeatureFlags } from '../services/feature-flags';
+import { FeatureFlags } from '../services/feature-flags';
 import cookie from '@fastify/cookie';
-import { MessageService, SqsMessageService } from '../services/message-service';
+import { MessageService } from '../services/message-service';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { isCode, TriggerEventsEnum } from '../data-types/constants';
 import { randomUUID } from 'node:crypto';
 import { TicfAccountIntervention } from '../contracts/intervention-events';
 import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
 import { transitionConfig } from '../services/account-states/config';
-import { Authoriser, JwtAuthoriser } from './authoriser';
+import { Authoriser } from './authoriser';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -46,9 +40,6 @@ const stagePrefix = normalisePathSegment(process.env['STAGE_PREFIX'] ?? '');
  */
 const subpath = normalisePathSegment(process.env['SUBPATH'] ?? '');
 
-const statusApiUrl = process.env['STATUS_API_URL'];
-const txmaQueueUrl = process.env['TXMA_QUEUE_URL'];
-
 // Format an ISO date string or Unix timestamp (ms) into a human-readable UK date/time, e.g. "10 October 2023 at 20:22:02 UTC"
 function formatDate(value: string | number): string {
   const date = new Date(value);
@@ -68,13 +59,19 @@ export const generateVerifyRequest =
     if (!authoriserResult.success) return reply.status(401);
   };
 
+export interface FrontendAppDependencies {
+  interventionClient: InterventionClientInterface;
+  messageService: MessageService;
+  authoriser: Authoriser;
+}
+
+export interface FrontendAppConfig {
+  featureFlags: FeatureFlags;
+}
+
 export function init(
-  interventionClient: InterventionClientInterface = new InterventionClient(statusApiUrl, {
-    logger,
-  }),
-  featureFlags: FeatureFlags = FeatureFlagsFromEnvironmentVariables.getInstance(),
-  messageService: MessageService = new SqsMessageService(txmaQueueUrl),
-  authoriser: Authoriser = new JwtAuthoriser(),
+  { interventionClient, messageService, authoriser }: FrontendAppDependencies,
+  { featureFlags }: FrontendAppConfig,
 ) {
   const server = fastify();
 
