@@ -3,10 +3,39 @@
 import awsLambdaFastify from '@fastify/aws-lambda';
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { init } from '../frontend/app';
+import logger from '../commons/logger';
+import { InterventionClient } from '@govuk-one-login/ais-status-sdk';
+import { Authoriser, JwtAuthoriser, StubAuthoriser } from '../frontend/authoriser';
+import { FeatureFlagsFromEnvironmentVariables } from '../services/feature-flags';
+import { SqsMessageService } from '../services/message-service';
+import { AppConfigService } from '../services/app-config-service';
 
 const subpath = process.env['SUBPATH'] ?? '';
 
-const proxy = awsLambdaFastify(init());
+const config = AppConfigService.getInstance().getConfigObject(['statusApiUrl', 'txmaQueueUrl']);
+
+const featureFlags = FeatureFlagsFromEnvironmentVariables.getInstance();
+
+const authoriser: Authoriser = featureFlags.isEnabled('disableAuth') ? new StubAuthoriser() : new JwtAuthoriser();
+
+const interventionClient = new InterventionClient(config.statusApiUrl, {
+  logger,
+});
+
+const messageService = new SqsMessageService(config.txmaQueueUrl);
+
+const proxy = awsLambdaFastify(
+  init(
+    {
+      interventionClient,
+      messageService,
+      authoriser,
+    },
+    {
+      featureFlags,
+    },
+  ),
+);
 
 export const handler = (event: APIGatewayProxyEvent, context: Context) => proxy(rewriteEventPath(event), context);
 

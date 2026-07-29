@@ -42,6 +42,10 @@ describe('frontend-handler', () => {
     vi.mocked(awsLambdaFastify.default).mockReturnValue(mockProxy);
 
     mockProxy.mockResolvedValue({ statusCode: 200, body: '' });
+
+    vi.stubEnv('STATUS_API_URL', 'api-url');
+    vi.stubEnv('TXMA_QUEUE_URL', 'queue-url');
+    vi.stubEnv('FAI_AUTH_SIGNING_KEY_ARN', 'key-arn');
   });
 
   afterEach(() => {

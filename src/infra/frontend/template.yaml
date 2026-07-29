@@ -10,6 +10,7 @@ Metadata:
         - E3031
         - E3510
         - E3033
+        - W8003 #Ignores warning that Equals will always return false as testing FaiAuthSigningKeyArn against empty string
 
 Description: >-
   The Frontend layer for the Account Interventions Service (AIS) solution
@@ -35,12 +36,14 @@ Parameters:
       Set to /v1 when behind API Gateway without a custom domain.
       Set to empty string when a custom domain with base path mapping is in use.
     Type: String
-    Default: /v1
+    Default: ''
   Subpath:
     Description: >-
       The URL subpath, rewrite paths and used for asset URLs in templates.
+      Set to empty string when behind an API Gateway without a custom domain.
+      Set to /{basePath} when a custom domain with base path mapping is in use.
     Type: String
-    Default: ''
+    Default: '/interventions'
   VpcStackName:
     Description: The name of the stack that defines the VPC
     Type: String
@@ -59,12 +62,6 @@ Parameters:
     Type: String
     Description: CSLS Subscription endpoint
     Default: 'arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython-2'
-  FaiAuthSigningKeyArn:
-    Description: >-
-      The ARN of the FAI asymmetric KMS signing key used to verify JWTs passed
-      by the FAI Lambda authoriser. The key lives in the FAI AWS account; this
-      function's role must have kms:GetPublicKey permission on it.
-    Type: String
   CodeSigningConfigArn:
     Description: Asserts that lambdas are signed when deployed.
     Type: String
@@ -85,6 +82,10 @@ Parameters:
     Description: Value for the Source Tag
     Type: String
     Default: govuk-one-login/account-interventions-service/src/infra/frontend/template.yaml
+  DisableAuth:
+    Description: Disable signed JWT authentication
+    Type: String
+    Default: ''
 
 Conditions:
   UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, 'none']]
@@ -93,24 +94,31 @@ Conditions:
     !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build], !Equals [!Ref Environment, staging]]
   IsInternal: !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build]]
   IsDev: !Equals [!Ref Environment, dev]
+  HasFaiAuthSigningKey: !Not [!Equals [!FindInMap [EnvConfig, !Ref Environment, FaiAuthSigningKeyArn], '']]
+  IsAuthDisabled: !Equals [!Ref DisableAuth, 'true']
 
 Mappings:
   EnvConfig:
     dev:
       LambdaLogLevel: DEBUG
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
+      FaiAuthSigningKeyArn: arn:aws:kms:eu-west-2:301631959974:key/5e132a69-9c95-4e55-a5e3-7a49c685e79b # pragma: allowlist secret
     build:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
+      FaiAuthSigningKeyArn: ''
     staging:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
+      FaiAuthSigningKeyArn: ''
     integration:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
+      FaiAuthSigningKeyArn: ''
     production:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables # pragma: allowlist secret
+      FaiAuthSigningKeyArn: ''
   FeatureFlags:
     dev:
       EnableAISFrontend: true
@@ -196,12 +204,13 @@ Resources:
                 Fn::ImportValue: !Sub '${MainStackName}-PrivateApiRestApiId'
           ENABLE_AIS_FRONTEND: !FindInMap [FeatureFlags, !Ref Environment, EnableAISFrontend]
           ENABLE_AIS_SEND_TXMA: !FindInMap [FeatureFlags, !Ref Environment, EnableAISSendTxMA]
+          DISABLE_AUTH: !If [IsAuthDisabled, true, false]
           TXMA_QUEUE_URL: !If
             - IsInternal
             - Fn::ImportValue: !Sub '${MainStackName}-TxMAIngressSqsQueueUrl'
             - !Ref 'AWS::NoValue'
             # - Fn::ImportValue: !Sub '${MainStackName}-TxMAEgressSqsQueueUrl'
-          FAI_AUTH_SIGNING_KEY_ARN: !Ref FaiAuthSigningKeyArn
+          FAI_AUTH_SIGNING_KEY_ARN: !FindInMap [EnvConfig, !Ref Environment, FaiAuthSigningKeyArn]
       Events:
         ApiEvent:
           Type: Api
@@ -288,11 +297,13 @@ Resources:
               - 'kms:GenerateDataKey'
             Resource:
               Fn::ImportValue: !Sub '${MainStackName}-SQSEncryptionKeyArn'
-          - Effect: Allow
-            Action:
-              - 'kms:GetPublicKey'
-            Resource:
-              - !Ref FaiAuthSigningKeyArn
+          - !If
+            - HasFaiAuthSigningKey
+            - Effect: Allow
+              Action:
+                - 'kms:GetPublicKey'
+              Resource: !FindInMap [EnvConfig, !Ref Environment, FaiAuthSigningKeyArn]
+            - !Ref AWS::NoValue
       Roles:
         - !Ref FrontendFunctionRole
 

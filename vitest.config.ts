@@ -15,7 +15,13 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
       reportsDirectory: './coverage',
     },
-    exclude: ['**/node_modules/**', 'src/contract-testing/**', '.stryker-tmp/**', 'src/scripts/**', 'packages/ais-status-sdk/integration-tests/**'],
+    exclude: [
+      '**/node_modules/**',
+      'src/contract-testing/**',
+      '.stryker-tmp/**',
+      'src/scripts/**',
+      'packages/ais-status-sdk/integration-tests/**',
+    ],
     env: {
       CLOUDWATCH_METRICS_NAMESPACE: 'test_namespace',
       METRIC_SERVICE_NAME: 'test',
@@ -23,10 +29,7 @@ export default defineConfig({
       INTERVENTION_EVENTS_TABLE_NAME: 'intervention-events',
       AWS_REGION: 'aws_region',
       DELETED_ACCOUNT_RETENTION_SECONDS: '12345',
-      TXMA_QUEUE_URL: 'https://sqs.eu-west-2.amazonaws.com/111122223333/TxMAQueue',
       HISTORY_RETENTION_SECONDS: '63072000',
-      ENABLE_AIS_FRONTEND: 'true',
-      ENABLE_AIS_SEND_TXMA: 'true',
     },
   },
 });

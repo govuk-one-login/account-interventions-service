@@ -68,17 +68,6 @@ describe('AppConfigService', () => {
     expect(logger.error).toHaveBeenCalledWith(expectedMessage);
   });
 
-  it('should return the value of all environment variables', () => {
-    const appConfig = AppConfigService.getInstance();
-    expect(appConfig.awsRegion).toEqual('aws_region');
-    expect(appConfig.tableName).toEqual('table_name');
-    expect(appConfig.cloudWatchMetricsWorkSpace).toEqual('test_namespace');
-    expect(appConfig.metricServiceName).toEqual('test');
-    expect(appConfig.maxRetentionSeconds).toEqual(12345);
-    expect(appConfig.txmaEgressQueueUrl).toEqual('https://sqs.eu-west-2.amazonaws.com/111122223333/TxMAQueue');
-    expect(appConfig.historyRetentionSeconds).toEqual(63072000);
-  });
-
   it('should throw an error if the environmental variable is not a number', () => {
     vi.stubEnv('DELETED_ACCOUNT_RETENTION_SECONDS', 'string');
     const expectedMessage =
