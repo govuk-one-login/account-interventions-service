@@ -45,10 +45,11 @@
     rows: [
       {
         key: {
-          text: 'Originating Component'
+          text: "Originating Component"
         },
         value: {
-          text: "The component id of the application in which the intervention originator, i.e., ticket, case, assessment, etc., that triggered the intervention"
+          html: 'The component id of the application in which the intervention originator, i.e., ticket, case, assessment, etc., that triggered the intervention.<br>
+          <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originating_component_id/" class="govuk-link">View in event catalogue</a>'
         }
       },
       {
@@ -56,7 +57,8 @@
           text: "Originator Reference ID"
         },
         value: {
-          text: "The unique id of the ticket, case, risk assessment, etc., from which the intervention resulted"
+          html: 'The unique id of the ticket, case, risk assessment, etc., from which the intervention resulted.<br>
+          <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originator_reference_id/" class="govuk-link">View in event catalogue</a>'
         }
       },
       {
@@ -64,7 +66,8 @@
           text: "Requester ID"
         },
         value: {
-          text: "The unique id used by the originating component to identify the user who triggered the intervention - will be a number or GUID, must not be personal identifying - must be provided if a manual intervention"
+          html: 'The unique id used by the originating component to identify the user who triggered the intervention - will be a number or GUID, must not be personal identifying - must be provided if a manual intervention.<br>
+          <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-requester_id/" class="govuk-link">View in event catalogue</a>'
         }
       }
     ]
