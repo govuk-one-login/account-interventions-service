@@ -235,8 +235,6 @@ interface HistoryTransaction extends Omit<HistoryLine, 'interventionName' | 'int
 }
 
 export function getDisplayState(line: HistoryLine): string {
-  console.log('intervention state', line.interventionState)
-  console.log('intervention name', line.interventionName)
   if (line.interventionState === InterventionState.MITIGATED &&
       (line.interventionName !== InterventionName.TEMPORARY_SUSPENSION &&
        line.interventionName !== InterventionName.PERMANENT_SUSPENSION)
@@ -265,7 +263,6 @@ export const formatHistory = (history: AccountHistory): HistoryTransaction[] =>
         sentAtFormatted: formatDate(line.sentAt),
         interventionEvents: [...(result[line.tagId]?.interventionEvents ?? []), { ...line, displayState: getDisplayState(line) }],
       };
-      // console.log(JSON.stringify(result))
       return result;
     }, {}),
   ).toSorted((a, b) => b.sentAt - a.sentAt);
