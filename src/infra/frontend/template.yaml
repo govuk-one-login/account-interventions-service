@@ -85,7 +85,13 @@ Parameters:
   DisableAuth:
     Description: Disable signed JWT authentication
     Type: String
-    Default: ''
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+  EnableGateway:
+    Description: Enable the public API gateway. Used for custom stacks in dev
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
 
 Conditions:
   UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, 'none']]
@@ -96,6 +102,9 @@ Conditions:
   IsDev: !Equals [!Ref Environment, dev]
   HasFaiAuthSigningKey: !Not [!Equals [!FindInMap [EnvConfig, !Ref Environment, FaiAuthSigningKeyArn], '']]
   IsAuthDisabled: !Equals [!Ref DisableAuth, 'true']
+  IsGatewayEnabled: !And
+    - !Equals [!Ref EnableGateway, 'true']
+    - !Condition IsDev
 
 Mappings:
   EnvConfig:
@@ -211,19 +220,7 @@ Resources:
             - !Ref 'AWS::NoValue'
             # - Fn::ImportValue: !Sub '${MainStackName}-TxMAEgressSqsQueueUrl'
           FAI_AUTH_SIGNING_KEY_ARN: !FindInMap [EnvConfig, !Ref Environment, FaiAuthSigningKeyArn]
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FrontendApi
-            Path: /{proxy+}
-            Method: ANY
-        RootApiEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FrontendApi
-            Path: /
-            Method: GET
+
       Tags:
         CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
         Product: !Ref ProductTagValue
@@ -338,7 +335,7 @@ Resources:
 
   FrontendApiGatewayPermission:
     Type: AWS::Lambda::Permission
-    Condition: IsDevBuildStaging
+    Condition: IsGatewayEnabled
     Properties:
       FunctionName: !Ref FrontendFunctionAliaslive
       Action: lambda:InvokeFunction
@@ -359,7 +356,7 @@ Resources:
 
   FrontendApi:
     Type: AWS::Serverless::Api # NOSONAR(cloudformation:S6333) - intentionally public API, no authentication required
-    Condition: IsDevBuildStaging
+    Condition: IsGatewayEnabled
     Properties:
       # checkov:skip=CKV_AWS_120: API Gateway caching not enabled
       Name: !Sub '${AWS::StackName}-FrontendApi'
@@ -370,6 +367,24 @@ Resources:
       Description: 'Public REST API for the AIS frontend'
       TracingEnabled: true
       CacheClusterEnabled: false
+      DefinitionBody:
+        openapi: '3.0.3'
+        info:
+          title: !Sub '${AWS::StackName}-FrontendApi'
+          version: '1.0'
+        paths:
+          /:
+            get:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FrontendFunctionAliaslive}/invocations'
+          /{proxy+}:
+            x-amazon-apigateway-any-method:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FrontendFunctionAliaslive}/invocations'
       AccessLogSetting:
         Format: >-
           {
@@ -397,7 +412,7 @@ Resources:
 
   FrontendApiAccessLogGroup:
     Type: AWS::Logs::LogGroup
-    Condition: IsDevBuildStaging
+    Condition: IsGatewayEnabled
     Properties:
       LogGroupName: !Sub '/aws/apigateway/${AWS::StackName}-FrontendApi/${ApiStageName}'
       RetentionInDays: 30
@@ -418,7 +433,7 @@ Resources:
 
   FrontendApiLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsDevBuildStaging
+    Condition: IsGatewayEnabled
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
       LogGroupName: !Ref FrontendApiAccessLogGroup
@@ -519,6 +534,6 @@ Resources:
 
 Outputs:
   FrontendApiEndpoint:
-    Condition: IsDevBuildStaging
+    Condition: IsGatewayEnabled
     Description: 'Frontend API Gateway endpoint URL'
     Value: !Sub 'https://${FrontendApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}'
