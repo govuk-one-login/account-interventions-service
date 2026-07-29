@@ -245,10 +245,8 @@ export function getDisplayState(line: HistoryLine): string {
     (line.interventionName === InterventionName.TEMPORARY_SUSPENSION ||
       line.interventionName === InterventionName.PERMANENT_SUSPENSION)
   ) {
-    console.log('unsuspended')
     return 'UNSUSPENDED'
   }
-  console.log('always here')
   return line.interventionState;
 }
 
