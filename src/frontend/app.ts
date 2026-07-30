@@ -5,7 +5,13 @@ import formbody from '@fastify/formbody';
 import nunjucks from 'nunjucks';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
-import { AccountHistory, HistoryLine, InterventionClientInterface } from '@govuk-one-login/ais-status-sdk';
+import {
+  AccountHistory,
+  HistoryLine,
+  InterventionClientInterface,
+  InterventionName,
+  InterventionState,
+} from '@govuk-one-login/ais-status-sdk';
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { FeatureFlags } from '../services/feature-flags';
 import cookie from '@fastify/cookie';
@@ -218,10 +224,30 @@ export function init(
   return server;
 }
 
+interface DisplayHistoryLine extends HistoryLine {
+  displayState: string;
+}
+
 interface HistoryTransaction extends Omit<HistoryLine, 'interventionName' | 'interventionState'> {
   tagId: string;
   sentAtFormatted: string;
-  interventionEvents: HistoryLine[];
+  interventionEvents: DisplayHistoryLine[];
+}
+
+export function getDisplayState(line: HistoryLine): string {
+  if (line.interventionState === InterventionState.MITIGATED &&
+      (line.interventionName !== InterventionName.TEMPORARY_SUSPENSION &&
+       line.interventionName !== InterventionName.PERMANENT_SUSPENSION)
+     ) {
+      return 'COMPLETED';
+  }
+  if (line.interventionState === InterventionState.REMOVED &&
+    (line.interventionName === InterventionName.TEMPORARY_SUSPENSION ||
+      line.interventionName === InterventionName.PERMANENT_SUSPENSION)
+  ) {
+    return 'UNSUSPENDED'
+  }
+  return line.interventionState;
 }
 
 export const formatHistory = (history: AccountHistory): HistoryTransaction[] =>
@@ -233,9 +259,8 @@ export const formatHistory = (history: AccountHistory): HistoryTransaction[] =>
       result[line.tagId] = {
         ...rest,
         sentAtFormatted: formatDate(line.sentAt),
-        interventionEvents: [...(result[line.tagId]?.interventionEvents ?? []), line],
+        interventionEvents: [...(result[line.tagId]?.interventionEvents ?? []), { ...line, displayState: getDisplayState(line) }],
       };
-
       return result;
     }, {}),
   ).toSorted((a, b) => b.sentAt - a.sentAt);

@@ -41,7 +41,7 @@
           {% endif %}
           {% set eventRows = eventRows.concat([{
               key: { text: event.interventionName },
-              value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.interventionState + '</strong>' }
+              value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.displayState + '</strong>' }
             }]) %}
         {% endfor %}
         {{ govukSummaryList({ classes: "govuk-!-margin-bottom-0 govuk-!-font-size-16", rows: eventRows }) }}

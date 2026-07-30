@@ -1,4 +1,10 @@
-import { formatHistory, init, generateVerifyRequest, FrontendAppConfig, FrontendAppDependencies } from '../app';
+import { formatHistory,
+  init,
+  generateVerifyRequest,
+  FrontendAppConfig,
+  FrontendAppDependencies,
+  getDisplayState,
+} from '../app';
 import { InterventionStub, InterventionName, InterventionState } from '@govuk-one-login/ais-status-sdk';
 import { StubMessageService } from '../../services/message-service';
 import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
@@ -42,6 +48,15 @@ interface ValidationErrorBody {
   error: string;
   message: string;
 }
+
+const makeLine = (interventionName: InterventionName, interventionState: InterventionState) => ({
+  sentAt: 1784021279000,
+  componentId: 'TEST',
+  interventionName,
+  interventionState,
+  interventionReason: 'Reason',
+  tagId: 'tag1',
+})
 
 // ---------------------------------------------------------------------------
 // generateVerifyRequest — unit tests (tests the exported hook factory directly)
@@ -687,6 +702,7 @@ describe('formatHistory', () => {
             interventionName: 'TEMPORARY_SUSPENSION',
             interventionReason: 'Reason',
             interventionState: 'REMOVED',
+            displayState: 'UNSUSPENDED',
             originatingComponent: 'TICF',
             requesterId: 'interventions@digital.cabinet-office.gov.uk',
             sentAt: 1784021279020,
@@ -698,6 +714,7 @@ describe('formatHistory', () => {
             interventionName: 'RESET_PASSWORD',
             interventionReason: 'Reason',
             interventionState: 'ACTIVE',
+            displayState: 'ACTIVE',
             originatingComponent: 'TICF',
             requesterId: 'interventions@digital.cabinet-office.gov.uk',
             sentAt: 1784021279020,
@@ -721,6 +738,7 @@ describe('formatHistory', () => {
             interventionName: 'TEMPORARY_SUSPENSION',
             interventionReason: 'Reason',
             interventionState: 'ACTIVE',
+            displayState: 'ACTIVE',
             originatingComponent: 'TICF',
             requesterId: 'interventions@digital.cabinet-office.gov.uk',
             sentAt: 1784021279000,
@@ -735,5 +753,39 @@ describe('formatHistory', () => {
         tagId: 'abc1234',
       },
     ]);
+  });
+});
+
+describe('getDisplayState', () => {
+  it('returns COMPLETED when RESET_PASSWORD is MITIGATED', () => {
+    expect(getDisplayState(makeLine(InterventionName.RESET_PASSWORD, InterventionState.MITIGATED))).toBe('COMPLETED');
+  });
+
+  it('returns COMPLETED when REPROVE_IDENTITY is MITIGATED', () => {
+    expect(getDisplayState(makeLine(InterventionName.REPROVE_IDENTITY, InterventionState.MITIGATED))).toBe('COMPLETED');
+  });
+
+  it('returns UNSUSPENDED when TEMPORARY_SUSPENSION is REMOVED', () => {
+    expect(getDisplayState(makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED))).toBe('UNSUSPENDED');
+  });
+
+  it('returns UNSUSPENDED when PERMANENT_SUSPENSION is REMOVED', () => {
+    expect(getDisplayState(makeLine(InterventionName.PERMANENT_SUSPENSION, InterventionState.REMOVED))).toBe('UNSUSPENDED');
+  });
+
+  it('returns the original state when TEMPORARY_SUSPENSION is ACTIVE', () => {
+    expect(getDisplayState(makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE))).toBe('ACTIVE');
+  });
+
+  it('returns the original state when RESET_PASSWORD is REMOVED', () => {
+    expect(getDisplayState(makeLine(InterventionName.RESET_PASSWORD, InterventionState.REMOVED))).toBe('REMOVED');
+  });
+
+  it('returns the original state when TEMPORARY_SUSPENSION is SUPERSEDED', () => {
+    expect(getDisplayState(makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.SUPERSEDED))).toBe('SUPERSEDED');
+  });
+
+  it('returns the original state when RESET_PASSWORD is ACTIVE', () => {
+    expect(getDisplayState(makeLine(InterventionName.RESET_PASSWORD, InterventionState.ACTIVE))).toBe('ACTIVE');
   });
 });
