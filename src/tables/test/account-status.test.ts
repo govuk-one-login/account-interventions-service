@@ -114,32 +114,23 @@ describe('PersistentAccountStatusService', () => {
       [],
     );
 
-    expect(recordServiceUpdateSpy).toHaveBeenLastCalledWith('1234', {
-      ExpressionAttributeNames: {
-        '#AA': 'appliedAt',
-        '#B': 'blocked',
-        '#H': 'history',
-        '#INT': 'intervention',
-        '#RI': 'reproveIdentity',
-        '#RP': 'resetPassword',
-        '#S': 'suspended',
-        '#SA': 'sentAt',
-        '#UA': 'updatedAt',
+    expect(recordServiceUpdateSpy).toHaveBeenLastCalledWith(
+      '1234',
+      {
+        appliedAt: 1678665600000,
+        blocked: false,
+        history: ['12345|TEST|01||||'],
+        intervention: 'AIS_ACCOUNT_SUSPENDED',
+        reproveIdentity: false,
+        resetPassword: false,
+        suspended: true,
+        sentAt: 12345,
+        updatedAt: 1678665600000,
       },
-      ExpressionAttributeValues: {
-        ':aa': 1678665600000,
-        ':b': false,
-        ':h': ['12345|TEST|01||||'],
-        ':int': 'AIS_ACCOUNT_SUSPENDED',
-        ':ri': false,
-        ':rp': false,
-        ':s': true,
-        ':sa': 12345,
-        ':ua': 1678665600000,
+      {
+        RemoveKeys: [],
       },
-      UpdateExpression:
-        'SET #B = :b, #S = :s, #RP = :rp, #RI = :ri, #UA = :ua, #INT = :int, #SA = :sa, #AA = :aa, #H = :h',
-    });
+    );
   });
 
   test('updateDeleteStatus', async () => {
@@ -151,25 +142,26 @@ describe('PersistentAccountStatusService', () => {
 
     const res = await service.updateDeleteStatus('1234');
 
-    expect(res).toEqual(undefined);
-
-    expect(recordServiceUpdateSpy).toHaveBeenLastCalledWith('1234', {
-      ConditionExpression:
-        'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
-      ExpressionAttributeNames: {
-        '#deletedAt': 'deletedAt',
-        '#isAccountDeleted': 'isAccountDeleted',
-        '#ttl': 'ttl',
-      },
-      ExpressionAttributeValues: {
-        ':deletedAt': 1678665600000,
-        ':false': false,
-        ':isAccountDeleted': true,
-        ':ttl': 1678677945,
-      },
-      ReturnValues: 'ALL_NEW',
-      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted, #ttl = :ttl, #deletedAt = :deletedAt',
+    expect(res).toEqual({
+      $metadata: {},
     });
+
+    expect(recordServiceUpdateSpy).toHaveBeenLastCalledWith(
+      '1234',
+      {
+        deletedAt: 1678665600000,
+        isAccountDeleted: true,
+        ttl: 1678677945,
+      },
+      {
+        ConditionExpression:
+          'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
+        ExpressionAttributeValues: {
+          ':false': false,
+        },
+        ReturnValues: 'ALL_NEW',
+      },
+    );
   });
 });
 
