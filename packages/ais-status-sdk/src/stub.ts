@@ -1,4 +1,3 @@
-import { InterventionRequestFailed } from './errors';
 import { AccountHistory, AccountStatus, InterventionClientInterface, InterventionName } from './types';
 
 export interface InterventionStubConfig {
@@ -18,12 +17,11 @@ export class InterventionStub implements InterventionClientInterface {
         interventions: this.config.interventionNames.map((name) => ({ name })),
       });
 
-    throw new InterventionRequestFailed();
+    return Promise.resolve({ interventions: [] });
   }
 
   getAccountHistory(): Promise<AccountHistory> {
     if (this.config?.historyResult) return Promise.resolve(this.config.historyResult);
-
-    throw new InterventionRequestFailed();
+    return Promise.resolve({ lines: [] });
   }
 }

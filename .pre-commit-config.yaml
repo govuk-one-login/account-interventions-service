@@ -8,6 +8,7 @@ repos:
       - id: end-of-file-fixer
         exclude: '\.json$|packages/ais-status-sdk/CHANGELOG.md'
       - id: trailing-whitespace
+        exclude: '\/__snapshots__\/.+'
       - id: detect-private-key
       - id: detect-aws-credentials
         args: [--allow-missing-credentials]
