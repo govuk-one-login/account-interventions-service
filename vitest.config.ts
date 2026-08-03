@@ -12,6 +12,11 @@ export default defineConfig({
     environment: 'node',
     coverage: {
       provider: 'v8',
+      // Specify that all typescript files are included, so the coverage report always includes
+      // all of them. Without this `v8 ignore file` doesn't work for Sonar coverage checking as
+      // Sonar knows a file exists, but with this that file will show as all zeroes on the coverage
+      // report which Sonar evaluates as above the threshold.
+      include: ['src/**/*.ts'],
       reporter: ['text', 'lcov'],
       reportsDirectory: './coverage',
     },
