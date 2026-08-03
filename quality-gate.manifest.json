@@ -90,6 +90,14 @@
           "file": ".github/workflows/code-quality.yaml",
           "path": "$.jobs.run-pre-commit"
         }
+      ],
+      "notApplicable": [
+        {
+          "phase": "build",
+          "checks": [
+            {"name": "integration", "details": ["No testing of AWS resource in pre-merge", "https://github.com/govuk-one-login/account-interventions-service/blob/main/adr/007-integration-test-strategy.md"]}
+          ]
+        }
       ]
     }
   ]
