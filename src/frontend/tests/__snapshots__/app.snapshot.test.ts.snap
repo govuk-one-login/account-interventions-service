@@ -468,21 +468,13 @@ data-module="govuk-service-navigation"
 
   
     <div class="govuk-inset-text govuk-!-margin-bottom-5">
-      <p class="govuk-body-xs govuk-hint govuk-!-margin-bottom-4">Sent at:
+      <p class="govuk-body-xs govuk-hint govuk-!-margin-bottom-4">
         <strong>14 July 2026 at 09:27:59 UTC</strong>
       </p>
       
       
-        
-      
-      
-        
-      
-      
-      
-        
-      
-      
+
+  
 
   
 
@@ -546,6 +538,18 @@ data-module="govuk-service-navigation"
   
   <div class="govuk-summary-list__row">
     <dt class="govuk-summary-list__key">
+      Originator Reference ID
+    </dt>
+    <dd class="govuk-summary-list__value">
+      N/A
+    </dd>
+    
+  </div>
+  
+
+  
+  <div class="govuk-summary-list__row">
+    <dt class="govuk-summary-list__key">
       Requester ID
     </dt>
     <dd class="govuk-summary-list__value">
@@ -587,6 +591,57 @@ data-module="govuk-service-navigation"
       
     </div>
   
+  <h2 class="govuk-heading-m govuk-!-margin-top-7">Field descriptions</h2>
+  
+
+  
+
+  
+
+  
+<dl class="govuk-summary-list">
+
+  
+  <div class="govuk-summary-list__row">
+    <dt class="govuk-summary-list__key">
+      Originating Component
+    </dt>
+    <dd class="govuk-summary-list__value">
+      The component id of the application in which the intervention originator, i.e., ticket, case, assessment, etc., that triggered the intervention.<br>
+                <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originating_component_id/" class="govuk-link">View in event catalogue</a>
+    </dd>
+    
+  </div>
+  
+
+  
+  <div class="govuk-summary-list__row">
+    <dt class="govuk-summary-list__key">
+      Originator Reference ID
+    </dt>
+    <dd class="govuk-summary-list__value">
+      The unique id of the ticket, case, risk assessment, etc., from which the intervention resulted.<br>
+                <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originator_reference_id/" class="govuk-link">View in event catalogue</a>
+    </dd>
+    
+  </div>
+  
+
+  
+  <div class="govuk-summary-list__row">
+    <dt class="govuk-summary-list__key">
+      Requester ID
+    </dt>
+    <dd class="govuk-summary-list__value">
+      The unique id used by the originating component to identify the user who triggered the intervention - will be a number or GUID, must not be personal identifying - must be provided if a manual intervention.<br>
+                <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-requester_id/" class="govuk-link">View in event catalogue</a>
+    </dd>
+    
+  </div>
+  
+
+</dl>
+
 
 
   
