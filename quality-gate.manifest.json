@@ -93,7 +93,7 @@
       ],
       "notApplicable": [
         {
-          "phase": "build",
+          "phase": "pre-merge",
           "checks": [
             {
               "name": "integration",
