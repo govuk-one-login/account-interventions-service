@@ -52,7 +52,7 @@ export async function persistIgnoredInterventionEvent(
   event: EventsEnum,
   previousState: StateDetails | undefined,
   interventionEventsService: InterventionEventsService,
-) {
+): Promise<void> {
   const attemptedInterventions = config[event]
     .filter((u) => u.interventionState === InterventionState.ACTIVE)
     .map((u) => u.interventionName);
@@ -63,11 +63,15 @@ export async function persistIgnoredInterventionEvent(
     previousState,
   );
 
-  const updatedIntervention = attemptedInterventions
+  const updatedInterventions = attemptedInterventions
     .filter((name) => activeInterventions.includes(name))
     .map((name) => ({ interventionName: name, interventionState: InterventionState.IGNORED }));
 
-  const callWith = enrichEvents(updatedIntervention, message);
+  if (updatedInterventions.length === 0) {
+    return;
+  }
+
+  const callWith = enrichEvents(updatedInterventions, message);
 
   await interventionEventsService.appendEvents(callWith);
 }
