@@ -7,12 +7,15 @@
         <strong>{{ transaction.sentAtFormatted }}</strong>
         {% if transaction.originatingComponent == "TICF CRI" %}
           {% set tagDescription = "AUTOMATED" %}
+          {% set tagColour = "purple" %}
         {% elif transaction.originatingComponent == "FAI" %}
           {% set tagDescription = "FAI" %}
+          {% set tagColour = "blue" %}
         {% elif transaction.originatingComponent == "CMS" %}
           {% set tagDescription = "SIRA" %}
+          {% set tagColour = "teal" %}
         {% endif %}
-        <strong class="govuk-tag govuk-tag--blue govuk-!-margin-left-7"
+        <strong class="govuk-tag govuk-tag--{{ tagColour }} govuk-!-margin-left-7"
   style="vertical-align: middle;">{{ tagDescription }}</strong>
       </p>
       {% set transactionRows = [
