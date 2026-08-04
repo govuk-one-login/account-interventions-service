@@ -51,6 +51,18 @@ export class InMemoryInterventionEventsService implements InterventionEventsServ
   }
 }
 
+/* v8 ignore start -- trivial */
+export class NullInterventionEventsService implements InterventionEventsService {
+  fetchEventsForAccount(): Promise<[]> {
+    return Promise.resolve([]);
+  }
+
+  appendEvents(): Promise<void> {
+    return Promise.resolve();
+  }
+}
+/* v8 ignore stop */
+
 export class PersistentInterventionEventsService implements InterventionEventsService {
   constructor(private readonly recordService: RecordService<typeof schema>) {}
 
