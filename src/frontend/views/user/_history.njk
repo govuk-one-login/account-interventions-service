@@ -5,6 +5,21 @@
     <div class="govuk-inset-text govuk-!-margin-bottom-5">
       <p class="govuk-body-xs govuk-hint govuk-!-margin-bottom-4">
         <strong>{{ transaction.sentAtFormatted }}</strong>
+        {% if not transaction.originatingComponent %}
+          {% set tagDescription = "SOURCE UNAVAILABLE" %}
+          {% set tagColour = "grey" %}
+        {% elif transaction.originatingComponent == "TICF CRI" %}
+          {% set tagDescription = "AUTOMATED" %}
+          {% set tagColour = "purple" %}
+        {% elif transaction.originatingComponent == "FAI" %}
+          {% set tagDescription = "FAI" %}
+          {% set tagColour = "teal" %}
+        {% elif transaction.originatingComponent == "CMS" %}
+          {% set tagDescription = "SIRA" %}
+          {% set tagColour = "teal" %}
+        {% endif %}
+        <strong class="govuk-tag govuk-tag--{{ tagColour }} govuk-!-margin-left-7"
+  style="vertical-align: middle;">{{ tagDescription }}</strong>
       </p>
       {% set transactionRows = [
           { key: { text: "Component" },  value: { text: transaction.componentId } },
