@@ -132,6 +132,7 @@ Mappings:
     dev:
       EnableAISFrontend: true
       EnableAISSendTxMA: false
+      BypassInterventionEventsTable: true
     build:
       EnableAISFrontend: false
       EnableAISSendTxMA: false
