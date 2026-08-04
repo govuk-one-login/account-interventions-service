@@ -31,24 +31,28 @@ export async function retrieveStatus(
 
   const userId = decodeURIComponent(parameters.data.userId);
 
+  let result: APIGatewayProxyResult;
+
   try {
     if (event.resource === '/v2/ais/{userId}')
-      return await v2StatusApiHandler(userId, accountStatusService, interventionEventsService, event.headers);
+      result = await v2StatusApiHandler(userId, accountStatusService, interventionEventsService, event.headers);
     else if (event.resource === '/v2/ais/{userId}/history')
-      return await v2HistoryApiHandler(userId, accountStatusService, interventionEventsService);
+      result = await v2HistoryApiHandler(userId, accountStatusService, interventionEventsService);
     else {
       const { history: historyQuery } = V1QuerySchema.parse(event.queryStringParameters ?? {});
-      return await v1StatusApiHandler(userId, historyQuery, accountStatusService);
+      result = await v1StatusApiHandler(userId, historyQuery, accountStatusService);
     }
   } catch (error) {
     logger.error('A problem occurred with the query.', { error });
     addMetric(MetricNames.DB_QUERY_ERROR);
     metric.publishStoredMetrics();
-    return {
+    result = {
       statusCode: 500,
       body: JSON.stringify({ message: 'Internal Server Error.' }),
     };
   }
+
+  return result;
 }
 
 async function v1StatusApiHandler(
