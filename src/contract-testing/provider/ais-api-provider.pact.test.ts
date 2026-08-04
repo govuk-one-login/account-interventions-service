@@ -9,7 +9,8 @@ import { DynamoDBDocumentClient, NativeAttributeValue, QueryCommand } from '@aws
 import { InterventionName } from '../../data-types/intervention-name';
 import { InterventionState } from '../../data-types/constants';
 
-vi.mock('@aws-lambda-powertools/metrics');
+vi.mock('../../commons/metrics');
+vi.mock('../../commons/metrics-helper');
 vi.mock('@aws-lambda-powertools/logger');
 const port = 8080;
 const databaseDocumentMock = mockClient(DynamoDBDocumentClient);
