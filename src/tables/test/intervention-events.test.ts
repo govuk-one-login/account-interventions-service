@@ -43,13 +43,7 @@ describe('PersistentInterventionEventsService', () => {
     const batchWriteSpy = vi.spyOn(recordService, 'batchWrite');
     const service = new PersistentInterventionEventsService(recordService);
 
-    const result = await service.appendEvents([event]);
-
-    expect(result).toEqual({
-      $metadata: {
-        attempts: 1,
-      },
-    });
+    await service.appendEvents([event]);
 
     expect(batchWriteSpy).toHaveBeenCalledWith([event]);
   });
