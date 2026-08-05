@@ -8,13 +8,13 @@
         {% if not transaction.originatingComponent %}
           {% set tagDescription = "SOURCE UNAVAILABLE" %}
           {% set tagColour = "grey" %}
-        {% elif transaction.originatingComponent == "TICF CRI" %}
+        {% elif transaction.originatingComponent in automatedSources %}
           {% set tagDescription = "AUTOMATED" %}
           {% set tagColour = "purple" %}
-        {% elif transaction.originatingComponent == "FAI" %}
+        {% elif transaction.originatingComponent in faiSources %}
           {% set tagDescription = "FAI" %}
           {% set tagColour = "teal" %}
-        {% elif transaction.originatingComponent == "CMS" %}
+        {% elif transaction.originatingComponent in siraSources %}
           {% set tagDescription = "SIRA" %}
           {% set tagColour = "teal" %}
         {% endif %}
