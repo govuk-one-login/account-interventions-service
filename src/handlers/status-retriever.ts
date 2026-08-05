@@ -31,34 +31,39 @@ export async function retrieveStatus(
 
   const userId = decodeURIComponent(parameters.data.userId);
 
+  let result: APIGatewayProxyResult;
+  let apiVersion: 'v1' | 'v2' = 'v1';
+
   try {
-    if (event.resource === '/v2/ais/{userId}')
-      return await v2StatusApiHandler(userId, accountStatusService, interventionEventsService, event.headers);
-
-    if (event.resource === '/v2/ais/{userId}/history')
-      return await v2HistoryApiHandler(userId, accountStatusService, interventionEventsService);
-
-    const { history: historyQuery } = V1QuerySchema.parse(event.queryStringParameters ?? {});
-
-    return await v1StatusApiHandler(userId, historyQuery, accountStatusService);
+    if (event.resource === '/v2/ais/{userId}') {
+      apiVersion = 'v2';
+      result = await v2StatusApiHandler(userId, accountStatusService, interventionEventsService, event.headers);
+    } else if (event.resource === '/v2/ais/{userId}/history') {
+      apiVersion = 'v2';
+      result = await v2HistoryApiHandler(userId, accountStatusService, interventionEventsService);
+    } else {
+      const { history: historyQuery } = V1QuerySchema.parse(event.queryStringParameters ?? {});
+      result = await v1StatusApiHandler(userId, historyQuery, accountStatusService);
+    }
   } catch (error) {
     logger.error('A problem occurred with the query.', { error });
     addMetric(MetricNames.DB_QUERY_ERROR);
+    result = {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Internal Server Error.' }),
+    };
   }
 
+  addMetric(MetricNames.STATUS_API_CALLED, [], 1, { apiVersion: apiVersion, code: result.statusCode.toString() });
   metric.publishStoredMetrics();
-
-  return {
-    statusCode: 500,
-    body: JSON.stringify({ message: 'Internal Server Error.' }),
-  };
+  return result;
 }
 
 async function v1StatusApiHandler(
   userId: string,
   historyQuery: boolean | undefined,
   accountStatusService: AccountStatusService,
-) {
+): Promise<APIGatewayProxyResult> {
   const response = await accountStatusService.getFullAccountInformation(userId);
   if (!response) {
     logger.info('Query matched no records in DynamoDB.');
@@ -91,7 +96,7 @@ async function v2StatusApiHandler(
   accountStatusService: AccountStatusService,
   interventionEventsService: InterventionEventsService,
   headers: APIGatewayProxyEventHeaders,
-) {
+): Promise<APIGatewayProxyResult> {
   const clientId = headers['x-client-id'];
   const sdkVersion = headers['x-sdk-version'];
 
