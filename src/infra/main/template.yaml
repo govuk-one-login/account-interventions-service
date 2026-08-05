@@ -171,6 +171,9 @@ Mappings:
         - vpce-0db136878c87bf2d0 # Auth New Production VPC Endpoint ID
         - vpce-0d6fa47d5c9ae876d # AMC Production VPC Endpoint ID
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables # pragma: allowlist secret
+  FeatureFlags:
+    dev:
+      BypassInterventionEventsTable: true
 
 Globals:
   Function:
@@ -257,6 +260,8 @@ Resources:
             Fn::ImportValue: !Sub '${CoreStackName}-InterventionEventsTableName'
           TXMA_QUEUE_URL: !Ref TxMAEgressQueue
           HISTORY_RETENTION_SECONDS: 63072000
+          BYPASS_INTERVENTION_EVENTS_TABLE:
+            !FindInMap [FeatureFlags, !Ref Environment, BypassInterventionEventsTable, { 'DefaultValue': 'false' }]
       Tags:
         Product: !Ref ProductTagValue
         System: !Ref SystemTagValue
@@ -1331,6 +1336,8 @@ Resources:
           INTERVENTION_EVENTS_TABLE_NAME:
             Fn::ImportValue: !Sub '${CoreStackName}-InterventionEventsTableName'
           METRIC_SERVICE_NAME: StatusRetrieverFunction
+          BYPASS_INTERVENTION_EVENTS_TABLE:
+            !FindInMap [FeatureFlags, !Ref Environment, BypassInterventionEventsTable, { 'DefaultValue': 'false' }]
       Handler: status-retriever-handler.handle
       Role: !GetAtt StatusRetrieverFunctionRole.Arn
       Tags:
