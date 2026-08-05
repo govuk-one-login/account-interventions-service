@@ -2,12 +2,22 @@
 
 import type { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import logger from '../commons/logger';
-import { getPersistentInterventionEventsService } from '../tables/intervention-events';
+import { getPersistentInterventionEventsService, NullInterventionEventsService } from '../tables/intervention-events';
 import { getPersistentAccountStatusService } from '../tables/account-status';
 import { retrieveStatus } from './status-retriever';
+import { FeatureFlagsFromEnvironmentVariables } from '../services/feature-flags';
+
+const featureFlags = FeatureFlagsFromEnvironmentVariables.getInstance();
 
 const accountStatusService = getPersistentAccountStatusService();
-const interventionEventsService = getPersistentInterventionEventsService();
+/*
+  Feature flag-driven bypass of the intervention events table.
+  This is a temporary branch so that we can suspend reads and writes on the table while we do some maintenance
+  (getting rid of all the data)
+*/
+const interventionEventsService = featureFlags.isEnabled('bypassInterventionEventsTable')
+  ? new NullInterventionEventsService()
+  : getPersistentInterventionEventsService();
 
 /**
  * Status Retriever Handler. Queries DynamoDB and returns the intervention status of the account.

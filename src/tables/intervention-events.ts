@@ -5,7 +5,6 @@ import TableConfig from './table-config';
 import { getDBDocumentClient } from '../services/database-client';
 import { InterventionState } from '../data-types/constants';
 import { InterventionName } from '../data-types/intervention-name';
-import { BatchWriteCommandOutput } from '@aws-sdk/lib-dynamodb';
 
 const appConfig = AppConfigService.getInstance();
 
@@ -37,7 +36,7 @@ export type InterventionEvent = z.infer<typeof schema>;
 
 export interface InterventionEventsService {
   fetchEventsForAccount(accountId: string): Promise<InterventionEvent[]>;
-  appendEvents(events: InterventionEvent[]): Promise<BatchWriteCommandOutput>;
+  appendEvents(events: InterventionEvent[]): Promise<void>;
 }
 
 export class InMemoryInterventionEventsService implements InterventionEventsService {
@@ -47,12 +46,22 @@ export class InMemoryInterventionEventsService implements InterventionEventsServ
     return Promise.resolve(this.events);
   }
 
-  appendEvents() {
-    return Promise.resolve({
-      $metadata: {},
-    });
+  appendEvents(): Promise<void> {
+    return Promise.resolve();
   }
 }
+
+/* v8 ignore start -- trivial */
+export class NullInterventionEventsService implements InterventionEventsService {
+  fetchEventsForAccount(): Promise<[]> {
+    return Promise.resolve([]);
+  }
+
+  appendEvents(): Promise<void> {
+    return Promise.resolve();
+  }
+}
+/* v8 ignore stop */
 
 export class PersistentInterventionEventsService implements InterventionEventsService {
   constructor(private readonly recordService: RecordService<typeof schema>) {}
@@ -61,8 +70,8 @@ export class PersistentInterventionEventsService implements InterventionEventsSe
     return this.recordService.queryByPkAndValidate(accountId);
   }
 
-  appendEvents(events: InterventionEvent[]) {
-    return this.recordService.batchWrite(events);
+  async appendEvents(events: InterventionEvent[]) {
+    await this.recordService.batchWrite(events);
   }
 }
 

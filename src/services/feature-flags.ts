@@ -16,6 +16,7 @@ const FLAGS = {
   aisFrontend: { envVar: 'ENABLE_AIS_FRONTEND', defaultValue: false },
   aisSendTxMA: { envVar: 'ENABLE_AIS_SEND_TXMA', defaultValue: false },
   disableAuth: { envVar: 'DISABLE_AUTH', defaultValue: false },
+  bypassInterventionEventsTable: { envVar: 'BYPASS_INTERVENTION_EVENTS_TABLE', defaultValue: false },
 } as const satisfies Record<string, FlagDefinition>;
 
 type FlagName = keyof typeof FLAGS;
