@@ -1,0 +1,32 @@
+{
+  "component_id": "ACCOUNT_INTERVENTION_SERVICE",
+  "event_name": "AIS_STATE_UPDATED",
+  "timestamp": 1730960332,
+  "event_timestamp_ms": 1730960332779,
+  "extensions": {
+    "intervention_state": [
+      {
+        "name": "RESET_PASSWORD"
+      }
+    ],
+    "intervention_changes": [
+      {
+        "name": "RESET_PASSWORD",
+        "change": "ADD"
+      },
+      {
+        "name": "TEMPORARY_SUSPENSION",
+        "change": "REMOVE"
+      }
+    ],
+    "intervention_reason": "suspend - 01",
+    "originating_component_id": "CMS",
+    "originator_reference_id": "1234567",
+    "requester_id": "1234567",
+    "trigger_event": "TICF_ACCOUNT_INTERVENTION",
+    "trigger_event_id": "123"
+  },
+  "user": {
+    "user_id": "urn:fdc:gov.uk:2022:TEST_USER-U3KH8R2d3X-GBl5-v-9I90kHFr90aPvQV6KJ"
+  }
+}
