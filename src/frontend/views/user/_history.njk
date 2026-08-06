@@ -17,6 +17,9 @@
         {% elif transaction.originatingComponent in siraSources %}
           {% set tagDescription = "SIRA" %}
           {% set tagColour = "teal" %}
+        {% else %}
+          {% set tagDescription = "SOURCE UNAVAILABLE" %}
+          {% set tagColour = "grey" %}
         {% endif %}
         <strong class="govuk-tag govuk-tag--{{ tagColour }} govuk-!-margin-left-7"
   style="vertical-align: middle;">{{ tagDescription }}</strong>
