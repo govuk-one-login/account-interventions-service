@@ -38,6 +38,7 @@ export class JwtAuthoriser implements Authoriser {
       logger.info('JWT verified successfully', { url });
       return { success: true, payload };
     } catch (error) {
+      logger.debug('JWT:', { jwt: context.data.jwt });
       logger.warn('JWT verification failed', { url, error });
       return { success: false };
     }
