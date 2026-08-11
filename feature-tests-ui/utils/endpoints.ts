@@ -1,0 +1,9 @@
+export default class EndPoints {
+  public static SQS_QUEUE_URL =
+    process.env.TEST_ENVIRONMENT === 'dev'
+      ? `https://sqs.${process.env.AWS_REGION}.amazonaws.com/484907510598/${process.env.SAM_STACK_NAME}-TxMAIngressQueue`
+      : process.env.CFN_TxMAIngressSqsQueueUrl;
+  public static PATH_AIS = '/ais/';
+  public static TABLE_NAME = 'ais-core-account-status';
+  public static INTERVENTION_EVENTS_TABLE_NAME = 'ais-core-intervention-events';
+}
