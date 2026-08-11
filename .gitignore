@@ -76,3 +76,9 @@ dist/
 .nx/cache
 .nx/workspace-data
 .nx/migrate-runs
+
+# playwright generated files and test output
+.features-gen/
+playwright-report/
+results/
+test-results/
