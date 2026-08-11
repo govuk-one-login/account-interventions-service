@@ -4,6 +4,7 @@ import { formatHistory,
   FrontendAppConfig,
   FrontendAppDependencies,
   getDisplayState,
+  flagInterventionStateChanges,
 } from '../app';
 import { InterventionStub, InterventionName, InterventionState } from '@govuk-one-login/ais-status-sdk';
 import { StubMessageService } from '../../services/message-service';
@@ -787,5 +788,153 @@ describe('getDisplayState', () => {
 
   it('returns the original state when RESET_PASSWORD is ACTIVE', () => {
     expect(getDisplayState(makeLine(InterventionName.RESET_PASSWORD, InterventionState.ACTIVE))).toBe('ACTIVE');
+  });
+});
+
+
+describe('flagInterventionStateChanges', () => {
+  const line = (
+    sentAt: number,
+    interventionName: InterventionName,
+    interventionState: InterventionState,
+    tagId = 'tag',
+  ) => ({
+    sentAt,
+    componentId: 'TEST',
+    interventionName,
+    interventionState,
+    interventionReason: 'Reason',
+    tagId,
+  });
+
+  const showStateByOrder = (history: { lines: { sentAt: number; showState?: boolean }[] }) =>
+    history.lines.map((l) => ({ sentAt: l.sentAt, showState: l.showState }));
+
+  it('shows the state when an intervention first appears as ACTIVE (a change to ACTIVE)', () => {
+    const result = flagInterventionStateChanges({
+      lines: [line(1000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE)],
+    });
+
+    expect(result.lines[0]?.showState).toBe(true);
+  });
+
+  it('hides the state when an intervention first appears as a non-ACTIVE state', () => {
+    const result = flagInterventionStateChanges({
+      lines: [line(1000, InterventionName.RESET_PASSWORD, InterventionState.REMOVED)],
+    });
+
+    expect(result.lines[0]?.showState).toBe(false);
+  });
+
+  it('shows the state when an intervention changes from a non-ACTIVE state to ACTIVE', () => {
+    const result = flagInterventionStateChanges({
+      lines: [
+        line(1000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED),
+        line(2000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+      ],
+    });
+
+    expect(showStateByOrder(result)).toEqual([
+      { sentAt: 1000, showState: false },
+      { sentAt: 2000, showState: true },
+    ]);
+  });
+
+  it('shows the state when an intervention changes from ACTIVE to a non-ACTIVE state', () => {
+    const result = flagInterventionStateChanges({
+      lines: [
+        line(1000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+        line(2000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED),
+      ],
+    });
+
+    expect(showStateByOrder(result)).toEqual([
+      { sentAt: 1000, showState: true },
+      { sentAt: 2000, showState: true },
+    ]);
+  });
+
+  it('hides the state when it stays ACTIVE', () => {
+    const result = flagInterventionStateChanges({
+      lines: [
+        line(1000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+        line(2000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+      ],
+    });
+
+    expect(showStateByOrder(result)).toEqual([
+      { sentAt: 1000, showState: true },
+      { sentAt: 2000, showState: false },
+    ]);
+  });
+
+  it('hides the state when it changes between two non-ACTIVE states', () => {
+    const result = flagInterventionStateChanges({
+      lines: [
+        line(1000, InterventionName.RESET_PASSWORD, InterventionState.ACTIVE),
+        line(2000, InterventionName.RESET_PASSWORD, InterventionState.MITIGATED),
+        line(3000, InterventionName.RESET_PASSWORD, InterventionState.REMOVED),
+      ],
+    });
+
+    // ACTIVE -> MITIGATED is a change from ACTIVE (shown); MITIGATED -> REMOVED does not
+    // involve ACTIVE, so it is hidden even though the state changed.
+    expect(showStateByOrder(result)).toEqual([
+      { sentAt: 1000, showState: true },
+      { sentAt: 2000, showState: true },
+      { sentAt: 3000, showState: false },
+    ]);
+  });
+
+  it('compares against the last appearance of the same intervention, even when another intervention appeared in between', () => {
+    const result = flagInterventionStateChanges({
+      lines: [
+        line(1000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+        line(2000, InterventionName.RESET_PASSWORD, InterventionState.ACTIVE),
+        line(3000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+      ],
+    });
+
+    // The TEMPORARY_SUSPENSION at 3000 was already ACTIVE at its previous appearance (1000),
+    // so it is hidden even though the immediately previous event (RESET_PASSWORD) differed.
+    expect(showStateByOrder(result)).toEqual([
+      { sentAt: 1000, showState: true },
+      { sentAt: 2000, showState: true },
+      { sentAt: 3000, showState: false },
+    ]);
+  });
+
+  it('tracks each intervention independently', () => {
+    const result = flagInterventionStateChanges({
+      lines: [
+        line(1000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+        line(2000, InterventionName.RESET_PASSWORD, InterventionState.ACTIVE),
+        line(3000, InterventionName.RESET_PASSWORD, InterventionState.MITIGATED),
+        line(4000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+      ],
+    });
+
+    expect(showStateByOrder(result)).toEqual([
+      { sentAt: 1000, showState: true },
+      { sentAt: 2000, showState: true },
+      { sentAt: 3000, showState: true },
+      { sentAt: 4000, showState: false },
+    ]);
+  });
+
+  it('processes lines in chronological order regardless of input order', () => {
+    const result = flagInterventionStateChanges({
+      lines: [
+        line(3000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED),
+        line(1000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+        line(2000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+      ],
+    });
+
+    expect(showStateByOrder(result)).toEqual([
+      { sentAt: 1000, showState: true },
+      { sentAt: 2000, showState: false },
+      { sentAt: 3000, showState: true },
+    ]);
   });
 });

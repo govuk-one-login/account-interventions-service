@@ -151,6 +151,12 @@ export function init(
     const accountStatus = await interventionClient.getAccountStatus(userId);
     const accountHistory = await interventionClient.getAccountHistory(userId);
 
+    // Flag, per intervention, whether each event's state should be displayed. The state
+    // is only shown when the intervention transitions to or from ACTIVE, relative to the
+    // last time that intervention appeared in the history — even if that appearance
+    // wasn't the immediately previous history event.
+    const comparedHistory = flagInterventionStateChanges(accountHistory);
+
     const interventions = Object.entries(transitionConfig.edges)
       .filter(([_code, edge]) => edge.interventionName)
       .map(([code, edge]) => ({
@@ -163,7 +169,7 @@ export function init(
       assetPath,
       accountStatus,
       userId,
-      accountHistory: formatHistory(accountHistory),
+      accountHistory: formatHistory(comparedHistory),
       messageSent,
       aisSendTxMA: featureFlags.isEnabled('aisSendTxMA'),
       interventions,
@@ -235,7 +241,14 @@ export function init(
   return server;
 }
 
-interface DisplayHistoryLine extends HistoryLine {
+/**
+ * A HistoryLine augmented with a flag indicating whether its intervention state
+ * should be displayed. Set to false when the state is unchanged from the last time
+ * that intervention appeared in the history.
+ */
+type HistoryLineWithChange = HistoryLine & { showState?: boolean };
+
+interface DisplayHistoryLine extends HistoryLineWithChange {
   displayState: string;
 }
 
@@ -245,32 +258,68 @@ interface HistoryTransaction extends Omit<HistoryLine, 'interventionName' | 'int
   interventionEvents: DisplayHistoryLine[];
 }
 
+/**
+ * Annotates each history line with `showState`, indicating whether the intervention's
+ * state should be displayed. The state is shown only when the intervention transitions
+ * to or from the ACTIVE state, relative to the last time that intervention appeared in
+ * the history.
+ *
+ * Lines are processed in chronological order (oldest first), and each intervention's
+ * most recently seen state is tracked independently. An event's state is shown when the
+ * intervention becomes ACTIVE (its previous appearance was not ACTIVE, or this is its
+ * first appearance) or stops being ACTIVE (its previous appearance was ACTIVE). Changes
+ * between two non-ACTIVE states, and repeats of the same ACTIVE/non-ACTIVE status, are
+ * hidden — even if the last appearance was not the immediately previous history event.
+ */
+export function flagInterventionStateChanges(history: AccountHistory): { lines: HistoryLineWithChange[] } {
+  const lastStateByIntervention = new Map<InterventionName, InterventionState>();
+
+  const lines = history.lines
+    .toSorted((a, b) => a.sentAt - b.sentAt)
+    .map((line) => {
+      const lastState = lastStateByIntervention.get(line.interventionName);
+      lastStateByIntervention.set(line.interventionName, line.interventionState);
+
+      const wasActive = lastState === InterventionState.ACTIVE;
+      const isActive = line.interventionState === InterventionState.ACTIVE;
+
+      return { ...line, showState: wasActive !== isActive };
+    });
+
+  return { lines };
+}
+
 export function getDisplayState(line: HistoryLine): string {
-  if (line.interventionState === InterventionState.MITIGATED &&
-      (line.interventionName !== InterventionName.TEMPORARY_SUSPENSION &&
-       line.interventionName !== InterventionName.PERMANENT_SUSPENSION)
-     ) {
-      return 'COMPLETED';
+  if (
+    line.interventionState === InterventionState.MITIGATED &&
+    line.interventionName !== InterventionName.TEMPORARY_SUSPENSION &&
+    line.interventionName !== InterventionName.PERMANENT_SUSPENSION
+  ) {
+    return 'COMPLETED';
   }
-  if (line.interventionState === InterventionState.REMOVED &&
+  if (
+    line.interventionState === InterventionState.REMOVED &&
     (line.interventionName === InterventionName.TEMPORARY_SUSPENSION ||
       line.interventionName === InterventionName.PERMANENT_SUSPENSION)
   ) {
-    return 'UNSUSPENDED'
+    return 'UNSUSPENDED';
   }
   return line.interventionState;
 }
 
-export const formatHistory = (history: AccountHistory): HistoryTransaction[] =>
+export const formatHistory = (history: { lines: HistoryLineWithChange[] }): HistoryTransaction[] =>
   Object.values(
     history.lines.reduce<Record<string, HistoryTransaction>>((result, line) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { interventionName, interventionState, ...rest } = line;
+      const { interventionName, interventionState, showState, ...rest } = line;
 
       result[line.tagId] = {
         ...rest,
         sentAtFormatted: formatDate(line.sentAt),
-        interventionEvents: [...(result[line.tagId]?.interventionEvents ?? []), { ...line, displayState: getDisplayState(line) }],
+        interventionEvents: [
+          ...(result[line.tagId]?.interventionEvents ?? []),
+          { ...line, displayState: getDisplayState(line) },
+        ],
       };
       return result;
     }, {}),
