@@ -36,23 +36,25 @@
       {% if transaction.interventionEvents.length %}
         {% set eventRows = [] %}
         {% for event in transaction.interventionEvents %}
-          {% if event.interventionState == "ACTIVE" %}
-            {% set stateColour = "red" %}
-          {% elif event.interventionState == "MITIGATED" %}
-            {% set stateColour = "green" %}
-          {% elif event.interventionState == "REMOVED" %}
-            {% set stateColour = "grey" %}
-          {% elif event.interventionState == "SUPERSEDED" %}
-            {% set stateColour = "orange" %}
-          {% elif event.interventionState == "IGNORED" %}
-            {% set stateColour = "yellow" %}
-          {% else %}
-            {% set stateColour = "blue" %}
-          {% endif %}
-          {% set eventRows = eventRows.concat([{
-              key: { text: event.interventionName },
-              value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.displayState + '</strong>' }
+          {% if event.showState == true %}
+            {% if event.interventionState == "ACTIVE" %}
+              {% set stateColour = "red" %}
+            {% elif event.interventionState == "MITIGATED" %}
+              {% set stateColour = "green" %}
+            {% elif event.interventionState == "REMOVED" %}
+              {% set stateColour = "grey" %}
+            {% elif event.interventionState == "SUPERSEDED" %}
+              {% set stateColour = "orange" %}
+            {% elif event.interventionState == "IGNORED" %}
+              {% set stateColour = "yellow" %}
+            {% else %}
+              {% set stateColour = "blue" %}
+            {% endif %}
+            {% set eventRows = eventRows.concat([{
+                key: { text: event.interventionName },
+                value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.displayState + '</strong>' }
             }]) %}
+          {% endif %}
         {% endfor %}
         {{ govukSummaryList({ classes: "govuk-!-margin-bottom-0 govuk-!-font-size-16", rows: eventRows }) }}
       {% endif %}
