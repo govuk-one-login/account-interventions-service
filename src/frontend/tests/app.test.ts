@@ -1,4 +1,5 @@
-import { formatHistory,
+import {
+  formatHistory,
   init,
   generateVerifyRequest,
   FrontendAppConfig,
@@ -57,7 +58,7 @@ const makeLine = (interventionName: InterventionName, interventionState: Interve
   interventionState,
   interventionReason: 'Reason',
   tagId: 'tag1',
-})
+});
 
 // ---------------------------------------------------------------------------
 // generateVerifyRequest — unit tests (tests the exported hook factory directly)
@@ -767,11 +768,15 @@ describe('getDisplayState', () => {
   });
 
   it('returns UNSUSPENDED when TEMPORARY_SUSPENSION is REMOVED', () => {
-    expect(getDisplayState(makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED))).toBe('UNSUSPENDED');
+    expect(getDisplayState(makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED))).toBe(
+      'UNSUSPENDED',
+    );
   });
 
   it('returns UNSUSPENDED when PERMANENT_SUSPENSION is REMOVED', () => {
-    expect(getDisplayState(makeLine(InterventionName.PERMANENT_SUSPENSION, InterventionState.REMOVED))).toBe('UNSUSPENDED');
+    expect(getDisplayState(makeLine(InterventionName.PERMANENT_SUSPENSION, InterventionState.REMOVED))).toBe(
+      'UNSUSPENDED',
+    );
   });
 
   it('returns the original state when TEMPORARY_SUSPENSION is ACTIVE', () => {
@@ -783,7 +788,9 @@ describe('getDisplayState', () => {
   });
 
   it('returns the original state when TEMPORARY_SUSPENSION is SUPERSEDED', () => {
-    expect(getDisplayState(makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.SUPERSEDED))).toBe('SUPERSEDED');
+    expect(getDisplayState(makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.SUPERSEDED))).toBe(
+      'SUPERSEDED',
+    );
   });
 
   it('returns the original state when RESET_PASSWORD is ACTIVE', () => {
@@ -791,13 +798,13 @@ describe('getDisplayState', () => {
   });
 });
 
-
 describe('flagInterventionStateChanges', () => {
   const line = (
     sentAt: number,
     interventionName: InterventionName,
     interventionState: InterventionState,
     tagId = 'tag',
+    // eslint-disable-next-line unicorn/consistent-function-scoping
   ) => ({
     sentAt,
     componentId: 'TEST',
@@ -807,6 +814,7 @@ describe('flagInterventionStateChanges', () => {
     tagId,
   });
 
+  // eslint-disable-next-line unicorn/consistent-function-scoping
   const showStateByOrder = (history: { lines: { sentAt: number; showState?: boolean }[] }) =>
     history.lines.map((l) => ({ sentAt: l.sentAt, showState: l.showState }));
 
