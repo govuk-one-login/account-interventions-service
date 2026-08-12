@@ -86,7 +86,11 @@ export class HistoryService {
   private async fetchInterventionEvents(accountId: string) {
     const interventionEvents = await this.interventionEventsService.fetchEventsForAccount(accountId);
 
-    return interventionEvents.map((event) => ({ ...event, tagId: event.transactionId ?? randomUUID() }));
+    return interventionEvents.map((event) => ({
+      ...event,
+      tagId: event.transactionId ?? randomUUID(),
+      originatingComponent: event.originatingComponentId,
+    }));
   }
 }
 
