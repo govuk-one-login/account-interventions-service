@@ -12,7 +12,7 @@ export default defineConfig({
   testDir,
   use: {
     baseURL: process.env.FRONTEND_URL ?? "http://localhost:4601",
-    headless: false,
+    headless: true,
     channel: 'chrome',
   },
   reporter: [['html'], ['junit', { outputFile: 'results/report.xml' }]],
