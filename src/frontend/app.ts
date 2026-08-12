@@ -23,6 +23,7 @@ import { TicfAccountIntervention } from '../contracts/intervention-events';
 import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
 import { transitionConfig } from '../services/account-states/config';
 import { Authoriser } from './authoriser';
+import logger from '../commons/logger';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -150,6 +151,11 @@ export function init(
 
     const accountStatus = await interventionClient.getAccountStatus(userId);
     const accountHistory = await interventionClient.getAccountHistory(userId);
+
+    logger.debug('account history received', {
+      accountHistory,
+      formattedAccountHistory: formatHistory(accountHistory),
+    });
 
     // Flag, per intervention, whether each event's state should be displayed. The state
     // is only shown when the intervention transitions to or from ACTIVE, relative to the
