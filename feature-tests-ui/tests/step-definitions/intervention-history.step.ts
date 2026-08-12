@@ -1,32 +1,58 @@
-import { createBdd } from "playwright-bdd";
+import { createBdd, test as base } from "playwright-bdd";
 import { expect } from "@playwright/test";
 import { sendSQSEvent } from '../../utils/send-sqs-message';
 import { generateRandomTestUserId } from '../../utils/generate-random-test-user-id';
 import { timeDelayForTestEnvironment } from '../../utils/utility';
 
-const { Given, When, Then } = createBdd();
+type TestFixtures = {
+  testUserId: { value: string };
+};
 
-let testUserId: string;
+export const test = base.extend<TestFixtures>({
+  testUserId: async ({}, use) => {
+    const holder = { value: '' };
+    await use(holder);
+  },
+});
+
+const { Given, When, Then } = createBdd(test);
   
-Given('a user has a {string} intervention on their account', async ({}, aisEventType: string) => {
-  testUserId = generateRandomTestUserId();
-  await sendSQSEvent(testUserId, aisEventType);
+Given('a user has a {string} intervention on their account', async ({ testUserId }, aisEventType: string) => {
+  testUserId.value = generateRandomTestUserId();
+  await sendSQSEvent(testUserId.value, aisEventType);
   await timeDelayForTestEnvironment(5000);
 });
 
-When('I search for the user on the frontend', async ({ page }) => {
-  console.log('Navigating to:', process.env.FRONTEND_URL);
-  const response = await page.goto(process.env.FRONTEND_URL!);
-  await page.getByRole('textbox', { name: /subject identifier/i }).fill(testUserId);
+Given('an invalid urn of {string} is used to search via the UI', async ({ page }, invalidUrn: string) => {
+  await page.goto(process.env.FRONTEND_URL!);
+  await page.getByRole('textbox', { name: /subject identifier/i }).fill(invalidUrn);
   await page.getByRole('button', { name: 'Submit' }).click();
 });
 
-Then('I should see the intervention history', async ({ page }) => {
+Given('I search for a user with a valid URN via the UI', async ({ page, testUserId }) => {
+  testUserId.value = generateRandomTestUserId();
+  await page.goto(process.env.FRONTEND_URL!);
+  await page.getByRole('textbox', { name: /subject identifier/i }).fill(testUserId.value);
+  await page.getByRole('button', { name: 'Submit' }).click();
+});
+
+When('I search for the user via the UI', async ({ page, testUserId }) => {
+  await page.goto(process.env.FRONTEND_URL!);
+  await page.getByRole('textbox', { name: /subject identifier/i }).fill(testUserId.value);
+  await page.getByRole('button', { name: 'Submit' }).click();
+});
+
+Then('I should see the intervention history for the correct user', async ({ page, testUserId }) => {
   await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
+  await expect (page.locator('.govuk-body', { hasText: testUserId.value}).first()).toBeVisible();
   await expect(page.locator('.govuk-inset-text')).toHaveCount(1);
 });
 
-Then('the history should show intervention state {string}', async ({ page }, state: string) => {
-  console.log('state:', state)
-  await expect (page.getByText(state, { exact: true })).toBeVisible();
+Then('the history should show that the intervention was {string}', async ({ page }, triggeredBy: string) => {
+  await expect (page.locator('.govuk-tag', { hasText: triggeredBy}).first()).toBeVisible();
+});
+
+Then('I should see {string} displayed for this account', async ({ page }, noInterventionText: string) => {
+  await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
+  await expect (page.locator('.govuk-body-s', { hasText: noInterventionText}).first()).toBeVisible();
 });

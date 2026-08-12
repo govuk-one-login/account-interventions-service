@@ -34,7 +34,7 @@ export const aisEvents: {
       intervention: {
         intervention_code: '01',
         intervention_reason: 'suspend - 01',
-        originating_component_id: 'CMS',
+        originating_component_id: 'TICF CRI',
         originator_reference_id: '1234567',
         requester_id: '1234567',
       },
