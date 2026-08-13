@@ -1,9 +1,11 @@
-import { formatHistory,
+import {
+  formatHistory,
   init,
   generateVerifyRequest,
   FrontendAppConfig,
   FrontendAppDependencies,
   getDisplayState,
+  flagInterventionStateChanges,
 } from '../app';
 import { InterventionStub, InterventionName, InterventionState } from '@govuk-one-login/ais-status-sdk';
 import { StubMessageService } from '../../services/message-service';
@@ -49,14 +51,22 @@ interface ValidationErrorBody {
   message: string;
 }
 
-const makeLine = (interventionName: InterventionName, interventionState: InterventionState) => ({
-  sentAt: 1784021279000,
+const makeLine = (
+  interventionName: InterventionName,
+  interventionState: InterventionState,
+  sentAt = 1784021279000,
+  tagId = 'tag1',
+) => ({
+  sentAt,
   componentId: 'TEST',
   interventionName,
   interventionState,
   interventionReason: 'Reason',
-  tagId: 'tag1',
-})
+  tagId,
+});
+
+const showStateByOrder = (history: { lines: { sentAt: number; showState?: boolean }[] }) =>
+  history.lines.map((l) => ({ sentAt: l.sentAt, showState: l.showState }));
 
 // ---------------------------------------------------------------------------
 // generateVerifyRequest — unit tests (tests the exported hook factory directly)
@@ -766,11 +776,15 @@ describe('getDisplayState', () => {
   });
 
   it('returns UNSUSPENDED when TEMPORARY_SUSPENSION is REMOVED', () => {
-    expect(getDisplayState(makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED))).toBe('UNSUSPENDED');
+    expect(getDisplayState(makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED))).toBe(
+      'UNSUSPENDED',
+    );
   });
 
   it('returns UNSUSPENDED when PERMANENT_SUSPENSION is REMOVED', () => {
-    expect(getDisplayState(makeLine(InterventionName.PERMANENT_SUSPENSION, InterventionState.REMOVED))).toBe('UNSUSPENDED');
+    expect(getDisplayState(makeLine(InterventionName.PERMANENT_SUSPENSION, InterventionState.REMOVED))).toBe(
+      'UNSUSPENDED',
+    );
   });
 
   it('returns the original state when TEMPORARY_SUSPENSION is ACTIVE', () => {
@@ -782,10 +796,142 @@ describe('getDisplayState', () => {
   });
 
   it('returns the original state when TEMPORARY_SUSPENSION is SUPERSEDED', () => {
-    expect(getDisplayState(makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.SUPERSEDED))).toBe('SUPERSEDED');
+    expect(getDisplayState(makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.SUPERSEDED))).toBe(
+      'SUPERSEDED',
+    );
   });
 
   it('returns the original state when RESET_PASSWORD is ACTIVE', () => {
     expect(getDisplayState(makeLine(InterventionName.RESET_PASSWORD, InterventionState.ACTIVE))).toBe('ACTIVE');
+  });
+});
+
+describe('flagInterventionStateChanges', () => {
+  it('shows the state when an intervention first appears as ACTIVE (a change to ACTIVE)', () => {
+    const result = flagInterventionStateChanges({
+      lines: [makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 1000)],
+    });
+
+    expect(result.lines[0]?.showState).toBe(true);
+  });
+
+  it('hides the state when an intervention first appears as a non-ACTIVE state', () => {
+    const result = flagInterventionStateChanges({
+      lines: [makeLine(InterventionName.RESET_PASSWORD, InterventionState.REMOVED, 1000)],
+    });
+
+    expect(result.lines[0]?.showState).toBe(false);
+  });
+
+  it('shows the state when an intervention changes from a non-ACTIVE state to ACTIVE', () => {
+    const result = flagInterventionStateChanges({
+      lines: [
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED, 1000),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 2000),
+      ],
+    });
+
+    expect(showStateByOrder(result)).toEqual([
+      { sentAt: 1000, showState: false },
+      { sentAt: 2000, showState: true },
+    ]);
+  });
+
+  it('shows the state when an intervention changes from ACTIVE to a non-ACTIVE state', () => {
+    const result = flagInterventionStateChanges({
+      lines: [
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 1000),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED, 2000),
+      ],
+    });
+
+    expect(showStateByOrder(result)).toEqual([
+      { sentAt: 1000, showState: true },
+      { sentAt: 2000, showState: true },
+    ]);
+  });
+
+  it('hides the state when it stays ACTIVE', () => {
+    const result = flagInterventionStateChanges({
+      lines: [
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 1000),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 2000),
+      ],
+    });
+
+    expect(showStateByOrder(result)).toEqual([
+      { sentAt: 1000, showState: true },
+      { sentAt: 2000, showState: false },
+    ]);
+  });
+
+  it('hides the state when it changes between two non-ACTIVE states', () => {
+    const result = flagInterventionStateChanges({
+      lines: [
+        makeLine(InterventionName.RESET_PASSWORD, InterventionState.ACTIVE, 1000),
+        makeLine(InterventionName.RESET_PASSWORD, InterventionState.MITIGATED, 2000),
+        makeLine(InterventionName.RESET_PASSWORD, InterventionState.REMOVED, 3000),
+      ],
+    });
+
+    // ACTIVE -> MITIGATED is a change from ACTIVE (shown); MITIGATED -> REMOVED does not
+    // involve ACTIVE, so it is hidden even though the state changed.
+    expect(showStateByOrder(result)).toEqual([
+      { sentAt: 1000, showState: true },
+      { sentAt: 2000, showState: true },
+      { sentAt: 3000, showState: false },
+    ]);
+  });
+
+  it('compares against the last appearance of the same intervention, even when another intervention appeared in between', () => {
+    const result = flagInterventionStateChanges({
+      lines: [
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 1000),
+        makeLine(InterventionName.RESET_PASSWORD, InterventionState.ACTIVE, 2000),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 3000),
+      ],
+    });
+
+    // The TEMPORARY_SUSPENSION at 3000 was already ACTIVE at its previous appearance (1000),
+    // so it is hidden even though the immediately previous event (RESET_PASSWORD) differed.
+    expect(showStateByOrder(result)).toEqual([
+      { sentAt: 1000, showState: true },
+      { sentAt: 2000, showState: true },
+      { sentAt: 3000, showState: false },
+    ]);
+  });
+
+  it('tracks each intervention independently', () => {
+    const result = flagInterventionStateChanges({
+      lines: [
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 1000),
+        makeLine(InterventionName.RESET_PASSWORD, InterventionState.ACTIVE, 2000),
+        makeLine(InterventionName.RESET_PASSWORD, InterventionState.MITIGATED, 3000),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 4000),
+      ],
+    });
+
+    expect(showStateByOrder(result)).toEqual([
+      { sentAt: 1000, showState: true },
+      { sentAt: 2000, showState: true },
+      { sentAt: 3000, showState: true },
+      { sentAt: 4000, showState: false },
+    ]);
+  });
+
+  it('processes lines in chronological order regardless of input order', () => {
+    const result = flagInterventionStateChanges({
+      lines: [
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED, 3000),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 1000),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 2000),
+      ],
+    });
+
+    expect(showStateByOrder(result)).toEqual([
+      { sentAt: 1000, showState: true },
+      { sentAt: 2000, showState: false },
+      { sentAt: 3000, showState: true },
+    ]);
   });
 });
