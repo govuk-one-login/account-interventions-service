@@ -280,14 +280,14 @@ Resources:
                 - 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PrivateApiId}/main/*'
                 - PrivateApiId:
                     Fn::ImportValue: !Sub '${MainStackName}-PrivateApiRestApiId'
-          - Effect: Allow
-            Action:
-              - 'sqs:SendMessage'
-            Resource: !If
-              - IsInternal
-              - Fn::ImportValue: !Sub '${MainStackName}-TxMAIngressSqsQueueArn'
-              - !Ref 'AWS::NoValue'
-              # - Fn::ImportValue: !Sub '${MainStackName}-TxMAEgressSqsQueueArn'
+          - !If
+            - IsInternal
+            - Effect: Allow
+              Action:
+                - 'sqs:SendMessage'
+              Resource:
+                Fn::ImportValue: !Sub '${MainStackName}-TxMAIngressSqsQueueArn'
+            - !Ref AWS::NoValue
           - Effect: Allow
             Action:
               - 'kms:Decrypt'
