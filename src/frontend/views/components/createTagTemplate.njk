@@ -1,0 +1,18 @@
+ {% if not transaction.originatingComponent %}
+    {% set tagDescription = "UNAVAILABLE" %}
+    {% set tagColour = "grey" %}
+  {% elif transaction.originatingComponent in automatedSources %}
+    {% set tagDescription = "AUTOMATED" %}
+    {% set tagColour = "purple" %}
+  {% elif transaction.originatingComponent in faiSources %}
+    {% set tagDescription = "FAI" %}
+    {% set tagColour = "teal" %}
+  {% elif transaction.originatingComponent in siraSources %}
+    {% set tagDescription = "SIRA" %}
+    {% set tagColour = "teal" %}
+  {% else %}
+    {% set tagDescription = "UNAVAILABLE" %}
+    {% set tagColour = "grey" %}
+  {% endif %}
+  <span>{{ transaction.sentAtFormatted }}</span>
+  <span>  <strong class="govuk-!-font-size-16 govuk-tag govuk-tag--{{ tagColour }}">{{ tagDescription }}</strong></span>

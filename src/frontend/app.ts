@@ -61,7 +61,7 @@ function formatDate(value: string | number): string {
   return (
     date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) +
     ' ' +
-    date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+    date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
   );
 }
 
@@ -132,11 +132,11 @@ export function init(
   // Accepts the submitted userId from the search form and redirects to the user details page.
   server.post<{ Body: { userId?: string } }>('/search', async (request, reply) => {
     const userId = request.body.userId?.trim() ?? '';
-    return reply.redirect(`${pathPrefix}/usercard/${encodeURIComponent(userId)}`, 303);
+    return reply.redirect(`${pathPrefix}/user/${encodeURIComponent(userId)}`, 303);
   });
 
   // Fetches account status for the given userId and renders the details page.
-  server.get<{ Params: { userId: string } }>('/usercard/:userId', async (request, reply) => {
+  server.get<{ Params: { userId: string } }>('/user/:userId', async (request, reply) => {
     const userId = decodeURIComponent(request.params.userId).trim();
 
     if (!userId) return reply.code(400).send();

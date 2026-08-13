@@ -1,18 +1,42 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
-<h2 class="govuk-heading-m">History</h2>
+{% from "components/createTagMacro.njk" import createTag %}
+<h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
 {% if accountHistory and accountHistory.length %}
     {% for transaction in accountHistory %}
-      {{ transaction.interventionName | dump }}
+
       {% set transactionRows = [
-      { key: { text: "Intervention Source (Component)" },  value: { text: transaction.componentId } },
-      { key: { text: "Intervention Reason" },     value: { text: transaction.interventionReason } },
-      { key: { text: "Intervention applied in (Originating Component)" }, value: { text: transaction.originatingComponent if transaction.originatingComponent else "N/A" } },
-      { key: { text: "Intervention Code" },       value: { text: transaction.interventionCode if transaction.interventionCode else "N/A" } },
+      { key: { text: "Component" },  value: { text: transaction.componentId } },
+      { key: { text: "Reason" },     value: { text: transaction.interventionReason } },
+      { key: { text: "Originating Component" }, value: { text: transaction.originatingComponent if transaction.originatingComponent else "N/A" } },
+      { key: { text: "Code" },       value: { text: transaction.interventionCode if transaction.interventionCode else "N/A" } },
       { key: { text: "Requester ID" }, value: { text: transaction.requesterId if transaction.requesterId else "N/A" } }
       ] %}
 
+
+{% if transaction.interventionEvents.length %}
+  {% set eventRows = [] %}
+  {% for event in transaction.interventionEvents %}
+  {% if event.interventionState == "ACTIVE" %}
+  {% set stateColour = "red" %}
+  {% elif event.interventionState == "MITIGATED" %}
+  {% set stateColour = "green" %}
+  {% elif event.interventionState == "REMOVED" %}
+  {% set stateColour = "grey" %}
+  {% elif event.interventionState == "SUPERSEDED" %}
+  {% set stateColour = "orange" %}
+  {% elif event.interventionState == "IGNORED" %}
+  {% set stateColour = "yellow" %}
+  {% else %}
+  {% set stateColour = "blue" %}
+  {% endif %}
+  {% set eventRows = eventRows.concat([{
+  key: { text: event.interventionName },
+  value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.displayState + '</strong>' }
+  }]) %}
+  {% endfor %}
+{% endif %}
+
       {% set cardTitleText %}
-          {{ transaction.interventionName | dump }}
         {% if transaction.interventionName %}
             interventionTypeMap[transaction.interventionName]
         {% else %}
@@ -20,19 +44,20 @@
         {% endif %}
       {% endset %}
 
+
+
+      {% set combinedData = eventRows.concat(transactionRows) %}
       {% set cardTitleHtml %}
-        <span>{{cardTitleText}}</span>
-        <span>{{ transaction.sentAtFormatted }}</span>
+        {{ createTag(transaction, automatedSources, faiSources, siraSources)}}
       {% endset %}
 
-      {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4 govuk-!-font-size-16",   card: {
-      title: {
-        headingLevel: 3,
-        classes: "govuk-fraud-summary-card__title govuk-grid-column-full govuk-!-padding-0 govuk-!-margin-0",
-        html: cardTitleHtml
-
+      {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4 govuk-!-font-size-16", card: {
+        title: {
+          headingLevel: 3,
+          classes: "govuk-fraud-summary-card__title govuk-grid-column-full govuk-!-padding-0 govuk-!-margin-0",
+          html: cardTitleHtml
         }
-      }, rows: transactionRows }) }}
+      }, rows: combinedData }) }}
 
     {% endfor %}
   {% endif %}

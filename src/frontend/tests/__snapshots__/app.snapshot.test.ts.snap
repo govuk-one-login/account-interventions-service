@@ -11,6 +11,14 @@ exports[`rendered page snapshots > renders the index page 1`] = `
 
     
   <link rel="stylesheet" href="/assets/govuk-frontend.min.css"/>
+<style>
+  .govuk-fraud-summary-card__title {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+  }
+  </style>
 
 
     
@@ -327,6 +335,14 @@ exports[`rendered page snapshots > renders the user details page with history 1`
 
     
   <link rel="stylesheet" href="/assets/govuk-frontend.min.css"/>
+<style>
+  .govuk-fraud-summary-card__title {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+  }
+  </style>
 
 
     
@@ -464,141 +480,141 @@ data-module="govuk-service-navigation"
 
 
   
-<h2 class="govuk-heading-m">History</h2>
+
+<h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
+
+    
+
+      
+
+
 
   
-    <div class="govuk-inset-text govuk-!-margin-bottom-5">
-      <p class="govuk-body-xs govuk-hint govuk-!-margin-bottom-4">
-        <strong>14 July 2026 at 09:27:59 UTC</strong>
-        
-          
-          
-        
-        <strong class="govuk-tag govuk-tag--grey govuk-!-margin-left-7"
-  style="vertical-align: middle;">SOURCE UNAVAILABLE</strong>
-      </p>
+  
+  
+  
+  
+  
+  
+
+
+      
+
+
+
       
       
 
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-<dl class="govuk-summary-list govuk-!-margin-bottom-4 govuk-!-font-size-16">
-
-  
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">
-      Component
-    </dt>
-    <dd class="govuk-summary-list__value">
-      TEST
-    </dd>
-    
-  </div>
-  
-
-  
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">
-      Reason
-    </dt>
-    <dd class="govuk-summary-list__value">
-      Reason
-    </dd>
-    
-  </div>
-  
-
-  
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">
-      Code
-    </dt>
-    <dd class="govuk-summary-list__value">
-      01
-    </dd>
-    
-  </div>
-  
-
-  
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">
-      Originating Component
-    </dt>
-    <dd class="govuk-summary-list__value">
-      TICF
-    </dd>
-    
-  </div>
-  
-
-  
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">
-      Originator Reference ID
-    </dt>
-    <dd class="govuk-summary-list__value">
-      N/A
-    </dd>
-    
-  </div>
-  
-
-  
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">
-      Requester ID
-    </dt>
-    <dd class="govuk-summary-list__value">
-      interventions@digital.cabinet-office.gov.uk
-    </dd>
-    
-  </div>
-  
-
-</dl>
-
       
-        
-        
-          
-            
-              
-            
-            
-          
-        
-        
 
   
-<dl class="govuk-summary-list govuk-!-margin-bottom-0 govuk-!-font-size-16">
 
   
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">
-      TEMPORARY_SUSPENSION
-    </dt>
-    <dd class="govuk-summary-list__value">
-      <strong class="govuk-tag govuk-tag--red">ACTIVE</strong>
-    </dd>
-    
+
+  
+
+  
+
+  
+
+  
+<div class="govuk-summary-card">
+  <div class="govuk-summary-card__title-wrapper">
+  
+    <h3 class="govuk-summary-card__title govuk-fraud-summary-card__title govuk-grid-column-full govuk-!-padding-0 govuk-!-margin-0">
+      <span>14 July 2026 09:27</span>
+        <span>  <strong class="govuk-!-font-size-16 govuk-tag govuk-tag--grey">UNAVAILABLE</strong></span>
+    </h3>
+  
+  
   </div>
-  
 
-</dl>
-
+  <div class="govuk-summary-card__content">
+    <dl class="govuk-summary-list govuk-!-margin-bottom-4 govuk-!-font-size-16">
+    
       
-    </div>
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          TEMPORARY_SUSPENSION
+        </dt>
+        <dd class="govuk-summary-list__value">
+          <strong class="govuk-tag govuk-tag--red">ACTIVE</strong>
+        </dd>
+        
+      </div>
+      
+    
+      
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Component
+        </dt>
+        <dd class="govuk-summary-list__value">
+          TEST
+        </dd>
+        
+      </div>
+      
+    
+      
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Reason
+        </dt>
+        <dd class="govuk-summary-list__value">
+          Reason
+        </dd>
+        
+      </div>
+      
+    
+      
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Originating Component
+        </dt>
+        <dd class="govuk-summary-list__value">
+          TICF
+        </dd>
+        
+      </div>
+      
+    
+      
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Code
+        </dt>
+        <dd class="govuk-summary-list__value">
+          01
+        </dd>
+        
+      </div>
+      
+    
+      
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Requester ID
+        </dt>
+        <dd class="govuk-summary-list__value">
+          interventions@digital.cabinet-office.gov.uk
+        </dd>
+        
+      </div>
+      
+    
+    </dl>
+  </div>
+</div>
+
+
+
+    
   
+
+
+
   <h2 class="govuk-heading-m govuk-!-margin-top-7">Field descriptions</h2>
   
 
@@ -842,6 +858,14 @@ exports[`rendered page snapshots > renders the user details page with no interve
 
     
   <link rel="stylesheet" href="/assets/govuk-frontend.min.css"/>
+<style>
+  .govuk-fraud-summary-card__title {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+  }
+  </style>
 
 
     
@@ -957,7 +981,11 @@ data-module="govuk-service-navigation"
 
 
   
-<h2 class="govuk-heading-m">History</h2>
+
+<h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
+
+
+
 
   <p class="govuk-body-s">No history available for this account.</p>
 
