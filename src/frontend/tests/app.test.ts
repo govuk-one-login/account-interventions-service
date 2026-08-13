@@ -51,14 +51,22 @@ interface ValidationErrorBody {
   message: string;
 }
 
-const makeLine = (interventionName: InterventionName, interventionState: InterventionState) => ({
-  sentAt: 1784021279000,
+const makeLine = (
+  interventionName: InterventionName,
+  interventionState: InterventionState,
+  sentAt = 1784021279000,
+  tagId = 'tag1',
+) => ({
+  sentAt,
   componentId: 'TEST',
   interventionName,
   interventionState,
   interventionReason: 'Reason',
-  tagId: 'tag1',
+  tagId,
 });
+
+const showStateByOrder = (history: { lines: { sentAt: number; showState?: boolean }[] }) =>
+  history.lines.map((l) => ({ sentAt: l.sentAt, showState: l.showState }));
 
 // ---------------------------------------------------------------------------
 // generateVerifyRequest — unit tests (tests the exported hook factory directly)
@@ -799,28 +807,9 @@ describe('getDisplayState', () => {
 });
 
 describe('flagInterventionStateChanges', () => {
-  const line = (
-    sentAt: number,
-    interventionName: InterventionName,
-    interventionState: InterventionState,
-    tagId = 'tag',
-    // eslint-disable-next-line unicorn/consistent-function-scoping
-  ) => ({
-    sentAt,
-    componentId: 'TEST',
-    interventionName,
-    interventionState,
-    interventionReason: 'Reason',
-    tagId,
-  });
-
-  // eslint-disable-next-line unicorn/consistent-function-scoping
-  const showStateByOrder = (history: { lines: { sentAt: number; showState?: boolean }[] }) =>
-    history.lines.map((l) => ({ sentAt: l.sentAt, showState: l.showState }));
-
   it('shows the state when an intervention first appears as ACTIVE (a change to ACTIVE)', () => {
     const result = flagInterventionStateChanges({
-      lines: [line(1000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE)],
+      lines: [makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 1000)],
     });
 
     expect(result.lines[0]?.showState).toBe(true);
@@ -828,7 +817,7 @@ describe('flagInterventionStateChanges', () => {
 
   it('hides the state when an intervention first appears as a non-ACTIVE state', () => {
     const result = flagInterventionStateChanges({
-      lines: [line(1000, InterventionName.RESET_PASSWORD, InterventionState.REMOVED)],
+      lines: [makeLine(InterventionName.RESET_PASSWORD, InterventionState.REMOVED, 1000)],
     });
 
     expect(result.lines[0]?.showState).toBe(false);
@@ -837,8 +826,8 @@ describe('flagInterventionStateChanges', () => {
   it('shows the state when an intervention changes from a non-ACTIVE state to ACTIVE', () => {
     const result = flagInterventionStateChanges({
       lines: [
-        line(1000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED),
-        line(2000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED, 1000),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 2000),
       ],
     });
 
@@ -851,8 +840,8 @@ describe('flagInterventionStateChanges', () => {
   it('shows the state when an intervention changes from ACTIVE to a non-ACTIVE state', () => {
     const result = flagInterventionStateChanges({
       lines: [
-        line(1000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
-        line(2000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 1000),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED, 2000),
       ],
     });
 
@@ -865,8 +854,8 @@ describe('flagInterventionStateChanges', () => {
   it('hides the state when it stays ACTIVE', () => {
     const result = flagInterventionStateChanges({
       lines: [
-        line(1000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
-        line(2000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 1000),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 2000),
       ],
     });
 
@@ -879,9 +868,9 @@ describe('flagInterventionStateChanges', () => {
   it('hides the state when it changes between two non-ACTIVE states', () => {
     const result = flagInterventionStateChanges({
       lines: [
-        line(1000, InterventionName.RESET_PASSWORD, InterventionState.ACTIVE),
-        line(2000, InterventionName.RESET_PASSWORD, InterventionState.MITIGATED),
-        line(3000, InterventionName.RESET_PASSWORD, InterventionState.REMOVED),
+        makeLine(InterventionName.RESET_PASSWORD, InterventionState.ACTIVE, 1000),
+        makeLine(InterventionName.RESET_PASSWORD, InterventionState.MITIGATED, 2000),
+        makeLine(InterventionName.RESET_PASSWORD, InterventionState.REMOVED, 3000),
       ],
     });
 
@@ -897,9 +886,9 @@ describe('flagInterventionStateChanges', () => {
   it('compares against the last appearance of the same intervention, even when another intervention appeared in between', () => {
     const result = flagInterventionStateChanges({
       lines: [
-        line(1000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
-        line(2000, InterventionName.RESET_PASSWORD, InterventionState.ACTIVE),
-        line(3000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 1000),
+        makeLine(InterventionName.RESET_PASSWORD, InterventionState.ACTIVE, 2000),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 3000),
       ],
     });
 
@@ -915,10 +904,10 @@ describe('flagInterventionStateChanges', () => {
   it('tracks each intervention independently', () => {
     const result = flagInterventionStateChanges({
       lines: [
-        line(1000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
-        line(2000, InterventionName.RESET_PASSWORD, InterventionState.ACTIVE),
-        line(3000, InterventionName.RESET_PASSWORD, InterventionState.MITIGATED),
-        line(4000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 1000),
+        makeLine(InterventionName.RESET_PASSWORD, InterventionState.ACTIVE, 2000),
+        makeLine(InterventionName.RESET_PASSWORD, InterventionState.MITIGATED, 3000),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 4000),
       ],
     });
 
@@ -933,9 +922,9 @@ describe('flagInterventionStateChanges', () => {
   it('processes lines in chronological order regardless of input order', () => {
     const result = flagInterventionStateChanges({
       lines: [
-        line(3000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED),
-        line(1000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
-        line(2000, InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.REMOVED, 3000),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 1000),
+        makeLine(InterventionName.TEMPORARY_SUSPENSION, InterventionState.ACTIVE, 2000),
       ],
     });
 
