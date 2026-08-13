@@ -11,7 +11,7 @@ const testDir = defineBddConfig({
 export default defineConfig({
   testDir,
   use: {
-    baseURL: process.env.FRONTEND_URL ?? "http://localhost:4601",
+    baseURL: process.env['FRONTEND_URL'] ?? "http://localhost:4601",
     headless: true,
     channel: 'chrome',
   },

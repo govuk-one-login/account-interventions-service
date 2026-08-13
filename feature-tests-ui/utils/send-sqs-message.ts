@@ -5,9 +5,10 @@ import { CurrentTimeDescriptor } from './utility';
 
 export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeof aisEvents) {
   const currentTime = getCurrentTimestamp();
-  const sqs = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
+  const sqs = new SQS({ apiVersion: '2012-11-05', ...(process.env['AWS_REGION'] && { region: process.env['AWS_REGION'] }) });
   const queueURL = EndPoints.SQS_QUEUE_URL;
   const event = { ...aisEvents[aisEventType] };
+  if (!event.user) throw new Error('event.user is undefined');
   event.user.user_id = testUserId;
   event.event_timestamp_ms = currentTime.milliseconds;
   event.timestamp = currentTime.seconds;

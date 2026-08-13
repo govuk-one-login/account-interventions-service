@@ -13,4 +13,3 @@ Feature: Intervention History UI
     Scenario: A valid URN being submitted shows no history available on the details page
         Given I search for a user with a valid URN via the UI
         Then I should see "No history available for this account." displayed for this account
-    

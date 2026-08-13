@@ -16,7 +16,7 @@ export const test = base.extend<TestFixtures>({
 });
 
 const { Given, When, Then } = createBdd(test);
-  
+
 Given('a user has a {string} intervention on their account', async ({ testUserId }, aisEventType: string) => {
   testUserId.value = generateRandomTestUserId();
   await sendSQSEvent(testUserId.value, aisEventType);
@@ -24,20 +24,20 @@ Given('a user has a {string} intervention on their account', async ({ testUserId
 });
 
 Given('an invalid urn of {string} is used to search via the UI', async ({ page }, invalidUrn: string) => {
-  await page.goto(process.env.FRONTEND_URL!);
+  await page.goto(process.env['FRONTEND_URL']!);
   await page.getByRole('textbox', { name: /subject identifier/i }).fill(invalidUrn);
   await page.getByRole('button', { name: 'Submit' }).click();
 });
 
 Given('I search for a user with a valid URN via the UI', async ({ page, testUserId }) => {
   testUserId.value = generateRandomTestUserId();
-  await page.goto(process.env.FRONTEND_URL!);
+  await page.goto(process.env['FRONTEND_URL']!);
   await page.getByRole('textbox', { name: /subject identifier/i }).fill(testUserId.value);
   await page.getByRole('button', { name: 'Submit' }).click();
 });
 
 When('I search for the user via the UI', async ({ page, testUserId }) => {
-  await page.goto(process.env.FRONTEND_URL!);
+  await page.goto(process.env['FRONTEND_URL']!);
   await page.getByRole('textbox', { name: /subject identifier/i }).fill(testUserId.value);
   await page.getByRole('button', { name: 'Submit' }).click();
 });
