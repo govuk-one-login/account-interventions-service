@@ -1,4 +1,3 @@
-// playwright.config.ts
 import 'dotenv/config';
 import { defineConfig } from '@playwright/test';
 import { defineBddConfig } from 'playwright-bdd';
@@ -11,9 +10,9 @@ const testDir = defineBddConfig({
 export default defineConfig({
   testDir,
   use: {
-    baseURL: process.env['FRONTEND_URL'] ?? "http://localhost:4601",
+    baseURL: process.env.FRONTEND_URL ?? "http://localhost:3000",
     headless: true,
     channel: 'chrome',
   },
-  reporter: [['html'], ['junit', { outputFile: 'results/report.xml' }]],
+  reporter: [['html'], ['json', { outputFile: 'results/results-report.json' }]],
 });

@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-top-level-side-effects */
 import { createBdd, test as base } from "playwright-bdd";
 import { expect } from "@playwright/test";
 import { sendSQSEvent } from '../../utils/send-sqs-message';

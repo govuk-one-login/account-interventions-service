@@ -3,7 +3,6 @@ import { randomString } from './utility';
 const baseTestUserId = 'urn:fdc:gov.uk:2022:TEST_USER-';
 const generatedTestUserIds: string[] = [];
 export function generateRandomTestUserId() {
-  console.log('GENERATE USER ID CALL!!');
   const randomTestUserId = baseTestUserId.concat(
     randomString(10),
     '-',

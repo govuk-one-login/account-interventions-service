@@ -18,7 +18,7 @@
     - Please refer to the [frontend deploy instructions](../docs/guides/frontend-deploy.md) for information on how to do this
 
   ### Running tests locally
-  1. Run the following:
+  1. Install the required npm packages in the feature test directory::
       ```shell
       cd feature-tests-ui
       npm install
@@ -33,7 +33,7 @@
       ```
 
 
-  1. Sign in to AWS:
+  1. Sign in to AWS (make sure you're **NOT** running against a production environment):
       ```shell
       aws sso login --profile <profile_name>
       ```

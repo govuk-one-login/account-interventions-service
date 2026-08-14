@@ -13,7 +13,6 @@ export default defineConfig(
     ignores: [
       '**/node_modules/**',
       '**/feature-tests/**',
-      '**/feature-tests-ui/**',
       'coverage/**',
       '**/.aws-sam/**',
       '.stryker-tmp/*',
