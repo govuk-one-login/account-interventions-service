@@ -21,7 +21,7 @@ import { isCode, TriggerEventsEnum } from '../data-types/constants';
 import { randomUUID } from 'node:crypto';
 import { TicfAccountIntervention } from '../contracts/intervention-events';
 import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
-import { transitionConfig } from '../services/account-states/config';
+import { transitionConfig, interventionTypeMap } from '../services/account-states/config';
 import { Authoriser } from './authoriser';
 
 declare module 'fastify' {
@@ -60,9 +60,8 @@ function formatDate(value: string | number): string {
 
   return (
     date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }) +
-    ' at ' +
-    date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'UTC' }) +
-    ' UTC'
+    ' ' +
+    date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
   );
 }
 
@@ -133,11 +132,11 @@ export function init(
   // Accepts the submitted userId from the search form and redirects to the user details page.
   server.post<{ Body: { userId?: string } }>('/search', async (request, reply) => {
     const userId = request.body.userId?.trim() ?? '';
-    return reply.redirect(`${pathPrefix}/user/${encodeURIComponent(userId)}`, 303);
+    return reply.redirect(`${pathPrefix}/usercard/${encodeURIComponent(userId)}`, 303);
   });
 
   // Fetches account status for the given userId and renders the details page.
-  server.get<{ Params: { userId: string } }>('/user/:userId', async (request, reply) => {
+  server.get<{ Params: { userId: string } }>('/usercard/:userId', async (request, reply) => {
     const userId = decodeURIComponent(request.params.userId).trim();
 
     if (!userId) return reply.code(400).send();
@@ -168,6 +167,7 @@ export function init(
       pathPrefix,
       assetPath,
       accountStatus,
+      transitionConfig,
       userId,
       accountHistory: formatHistory(comparedHistory),
       messageSent,
@@ -176,6 +176,7 @@ export function init(
       automatedSources,
       faiSources,
       siraSources,
+      interventionTypeMap,
     });
   });
 

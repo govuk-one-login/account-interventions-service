@@ -116,3 +116,11 @@ export const transitionConfig: TransitionConfigInterface = {
     AccountNeedsPswAndIdReset: [Codes.C01, Codes.C02, Codes.C03, Codes.C04, Codes.C05, Codes.C92, Codes.C93, Codes.C95],
   },
 };
+
+
+export const interventionTypeMap = {
+  PERMANENT_SUSPENSION: 'PERMANENT_SUSPENSION',
+    TEMPORARY_SUSPENSION: 'TEMPORARY_SUSPENSION',
+    RESET_PASSWORD: 'RESET_PASSWORD', //pragma: allowlist secret
+    REPROVE_IDENTITY: 'REPROVE_IDENTITY',
+}

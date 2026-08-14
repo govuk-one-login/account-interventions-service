@@ -1,65 +1,44 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 <h2 class="govuk-heading-m">History</h2>
 {% if accountHistory and accountHistory.length %}
-  {% for transaction in accountHistory %}
-    <div class="govuk-inset-text govuk-!-margin-bottom-5">
-      <p class="govuk-body-xs govuk-hint govuk-!-margin-bottom-4">
-        <strong>{{ transaction.sentAtFormatted }}</strong>
-        {% if not transaction.originatingComponent %}
-          {% set tagDescription = "SOURCE UNAVAILABLE" %}
-          {% set tagColour = "grey" %}
-        {% elif transaction.originatingComponent in automatedSources %}
-          {% set tagDescription = "AUTOMATED" %}
-          {% set tagColour = "purple" %}
-        {% elif transaction.originatingComponent in faiSources %}
-          {% set tagDescription = "FAI" %}
-          {% set tagColour = "teal" %}
-        {% elif transaction.originatingComponent in siraSources %}
-          {% set tagDescription = "SIRA" %}
-          {% set tagColour = "teal" %}
-        {% else %}
-          {% set tagDescription = "SOURCE UNAVAILABLE" %}
-          {% set tagColour = "grey" %}
-        {% endif %}
-        <strong class="govuk-tag govuk-tag--{{ tagColour }} govuk-!-margin-left-7"
-  style="vertical-align: middle;">{{ tagDescription }}</strong>
-      </p>
+    {% for transaction in accountHistory %}
+      {{ transaction.interventionName | dump }}
       {% set transactionRows = [
-          { key: { text: "Component" },  value: { text: transaction.componentId } },
-          { key: { text: "Reason" },     value: { text: transaction.interventionReason } },
-          { key: { text: "Code" },       value: { text: transaction.interventionCode if transaction.interventionCode else "N/A" } },
-          { key: { text: "Originating Component" }, value: { text: transaction.originatingComponent if transaction.originatingComponent else "N/A" } },
-          { key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId if transaction.originatorReferenceId else "N/A" } },
-          { key: { text: "Requester ID" }, value: { text: transaction.requesterId if transaction.requesterId else "N/A" } }
-        ] %}
-      {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4 govuk-!-font-size-16", rows: transactionRows }) }}
-      {% if transaction.interventionEvents.length %}
-        {% set eventRows = [] %}
-        {% for event in transaction.interventionEvents %}
-          {% if event.showState == true %}
-            {% if event.interventionState == "ACTIVE" %}
-              {% set stateColour = "red" %}
-            {% elif event.interventionState == "MITIGATED" %}
-              {% set stateColour = "green" %}
-            {% elif event.interventionState == "REMOVED" %}
-              {% set stateColour = "grey" %}
-            {% elif event.interventionState == "SUPERSEDED" %}
-              {% set stateColour = "orange" %}
-            {% elif event.interventionState == "IGNORED" %}
-              {% set stateColour = "yellow" %}
-            {% else %}
-              {% set stateColour = "blue" %}
-            {% endif %}
-            {% set eventRows = eventRows.concat([{
-                key: { text: event.interventionName },
-                value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.displayState + '</strong>' }
-            }]) %}
-          {% endif %}
-        {% endfor %}
-        {{ govukSummaryList({ classes: "govuk-!-margin-bottom-0 govuk-!-font-size-16", rows: eventRows }) }}
-      {% endif %}
-    </div>
-  {% endfor %}
+      { key: { text: "Intervention Source (Component)" },  value: { text: transaction.componentId } },
+      { key: { text: "Intervention Reason" },     value: { text: transaction.interventionReason } },
+      { key: { text: "Intervention applied in (Originating Component)" }, value: { text: transaction.originatingComponent if transaction.originatingComponent else "N/A" } },
+      { key: { text: "Intervention Code" },       value: { text: transaction.interventionCode if transaction.interventionCode else "N/A" } },
+      { key: { text: "Requester ID" }, value: { text: transaction.requesterId if transaction.requesterId else "N/A" } }
+      ] %}
+
+      {% set cardTitleText %}
+          {{ transaction.interventionName | dump }}
+        {% if transaction.interventionName %}
+            interventionTypeMap[transaction.interventionName]
+        {% else %}
+            Unknown
+        {% endif %}
+      {% endset %}
+
+      {% set cardTitleHtml %}
+        <span>{{cardTitleText}}</span>
+        <span>{{ transaction.sentAtFormatted }}</span>
+      {% endset %}
+
+      {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4 govuk-!-font-size-16",   card: {
+      title: {
+        headingLevel: 3,
+        classes: "govuk-fraud-summary-card__title govuk-grid-column-full govuk-!-padding-0 govuk-!-margin-0",
+        html: cardTitleHtml
+
+        }
+      }, rows: transactionRows }) }}
+
+    {% endfor %}
+  {% endif %}
+
+
+{% if accountHistory and accountHistory.length %}
   <h2 class="govuk-heading-m govuk-!-margin-top-7">Field descriptions</h2>
   {{ govukSummaryList({
     rows: [
