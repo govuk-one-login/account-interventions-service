@@ -1,21 +1,17 @@
 import { SQS } from '@aws-sdk/client-sqs';
 import { aisEvents } from './ais-events';
-import EndPoints from './endpoints';
-import { CurrentTimeDescriptor } from './utility';
+import { CurrentTimeDescriptor } from './time-utils';
 
-export async function sendSQSEvent(testUserId: string, aisEventType: keyof typeof aisEvents) {
+export async function sendSQSEvent(sqs: SQS, queueUrl: string | undefined, testUserId: string, aisEventType: keyof typeof aisEvents) {
   const currentTime = getCurrentTimestamp();
-  const sqs = new SQS({ apiVersion: '2012-11-05', ...(process.env['AWS_REGION'] && { region: process.env['AWS_REGION'] }) });
-  const queueURL = EndPoints.SQS_QUEUE_URL;
   const event = { ...aisEvents[aisEventType] };
-  if (!event.user) throw new Error('event.user is undefined');
   event.user.user_id = testUserId;
   event.event_timestamp_ms = currentTime.milliseconds;
   event.timestamp = currentTime.seconds;
   const messageBody = JSON.stringify(event);
   const parameters = {
     MessageBody: messageBody,
-    QueueUrl: queueURL,
+    QueueUrl: queueUrl,
   };
 
   try {
