@@ -499,13 +499,11 @@ data-module="govuk-service-navigation"
 
 
       
-
-
-
-      
       
 
       
+
+  
 
   
 
@@ -522,7 +520,7 @@ data-module="govuk-service-navigation"
   <div class="govuk-summary-card__title-wrapper">
   
     <h3 class="govuk-summary-card__title govuk-fraud-summary-card__title govuk-grid-column-full govuk-!-padding-0 govuk-!-margin-0">
-      <span>14 July 2026 09:27</span>
+      <span>14 July 2026 at 09:27 UTC</span>
         <span>  <strong class="govuk-!-font-size-16 govuk-tag govuk-tag--grey">UNAVAILABLE</strong></span>
     </h3>
   
@@ -535,7 +533,7 @@ data-module="govuk-service-navigation"
       
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
-          TEMPORARY_SUSPENSION
+          TEMPORARY SUSPENSION
         </dt>
         <dd class="govuk-summary-list__value">
           <strong class="govuk-tag govuk-tag--red">ACTIVE</strong>
@@ -599,6 +597,18 @@ data-module="govuk-service-navigation"
         </dt>
         <dd class="govuk-summary-list__value">
           interventions@digital.cabinet-office.gov.uk
+        </dd>
+        
+      </div>
+      
+    
+      
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Originator Reference ID
+        </dt>
+        <dd class="govuk-summary-list__value">
+          N/A
         </dd>
         
       </div>

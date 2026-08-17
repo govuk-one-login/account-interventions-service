@@ -9,7 +9,8 @@
       { key: { text: "Reason" },     value: { text: transaction.interventionReason } },
       { key: { text: "Originating Component" }, value: { text: transaction.originatingComponent if transaction.originatingComponent else "N/A" } },
       { key: { text: "Code" },       value: { text: transaction.interventionCode if transaction.interventionCode else "N/A" } },
-      { key: { text: "Requester ID" }, value: { text: transaction.requesterId if transaction.requesterId else "N/A" } }
+      { key: { text: "Requester ID" }, value: { text: transaction.requesterId if transaction.requesterId else "N/A" } },
+      { key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId if transaction.originatorReferenceId else "N/A" } }
       ] %}
 
 
@@ -30,21 +31,11 @@
   {% set stateColour = "blue" %}
   {% endif %}
   {% set eventRows = eventRows.concat([{
-  key: { text: event.interventionName },
+  key: { text: interventionTypeMap[event.interventionName] },
   value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.displayState + '</strong>' }
   }]) %}
   {% endfor %}
 {% endif %}
-
-      {% set cardTitleText %}
-        {% if transaction.interventionName %}
-            interventionTypeMap[transaction.interventionName]
-        {% else %}
-            Unknown
-        {% endif %}
-      {% endset %}
-
-
 
       {% set combinedData = eventRows.concat(transactionRows) %}
       {% set cardTitleHtml %}
