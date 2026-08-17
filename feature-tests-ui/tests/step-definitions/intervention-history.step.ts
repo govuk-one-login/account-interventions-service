@@ -6,12 +6,12 @@ import { sendSQSEvent } from '../../utils/send-sqs-message';
 import { generateRandomTestUserId } from '../../utils/generate-random-test-user-id';
 import { timeDelayForTestEnvironment } from '../../utils/time-utils';
 import { SQS } from '@aws-sdk/client-sqs';
-import EndPoints from '../../utils/endpoints';
+import { getEnvironmentVariable } from "../../utils/get-environment-variable";
 
 interface TestFixtures {
   testUserId: { value: string};
   sqs: SQS;
-  sqsQueueUrl: string | undefined;
+  sqsQueueUrl: string;
   frontendUrl: string;
 }
 
@@ -21,16 +21,21 @@ export const test = base.extend<TestFixtures>({
     await use(holder);
   },
   sqs: async ({}, use) => {
-    const sqsClient = new SQS({ apiVersion: '2012-11-05', region: process.env.AWS_REGION });
+    const sqsClient = new SQS({ apiVersion: '2012-11-05', region: getEnvironmentVariable('AWS_REGION') });
     await use(sqsClient);
   },
   sqsQueueUrl: async ({}, use) => {
-    const url = EndPoints.SQS_QUEUE_URL;
+    const region = getEnvironmentVariable('AWS_REGION');
+    const stackName = getEnvironmentVariable('SAM_STACK_NAME');
+    const testEnv = getEnvironmentVariable('TEST_ENVIRONMENT');
+    const url =
+      testEnv === 'dev'
+        ? `https://sqs.${region}.amazonaws.com/484907510598/${stackName}-TxMAIngressQueue`
+        : getEnvironmentVariable('CFN_TxMAIngressSqsQueueUrl');
     await use(url);
   },
   frontendUrl: async ({}, use) => {
-    if (!process.env.FRONTEND_URL) throw new Error('FRONTEND_URL environment variable is not set');
-    const url = process.env.FRONTEND_URL;
+    const url = getEnvironmentVariable('FRONTEND_URL');
     await use(url);
   },
 });

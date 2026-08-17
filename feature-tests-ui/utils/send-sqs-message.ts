@@ -2,7 +2,7 @@ import { SQS } from '@aws-sdk/client-sqs';
 import { aisEvents } from './ais-events';
 import { CurrentTimeDescriptor } from './time-utils';
 
-export async function sendSQSEvent(sqs: SQS, queueUrl: string | undefined, testUserId: string, aisEventType: keyof typeof aisEvents) {
+export async function sendSQSEvent(sqs: SQS, queueUrl: string, testUserId: string, aisEventType: keyof typeof aisEvents) {
   const currentTime = getCurrentTimestamp();
   const event = { ...aisEvents[aisEventType] };
   event.user.user_id = testUserId;
