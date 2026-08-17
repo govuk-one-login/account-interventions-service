@@ -464,109 +464,21 @@ data-module="govuk-service-navigation"
 
 
   
-<h2 class="govuk-heading-m">History</h2>
+
+<h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
+
 
   
-    <div class="govuk-inset-text govuk-!-margin-bottom-5">
-      <p class="govuk-body-xs govuk-hint govuk-!-margin-bottom-4">
-        <strong>14 July 2026 at 09:27:59 UTC</strong>
+  
         
-          
-          
         
-        <strong class="govuk-tag govuk-tag--grey govuk-!-margin-left-7"
-  style="vertical-align: middle;">SOURCE UNAVAILABLE</strong>
-      </p>
-      
+
+        
+
+    <div>
       
 
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-<dl class="govuk-summary-list govuk-!-margin-bottom-4 govuk-!-font-size-16">
-
-  
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">
-      Component
-    </dt>
-    <dd class="govuk-summary-list__value">
-      TEST
-    </dd>
-    
-  </div>
-  
-
-  
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">
-      Reason
-    </dt>
-    <dd class="govuk-summary-list__value">
-      Reason
-    </dd>
-    
-  </div>
-  
-
-  
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">
-      Code
-    </dt>
-    <dd class="govuk-summary-list__value">
-      01
-    </dd>
-    
-  </div>
-  
-
-  
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">
-      Originating Component
-    </dt>
-    <dd class="govuk-summary-list__value">
-      TICF
-    </dd>
-    
-  </div>
-  
-
-  
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">
-      Originator Reference ID
-    </dt>
-    <dd class="govuk-summary-list__value">
-      N/A
-    </dd>
-    
-  </div>
-  
-
-  
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">
-      Requester ID
-    </dt>
-    <dd class="govuk-summary-list__value">
-      interventions@digital.cabinet-office.gov.uk
-    </dd>
-    
-  </div>
-  
-
-</dl>
-
+      
       
         
         
@@ -574,31 +486,141 @@ data-module="govuk-service-navigation"
             
               
             
-            
+
+           
           
         
-        
-
-  
-<dl class="govuk-summary-list govuk-!-margin-bottom-0 govuk-!-font-size-16">
-
-  
-  <div class="govuk-summary-list__row">
-    <dt class="govuk-summary-list__key">
-      TEMPORARY_SUSPENSION
-    </dt>
-    <dd class="govuk-summary-list__value">
-      <strong class="govuk-tag govuk-tag--red">ACTIVE</strong>
-    </dd>
-    
-  </div>
-  
-
-</dl>
-
       
     </div>
+
+    
+
+    
+
+    
   
+
+  
+<div class="govuk-accordion" data-module="govuk-accordion" id="accordion-for-intervention-history">
+  
+    
+  <div class="govuk-accordion__section">
+    <div class="govuk-accordion__section-header">
+      <h3 class="govuk-accordion__section-heading">
+        <span class="govuk-accordion__section-button" id="accordion-for-intervention-history-heading-1">
+          14 July 2026 at 09:27:59 UTC
+        </span>
+      </h3>
+      
+      <div class="govuk-accordion__section-summary govuk-body" id="accordion-for-intervention-history-summary-1">
+        <strong class="govuk-tag govuk-tag--grey govuk-!-display-inline-block"><span class="govuk-visually-hidden">Source</span> UNAVAILABLE</strong>
+      </div>
+      
+    </div>
+    <div id="accordion-for-intervention-history-content-1" class="govuk-accordion__section-content">
+    
+      <dl class="govuk-summary-list govuk-!-margin-bottom-4 govuk-!-font-size-16">
+      
+        
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">
+            Component
+          </dt>
+          <dd class="govuk-summary-list__value">
+            TEST
+          </dd>
+          
+        </div>
+        
+      
+        
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">
+            Reason
+          </dt>
+          <dd class="govuk-summary-list__value">
+            Reason
+          </dd>
+          
+        </div>
+        
+      
+        
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">
+            Code
+          </dt>
+          <dd class="govuk-summary-list__value">
+            01
+          </dd>
+          
+        </div>
+        
+      
+        
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">
+            Originating Component
+          </dt>
+          <dd class="govuk-summary-list__value">
+            TICF
+          </dd>
+          
+        </div>
+        
+      
+        
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">
+            Originator Reference ID
+          </dt>
+          <dd class="govuk-summary-list__value">
+            N/A
+          </dd>
+          
+        </div>
+        
+      
+        
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">
+            Requester ID
+          </dt>
+          <dd class="govuk-summary-list__value">
+            interventions@digital.cabinet-office.gov.uk
+          </dd>
+          
+        </div>
+        
+      
+      </dl>
+      
+            
+      
+        
+      <dl class="govuk-summary-list govuk-!-margin-bottom-4 govuk-!-font-size-16">
+      
+        
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">
+            TEMPORARY_SUSPENSION
+          </dt>
+          <dd class="govuk-summary-list__value">
+            <strong class="govuk-tag govuk-tag--red">ACTIVE</strong>
+          </dd>
+          
+        </div>
+        
+      
+      </dl>
+    
+    </div>
+  </div>
+
+  
+</div>
+
+
   <h2 class="govuk-heading-m govuk-!-margin-top-7">Field descriptions</h2>
   
 
@@ -957,7 +979,9 @@ data-module="govuk-service-navigation"
 
 
   
-<h2 class="govuk-heading-m">History</h2>
+
+<h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
+
 
   <p class="govuk-body-s">No history available for this account.</p>
 
