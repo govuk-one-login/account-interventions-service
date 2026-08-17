@@ -23,7 +23,7 @@ interface Event {
 export const aisEvents: {
   [key: string]: Event;
 } = {
-  suspendNoAction: {
+  automatedSuspendNoAction: {
     timestamp: seconds,
     event_timestamp_ms: ms,
     event_name: 'TICF_ACCOUNT_INTERVENTION',

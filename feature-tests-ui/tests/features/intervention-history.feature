@@ -1,7 +1,7 @@
 Feature: Intervention History UI
 
     Scenario: User account with an automated intervention shows history on the details page
-        Given a user has a "suspendNoAction" intervention on their account
+        Given a user has a "automatedSuspendNoAction" intervention on their account
         When I search for the user via the UI
         Then I should see the intervention history for the correct user
         And the history should show that the intervention was "AUTOMATED"
