@@ -31,6 +31,8 @@ Choose the following options:
 | DisableAuth   | true           |
 | EnableGateway | true           |
 
+Note: For Subpath, enter a single space character for this to be interpreted as an empty string. Using "" or '' will be treated as literal characters
+
 ### 3. View URL
 
 In the AWS console, select the CloudFormation stack and look in Outputs to find the URL.
