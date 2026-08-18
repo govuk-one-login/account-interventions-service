@@ -1,12 +1,14 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
-<h2 class="govuk-heading-m">History</h2>
+{% from "govuk/components/accordion/macro.njk" import govukAccordion %}
+<h2 class="govuk-heading-l govuk-!-margin-top-8">{{ pageTitle }}</h2>
 {% if accountHistory and accountHistory.length %}
+  {% set accordionArray = [] %}
   {% for transaction in accountHistory %}
-    <div class="govuk-inset-text govuk-!-margin-bottom-5">
-      <p class="govuk-body-xs govuk-hint govuk-!-margin-bottom-4">
-        <strong>{{ transaction.sentAtFormatted }}</strong>
+        {% set tagDescription = "UNAVAILABLE" %}
+        {% set tagColour = "grey" %}
+
         {% if not transaction.originatingComponent %}
-          {% set tagDescription = "SOURCE UNAVAILABLE" %}
+          {% set tagDescription = "UNAVAILABLE" %}
           {% set tagColour = "grey" %}
         {% elif transaction.originatingComponent in automatedSources %}
           {% set tagDescription = "AUTOMATED" %}
@@ -17,13 +19,9 @@
         {% elif transaction.originatingComponent in siraSources %}
           {% set tagDescription = "SIRA" %}
           {% set tagColour = "teal" %}
-        {% else %}
-          {% set tagDescription = "SOURCE UNAVAILABLE" %}
-          {% set tagColour = "grey" %}
         {% endif %}
-        <strong class="govuk-tag govuk-tag--{{ tagColour }} govuk-!-margin-left-7"
-  style="vertical-align: middle;">{{ tagDescription }}</strong>
-      </p>
+
+    <div>
       {% set transactionRows = [
           { key: { text: "Component" },  value: { text: transaction.componentId } },
           { key: { text: "Reason" },     value: { text: transaction.interventionReason } },
@@ -32,7 +30,9 @@
           { key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId if transaction.originatorReferenceId else "N/A" } },
           { key: { text: "Requester ID" }, value: { text: transaction.requesterId if transaction.requesterId else "N/A" } }
         ] %}
-      {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4 govuk-!-font-size-16", rows: transactionRows }) }}
+
+      {% set eventRowsAccordion = [] %}
+      {% set eventRowsSummary = '' %}
       {% if transaction.interventionEvents.length %}
         {% set eventRows = [] %}
         {% for event in transaction.interventionEvents %}
@@ -50,16 +50,43 @@
             {% else %}
               {% set stateColour = "blue" %}
             {% endif %}
-            {% set eventRows = eventRows.concat([{
-                key: { text: event.interventionName },
+
+           {% set eventRowsAccordion = (eventRowsAccordion.push({
+                key: { text: interventionTypeMap[event.interventionName] },
                 value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.displayState + '</strong>' }
-            }]) %}
+            }), eventRowsAccordion) %}
+
+
+            {% set eventRowsSummary = '<strong>' + interventionTypeMap[event.interventionName] + '</strong><strong class="govuk-!-margin-left-4 govuk-tag govuk-tag--' + stateColour + '">' + event.displayState + '</strong>' %}
+
           {% endif %}
         {% endfor %}
-        {{ govukSummaryList({ classes: "govuk-!-margin-bottom-0 govuk-!-font-size-16", rows: eventRows }) }}
       {% endif %}
     </div>
+
+    {% set accordionItem %}
+      {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4 govuk-!-font-size-16", rows: transactionRows }) }}
+      {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4 govuk-!-font-size-16", rows: eventRowsAccordion }) }}
+    {% endset %}
+
+    {% set setAccordionHeading %}
+      {{ transaction.sentAtFormatted }}
+      <strong class="govuk-tag govuk-tag--{{ tagColour }} govuk-!-display-inline-block govuk-!-margin-left-4"><span class="govuk-visually-hidden">Source</span> {{ tagDescription }}</strong>
+    {% endset %}
+
+    {% set accordionArray = (accordionArray.push({
+      heading: { html: setAccordionHeading },
+      summary: { html: eventRowsSummary },
+      content: { html: accordionItem }
+    }), accordionArray) %}
   {% endfor %}
+
+  {{ govukAccordion({
+    headingLevel: 3,
+    id: "accordion-for-intervention-history",
+    items: accordionArray
+  }) }}
+
   <h2 class="govuk-heading-m govuk-!-margin-top-7">Field descriptions</h2>
   {{ govukSummaryList({
     rows: [

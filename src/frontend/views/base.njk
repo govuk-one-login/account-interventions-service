@@ -1,7 +1,7 @@
 {% extends "govuk/template.njk" %}
 {% set govukRebrand = true %}
 {% set serviceName = "GOV.UK One Login Account Interventions Service" %}
-{% block pageTitle %}Account Interventions Service – GOV.UK{% endblock %}
+{% block pageTitle %} {{ pageTitle }} | Account Interventions Service – GOV.UK{% endblock %}
 {% block head %}
   <link rel="stylesheet" href="{{ assetPath }}/govuk-frontend.min.css"/>
 {% endblock %}
