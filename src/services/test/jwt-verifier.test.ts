@@ -25,7 +25,9 @@ vi.mock('@aws-sdk/client-kms', async (importOriginal) => {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Convert PEM to DER Uint8Array (strips header/footer and base64-decodes) */
+/**
+Convert PEM to DER Uint8Array (strips header/footer and base64-decodes)
+*/
 function pemToDer(pem: string): Uint8Array {
   const b64 = pem
     .replace(/-----BEGIN [^-]+-----/, '')
@@ -34,14 +36,18 @@ function pemToDer(pem: string): Uint8Array {
   return Uint8Array.from(Buffer.from(b64, 'base64'));
 }
 
-/** Generate a fresh P-384 key pair and return helpers for signing / spki */
+/**
+Generate a fresh P-384 key pair and return helpers for signing / spki
+*/
 async function makeKeyPair() {
   const { privateKey, publicKey } = await generateKeyPair('ES384', { extractable: true });
 
   const spkiPem = await exportSPKI(publicKey);
   const pkcs8Pem = await exportPKCS8(privateKey);
 
-  /** Build a signed JWT with the given payload overrides */
+  /**
+  Build a signed JWT with the given payload overrides
+  */
   async function signJwt(
     overrides: Partial<FaiJwtPayload> & Record<string, unknown> = {},
     expOffsetSeconds = 300,

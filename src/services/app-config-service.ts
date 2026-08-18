@@ -63,10 +63,14 @@ const CONFIG_ENVIRONMENT_MAPPING = {
   },
 } satisfies Record<string, ConfigDefinition>;
 
-/** The valid keys of CONFIG_ENVIRONMENT_MAPPING, used to constrain getConfigObject input. */
+/**
+The valid keys of CONFIG_ENVIRONMENT_MAPPING, used to constrain getConfigObject input.
+*/
 type ConfigName = keyof typeof CONFIG_ENVIRONMENT_MAPPING;
 
-/** Resolves whether a config entry is optional (returns undefined on failure instead of throwing). */
+/**
+Resolves whether a config entry is optional (returns undefined on failure instead of throwing).
+*/
 type IsOptional<T extends ConfigName> = (typeof CONFIG_ENVIRONMENT_MAPPING)[T] extends { optional: true }
   ? true
   : false;

@@ -15,11 +15,17 @@ export enum Role {
  * Extend as the FAI contract evolves.
  */
 export interface FaiJwtPayload extends JWTPayload {
-  /** The authenticated user's email */
+  /**
+  The authenticated user's email
+  */
   sub: string;
-  /** The authenticated user's email */
+  /**
+  The authenticated user's email
+  */
   email: string;
-  /** The user's authorisation roles */
+  /**
+  The user's authorisation roles
+  */
   roles: Role[];
   iat: number;
   exp: number;
