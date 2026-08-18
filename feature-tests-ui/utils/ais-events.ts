@@ -20,9 +20,7 @@ interface Event {
   extensions?: object;
 }
 
-export const aisEvents: {
-  [key: string]: Event;
-} = {
+export const aisEvents: Record<string, Event> = {
   automatedSuspendNoAction: {
     timestamp: seconds,
     event_timestamp_ms: ms,

@@ -27,6 +27,7 @@ export default defineConfig(
       globals: globals.builtin,
       parserOptions: {
         projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     plugins: {
@@ -67,5 +68,14 @@ export default defineConfig(
       'unicorn/name-replacements': ['off'],
       'tsdoc/syntax': ['error'],
     },
+  },
+  {
+    files: ['feature-tests-ui/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+    }
   },
 );
