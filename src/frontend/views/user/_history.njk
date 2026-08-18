@@ -1,7 +1,6 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 {% from "govuk/components/accordion/macro.njk" import govukAccordion %}
-<h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
-
+<h2 class="govuk-heading-l govuk-!-margin-top-8">{{ pageTitle }}</h2>
 {% if accountHistory and accountHistory.length %}
   {% set accordionArray = [] %}
   {% for transaction in accountHistory %}
@@ -52,7 +51,7 @@
             {% endif %}
 
            {% set eventRowsAccordion = (eventRowsAccordion.push({
-                key: { text: event.interventionName },
+                key: { text: interventionTypeMap[event.interventionName] },
                 value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.displayState + '</strong>' }
             }), eventRowsAccordion) %}
           {% endif %}

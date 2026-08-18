@@ -5,7 +5,7 @@ exports[`rendered page snapshots > renders the index page 1`] = `
 <html lang="en" class="govuk-template">
   <head>
     <meta charset="utf-8">
-    <title>Account Interventions Service – GOV.UK</title>
+    <title>  | Account Interventions Service – GOV.UK</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#1d70b8">
 
@@ -321,7 +321,7 @@ exports[`rendered page snapshots > renders the user details page with history 1`
 <html lang="en" class="govuk-template">
   <head>
     <meta charset="utf-8">
-    <title>Account Interventions Service – GOV.UK</title>
+    <title> History | Account Interventions Service – GOV.UK</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#1d70b8">
 
@@ -467,7 +467,6 @@ data-module="govuk-service-navigation"
 
 <h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
 
-
   
   
         
@@ -603,7 +602,7 @@ data-module="govuk-service-navigation"
         
         <div class="govuk-summary-list__row">
           <dt class="govuk-summary-list__key">
-            TEMPORARY_SUSPENSION
+            TEMPORARY SUSPENSION
           </dt>
           <dd class="govuk-summary-list__value">
             <strong class="govuk-tag govuk-tag--red">ACTIVE</strong>
@@ -858,7 +857,7 @@ exports[`rendered page snapshots > renders the user details page with no interve
 <html lang="en" class="govuk-template">
   <head>
     <meta charset="utf-8">
-    <title>Account Interventions Service – GOV.UK</title>
+    <title> History | Account Interventions Service – GOV.UK</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#1d70b8">
 
@@ -981,7 +980,6 @@ data-module="govuk-service-navigation"
   
 
 <h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
-
 
   <p class="govuk-body-s">No history available for this account.</p>
 

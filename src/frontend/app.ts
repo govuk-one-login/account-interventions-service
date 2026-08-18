@@ -177,6 +177,7 @@ export function init(
       faiSources,
       siraSources,
       interventionTypeMap,
+      pageTitle: 'History'
     });
   });
 
