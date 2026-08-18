@@ -8,7 +8,9 @@ vi.mock('@aws-lambda-powertools/logger');
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Minimal FaiJwtPayload for use in mock verifier responses */
+/**
+Minimal FaiJwtPayload for use in mock verifier responses
+*/
 function makePayload(overrides: Partial<FaiJwtPayload> = {}): FaiJwtPayload {
   const now = Math.floor(Date.now() / 1000);
   return {
@@ -30,7 +32,9 @@ const makeContext = (options: { jwt?: string; principalId?: string } = {}): Auth
   principalId: options.principalId,
 });
 
-/** Create a stub verifier with a fresh vi.fn() */
+/**
+Create a stub verifier with a fresh vi.fn()
+*/
 function makeVerifier(): {
   verifyMock: ReturnType<typeof vi.fn<(token: string) => Promise<FaiJwtPayload>>>;
   verifier: JwtVerifierInterface;
@@ -39,7 +43,9 @@ function makeVerifier(): {
   return { verifyMock, verifier: { verify: verifyMock } };
 }
 
-/** URL constant reused across tests */
+/**
+URL constant reused across tests
+*/
 const TEST_URL = '/test';
 
 // ---------------------------------------------------------------------------
