@@ -83,6 +83,10 @@ export interface FrontendAppConfig {
   featureFlags: FeatureFlags;
 }
 
+type IndexRequest = FastifyRequest<{
+  Querystring: { hasError: string | undefined };
+}>;
+
 export function init(
   { interventionClient, messageService, authoriser }: FrontendAppDependencies,
   { featureFlags }: FrontendAppConfig,
@@ -128,11 +132,20 @@ export function init(
   const pathPrefix = `${subpath}${stagePrefix}`;
   const assetPath = `${pathPrefix}/assets`;
 
-  server.get('/', async (_request, reply) => reply.view('index.njk', { pathPrefix, assetPath }));
+  server.get('/', async (request: IndexRequest, reply) => {
+    const hasError = request.query.hasError && request.query.hasError === 'true';
+
+    return reply.view('index.njk', { pathPrefix, assetPath, hasError });
+  });
 
   // Accepts the submitted userId from the search form and redirects to the user details page.
   server.post<{ Body: { userId?: string } }>('/search', async (request, reply) => {
     const userId = request.body.userId?.trim() ?? '';
+
+    if (!userId) {
+      reply.redirect('/?hasError=true');
+    }
+
     return reply.redirect(`${pathPrefix}/user/${encodeURIComponent(userId)}`, 303);
   });
 

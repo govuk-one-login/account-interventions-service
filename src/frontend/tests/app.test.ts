@@ -257,8 +257,8 @@ describe('frontend app', () => {
         payload: '',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
       });
-      expect(response.statusCode).toBe(303);
-      expect(response.headers.location).toBe('/user/');
+      expect(response.statusCode).toBe(302);
+      expect(response.headers.location).toBe('/?hasError=true');
     });
   });
 
