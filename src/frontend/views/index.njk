@@ -1,7 +1,11 @@
 {% extends "base.njk" %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
 {% block content %}
+
+
+
   <h1 class="govuk-heading-xl">Account Interventions Service</h1>
   <form method="post" action="{{ pathPrefix }}/search">
     {{ govukInput({
@@ -12,6 +16,9 @@
       hint: {
         text: "For example, urn:fdc:gov.uk:2022:pgt1qOf7zW2tMCZg4V5LEu-mT-_GTSX7xqJ6RJekw9I"
       },
+        errorMessage: {
+            text: "Enter a valid URN."
+          } if hasError,
       autocomplete: "off",
       id: "user-id",
       name: "userId"
