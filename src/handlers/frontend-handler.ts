@@ -37,7 +37,22 @@ const proxy = awsLambdaFastify(
   ),
 );
 
-export const handler = (event: APIGatewayProxyEvent, context: Context) => proxy(rewriteEventPath(event), context);
+export async function handler(event: APIGatewayProxyEvent, context: Context) {
+  const authContext = event.requestContext.authorizer as Record<string, unknown> | undefined;
+
+  if (authContext?.['redirect'] === 'true') {
+    return {
+      statusCode: 302,
+      headers: {
+        location: authContext['redirectUrl'] ?? '',
+        'set-cookie': authContext['authCookie'] ?? '',
+      },
+      body: '',
+    };
+  }
+
+  return proxy(rewriteEventPath(event), context);
+}
 
 const rewriteEventPath = (event: APIGatewayProxyEvent): APIGatewayProxyEvent => {
   if (subpath && event.path.startsWith(subpath)) {
