@@ -5,7 +5,7 @@
     {% set rows = [] %}
     {% for intervention in accountStatus.interventions %}
       {% set rows = rows.concat([{
-        key: { text: intervention.name },
+        key: { text: intervention.name | replace("_", " ") },
         value: { html: '<strong class="govuk-tag govuk-tag--red">Active</strong>' }
       }]) %}
     {% endfor %}

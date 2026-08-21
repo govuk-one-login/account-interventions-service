@@ -13,29 +13,29 @@
       { key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId if transaction.originatorReferenceId else "N/A" } }
       ] %}
 
+      {% if transaction.interventionEvents.length %}
+        {% set eventRows = [] %}
+        {% for event in transaction.interventionEvents %}
+          {% if event.interventionState == "ACTIVE" %}
+            {% set stateColour = "red" %}
+          {% elif event.interventionState == "MITIGATED" %}
+            {% set stateColour = "green" %}
+          {% elif event.interventionState == "REMOVED" %}
+            {% set stateColour = "grey" %}
+            {% elif event.interventionState == "SUPERSEDED" %}
+          {% set stateColour = "orange" %}
+            {% elif event.interventionState == "IGNORED" %}
+            {% set stateColour = "yellow" %}
+          {% else %}
+            {% set stateColour = "blue" %}
+          {% endif %}
 
-{% if transaction.interventionEvents.length %}
-  {% set eventRows = [] %}
-  {% for event in transaction.interventionEvents %}
-  {% if event.interventionState == "ACTIVE" %}
-  {% set stateColour = "red" %}
-  {% elif event.interventionState == "MITIGATED" %}
-  {% set stateColour = "green" %}
-  {% elif event.interventionState == "REMOVED" %}
-  {% set stateColour = "grey" %}
-  {% elif event.interventionState == "SUPERSEDED" %}
-  {% set stateColour = "orange" %}
-  {% elif event.interventionState == "IGNORED" %}
-  {% set stateColour = "yellow" %}
-  {% else %}
-  {% set stateColour = "blue" %}
-  {% endif %}
-  {% set eventRows = eventRows.concat([{
-  key: { text: interventionTypeMap[event.interventionName] },
-  value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.displayState + '</strong>' }
-  }]) %}
-  {% endfor %}
-{% endif %}
+          {% set eventRows = eventRows.concat([{
+            key: { text: event.interventionName | replace("_", " ")},
+            value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.displayState + '</strong>' }
+          }]) %}
+        {% endfor %}
+      {% endif %}
 
       {% set combinedData = eventRows.concat(transactionRows) %}
       {% set cardTitleHtml %}
@@ -48,45 +48,41 @@
           classes: "govuk-fraud-summary-card__title govuk-grid-column-full govuk-!-padding-0 govuk-!-margin-0",
           html: cardTitleHtml
         }
-      }, rows: combinedData }) }}
+        }, rows: combinedData }) }}
 
     {% endfor %}
-  {% endif %}
-
-
-{% if accountHistory and accountHistory.length %}
-  <h2 class="govuk-heading-m govuk-!-margin-top-7">Field descriptions</h2>
-  {{ govukSummaryList({
-    rows: [
-      {
-        key: {
-          text: "Originating Component"
+    <h2 class="govuk-heading-m govuk-!-margin-top-7">Field descriptions</h2>
+    {{ govukSummaryList({
+      rows: [
+        {
+          key: {
+            text: "Originating Component"
+          },
+          value: {
+            html: 'The component id of the application in which the intervention originator, i.e., ticket, case, assessment, etc., that triggered the intervention.<br>
+            <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originating_component_id/" class="govuk-link">View in event catalogue</a>'
+          }
         },
-        value: {
-          html: 'The component id of the application in which the intervention originator, i.e., ticket, case, assessment, etc., that triggered the intervention.<br>
-          <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originating_component_id/" class="govuk-link">View in event catalogue</a>'
-        }
-      },
-      {
-        key: {
-          text: "Originator Reference ID"
+        {
+          key: {
+            text: "Originator Reference ID"
+          },
+          value: {
+            html: 'The unique id of the ticket, case, risk assessment, etc., from which the intervention resulted.<br>
+            <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originator_reference_id/" class="govuk-link">View in event catalogue</a>'
+          }
         },
-        value: {
-          html: 'The unique id of the ticket, case, risk assessment, etc., from which the intervention resulted.<br>
-          <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originator_reference_id/" class="govuk-link">View in event catalogue</a>'
+        {
+          key: {
+            text: "Requester ID"
+          },
+          value: {
+            html: 'The unique id used by the originating component to identify the user who triggered the intervention - will be a number or GUID, must not be personal identifying - must be provided if a manual intervention.<br>
+            <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-requester_id/" class="govuk-link">View in event catalogue</a>'
+          }
         }
-      },
-      {
-        key: {
-          text: "Requester ID"
-        },
-        value: {
-          html: 'The unique id used by the originating component to identify the user who triggered the intervention - will be a number or GUID, must not be personal identifying - must be provided if a manual intervention.<br>
-          <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-requester_id/" class="govuk-link">View in event catalogue</a>'
-        }
-      }
-    ]
-  })}}
+      ]
+    })}}
 {% else %}
   <p class="govuk-body-s">No history available for this account.</p>
 {% endif %}

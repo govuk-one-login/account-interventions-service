@@ -465,7 +465,7 @@ data-module="govuk-service-navigation"
   
   <div class="govuk-summary-list__row">
     <dt class="govuk-summary-list__key">
-      PERMANENT_SUSPENSION
+      PERMANENT SUSPENSION
     </dt>
     <dd class="govuk-summary-list__value">
       <strong class="govuk-tag govuk-tag--red">Active</strong>
@@ -487,16 +487,16 @@ data-module="govuk-service-navigation"
 
       
 
+      
+        
+        
+          
+            
+          
 
-
-  
-  
-  
-  
-  
-  
-  
-
+          
+        
+      
 
       
       
@@ -621,12 +621,8 @@ data-module="govuk-service-navigation"
 
 
     
-  
-
-
-
-  <h2 class="govuk-heading-m govuk-!-margin-top-7">Field descriptions</h2>
-  
+    <h2 class="govuk-heading-m govuk-!-margin-top-7">Field descriptions</h2>
+    
 
   
 
@@ -642,7 +638,7 @@ data-module="govuk-service-navigation"
     </dt>
     <dd class="govuk-summary-list__value">
       The component id of the application in which the intervention originator, i.e., ticket, case, assessment, etc., that triggered the intervention.<br>
-                <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originating_component_id/" class="govuk-link">View in event catalogue</a>
+                  <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originating_component_id/" class="govuk-link">View in event catalogue</a>
     </dd>
     
   </div>
@@ -655,7 +651,7 @@ data-module="govuk-service-navigation"
     </dt>
     <dd class="govuk-summary-list__value">
       The unique id of the ticket, case, risk assessment, etc., from which the intervention resulted.<br>
-                <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originator_reference_id/" class="govuk-link">View in event catalogue</a>
+                  <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originator_reference_id/" class="govuk-link">View in event catalogue</a>
     </dd>
     
   </div>
@@ -668,7 +664,7 @@ data-module="govuk-service-navigation"
     </dt>
     <dd class="govuk-summary-list__value">
       The unique id used by the originating component to identify the user who triggered the intervention - will be a number or GUID, must not be personal identifying - must be provided if a manual intervention.<br>
-                <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-requester_id/" class="govuk-link">View in event catalogue</a>
+                  <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-requester_id/" class="govuk-link">View in event catalogue</a>
     </dd>
     
   </div>
@@ -993,9 +989,6 @@ data-module="govuk-service-navigation"
   
 
 <h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
-
-
-
 
   <p class="govuk-body-s">No history available for this account.</p>
 

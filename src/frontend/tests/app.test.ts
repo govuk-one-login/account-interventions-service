@@ -330,7 +330,7 @@ describe('frontend app', () => {
       );
       const response = await server.inject({ method: 'GET', url: '/user/test-user-id' });
       expect(response.statusCode).toBe(200);
-      expect(response.body).toContain('PERMANENT_SUSPENSION');
+      expect(response.body).toContain('PERMANENT SUSPENSION');
     });
 
     it('displays a no interventions message when the account exists but has no interventions', async () => {

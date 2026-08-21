@@ -21,7 +21,7 @@ import { isCode, TriggerEventsEnum } from '../data-types/constants';
 import { randomUUID } from 'node:crypto';
 import { TicfAccountIntervention } from '../contracts/intervention-events';
 import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
-import { transitionConfig, interventionTypeMap } from '../services/account-states/config';
+import { transitionConfig } from '../services/account-states/config';
 import { Authoriser } from './authoriser';
 
 declare module 'fastify' {
@@ -176,8 +176,7 @@ export function init(
       interventions,
       automatedSources,
       faiSources,
-      siraSources,
-      interventionTypeMap,
+      siraSources
     });
   });
 
