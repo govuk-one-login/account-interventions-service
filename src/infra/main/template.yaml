@@ -126,7 +126,7 @@ Mappings:
         - vpc-07cf1e76e27f28e86 # Authentication Staging VPC ID
         - vpc-039e664a2b3abb03e # IPV Core Staging VPC ID
         - vpc-068b8f80c6182d7cf # AMC Staging VPC ID
-        - vpc-04163263e42ae55ee # One Login Home Staging VPC ID        
+        - vpc-04163263e42ae55ee # One Login Home Staging VPC ID
       UniqueVPCEndpointIDs:
         - vpce-0339d04aeb67de9da # Auth Old Staging VPC Endpoint ID
         - vpce-0a81481bcd8257f5e # Orchestration? Staging VPC Endpoint ID
