@@ -61,6 +61,11 @@ Given('I search for a user with a valid URN via the UI', async ({ page, testUser
   await page.getByRole('button', { name: 'Submit' }).click();
 });
 
+Given('I search for a user without adding any URN', async ({ page, frontendUrl }) => {
+  await page.goto(frontendUrl);
+  await page.getByRole('button', { name: 'Submit' }).click();
+});
+
 When('I search for the user via the UI', async ({ page, testUserId, frontendUrl }) => {
   await page.goto(frontendUrl);
   await page.getByRole('textbox', { name: /subject identifier/i }).fill(testUserId.value);
@@ -80,4 +85,9 @@ Then('the history should show that the intervention was {string}', async ({ page
 Then('I should see {string} displayed for this account', async ({ page }, noInterventionText: string) => {
   await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
   await expect (page.locator('.govuk-body-s', { hasText: noInterventionText }).first()).toBeVisible();
+});
+
+Then('I should see {string} displayed on the index page', async ({ page }, errorText: string) => {
+  await expect(page.getByRole('heading', { name: 'Account Interventions Service' })).toBeVisible();
+  await expect(page.locator('.govuk-error-message', { hasText: errorText }).first()).toBeVisible();
 });

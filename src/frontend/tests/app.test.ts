@@ -240,7 +240,7 @@ describe('frontend app', () => {
       expect(response.headers.location).toBe(`/user/${encodeURIComponent(userId)}`);
     });
 
-    it('redirects to /user/ when userId is missing from the body', async () => {
+    it('redirects back to home page when userId is missing from the body', async () => {
       const server = initWithStubAuth(
         {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
