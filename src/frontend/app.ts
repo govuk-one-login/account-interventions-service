@@ -166,8 +166,10 @@ export function init(
   server.post<{ Body: { userId?: string } }>('/search', async (request, reply) => {
     const userId = request.body.userId?.trim() ?? '';
 
+    const redirectUrl = pathPrefix ? `${pathPrefix}?hasError=true` : `/?hasError=true`;
+
     if (!userId) {
-      reply.redirect('/?hasError=true');
+      reply.redirect(redirectUrl);
     }
 
     return reply.redirect(`${pathPrefix}/user/${encodeURIComponent(userId)}`, 303);

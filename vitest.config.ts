@@ -26,6 +26,7 @@ export default defineConfig({
       '.stryker-tmp/**',
       'src/scripts/**',
       'packages/ais-status-sdk/integration-tests/**',
+      'feature-tests-ui/.features-gen/tests/features/**',
     ],
     env: {
       CLOUDWATCH_METRICS_NAMESPACE: 'test_namespace',
