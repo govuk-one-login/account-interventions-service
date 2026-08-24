@@ -187,9 +187,9 @@ describe('frontend-handler', () => {
           jwt: 'valid.token.here',
         },
       };
-  
+
       await handler(event, mockContext);
-  
+
       expect(mockProxy).toHaveBeenCalledOnce();
     });
 
@@ -204,9 +204,9 @@ describe('frontend-handler', () => {
           authCookie: ['not', 'a', 'string'],
         },
       };
-  
+
       const result = await handler(event, mockContext);
-  
+
       expect(result).toEqual({
         statusCode: 302,
         headers: {
@@ -215,7 +215,7 @@ describe('frontend-handler', () => {
         },
         body: '',
       });
-  
+
       expect(mockProxy).not.toHaveBeenCalled();
     });
   })
