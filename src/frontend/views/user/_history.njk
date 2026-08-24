@@ -5,38 +5,38 @@
     {% for transaction in accountHistory %}
 
       {% set transactionRows = [
-      { key: { text: "Component" },  value: { text: transaction.componentId } },
-      { key: { text: "Reason" },     value: { text: transaction.interventionReason } },
-      { key: { text: "Originating Component" }, value: { text: transaction.originatingComponent if transaction.originatingComponent else "N/A" } },
-      { key: { text: "Code" },       value: { text: transaction.interventionCode if transaction.interventionCode else "N/A" } },
-      { key: { text: "Requester ID" }, value: { text: transaction.requesterId if transaction.requesterId else "N/A" } },
-      { key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId if transaction.originatorReferenceId else "N/A" } }
+        { key: { text: "Component" },  value: { text: transaction.componentId } },
+        { key: { text: "Reason" },     value: { text: transaction.interventionReason } },
+        { key: { text: "Originating Component" }, value: { text: transaction.originatingComponent if transaction.originatingComponent else "N/A" } },
+        { key: { text: "Code" },       value: { text: transaction.interventionCode if transaction.interventionCode else "N/A" } },
+        { key: { text: "Requester ID" }, value: { text: transaction.requesterId if transaction.requesterId else "N/A" } },
+        { key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId if transaction.originatorReferenceId else "N/A" } }
       ] %}
 
       {% if transaction.interventionEvents.length %}
         {% set eventRows = [] %}
         {% for event in transaction.interventionEvents %}
-          {% if event.interventionState == "ACTIVE" %}
-            {% set stateColour = "red" %}
-          {% elif event.interventionState == "MITIGATED" %}
-            {% set stateColour = "green" %}
-          {% elif event.interventionState == "REMOVED" %}
-            {% set stateColour = "grey" %}
+          {% if event.showState == true %}
+            {% if event.interventionState == "ACTIVE" %}
+              {% set stateColour = "red" %}
+            {% elif event.interventionState == "MITIGATED" %}
+              {% set stateColour = "green" %}
+            {% elif event.interventionState == "REMOVED" %}
+              {% set stateColour = "grey" %}
             {% elif event.interventionState == "SUPERSEDED" %}
-          {% set stateColour = "orange" %}
+              {% set stateColour = "orange" %}
             {% elif event.interventionState == "IGNORED" %}
-            {% set stateColour = "yellow" %}
-          {% else %}
-            {% set stateColour = "blue" %}
+              {% set stateColour = "yellow" %}
+            {% else %}
+              {% set stateColour = "blue" %}
+            {% endif %}
+            {% set eventRows = eventRows.concat([{
+                key: { text: event.interventionName },
+                value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.displayState + '</strong>' }
+            }]) %}
           {% endif %}
-
-          {% set eventRows = eventRows.concat([{
-            key: { text: event.interventionName | replace("_", " ")},
-            value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.displayState + '</strong>' }
-          }]) %}
         {% endfor %}
       {% endif %}
-
       {% set combinedData = eventRows.concat(transactionRows) %}
       {% set cardTitleHtml %}
         {{ createTag(transaction, automatedSources, faiSources, siraSources)}}

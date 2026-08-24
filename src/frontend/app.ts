@@ -168,7 +168,6 @@ export function init(
       pathPrefix,
       assetPath,
       accountStatus,
-      transitionConfig,
       userId,
       accountHistory: formatHistory(comparedHistory),
       messageSent,

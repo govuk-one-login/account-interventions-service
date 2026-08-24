@@ -492,12 +492,12 @@ data-module="govuk-service-navigation"
         
           
             
-          
-
+              
+            
+            
           
         
       
-
       
       
 
@@ -533,7 +533,7 @@ data-module="govuk-service-navigation"
       
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
-          TEMPORARY SUSPENSION
+          TEMPORARY_SUSPENSION
         </dt>
         <dd class="govuk-summary-list__value">
           <strong class="govuk-tag govuk-tag--red">ACTIVE</strong>
