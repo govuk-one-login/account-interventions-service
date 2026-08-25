@@ -23,6 +23,7 @@ import { TicfAccountIntervention } from '../contracts/intervention-events';
 import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
 import { transitionConfig } from '../services/account-states/config';
 import { Authoriser } from './authoriser';
+import { RedirectHandler } from './redirect-handler';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -66,6 +67,19 @@ function formatDate(value: string | number): string {
   );
 }
 
+export const generateRedirectHandler = 
+  (redirectHandler: RedirectHandler) => async (request: FastifyRequest, reply: FastifyReply) => {
+    const result = redirectHandler.parseRedirectContext(request.awsLambda?.event.requestContext.authorizer);
+
+    if (result.success) {
+      return reply
+        .status(302)
+        .header('location', result.redirectUrl)
+        .header('set-cookie', result.authCookie)
+        .send('');
+    }
+  };
+
 export const generateVerifyRequest =
   (authoriser: Authoriser) => async (request: FastifyRequest, reply: FastifyReply) => {
     const authoriserResult = await authoriser.verify(request.awsLambda?.event.requestContext.authorizer, request.url);
@@ -77,6 +91,7 @@ export interface FrontendAppDependencies {
   interventionClient: InterventionClientInterface;
   messageService: MessageService;
   authoriser: Authoriser;
+  redirectHandler: RedirectHandler;
 }
 
 export interface FrontendAppConfig {
@@ -84,7 +99,7 @@ export interface FrontendAppConfig {
 }
 
 export function init(
-  { interventionClient, messageService, authoriser }: FrontendAppDependencies,
+  { interventionClient, messageService, authoriser, redirectHandler }: FrontendAppDependencies,
   { featureFlags }: FrontendAppConfig,
 ) {
   const server = fastify();
@@ -96,6 +111,11 @@ export function init(
 
   // Parse cookies (used for flash messages)
   server.register(cookie);
+
+  // Redirect Hook MUST be registered before JWT verification.
+  // When a user isn't authenticated, FAI's authoriser signals a redirect
+  // instead of providing a JWT. Therefore this must be handled before trying to verify.
+  server.addHook('onRequest', generateRedirectHandler(redirectHandler));
 
   // Verify the FAI-issued JWT on every request.
   // FAI's Lambda authoriser puts the signed JWT string at requestContext.authorizer.jwt,
