@@ -178,6 +178,8 @@ Mappings:
   FeatureFlags:
     dev:
       BypassInterventionEventsTable: false
+    staging:
+      BypassInterventionEventsTable: true
 
 Globals:
   Function:
