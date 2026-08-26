@@ -1,0 +1,179 @@
+import { Mock } from 'vitest';
+import logger from '../../commons/logger';
+import { Metrics } from '@aws-lambda-powertools/metrics';
+import { MetricNames } from '../../data-types/constants';
+import { DEFAULT_SCAN_LIMIT, processTtlBackfill, UPDATE_CONCURRENCY } from '../ttl-backfill';
+import {
+  InterventionEventKey,
+  ScanForBackfillParameters,
+  ScanForBackfillResult,
+  TtlBackfillService,
+} from '../../services/ttl-backfill-service';
+
+vi.mock('../../commons/logger');
+vi.mock('@aws-lambda-powertools/metrics');
+
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const mockAddMetric = Metrics.prototype.addMetric as Mock;
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const mockPublishStoredMetrics = Metrics.prototype.publishStoredMetrics as Mock;
+const loggerErrorSpy = vi.spyOn(logger, 'error');
+
+const TTL_SECONDS = 1893456000;
+
+/**
+ * In-memory double for the backfill service. It records the scan parameters and applied keys so
+ * tests can assert on orchestration behaviour without touching DynamoDB, per ADR 005.
+ */
+class InMemoryTtlBackfillService implements TtlBackfillService {
+  public lastScanParameters: ScanForBackfillParameters | undefined;
+  public readonly appliedKeys: InterventionEventKey[] = [];
+
+  public constructor(
+    private readonly scanResult: ScanForBackfillResult,
+    private readonly accountIdsThatKeepExistingTtl: ReadonlySet<string> = new Set(),
+  ) {}
+
+  public scanEventsMissingTtl(parameters: ScanForBackfillParameters): Promise<ScanForBackfillResult> {
+    this.lastScanParameters = parameters;
+    return Promise.resolve(this.scanResult);
+  }
+
+  public applyTtl(key: InterventionEventKey): Promise<boolean> {
+    this.appliedKeys.push(key);
+    return Promise.resolve(!this.accountIdsThatKeepExistingTtl.has(key.accountId));
+  }
+}
+
+function buildKeys(count: number): InterventionEventKey[] {
+  return Array.from({ length: count }, (_value, index) => ({
+    accountId: `account-${index.toString()}`,
+    createdAt: 1000 + index,
+  }));
+}
+
+afterEach(() => {
+  vi.clearAllMocks();
+});
+
+describe('processTtlBackfill', () => {
+  // Goal: with a valid event and a page of rows, apply the TTL to every row and report completion.
+  test('applies the ttl to every scanned key and reports completion', async () => {
+    const keys = buildKeys(3);
+    const service = new InMemoryTtlBackfillService({ keys, scannedCount: 10 });
+
+    const report = await processTtlBackfill(
+      { windowStartMs: 1000, windowEndMs: 2000 },
+      { service, ttlSeconds: TTL_SECONDS },
+    );
+
+    expect(report).toEqual({
+      scannedCount: 10,
+      matchedCount: 3,
+      updatedCount: 3,
+      complete: true,
+    });
+    expect(service.appliedKeys).toEqual(keys);
+    expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.TTL_BACKFILL_ROWS_UPDATED, 'Count', 3);
+  });
+
+  // Goal: when limit is omitted, the default page size is used; window is passed through unchanged.
+  test('defaults the scan limit and forwards the window', async () => {
+    const service = new InMemoryTtlBackfillService({ keys: [], scannedCount: 0 });
+
+    await processTtlBackfill({ windowStartMs: 1000, windowEndMs: 2000 }, { service, ttlSeconds: TTL_SECONDS });
+
+    expect(service.lastScanParameters).toEqual({
+      windowStartMs: 1000,
+      windowEndMs: 2000,
+      limit: DEFAULT_SCAN_LIMIT,
+    });
+  });
+
+  // Goal: an explicit limit and resume key are forwarded, and an unfinished scan reports the resume key.
+  test('forwards limit and exclusive start key and reports the resume point when incomplete', async () => {
+    const lastEvaluatedKey = { accountId: 'account-9', createdAt: 1900 };
+    const service = new InMemoryTtlBackfillService({ keys: buildKeys(1), scannedCount: 1, lastEvaluatedKey });
+
+    const report = await processTtlBackfill(
+      {
+        windowStartMs: 1000,
+        windowEndMs: 2000,
+        limit: 500,
+        exclusiveStartKey: { accountId: 'account-5', createdAt: 1500 },
+      },
+      { service, ttlSeconds: TTL_SECONDS },
+    );
+
+    expect(service.lastScanParameters).toEqual({
+      windowStartMs: 1000,
+      windowEndMs: 2000,
+      limit: 500,
+      exclusiveStartKey: { accountId: 'account-5', createdAt: 1500 },
+    });
+    expect(report.complete).toBe(false);
+    expect(report.lastEvaluatedKey).toEqual(lastEvaluatedKey);
+  });
+
+  // Goal: rows that already gained a ttl (conditional write fails) are attempted but not counted as updated.
+  test('counts only rows that were actually updated', async () => {
+    const keys = buildKeys(3);
+    const service = new InMemoryTtlBackfillService({ keys, scannedCount: 3 }, new Set(['account-1']));
+
+    const report = await processTtlBackfill(
+      { windowStartMs: 1000, windowEndMs: 2000 },
+      { service, ttlSeconds: TTL_SECONDS },
+    );
+
+    expect(report.matchedCount).toBe(3);
+    expect(report.updatedCount).toBe(2);
+    expect(service.appliedKeys).toHaveLength(3);
+  });
+
+  // Goal: a page larger than the concurrency bound is fully processed across multiple batches.
+  test('processes pages larger than the concurrency bound', async () => {
+    const keys = buildKeys(UPDATE_CONCURRENCY + 5);
+    const service = new InMemoryTtlBackfillService({ keys, scannedCount: keys.length });
+
+    const report = await processTtlBackfill(
+      { windowStartMs: 1000, windowEndMs: 2000 },
+      { service, ttlSeconds: TTL_SECONDS },
+    );
+
+    expect(report.updatedCount).toBe(keys.length);
+    expect(service.appliedKeys).toHaveLength(keys.length);
+  });
+
+  // Goal: an inverted window is rejected at the boundary, records a metric, and does not scan.
+  test('rejects an event whose window end precedes its start', async () => {
+    const service = new InMemoryTtlBackfillService({ keys: [], scannedCount: 0 });
+
+    await expect(
+      processTtlBackfill({ windowStartMs: 2000, windowEndMs: 1000 }, { service, ttlSeconds: TTL_SECONDS }),
+    ).rejects.toThrow('Invalid TTL backfill event');
+
+    expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.TTL_BACKFILL_INVALID_EVENT, 'Count', 1);
+    expect(mockPublishStoredMetrics).toHaveBeenCalled();
+    expect(service.lastScanParameters).toBeUndefined();
+    expect(loggerErrorSpy).toHaveBeenCalled();
+  });
+
+  // Goal: a structurally invalid event (missing required fields) is rejected before scanning.
+  test('rejects an event missing required fields', async () => {
+    const service = new InMemoryTtlBackfillService({ keys: [], scannedCount: 0 });
+
+    await expect(processTtlBackfill({ windowStartMs: 1000 }, { service, ttlSeconds: TTL_SECONDS })).rejects.toThrow(
+      'Invalid TTL backfill event',
+    );
+    expect(service.lastScanParameters).toBeUndefined();
+  });
+
+  // Goal: a limit above the maximum is rejected so a single invocation cannot run unboundedly.
+  test('rejects a limit above the maximum', async () => {
+    const service = new InMemoryTtlBackfillService({ keys: [], scannedCount: 0 });
+
+    await expect(
+      processTtlBackfill({ windowStartMs: 1000, windowEndMs: 2000, limit: 5000 }, { service, ttlSeconds: TTL_SECONDS }),
+    ).rejects.toThrow('Invalid TTL backfill event');
+  });
+});
