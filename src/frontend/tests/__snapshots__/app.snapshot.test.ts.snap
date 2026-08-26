@@ -450,7 +450,7 @@ data-module="govuk-service-navigation"
     <strong>test-user-id</strong>
   </p>
   
-<h2 class="govuk-heading-l">Active Interventions</h1>
+<h2 class="govuk-heading-l">Active Interventions</h2>
 
   
     
@@ -533,7 +533,7 @@ data-module="govuk-service-navigation"
       
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
-          TEMPORARY_SUSPENSION
+          TEMPORARY SUSPENSION
         </dt>
         <dd class="govuk-summary-list__value">
           <strong class="govuk-tag govuk-tag--red">ACTIVE</strong>
@@ -979,7 +979,7 @@ data-module="govuk-service-navigation"
     <strong>test-user-id</strong>
   </p>
   
-<h2 class="govuk-heading-l">Active Interventions</h1>
+<h2 class="govuk-heading-l">Active Interventions</h2>
 
   
     <p class="govuk-body">There are no active interventions on this account.</p>

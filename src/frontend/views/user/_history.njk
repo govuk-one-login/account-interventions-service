@@ -31,7 +31,7 @@
               {% set stateColour = "blue" %}
             {% endif %}
             {% set eventRows = eventRows.concat([{
-                key: { text: event.interventionName },
+                key: { text: event.interventionName | replace("_", " ")},
                 value: { html: '<strong class="govuk-tag govuk-tag--' + stateColour + '">' + event.displayState + '</strong>' }
             }]) %}
           {% endif %}
