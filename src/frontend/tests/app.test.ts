@@ -151,6 +151,10 @@ describe('generateVerifyRequest', () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// generateRedirectHandler — unit tests (tests the exported hook factory directly)
+// ---------------------------------------------------------------------------
+
 describe('generateRedirectHandler', () => {
   const hook = generateRedirectHandler(new RedirectChecker());
 
@@ -163,8 +167,6 @@ describe('generateRedirectHandler', () => {
       const reply = makeRedirectReply();
 
       await hook(request, reply);
-
-      console.log('reply is:', reply)
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(reply.status).toHaveBeenCalledWith(302);
