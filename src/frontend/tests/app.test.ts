@@ -58,7 +58,7 @@ const makeReply = (): FastifyReply =>
         context: {},
       },
     }) as unknown as FastifyRequest;
-  
+
   const makeRedirectReply = () => ({
     status: vi.fn().mockReturnThis(),
     header: vi.fn().mockReturnThis(),
@@ -153,7 +153,7 @@ describe('generateVerifyRequest', () => {
 
 describe('generateRedirectHandler', () => {
   const hook = generateRedirectHandler(new RedirectChecker());
-  
+
     it('returns a 302 redirect when the authorizer context signals a redirect', async () => {
       const request = makeRedirectRequest({
         redirect: 'true',
@@ -161,7 +161,7 @@ describe('generateRedirectHandler', () => {
         authCookie: 'session=xyz; Path=/',
       });
       const reply = makeRedirectReply();
-  
+
       await hook(request, reply);
 
       console.log('reply is:', reply)
@@ -173,13 +173,13 @@ describe('generateRedirectHandler', () => {
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(reply.header).toHaveBeenCalledWith('set-cookie', 'session=xyz; Path=/');
     });
-  
+
     it('does not send a response when the authorizer context is not a redirect', async () => {
       const request = makeRedirectRequest({});
       const reply = makeRedirectReply();
-  
+
       await hook(request, reply);
-  
+
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(reply.status).not.toHaveBeenCalled();
     });
