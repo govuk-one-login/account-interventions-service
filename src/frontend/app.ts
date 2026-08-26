@@ -67,7 +67,7 @@ function formatDate(value: string | number): string {
   );
 }
 
-export const generateRedirectHandler = 
+export const generateRedirectHandler =
   (redirectHandler: RedirectHandler) => async (request: FastifyRequest, reply: FastifyReply) => {
     const result = redirectHandler.parseRedirectContext(request.awsLambda?.event.requestContext.authorizer);
 
