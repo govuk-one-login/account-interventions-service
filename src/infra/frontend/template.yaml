@@ -115,11 +115,11 @@ Mappings:
     build:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
-      FaiAuthSigningKeyArn: ''
+      FaiAuthSigningKeyArn: arn:aws:kms:eu-west-2:182406244095:key/9fb4f487-2bd2-47c0-b980-b03c682461bd # pragma: allowlist secret
     staging:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
-      FaiAuthSigningKeyArn: ''
+      FaiAuthSigningKeyArn: arn:aws:kms:eu-west-2:866337353834:key/a30ffcac-f620-478c-acdc-d93a7ea722cd # pragma: allowlist secret
     integration:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
