@@ -12,14 +12,6 @@
           { key: { text: "Case or Risk Assessment ID" }, value: { text: transaction.originatorReferenceId if transaction.originatorReferenceId else "N/A" } },
           { key: { text: "Requester ID" }, value: { text: transaction.requesterId if transaction.requesterId else "N/A" } }
         ] %}
-      {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4 govuk-!-font-size-16", rows: transactionRows }) }}
-        { key: { text: "Component" },  value: { text: transaction.componentId } },
-        { key: { text: "Reason" },     value: { text: transaction.interventionReason } },
-        { key: { text: "Originating Component" }, value: { text: transaction.originatingComponent if transaction.originatingComponent else "N/A" } },
-        { key: { text: "Code" },       value: { text: transaction.interventionCode if transaction.interventionCode else "N/A" } },
-        { key: { text: "Requester ID" }, value: { text: transaction.requesterId if transaction.requesterId else "N/A" } },
-        { key: { text: "Originator Reference ID" }, value: { text: transaction.originatorReferenceId if transaction.originatorReferenceId else "N/A" } }
-      ] %}
 
       {% if transaction.interventionEvents.length %}
         {% set eventRows = [] %}

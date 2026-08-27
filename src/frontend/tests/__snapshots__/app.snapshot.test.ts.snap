@@ -479,58 +479,58 @@ data-module="govuk-service-navigation"
   
 
 
-
+  
 
 <h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
 
-
-
-
+    
 
       
 
+      
+        
+        
+          
+            
+              
+            
+            
+          
+        
+      
+      
+      
 
+      
 
+  
 
+  
 
+  
 
+  
 
+  
 
+  
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
 <div class="govuk-summary-card">
   <div class="govuk-summary-card__title-wrapper">
-
+  
     <h3 class="govuk-summary-card__title govuk-fraud-summary-card__title govuk-grid-column-full govuk-!-padding-0 govuk-!-margin-0">
       <span>14 July 2026 at 09:27:59 UTC</span>
         <span>  <strong class="govuk-!-font-size-16 govuk-tag govuk-tag--grey">UNAVAILABLE</strong></span>
     </h3>
-
-
+  
+  
   </div>
 
   <div class="govuk-summary-card__content">
     <dl class="govuk-summary-list govuk-!-margin-bottom-4 govuk-!-font-size-16">
-
-
+    
+      
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
           TEMPORARY SUSPENSION
@@ -538,11 +538,11 @@ data-module="govuk-service-navigation"
         <dd class="govuk-summary-list__value">
           <strong class="govuk-tag govuk-tag--red">ACTIVE</strong>
         </dd>
-
+        
       </div>
-
-
-
+      
+    
+      
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
           Component
@@ -550,11 +550,11 @@ data-module="govuk-service-navigation"
         <dd class="govuk-summary-list__value">
           TEST
         </dd>
-
+        
       </div>
-
-
-
+      
+    
+      
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
           Reason
@@ -562,23 +562,11 @@ data-module="govuk-service-navigation"
         <dd class="govuk-summary-list__value">
           Reason
         </dd>
-
+        
       </div>
-
-
-
-      <div class="govuk-summary-list__row">
-        <dt class="govuk-summary-list__key">
-          Originating Component
-        </dt>
-        <dd class="govuk-summary-list__value">
-          TICF
-        </dd>
-
-      </div>
-
-
-
+      
+    
+      
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
           Code
@@ -586,11 +574,35 @@ data-module="govuk-service-navigation"
         <dd class="govuk-summary-list__value">
           01
         </dd>
-
+        
       </div>
-
-
-
+      
+    
+      
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Originating Component
+        </dt>
+        <dd class="govuk-summary-list__value">
+          TICF
+        </dd>
+        
+      </div>
+      
+    
+      
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Case or Risk Assessment ID
+        </dt>
+        <dd class="govuk-summary-list__value">
+          N/A
+        </dd>
+        
+      </div>
+      
+    
+      
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
           Requester ID
@@ -598,31 +610,19 @@ data-module="govuk-service-navigation"
         <dd class="govuk-summary-list__value">
           interventions@digital.cabinet-office.gov.uk
         </dd>
-
+        
       </div>
-
-
-
-      <div class="govuk-summary-list__row">
-        <dt class="govuk-summary-list__key">
-          Originator Reference ID
-        </dt>
-        <dd class="govuk-summary-list__value">
-          N/A
-        </dd>
-
-      </div>
-
-
+      
+    
     </dl>
   </div>
 </div>
 
 
 
-
+    
     <h2 class="govuk-heading-m govuk-!-margin-top-7">Field descriptions</h2>
-
+    
 
   
 
@@ -979,7 +979,7 @@ data-module="govuk-service-navigation"
     <strong>test-user-id</strong>
   </p>
   
-<h2 class="govuk-heading-l">Active Interventions</h1>
+<h2 class="govuk-heading-l">Active Interventions</h2>
 
   
     <p class="govuk-body">There are no active interventions on this account.</p>
