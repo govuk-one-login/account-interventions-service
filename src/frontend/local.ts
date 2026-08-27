@@ -20,7 +20,7 @@ init(
             interventionState: InterventionState.ACTIVE,
             interventionReason: 'Reason',
             interventionCode: '01',
-            originatingComponent: 'TICF_CRI',
+            originatingComponent: 'SIRA',
             requesterId: 'interventions@digital.cabinet-office.gov.uk',
             tagId: 'tag1',
           },

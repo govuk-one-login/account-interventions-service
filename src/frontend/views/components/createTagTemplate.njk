@@ -1,5 +1,5 @@
   {% if not transaction.originatingComponent %}
-    {% set tagDescription = "SOURCE UNAVAILABLE" %}
+    {% set tagDescription = "SOURCE UNKNOWN" %}
     {% set tagColour = "grey" %}
   {% elif transaction.originatingComponent in automatedSources %}
     {% set tagDescription = "AUTOMATED" %}

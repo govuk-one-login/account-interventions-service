@@ -55,7 +55,7 @@ const subpath = normalisePathSegment(process.env['SUBPATH'] ?? '');
 // TICF_CRI (automated via rules)
 // TICF_FAI (via an analyst)
 // CMS (sira via an analyst)
-const automatedSources = ['TICF_CRI'];
+const automatedSources = ['SIRA'];
 const faiSources = ['TICF_FAI'];
 const siraSources = ['CMS'];
 const manualSources = [...faiSources, ...siraSources];
