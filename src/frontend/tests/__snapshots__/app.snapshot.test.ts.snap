@@ -569,18 +569,6 @@ data-module="govuk-service-navigation"
       
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
-          Originating Component
-        </dt>
-        <dd class="govuk-summary-list__value">
-          TICF
-        </dd>
-        
-      </div>
-      
-    
-      
-      <div class="govuk-summary-list__row">
-        <dt class="govuk-summary-list__key">
           Code
         </dt>
         <dd class="govuk-summary-list__value">
@@ -593,10 +581,10 @@ data-module="govuk-service-navigation"
       
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
-          Requester ID
+          Originating Component
         </dt>
         <dd class="govuk-summary-list__value">
-          interventions@digital.cabinet-office.gov.uk
+          TICF
         </dd>
         
       </div>
@@ -605,10 +593,22 @@ data-module="govuk-service-navigation"
       
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
-          Originator Reference ID
+          Case or Risk Assessment ID
         </dt>
         <dd class="govuk-summary-list__value">
           N/A
+        </dd>
+        
+      </div>
+      
+    
+      
+      <div class="govuk-summary-list__row">
+        <dt class="govuk-summary-list__key">
+          Requester ID
+        </dt>
+        <dd class="govuk-summary-list__value">
+          interventions@digital.cabinet-office.gov.uk
         </dd>
         
       </div>
