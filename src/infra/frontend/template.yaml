@@ -112,22 +112,27 @@ Mappings:
       LambdaLogLevel: DEBUG
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
       FaiAuthSigningKeyArn: arn:aws:kms:eu-west-2:301631959974:key/5e132a69-9c95-4e55-a5e3-7a49c685e79b # pragma: allowlist secret
+      FaiAccountId: '301631959974'
     build:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
       FaiAuthSigningKeyArn: arn:aws:kms:eu-west-2:182406244095:key/9fb4f487-2bd2-47c0-b980-b03c682461bd # pragma: allowlist secret
+      FaiAccountId: '182406244095'
     staging:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
       FaiAuthSigningKeyArn: arn:aws:kms:eu-west-2:866337353834:key/a30ffcac-f620-478c-acdc-d93a7ea722cd # pragma: allowlist secret
+      FaiAccountId: '866337353834'
     integration:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
       FaiAuthSigningKeyArn: ''
+      FaiAccountId: '962503174980'
     production:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables # pragma: allowlist secret
       FaiAuthSigningKeyArn: ''
+      FaiAccountId: '786216885304'
   FeatureFlags:
     dev:
       EnableAISFrontend: true
@@ -350,7 +355,9 @@ Resources:
       FunctionName: !Ref FrontendFunctionAliaslive
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:301631959974:*/*/*'
+      SourceArn: !Sub
+        - 'arn:aws:execute-api:${AWS::Region}:${FaiAccountId}:*/*/*'
+        - FaiAccountId: !FindInMap [EnvConfig, !Ref Environment, FaiAccountId]
 
   ### API Gateway ###
 
