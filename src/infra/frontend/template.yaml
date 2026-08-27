@@ -345,7 +345,7 @@ Resources:
 
   FrontendFunctionCrossAccountApiGatewayPermission:
     Type: AWS::Lambda::Permission
-    Condition: IsDev
+    Condition: IsDevBuildStaging
     Properties:
       FunctionName: !Ref FrontendFunctionAliaslive
       Action: lambda:InvokeFunction
