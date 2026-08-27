@@ -133,10 +133,10 @@ Mappings:
       EnableAISFrontend: true
       EnableAISSendTxMA: false
     build:
-      EnableAISFrontend: false
+      EnableAISFrontend: true
       EnableAISSendTxMA: false
     staging:
-      EnableAISFrontend: false
+      EnableAISFrontend: true
       EnableAISSendTxMA: false
     integration:
       EnableAISFrontend: false
