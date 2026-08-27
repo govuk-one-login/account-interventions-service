@@ -4,6 +4,14 @@
 {% block pageTitle %}Account Interventions Service – GOV.UK{% endblock %}
 {% block head %}
   <link rel="stylesheet" href="{{ assetPath }}/govuk-frontend.min.css"/>
+<style>
+  .govuk-fraud-summary-card__title {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+  }
+  </style>
 {% endblock %}
 {% block header %}
   {{ govukHeader({

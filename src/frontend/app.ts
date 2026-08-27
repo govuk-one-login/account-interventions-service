@@ -175,7 +175,7 @@ export function init(
       interventions,
       automatedSources,
       faiSources,
-      siraSources,
+      siraSources
     });
   });
 

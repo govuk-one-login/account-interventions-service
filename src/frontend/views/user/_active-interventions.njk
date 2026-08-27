@@ -1,11 +1,11 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
-<h2 class="govuk-heading-l">Active Interventions</h1>
+<h2 class="govuk-heading-l">Active Interventions</h2>
 {% if accountStatus %}
   {% if accountStatus.interventions.length %}
     {% set rows = [] %}
     {% for intervention in accountStatus.interventions %}
       {% set rows = rows.concat([{
-        key: { text: intervention.name },
+        key: { text: intervention.name | replace("_", " ") },
         value: { html: '<strong class="govuk-tag govuk-tag--red">Active</strong>' }
       }]) %}
     {% endfor %}
