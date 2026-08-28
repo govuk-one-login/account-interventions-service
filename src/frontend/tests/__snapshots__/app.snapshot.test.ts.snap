@@ -1029,8 +1029,6 @@ data-module="govuk-service-navigation"
   
 
   
-
-  
 <div class="govuk-summary-card">
   <div class="govuk-summary-card__title-wrapper">
   
@@ -1096,18 +1094,6 @@ data-module="govuk-service-navigation"
       
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
-          Originating Component
-        </dt>
-        <dd class="govuk-summary-list__value">
-          TICF_FAI
-        </dd>
-        
-      </div>
-      
-    
-      
-      <div class="govuk-summary-list__row">
-        <dt class="govuk-summary-list__key">
           Case or Risk Assessment ID
         </dt>
         <dd class="govuk-summary-list__value">
@@ -1149,8 +1135,6 @@ data-module="govuk-service-navigation"
       
 
       
-
-  
 
   
 
@@ -1214,18 +1198,6 @@ data-module="govuk-service-navigation"
       
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
-          Originating Component
-        </dt>
-        <dd class="govuk-summary-list__value">
-          CMS
-        </dd>
-        
-      </div>
-      
-    
-      
-      <div class="govuk-summary-list__row">
-        <dt class="govuk-summary-list__key">
           Case or Risk Assessment ID
         </dt>
         <dd class="govuk-summary-list__value">
@@ -1272,8 +1244,6 @@ data-module="govuk-service-navigation"
       
 
       
-
-  
 
   
 
@@ -1351,18 +1321,6 @@ data-module="govuk-service-navigation"
       
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
-          Originating Component
-        </dt>
-        <dd class="govuk-summary-list__value">
-          SIRA
-        </dd>
-        
-      </div>
-      
-    
-      
-      <div class="govuk-summary-list__row">
-        <dt class="govuk-summary-list__key">
           Case or Risk Assessment ID
         </dt>
         <dd class="govuk-summary-list__value">
@@ -1409,8 +1367,6 @@ data-module="govuk-service-navigation"
       
 
       
-
-  
 
   
 
@@ -1488,18 +1444,6 @@ data-module="govuk-service-navigation"
       
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
-          Originating Component
-        </dt>
-        <dd class="govuk-summary-list__value">
-          TICF
-        </dd>
-        
-      </div>
-      
-    
-      
-      <div class="govuk-summary-list__row">
-        <dt class="govuk-summary-list__key">
           Case or Risk Assessment ID
         </dt>
         <dd class="govuk-summary-list__value">
@@ -1541,8 +1485,6 @@ data-module="govuk-service-navigation"
       
 
       
-
-  
 
   
 
@@ -1598,18 +1540,6 @@ data-module="govuk-service-navigation"
         </dt>
         <dd class="govuk-summary-list__value">
           03
-        </dd>
-        
-      </div>
-      
-    
-      
-      <div class="govuk-summary-list__row">
-        <dt class="govuk-summary-list__key">
-          Originating Component
-        </dt>
-        <dd class="govuk-summary-list__value">
-          N/A
         </dd>
         
       </div>
