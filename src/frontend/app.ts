@@ -51,14 +51,8 @@ const subpath = normalisePathSegment(process.env['SUBPATH'] ?? '');
  * render the tag element that differentiates between automated interventions and human applied ones.
  */
 
-
-// TICF_CRI (automated via rules)
-// TICF_FAI (via an analyst)
-// CMS (sira via an analyst)
 const automatedSources = ['SIRA'];
-const faiSources = ['TICF_FAI'];
-const siraSources = ['CMS'];
-const manualSources = [...faiSources, ...siraSources];
+const manualSources = ['TICF_FAI', 'CMS'];
 
 // Format an ISO date string or Unix timestamp (ms) into a human-readable UK date/time, e.g. "10 October 2023 at 20:22:02 UTC"
 function formatDate(value: string | number): string {
@@ -180,8 +174,6 @@ export function init(
       aisSendTxMA: featureFlags.isEnabled('aisSendTxMA'),
       interventions,
       automatedSources,
-      faiSources,
-      siraSources,
       manualSources,
     });
   });
