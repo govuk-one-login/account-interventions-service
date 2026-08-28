@@ -50,9 +50,9 @@ const subpath = normalisePathSegment(process.env['SUBPATH'] ?? '');
  * Source tag values - an array of values that get passed to the user-details template which are then used to
  * render the tag element that differentiates between automated interventions and human applied ones.
  */
-const automatedSources = ['TICF CRI'];
-const faiSources = ['FAI'];
-const siraSources = ['CMS'];
+
+const automatedSources = ['SIRA'];
+const manualSources = ['TICF_FAI', 'CMS'];
 
 // Format an ISO date string or Unix timestamp (ms) into a human-readable UK date/time, e.g. "10 October 2023 at 20:22:02 UTC"
 function formatDate(value: string | number): string {
@@ -174,8 +174,7 @@ export function init(
       aisSendTxMA: featureFlags.isEnabled('aisSendTxMA'),
       interventions,
       automatedSources,
-      faiSources,
-      siraSources
+      manualSources,
     });
   });
 

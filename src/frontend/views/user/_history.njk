@@ -2,7 +2,7 @@
 {% from "components/createTagMacro.njk" import createTag %}
 <h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
 {% if accountHistory and accountHistory.length %}
-    {% for transaction in accountHistory %}
+  {% for transaction in accountHistory %}
 
       {% set transactionRows = [
           { key: { text: "Component" },  value: { text: transaction.componentId } },
@@ -39,7 +39,7 @@
       {% endif %}
       {% set combinedData = eventRows.concat(transactionRows) %}
       {% set cardTitleHtml %}
-        {{ createTag(transaction, automatedSources, faiSources, siraSources)}}
+        {{ createTag(transaction, automatedSources, manualSources)}}
       {% endset %}
 
       {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4 govuk-!-font-size-16", card: {
