@@ -3,7 +3,7 @@ import { AppConfigService } from '../services/app-config-service';
 import { DynamoDBRecordService, RecordService } from '../services/dynamo-db-record-service';
 import TableConfig from './table-config';
 import { getDBDocumentClient } from '../services/database-client';
-import { InterventionState } from '../data-types/constants';
+import { InterventionState, TtlSource } from '../data-types/constants';
 import { InterventionName } from '../data-types/intervention-name';
 
 const appConfig = AppConfigService.getInstance();
@@ -22,6 +22,7 @@ const schema = z.object({
   requesterId: z.string().optional(),
   originatorReferenceId: z.union([z.string(), z.array(z.string())]).optional(),
   ttl: z.number().optional(),
+  ttlSource: z.enum(TtlSource).optional(),
   transactionId: z.string().optional(),
   messageEventId: z.string().optional(),
 });
