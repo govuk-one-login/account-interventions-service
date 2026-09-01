@@ -3,12 +3,7 @@ import logger from '../../commons/logger';
 import { Metrics } from '@aws-lambda-powertools/metrics';
 import { MetricNames } from '../../data-types/constants';
 import { DEFAULT_SCAN_LIMIT, processTtlBackfill, UPDATE_CONCURRENCY } from '../ttl-backfill';
-import {
-  InterventionEventKey,
-  ScanForBackfillParameters,
-  ScanForBackfillResult,
-  TtlBackfillService,
-} from '../../services/ttl-backfill-service';
+import { InMemoryTtlBackfillService, InterventionEventKey } from '../../services/ttl-backfill-service';
 
 vi.mock('../../commons/logger');
 vi.mock('@aws-lambda-powertools/metrics');
@@ -20,30 +15,6 @@ const mockPublishStoredMetrics = Metrics.prototype.publishStoredMetrics as Mock;
 const loggerErrorSpy = vi.spyOn(logger, 'error');
 
 const TTL_SECONDS = 1893456000;
-
-/**
- * In-memory double for the backfill service. It records the scan parameters and applied keys so
- * tests can assert on orchestration behaviour without touching DynamoDB, per ADR 005.
- */
-class InMemoryTtlBackfillService implements TtlBackfillService {
-  public lastScanParameters: ScanForBackfillParameters | undefined;
-  public readonly appliedKeys: InterventionEventKey[] = [];
-
-  public constructor(
-    private readonly scanResult: ScanForBackfillResult,
-    private readonly accountIdsThatKeepExistingTtl: ReadonlySet<string> = new Set(),
-  ) {}
-
-  public scanEventsMissingTtl(parameters: ScanForBackfillParameters): Promise<ScanForBackfillResult> {
-    this.lastScanParameters = parameters;
-    return Promise.resolve(this.scanResult);
-  }
-
-  public applyTtl(key: InterventionEventKey): Promise<boolean> {
-    this.appliedKeys.push(key);
-    return Promise.resolve(!this.accountIdsThatKeepExistingTtl.has(key.accountId));
-  }
-}
 
 function buildKeys(count: number): InterventionEventKey[] {
   return Array.from({ length: count }, (_value, index) => ({

@@ -59,6 +59,30 @@ export interface TtlBackfillService {
 }
 
 /**
+ * In-memory double for the backfill service. It records the scan parameters and applied keys so
+ * tests can assert on orchestration behaviour without touching DynamoDB, per ADR 005.
+ */
+export class InMemoryTtlBackfillService implements TtlBackfillService {
+  public lastScanParameters: ScanForBackfillParameters | undefined;
+  public readonly appliedKeys: InterventionEventKey[] = [];
+
+  public constructor(
+    private readonly scanResult: ScanForBackfillResult,
+    private readonly accountIdsThatKeepExistingTtl: ReadonlySet<string> = new Set(),
+  ) {}
+
+  public scanEventsMissingTtl(parameters: ScanForBackfillParameters): Promise<ScanForBackfillResult> {
+    this.lastScanParameters = parameters;
+    return Promise.resolve(this.scanResult);
+  }
+
+  public applyTtl(key: InterventionEventKey): Promise<boolean> {
+    this.appliedKeys.push(key);
+    return Promise.resolve(!this.accountIdsThatKeepExistingTtl.has(key.accountId));
+  }
+}
+
+/**
  * Thin wrapper over the injected DynamoDB document client that implements the backfill operations.
  * It owns no state beyond its configuration and client, so it is testable with aws-sdk-client-mock.
  */
