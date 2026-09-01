@@ -1,7 +1,7 @@
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import logger from '../commons/logger';
 import { InterventionEventMessage } from '../contracts/intervention-events';
-import { EventsEnum, InterventionState, LOGS_PREFIX_SENSITIVE_INFO, TtlSource } from '../data-types/constants';
+import { EventsEnum, InterventionState, LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
 import { StateDetails } from '../data-types/interfaces';
 import { InterventionEvent, InterventionEventsService } from '../tables/intervention-events';
 import { randomUUID } from 'node:crypto';
@@ -150,21 +150,12 @@ export async function setTtlOnInactiveEvents(
   const now = getCurrentTimestamp();
   const ttl = now.seconds + historyRetentionSeconds;
 
-  // A row needs a TTL if it is missing one, or if the only TTL it has was provisionally set by the
-  // backfill lambda. In the latter case we overwrite it here with the proper retention-based value.
   const eventsNeedingTtl = allEvents.filter(
-    (event) =>
-      closedInterventionNames.includes(event.interventionName) &&
-      (!event.ttl || event.ttlSource === TtlSource.BACKFILL),
+    (event) => closedInterventionNames.includes(event.interventionName) && !event.ttl,
   );
 
   if (eventsNeedingTtl.length > 0) {
-    const updatedEvents = eventsNeedingTtl.map((event) => {
-      const updatedEvent = { ...event, ttl };
-      // The row now has a real TTL, so it is no longer a backfill row; drop the tag.
-      delete updatedEvent.ttlSource;
-      return updatedEvent;
-    });
+    const updatedEvents = eventsNeedingTtl.map((event) => ({ ...event, ttl }));
     await interventionEventsService.appendEvents(updatedEvents);
   }
 }
