@@ -62,8 +62,3 @@ export interface InterventionClientInterface {
   getAccountStatus(userId: string): Promise<AccountStatus>;
   getAccountHistory(userId: string): Promise<AccountHistory>;
 }
-
-export interface FrontEndAppConfig {
-  subpath?: string;
-  stagePrefix?: string;
-}

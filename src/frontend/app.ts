@@ -24,8 +24,6 @@ import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
 import { transitionConfig } from '../services/account-states/config';
 import { Authoriser } from './authoriser';
 import { z } from 'zod';
-import { FrontEndAppConfig } from '../../packages/ais-status-sdk/src/types';
-
 declare module 'fastify' {
   interface FastifyRequest {
     awsLambda?: { event: APIGatewayProxyEvent; context: Context };
@@ -35,18 +33,6 @@ declare module 'fastify' {
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).
 const nodeModulesRoot = existsSync(path.join(__dirname, 'node_modules')) ? __dirname : process.cwd();
-
-/**
- * Stage prefix for asset URLs — empty string locally, /v1 when behind API Gateway without a custom domain
- */
-const stagePrefix = normalisePathSegment(process.env['STAGE_PREFIX'] ?? '');
-
-/**
- * Subpath prefix — prepended to asset URLs so the browser requests assets through the correct API Gateway path.
- * e.g. if SUBPATH=/interventions, assets are served at /interventions/assets/* and the Lambda strips
- * the subpath prefix before routing (see frontend-handler.ts rewriteEventPath).
- */
-const subpath = normalisePathSegment(process.env['SUBPATH'] ?? '');
 
 /**
  * Source tag values - an array of values that get passed to the user-details template which are then used to
@@ -92,6 +78,11 @@ export const generateVerifyRequest =
 
     if (!authoriserResult.success) return reply.status(401);
   };
+
+export interface FrontEndAppConfig {
+  subpath?: string;
+  stagePrefix?: string;
+}
 
 export interface FrontendAppDependencies {
   interventionClient: InterventionClientInterface;
@@ -181,7 +172,7 @@ export function init(
     const redirectUrl = pathPrefix ? `${pathPrefix}?hasError=true` : `/?hasError=true`;
 
     if (!userId) {
-      reply.redirect(redirectUrl);
+      return reply.redirect(redirectUrl);
     }
 
     return reply.redirect(`${pathPrefix}/user/${encodeURIComponent(userId)}`, 303);
