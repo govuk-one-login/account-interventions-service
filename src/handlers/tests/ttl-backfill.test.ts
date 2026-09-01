@@ -14,7 +14,7 @@ const mockAddMetric = Metrics.prototype.addMetric as Mock;
 const mockPublishStoredMetrics = Metrics.prototype.publishStoredMetrics as Mock;
 const loggerErrorSpy = vi.spyOn(logger, 'error');
 
-const TTL_SECONDS = 1893456000;
+const TTL_SECONDS = 1893456000; // 00:00, 1 Jan 2030
 
 function buildKeys(count: number): InterventionEventKey[] {
   return Array.from({ length: count }, (_value, index) => ({
