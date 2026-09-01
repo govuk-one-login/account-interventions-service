@@ -166,6 +166,7 @@ describe('rendered page snapshots', () => {
         }),
         messageService: new StubMessageService(),
         authoriser: new StubAuthoriser(),
+        config: {},
       },
       {
         featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
