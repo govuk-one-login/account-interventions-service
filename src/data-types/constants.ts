@@ -43,6 +43,8 @@ export enum MetricNames {
   INTERVENTION_MISMATCH = 'INTERVENTION_MISMATCH',
   STATUS_REQUESTED = 'STATUS_REQUESTED',
   STATUS_API_CALLED = 'STATUS_API_CALLED',
+  TTL_BACKFILL_INVALID_EVENT = 'TTL_BACKFILL_INVALID_EVENT',
+  TTL_BACKFILL_ROWS_UPDATED = 'TTL_BACKFILL_ROWS_UPDATED',
 }
 
 export const noMetadata: { key: string; value: string }[] = [];
@@ -144,4 +146,18 @@ export enum InterventionState {
   SUPERSEDED = 'SUPERSEDED',
   MITIGATED = 'MITIGATED',
   REMOVED = 'REMOVED',
+}
+
+/**
+ * Identifies how a row's `ttl` was set. Only rows populated by the TTL backfill lambda are tagged;
+ * rows whose TTL was set by normal event processing have no `ttlSource` attribute. The tag lets
+ * the interventions processor recognise and overwrite a backfilled TTL later, rather than skipping
+ * the row because a TTL is already present.
+ *
+ * This is an enum rather than a boolean for extensibility: if another mechanism (e.g. a future
+ * migration or manual fix) needs to set TTLs with different semantics, a new member can be added
+ * here without changing the field type or existing conditional logic.
+ */
+export enum TtlSource {
+  BACKFILL = 'BACKFILL',
 }
