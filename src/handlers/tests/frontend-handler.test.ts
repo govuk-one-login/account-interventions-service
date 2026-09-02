@@ -44,7 +44,7 @@ describe('frontend-handler', () => {
     mockProxy.mockResolvedValue({ statusCode: 200, body: '' });
 
     vi.stubEnv('STATUS_API_URL', 'api-url');
-    vi.stubEnv('TXMA_QUEUE_URL', 'queue-url');
+    vi.stubEnv('DEBUG_INGRESS_TXMA_QUEUE_URL', 'queue-url');
     vi.stubEnv('FAI_AUTH_SIGNING_KEY_ARN', 'key-arn');
   });
 
