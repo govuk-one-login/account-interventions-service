@@ -454,6 +454,7 @@ describeFeature(feature, ({ Scenario, ScenarioOutline, BeforeEachScenario }) => 
       { aisEventType, aisEventInterventionType, allowableEventType, allowableEventInterventionType },
     ) => {
       Given('I send an <aisEventType> to a TXMA Ingress queue', async () => {
+        console.log('***sending event to ingress queue***');
         await sendSQSEvent(testUserId, aisEventType);
       });
 
