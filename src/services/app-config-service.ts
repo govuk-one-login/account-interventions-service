@@ -61,9 +61,10 @@ const CONFIG_ENVIRONMENT_MAPPING = {
     envVar: 'STATUS_API_URL',
     type: 'string' as const,
   },
-  txmaQueueUrl: {
-    envVar: 'TXMA_QUEUE_URL',
+  debugIngressTxmaQueueUrl: {
+    envVar: 'DEBUG_INGRESS_TXMA_QUEUE_URL',
     type: 'string' as const,
+    optional: true,
   },
 } satisfies Record<string, ConfigDefinition>;
 

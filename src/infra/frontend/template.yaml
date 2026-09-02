@@ -219,11 +219,10 @@ Resources:
           ENABLE_AIS_FRONTEND: !FindInMap [FeatureFlags, !Ref Environment, EnableAISFrontend]
           ENABLE_AIS_SEND_TXMA: !FindInMap [FeatureFlags, !Ref Environment, EnableAISSendTxMA]
           DISABLE_AUTH: !If [IsAuthDisabled, true, false]
-          TXMA_QUEUE_URL: !If
+          DEBUG_INGRESS_TXMA_QUEUE_URL: !If
             - IsInternal
             - Fn::ImportValue: !Sub '${MainStackName}-TxMAIngressSqsQueueUrl'
             - !Ref 'AWS::NoValue'
-            # - Fn::ImportValue: !Sub '${MainStackName}-TxMAEgressSqsQueueUrl'
           FAI_AUTH_SIGNING_KEY_ARN: !FindInMap [EnvConfig, !Ref Environment, FaiAuthSigningKeyArn]
 
       Tags:
