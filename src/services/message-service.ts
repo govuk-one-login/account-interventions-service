@@ -79,4 +79,16 @@ export class StubMessageService implements MessageService {
   }
 }
 
+/* v8 ignore start -- trivial */
+export class NullMessageService implements MessageService {
+  sendMessage(): Promise<SendMessageCommandOutput> {
+    return Promise.resolve({ $metadata: {} });
+  }
+
+  sendBatchMessage(): Promise<SendMessageBatchCommandOutput> {
+    return Promise.resolve({ $metadata: {}, Successful: [], Failed: [] });
+  }
+}
+/* v8 ignore stop */
+
 export class MissingQueueUrl extends Error {}

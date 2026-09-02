@@ -7,12 +7,12 @@ import logger from '../commons/logger';
 import { InterventionClient } from '@govuk-one-login/ais-status-sdk';
 import { Authoriser, JwtAuthoriser, StubAuthoriser } from '../frontend/authoriser';
 import { FeatureFlagsFromEnvironmentVariables } from '../services/feature-flags';
-import { SqsMessageService } from '../services/message-service';
+import { NullMessageService, SqsMessageService } from '../services/message-service';
 import { AppConfigService } from '../services/app-config-service';
 
 const subpath = process.env['SUBPATH'] ?? '';
 
-const config = AppConfigService.getInstance().getConfigObject(['statusApiUrl', 'txmaQueueUrl']);
+const config = AppConfigService.getInstance().getConfigObject(['statusApiUrl', 'debugIngressTxmaQueueUrl']);
 
 const featureFlags = FeatureFlagsFromEnvironmentVariables.getInstance();
 
@@ -22,7 +22,7 @@ const interventionClient = new InterventionClient(config.statusApiUrl, {
   logger,
 });
 
-const messageService = new SqsMessageService(config.txmaQueueUrl);
+const messageService = config.debugIngressTxmaQueueUrl ? new SqsMessageService(config.debugIngressTxmaQueueUrl) : new NullMessageService();
 
 const proxy = awsLambdaFastify(
   init(
