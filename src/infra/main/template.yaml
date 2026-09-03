@@ -91,6 +91,8 @@ Conditions:
   UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, 'none']]
   UseCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, 'none']]
   IsProd: !Or [!Equals [!Ref Environment, integration], !Equals [!Ref Environment, production]]
+  IsDevBuildStaging:
+    !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build], !Equals [!Ref Environment, staging]]
 
 Mappings:
   EnvConfig:
@@ -1575,6 +1577,128 @@ Resources:
           Value: !Ref SourceTagValue
         - Key: Name
           Value: !Sub '/aws/lambda/${InvokePrivateAPIGatewayFunction}'
+
+  ### TTL Backfill (manual invocation only; dev, build and staging) ###
+  TtlBackfillFunction:
+    Condition: IsDevBuildStaging
+    Type: AWS::Serverless::Function
+    # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a manually-invoked utility Lambda
+    # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-TtlBackfillFunction'
+      Description: 'Manually-invoked utility to backfill a TTL onto intervention-events rows that have none (dev, build, staging only). The TTL is supplied on the invocation event.'
+      CodeSigningConfigArn: !If [UseCodeSigning, !Ref CodeSigningConfigArn, !Ref AWS::NoValue]
+      Timeout: 300
+      MemorySize: 256
+      Role: !GetAtt TtlBackfillFunctionRole.Arn
+      Handler: ttl-backfill-handler.handler
+      Environment:
+        Variables:
+          METRIC_SERVICE_NAME: 'TtlBackfillFunction'
+          INTERVENTION_EVENTS_TABLE_NAME:
+            Fn::ImportValue: !Sub '${CoreStackName}-InterventionEventsTableName'
+      Tags:
+        CheckovRulesToSkip: CKV_AWS_116.CKV_AWS_115
+        Product: !Ref ProductTagValue
+        System: !Ref SystemTagValue
+        Environment: !Ref Environment
+        Owner: !Ref OwnerTagValue
+        Source: !Ref SourceTagValue
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: 'es2022'
+        Sourcemap: false
+        EntryPoints:
+          - ttl-backfill-handler.ts
+
+  TtlBackfillFunctionRole:
+    Condition: IsDevBuildStaging
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-TtlBackfillFunctionRole'
+      Description: !Sub 'The role assumed by ${AWS::StackName}-TtlBackfillFunction'
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue]
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+
+  TtlBackfillFunctionManagedPolicy:
+    Condition: IsDevBuildStaging
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub '${AWS::StackName}-TtlBackfillFunctionPolicy'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
+            Resource:
+              - !GetAtt TtlBackfillFunctionLogGroup.Arn
+          - Effect: Allow
+            Action:
+              - 'dynamodb:Scan'
+              - 'dynamodb:UpdateItem'
+            Resource:
+              - Fn::ImportValue: !Sub '${CoreStackName}-InterventionEventsTableArn'
+          - Effect: Allow
+            Action:
+              - 'kms:Decrypt'
+            Resource:
+              - Fn::ImportValue: !Sub '${CoreStackName}-InterventionEventsTableEncryptionKeyArn'
+          - Effect: Allow
+            Action:
+              - 'cloudwatch:PutMetricData'
+            Resource:
+              - '*'
+            Condition:
+              StringEquals:
+                cloudwatch:namespace: !Ref SystemTagValue
+      Roles:
+        - !Ref TtlBackfillFunctionRole
+
+  TtlBackfillFunctionLogGroup:
+    Condition: IsDevBuildStaging
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${TtlBackfillFunction}'
+      RetentionInDays: 30
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      Tags:
+        - Key: Product
+          Value: !Ref ProductTagValue
+        - Key: System
+          Value: !Ref SystemTagValue
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Owner
+          Value: !Ref OwnerTagValue
+        - Key: Source
+          Value: !Ref SourceTagValue
+        - Key: Name
+          Value: !Sub '/aws/lambda/${TtlBackfillFunction}'
 
   # Private API Gateway resources - Note this is deprecated, please use PrivateApi
   PrivateRestApi:
