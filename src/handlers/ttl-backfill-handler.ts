@@ -2,13 +2,11 @@
 
 import { Context } from 'aws-lambda';
 import logger from '../commons/logger';
-import { AppConfigService } from '../services/app-config-service';
 import { getDBDocumentClient } from '../services/database-client';
 import { interventionEventsTableConfig } from '../tables/intervention-events';
 import { DynamoDBTtlBackfillService } from '../services/ttl-backfill-service';
 import { BackfillReport, processTtlBackfill } from './ttl-backfill';
 
-const config = AppConfigService.getInstance().getConfigObject(['interventionEventsBackfillTtl']);
 const service = new DynamoDBTtlBackfillService(interventionEventsTableConfig, getDBDocumentClient());
 
 /**
@@ -21,7 +19,7 @@ const service = new DynamoDBTtlBackfillService(interventionEventsTableConfig, ge
  */
 export async function handler(event: unknown, context: Context): Promise<BackfillReport> {
   logger.addContext(context);
-  return processTtlBackfill(event, { service, ttlSeconds: config.interventionEventsBackfillTtl });
+  return processTtlBackfill(event, { service });
 }
 
 /* v8 ignore stop */
