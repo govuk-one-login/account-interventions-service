@@ -21,6 +21,7 @@ export default class EndPoints {
       : process.env.CFN_TxMAEgressSqsQueueUrl;
   public static PATH_AIS = '/ais/';
   public static INVOKE_PRIVATE_API_GATEWAY = `${process.env.SAM_STACK_NAME}-InvokePrivateAPIGatewayFunction`;
+  public static TTL_BACKFILL_FUNCTION = `${process.env.SAM_STACK_NAME}-TtlBackfillFunction`;
   public static TABLE_NAME = 'ais-core-account-status';
   public static INTERVENTION_EVENTS_TABLE_NAME = 'ais-core-intervention-events';
 }
