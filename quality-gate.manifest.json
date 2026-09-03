@@ -1,111 +1,108 @@
 {
-  "$schema": "https://raw.githubusercontent.com/govuk-one-login/quality-gates/refs/tags/v0.1.0/schemas/schema.json",
+  "$schema": "https://raw.githubusercontent.com/govuk-one-login/quality-gates/refs/tags/v0.19.0/schemas/schema.json",
   "services": [
     {
-      "service-tag": "account-interventions-service",
-      "quality-gates": [
+      "product": "Account-Intervention-Service",
+      "component": "Account-Intervention-Service",
+      "promotionType": "securePipelines",
+      "automated": [
         {
-          "check-types": [
-            "code quality",
-            "code style and linting"
-          ],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/acceptance-checks.yaml",
-            "name": "Run npm lint",
-            "path": "jobs.acceptance-checks"
-          }
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code quality"
+            },
+            {
+              "name": "code style and linting"
+            }
+          ],
+          "file": ".github/workflows/acceptance-checks.yaml",
+          "path": "$.jobs.acceptance-checks"
+        },
+        {
+          "phase": "pre-merge",
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "unit"
+            },
+            {
+              "name": "unit test coverage"
+            }
+          ],
+          "file": ".github/workflows/acceptance-checks.yaml",
+          "path": "$.jobs.acceptance-checks"
+        },
+        {
+          "phase": "pre-merge",
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code quality"
+            },
+            {
+              "name": "code style and linting"
+            },
+            {
+              "name": "unit test coverage"
+            },
+            {
+              "name": "vulnerability detection"
+            }
+          ],
+          "file": ".github/workflows/acceptance-checks.yaml",
+          "path": "$.jobs.acceptance-checks"
+        },
+        {
+          "phase": "pre-merge",
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "contract"
+            }
+          ],
+          "file": ".github/workflows/pact-test-api-provider.yaml",
+          "path": "$.jobs.contract-testing"
+        },
+        {
+          "phase": "pre-merge",
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "contract"
+            }
+          ],
+          "file": ".github/workflows/pact-test-message-consumer.yaml",
+          "path": "$.jobs.contract-testing"
+        },
+        {
+          "phase": "pre-merge",
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "code quality"
+            },
+            {
+              "name": "code style and linting"
+            }
+          ],
+          "file": ".github/workflows/code-quality.yaml",
+          "path": "$.jobs.run-pre-commit"
         }
-      ]
-    },
-    {
-      "service-tag": "account-interventions-service",
-      "quality-gates": [
+      ],
+      "notApplicable": [
         {
-          "check-types": [
-            "unit",
-            "unit test coverage"
-          ],
-          "provider": "GitHub",
           "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/acceptance-checks.yaml",
-            "name": "Run unit tests with coverage report",
-            "path": "jobs.acceptance-checks"
-          }
-        }
-      ]
-    },
-    {
-      "service-tag": "account-interventions-service",
-      "quality-gates": [
-        {
-          "check-types": [
-            "code quality",
-            "code style and linting",
-            "unit test coverage",
-            "vulnerability detection"
-          ],
-          "provider": "GitHub",
-          "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/acceptance-checks.yaml",
-            "name": "SonarCloud Scan",
-            "path": "jobs.acceptance-checks"
-          }
-        }
-      ]
-    },
-    {
-      "service-tag": "account-interventions-service",
-      "quality-gates": [
-        {
-          "check-types": [
-            "contract"
-          ],
-          "provider": "GitHub",
-          "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pact-test-api-provider.yaml",
-            "name": "Run pact tests for provider API",
-            "path": "jobs.contract-testing"
-          }
-        }
-      ]
-    },
-    {
-      "service-tag": "account-interventions-service",
-      "quality-gates": [
-        {
-          "check-types": [
-            "contract"
-          ],
-          "provider": "GitHub",
-          "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/pact-test-message-consumer.yaml",
-            "name": "Run Pact Tests for Message Consumers",
-            "path": "jobs.contract-testing"
-          }
-        }
-      ]
-    },
-    {
-      "service-tag": "account-interventions-service",
-      "quality-gates": [
-        {
-          "check-types": [
-            "code quality",
-            "code style and linting"
-          ],
-          "provider": "GitHub",
-          "phase": "pre-merge",
-          "config": {
-            "file": ".github/workflows/code-quality.yaml",
-            "name": "Run npm lint",
-            "path": "jobs.code-quality"
-          }
+          "checks": [
+            {
+              "name": "integration",
+              "details": [
+                "No testing of AWS resource in pre-merge",
+                "https://github.com/govuk-one-login/account-interventions-service/blob/main/adr/007-integration-test-strategy.md"
+              ]
+            }
+          ]
         }
       ]
     }
