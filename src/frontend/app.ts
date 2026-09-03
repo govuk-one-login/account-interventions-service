@@ -23,7 +23,7 @@ import { TicfAccountIntervention } from '../contracts/intervention-events';
 import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
 import { transitionConfig } from '../services/account-states/config';
 import { Authoriser } from './authoriser';
-import { RedirectHandler } from './redirect-handler';
+import { z } from 'zod';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -67,18 +67,47 @@ function formatDate(value: string | number): string {
   );
 }
 
-export const generateRedirectHandler =
-  (redirectHandler: RedirectHandler) => async (request: FastifyRequest, reply: FastifyReply) => {
-    const result = redirectHandler.parseRedirectContext(request.awsLambda?.event.requestContext.authorizer);
+const redirectContextSchema = z.object({
+  redirect: z.literal('true'),
+  redirectUrl: z.string(),
+  authCookie: z.string(),
+});
 
-    if (result.success) {
-      return reply
-        .status(302)
-        .header('location', result.redirectUrl)
-        .header('set-cookie', result.authCookie)
-        .send('');
-    }
+type RedirectResult =
+| {
+    success: true;
+    redirectUrl: string;
+    authCookie: string;
+  }
+| {
+    success: false;
   };
+
+function parseRedirectContext(context: undefined | null | Record<string, unknown>): RedirectResult {
+  const result = redirectContextSchema.safeParse(context);
+
+  if (!result.success) {
+    return { success: false };
+  }
+
+  return {
+    success: true,
+    redirectUrl: result.data.redirectUrl,
+    authCookie: result.data.authCookie,
+  };
+}
+
+export async function redirectHook(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply | undefined> {
+  const result = parseRedirectContext(request.awsLambda?.event.requestContext.authorizer);
+
+  if (result.success) {
+    return reply
+      .status(302)
+      .header('location', result.redirectUrl)
+      .header('set-cookie', result.authCookie)
+      .send('');
+  }
+}
 
 export const generateVerifyRequest =
   (authoriser: Authoriser) => async (request: FastifyRequest, reply: FastifyReply) => {
@@ -91,7 +120,6 @@ export interface FrontendAppDependencies {
   interventionClient: InterventionClientInterface;
   messageService: MessageService;
   authoriser: Authoriser;
-  redirectHandler: RedirectHandler;
 }
 
 export interface FrontendAppConfig {
@@ -99,7 +127,7 @@ export interface FrontendAppConfig {
 }
 
 export function init(
-  { interventionClient, messageService, authoriser, redirectHandler }: FrontendAppDependencies,
+  { interventionClient, messageService, authoriser }: FrontendAppDependencies,
   { featureFlags }: FrontendAppConfig,
 ) {
   const server = fastify();
@@ -115,7 +143,7 @@ export function init(
   // Redirect Hook MUST be registered before JWT verification.
   // When a user isn't authenticated, FAI's authoriser signals a redirect
   // instead of providing a JWT. Therefore this must be handled before trying to verify.
-  server.addHook('onRequest', generateRedirectHandler(redirectHandler));
+  server.addHook('onRequest', redirectHook);
 
   // Verify the FAI-issued JWT on every request.
   // FAI's Lambda authoriser puts the signed JWT string at requestContext.authorizer.jwt,

@@ -6,7 +6,7 @@ import {
   FrontendAppDependencies,
   getDisplayState,
   flagInterventionStateChanges,
-  generateRedirectHandler,
+  redirectHook,
 } from '../app';
 import { InterventionStub, InterventionName, InterventionState } from '@govuk-one-login/ais-status-sdk';
 import { StubMessageService } from '../../services/message-service';
@@ -17,7 +17,6 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import type { FaiJwtPayload, JwtVerifierInterface } from '../../services/jwt-verifier';
 import { Role } from '../../services/jwt-verifier';
-import { RedirectChecker } from '../redirect-handler';
 
 vi.mock('@aws-lambda-powertools/logger');
 
@@ -152,11 +151,10 @@ describe('generateVerifyRequest', () => {
 });
 
 // ---------------------------------------------------------------------------
-// generateRedirectHandler — unit tests (tests the exported hook factory directly)
+// redirectHook — unit tests (tests the exported hook factory directly)
 // ---------------------------------------------------------------------------
 
-describe('generateRedirectHandler', () => {
-  const hook = generateRedirectHandler(new RedirectChecker());
+describe('redirectHook', () => {
 
     it('returns a 302 redirect when the authorizer context signals a redirect', async () => {
       const request = makeRedirectRequest({
@@ -166,7 +164,7 @@ describe('generateRedirectHandler', () => {
       });
       const reply = makeRedirectReply();
 
-      await hook(request, reply);
+      await redirectHook(request, reply);
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(reply.status).toHaveBeenCalledWith(302);
@@ -180,7 +178,7 @@ describe('generateRedirectHandler', () => {
       const request = makeRedirectRequest({});
       const reply = makeRedirectReply();
 
-      await hook(request, reply);
+      await redirectHook(request, reply);
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(reply.status).not.toHaveBeenCalled();
@@ -211,7 +209,6 @@ describe('frontend app', () => {
         interventionClient: new InterventionStub({ result: { interventions: [] } }),
         messageService: new StubMessageService(),
         authoriser: new StubAuthoriser(),
-        redirectHandler: new RedirectChecker(),
       },
       {
         featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -227,7 +224,6 @@ describe('frontend app', () => {
         interventionClient: new InterventionStub({ result: { interventions: [] } }),
         messageService: new StubMessageService(),
         authoriser: new StubAuthoriser(),
-        redirectHandler: new RedirectChecker(),
       },
       {
         featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -244,7 +240,6 @@ describe('frontend app', () => {
         interventionClient: new InterventionStub({ result: { interventions: [] } }),
         messageService: new StubMessageService(),
         authoriser: new StubAuthoriser(),
-        redirectHandler: new RedirectChecker(),
       },
       {
         featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -261,7 +256,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -283,7 +277,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -306,7 +299,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -330,7 +322,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] }, historyResult: { lines: [] } }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -365,7 +356,6 @@ describe('frontend app', () => {
           }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -386,7 +376,6 @@ describe('frontend app', () => {
           }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -403,7 +392,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] }, historyResult: { lines: [] } }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -432,7 +420,6 @@ describe('frontend app', () => {
           interventionClient: mockClient,
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -448,7 +435,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -468,7 +454,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(successOutput),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -491,7 +476,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(successOutput),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -516,7 +500,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService,
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -539,7 +522,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(successOutput),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -564,7 +546,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] }, historyResult: { lines: [] } }),
           messageService: new StubMessageService(successOutput),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -603,7 +584,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -624,7 +604,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(successOutput),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -648,7 +627,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(successOutput),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -672,7 +650,6 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(successOutput),
           authoriser: new StubAuthoriser(),
-          redirectHandler: new RedirectChecker(),
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),

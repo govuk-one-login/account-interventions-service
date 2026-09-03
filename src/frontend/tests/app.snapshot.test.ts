@@ -3,7 +3,6 @@ import { InterventionStub, InterventionName, InterventionState } from '@govuk-on
 import { StubAuthoriser } from '../authoriser';
 import { StubMessageService } from '../../services/message-service';
 import { FeatureFlagsStub } from '../../services/feature-flags';
-import { RedirectChecker } from '../redirect-handler';
 
 vi.mock('@aws-lambda-powertools/logger');
 
@@ -19,7 +18,6 @@ describe('rendered page snapshots', () => {
         interventionClient: new InterventionStub({ result: { interventions: [] } }),
         messageService: new StubMessageService(),
         authoriser: new StubAuthoriser(),
-        redirectHandler: new RedirectChecker(),
       },
       {
         featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -58,7 +56,6 @@ describe('rendered page snapshots', () => {
         }),
         messageService: new StubMessageService(),
         authoriser: new StubAuthoriser(),
-        redirectHandler: new RedirectChecker(),
       },
       {
         featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -161,7 +158,6 @@ describe('rendered page snapshots', () => {
         interventionClient: new InterventionStub({ result: { interventions: [] } }),
         messageService: new StubMessageService(),
         authoriser: new StubAuthoriser(),
-        redirectHandler: new RedirectChecker(),
       },
       {
         featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
