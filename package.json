@@ -48,7 +48,7 @@
     "@aws-sdk/client-sqs": "^3.1116.0",
     "@aws-sdk/lib-dynamodb": "^3.1116.0",
     "@aws-sdk/util-dynamodb": "^3.996.0",
-    "@babel/helpers": "^7.26.10",
+    "@babel/helpers": "^8.0.0",
     "@fastify/aws-lambda": "^6.4.1",
     "@fastify/cookie": "11.1.2",
     "@fastify/formbody": "9.0.0",
