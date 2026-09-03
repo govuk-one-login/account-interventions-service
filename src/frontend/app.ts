@@ -73,38 +73,14 @@ const redirectContextSchema = z.object({
   authCookie: z.string(),
 });
 
-type RedirectResult =
-| {
-    success: true;
-    redirectUrl: string;
-    authCookie: string;
-  }
-| {
-    success: false;
-  };
-
-function parseRedirectContext(context: undefined | null | Record<string, unknown>): RedirectResult {
-  const result = redirectContextSchema.safeParse(context);
-
-  if (!result.success) {
-    return { success: false };
-  }
-
-  return {
-    success: true,
-    redirectUrl: result.data.redirectUrl,
-    authCookie: result.data.authCookie,
-  };
-}
-
 export async function redirectHook(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply | undefined> {
-  const result = parseRedirectContext(request.awsLambda?.event.requestContext.authorizer);
+  const result = redirectContextSchema.safeParse(request.awsLambda?.event.requestContext.authorizer);
 
   if (result.success) {
     return reply
       .status(302)
-      .header('location', result.redirectUrl)
-      .header('set-cookie', result.authCookie)
+      .header('location', result.data.redirectUrl)
+      .header('set-cookie', result.data.authCookie)
       .send('');
   }
 }
