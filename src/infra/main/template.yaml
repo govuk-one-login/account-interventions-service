@@ -127,6 +127,7 @@ Mappings:
         - vpc-039e664a2b3abb03e # IPV Core Staging VPC ID
         - vpc-068b8f80c6182d7cf # AMC Staging VPC ID
         - vpc-04163263e42ae55ee # One Login Home Staging VPC ID
+        - vpc-0559baa2e6be2630e # Account Interventions Service Staging VPC ID
       UniqueVPCEndpointIDs:
         - vpce-0339d04aeb67de9da # Auth Old Staging VPC Endpoint ID
         - vpce-0a81481bcd8257f5e # Orchestration? Staging VPC Endpoint ID
@@ -134,6 +135,7 @@ Mappings:
         - vpce-07078f5f005fe5efc # Auth New Staging VPC Endpoint ID
         - vpce-04ae8d53b32b38278 # AMC Staging VPC Endpoint ID
         - vpce-0c9ce65be09f99db7 # One Login Home Staging VPC Endpoint ID
+        - vpce-00ff7f43d4dc00478 # Account Interventions Service Staging VPC Endpoint ID
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     integration:
       LambdaLogLevel: INFO
