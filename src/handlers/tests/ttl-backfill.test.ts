@@ -14,7 +14,9 @@ const mockAddMetric = Metrics.prototype.addMetric as Mock;
 const mockPublishStoredMetrics = Metrics.prototype.publishStoredMetrics as Mock;
 const loggerErrorSpy = vi.spyOn(logger, 'error');
 
-const TTL_SECONDS = 1893456000; // 00:00, 1 Jan 2030
+// An arbitrary far-future epoch-seconds value (year 2286). It has no significance beyond being
+// comfortably more than one year ahead, so it always passes the minimum-runway TTL check.
+const ARBITRARY_FUTURE_TTL = 9999999999;
 
 function buildKeys(count: number): InterventionEventKey[] {
   return Array.from({ length: count }, (_value, index) => ({
@@ -34,8 +36,8 @@ describe('processTtlBackfill', () => {
     const service = new InMemoryTtlBackfillService({ keys, scannedCount: 10 });
 
     const report = await processTtlBackfill(
-      { windowStartMs: 1000, windowEndMs: 2000 },
-      { service, ttlSeconds: TTL_SECONDS },
+      { windowStartMs: 1000, windowEndMs: 2000, ttl: ARBITRARY_FUTURE_TTL },
+      { service },
     );
 
     expect(report).toEqual({
@@ -52,7 +54,7 @@ describe('processTtlBackfill', () => {
   test('defaults the scan limit and forwards the window', async () => {
     const service = new InMemoryTtlBackfillService({ keys: [], scannedCount: 0 });
 
-    await processTtlBackfill({ windowStartMs: 1000, windowEndMs: 2000 }, { service, ttlSeconds: TTL_SECONDS });
+    await processTtlBackfill({ windowStartMs: 1000, windowEndMs: 2000, ttl: ARBITRARY_FUTURE_TTL }, { service });
 
     expect(service.lastScanParameters).toEqual({
       windowStartMs: 1000,
@@ -70,10 +72,11 @@ describe('processTtlBackfill', () => {
       {
         windowStartMs: 1000,
         windowEndMs: 2000,
+        ttl: ARBITRARY_FUTURE_TTL,
         limit: 500,
         exclusiveStartKey: { accountId: 'account-5', createdAt: 1500 },
       },
-      { service, ttlSeconds: TTL_SECONDS },
+      { service },
     );
 
     expect(service.lastScanParameters).toEqual({
@@ -92,8 +95,8 @@ describe('processTtlBackfill', () => {
     const service = new InMemoryTtlBackfillService({ keys, scannedCount: 3 }, new Set(['account-1']));
 
     const report = await processTtlBackfill(
-      { windowStartMs: 1000, windowEndMs: 2000 },
-      { service, ttlSeconds: TTL_SECONDS },
+      { windowStartMs: 1000, windowEndMs: 2000, ttl: ARBITRARY_FUTURE_TTL },
+      { service },
     );
 
     expect(report.matchedCount).toBe(3);
@@ -107,8 +110,8 @@ describe('processTtlBackfill', () => {
     const service = new InMemoryTtlBackfillService({ keys, scannedCount: keys.length });
 
     const report = await processTtlBackfill(
-      { windowStartMs: 1000, windowEndMs: 2000 },
-      { service, ttlSeconds: TTL_SECONDS },
+      { windowStartMs: 1000, windowEndMs: 2000, ttl: ARBITRARY_FUTURE_TTL },
+      { service },
     );
 
     expect(report.updatedCount).toBe(keys.length);
@@ -120,7 +123,7 @@ describe('processTtlBackfill', () => {
     const service = new InMemoryTtlBackfillService({ keys: [], scannedCount: 0 });
 
     await expect(
-      processTtlBackfill({ windowStartMs: 2000, windowEndMs: 1000 }, { service, ttlSeconds: TTL_SECONDS }),
+      processTtlBackfill({ windowStartMs: 2000, windowEndMs: 1000, ttl: ARBITRARY_FUTURE_TTL }, { service }),
     ).rejects.toThrow('Invalid TTL backfill event');
 
     expect(mockAddMetric).toHaveBeenCalledWith(MetricNames.TTL_BACKFILL_INVALID_EVENT, 'Count', 1);
@@ -133,7 +136,7 @@ describe('processTtlBackfill', () => {
   test('rejects an event missing required fields', async () => {
     const service = new InMemoryTtlBackfillService({ keys: [], scannedCount: 0 });
 
-    await expect(processTtlBackfill({ windowStartMs: 1000 }, { service, ttlSeconds: TTL_SECONDS })).rejects.toThrow(
+    await expect(processTtlBackfill({ windowStartMs: 1000 }, { service })).rejects.toThrow(
       'Invalid TTL backfill event',
     );
     expect(service.lastScanParameters).toBeUndefined();
@@ -144,7 +147,33 @@ describe('processTtlBackfill', () => {
     const service = new InMemoryTtlBackfillService({ keys: [], scannedCount: 0 });
 
     await expect(
-      processTtlBackfill({ windowStartMs: 1000, windowEndMs: 2000, limit: 5000 }, { service, ttlSeconds: TTL_SECONDS }),
+      processTtlBackfill(
+        { windowStartMs: 1000, windowEndMs: 2000, ttl: ARBITRARY_FUTURE_TTL, limit: 5000 },
+        { service },
+      ),
     ).rejects.toThrow('Invalid TTL backfill event');
+  });
+
+  // Goal: the required ttl is enforced at the boundary — an otherwise-valid event with no ttl is
+  // rejected before any scan runs, so a backfill can never write without an explicit TTL.
+  test('rejects an event missing the ttl', async () => {
+    const service = new InMemoryTtlBackfillService({ keys: [], scannedCount: 0 });
+
+    await expect(
+      processTtlBackfill({ windowStartMs: 1000, windowEndMs: 2000 }, { service }),
+    ).rejects.toThrow('Invalid TTL backfill event');
+    expect(service.lastScanParameters).toBeUndefined();
+  });
+
+  // Goal: a ttl less than one year ahead is rejected at the boundary, guarding against a
+  // fat-fingered value that would schedule rows for near-term DynamoDB TTL deletion; no scan runs.
+  test('rejects a ttl less than one year in the future', async () => {
+    const service = new InMemoryTtlBackfillService({ keys: [], scannedCount: 0 });
+    const oneMinuteAheadSeconds = Math.floor(Date.now() / 1000) + 60;
+
+    await expect(
+      processTtlBackfill({ windowStartMs: 1000, windowEndMs: 2000, ttl: oneMinuteAheadSeconds }, { service }),
+    ).rejects.toThrow('Invalid TTL backfill event');
+    expect(service.lastScanParameters).toBeUndefined();
   });
 });

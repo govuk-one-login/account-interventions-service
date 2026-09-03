@@ -32,7 +32,6 @@ export default defineConfig({
       METRIC_SERVICE_NAME: 'test',
       TABLE_NAME: 'table_name',
       INTERVENTION_EVENTS_TABLE_NAME: 'intervention-events',
-      INTERVENTION_EVENTS_BACKFILL_TTL: '1893456000',
       AWS_REGION: 'aws_region',
       DELETED_ACCOUNT_RETENTION_SECONDS: '12345',
       HISTORY_RETENTION_SECONDS: '63072000',

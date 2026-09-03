@@ -1,4 +1,5 @@
 import { z, prettifyError } from 'zod';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import logger from '../commons/logger';
 import { addMetric, metric } from '../commons/metrics';
 import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
@@ -23,14 +24,25 @@ export const DEFAULT_SCAN_LIMIT = 100;
 export const UPDATE_CONCURRENCY = 25;
 
 /**
+ * The minimum runway a supplied TTL must have: 365 days = 31,536,000 seconds. The TTL is written
+ * straight onto the row's `ttl` attribute, which drives DynamoDB TTL deletion, so a past or
+ * near-term value would schedule rows for deletion almost immediately. Requiring a full year of
+ * runway guards against a fat-fingered invocation deleting live data.
+ */
+export const MINIMUM_TTL_OFFSET_SECONDS = 31_536_000;
+
+/**
  * The manual invocation event. It is validated at the boundary per ADR 003 / ADR 007: nothing
  * about a hand-crafted invocation payload can be trusted until parsed. `limit` and
  * `exclusiveStartKey` are optional so the first run can omit them and resume runs can supply them.
+ * `ttl` is required: an absolute Unix epoch-seconds timestamp written onto each matched row, which
+ * must be at least one year in the future (see MINIMUM_TTL_OFFSET_SECONDS).
  */
 const backfillEventSchema = z
   .object({
     windowStartMs: z.number().int().nonnegative(),
     windowEndMs: z.number().int().nonnegative(),
+    ttl: z.number().int().positive(),
     limit: z.number().int().positive().max(MAX_SCAN_LIMIT).optional(),
     exclusiveStartKey: z
       .object({
@@ -42,6 +54,10 @@ const backfillEventSchema = z
   .refine((event) => event.windowEndMs >= event.windowStartMs, {
     message: 'windowEndMs must be greater than or equal to windowStartMs',
     path: ['windowEndMs'],
+  })
+  .refine((event) => event.ttl >= getCurrentTimestamp().seconds + MINIMUM_TTL_OFFSET_SECONDS, {
+    message: 'ttl must be at least one year (31536000 seconds) in the future',
+    path: ['ttl'],
   });
 
 export type BackfillEvent = z.infer<typeof backfillEventSchema>;
@@ -60,7 +76,6 @@ export interface BackfillReport {
 
 export interface BackfillOptions {
   service: TtlBackfillService;
-  ttlSeconds: number;
 }
 
 /**
@@ -79,7 +94,7 @@ export async function processTtlBackfill(event: unknown, options: BackfillOption
   };
 
   const scanResult = await options.service.scanEventsMissingTtl(scanParameters);
-  const updatedCount = await applyTtlToKeys(options.service, scanResult.keys, options.ttlSeconds);
+  const updatedCount = await applyTtlToKeys(options.service, scanResult.keys, parsedEvent.ttl);
 
   addMetric(MetricNames.TTL_BACKFILL_ROWS_UPDATED, undefined, updatedCount);
   metric.publishStoredMetrics();
