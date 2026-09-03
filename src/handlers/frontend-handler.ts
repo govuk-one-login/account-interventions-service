@@ -6,7 +6,6 @@ import { init } from '../frontend/app';
 import logger from '../commons/logger';
 import { InterventionClient } from '@govuk-one-login/ais-status-sdk';
 import { Authoriser, JwtAuthoriser, StubAuthoriser } from '../frontend/authoriser';
-import { RedirectChecker, RedirectHandler } from '../frontend/redirect-handler';
 import { FeatureFlagsFromEnvironmentVariables } from '../services/feature-flags';
 import { SqsMessageService } from '../services/message-service';
 import { AppConfigService } from '../services/app-config-service';
@@ -18,8 +17,6 @@ const config = AppConfigService.getInstance().getConfigObject(['statusApiUrl', '
 const featureFlags = FeatureFlagsFromEnvironmentVariables.getInstance();
 
 const authoriser: Authoriser = featureFlags.isEnabled('disableAuth') ? new StubAuthoriser() : new JwtAuthoriser();
-
-const redirectHandler: RedirectHandler = new RedirectChecker();
 
 const interventionClient = new InterventionClient(config.statusApiUrl, {
   logger,
@@ -33,7 +30,6 @@ const proxy = awsLambdaFastify(
       interventionClient,
       messageService,
       authoriser,
-      redirectHandler,
     },
     {
       featureFlags,

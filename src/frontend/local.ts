@@ -6,7 +6,6 @@ import { init } from './app';
 import { InterventionState } from '../../packages/ais-status-sdk/src/types';
 import { StubMessageService } from '../services/message-service';
 import { StubAuthoriser } from './authoriser';
-import { RedirectChecker } from './redirect-handler';
 
 init(
   {
@@ -76,7 +75,6 @@ init(
       $metadata: {},
     }),
     authoriser: new StubAuthoriser(),
-    redirectHandler: new RedirectChecker(),
   },
   {
     featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
