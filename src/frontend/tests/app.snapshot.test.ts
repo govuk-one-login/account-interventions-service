@@ -50,8 +50,6 @@ describe('rendered page snapshots', () => {
     );
 
     const response = await server.inject({ method: 'GET', url: '/' });
-    console.log(response.body);
-
     expect(response.statusCode).toBe(200);
     expect(response.body).toMatchSnapshot();
   });

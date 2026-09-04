@@ -1,11 +1,7 @@
 {% extends "base.njk" %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
-{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
 {% block content %}
-
-
-
   <h1 class="govuk-heading-xl">Account Interventions Service</h1>
   <form method="post" action="{{ pathPrefix }}/search">
     {{ govukInput({

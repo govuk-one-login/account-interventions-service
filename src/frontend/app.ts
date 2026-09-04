@@ -31,8 +31,6 @@ declare module 'fastify' {
   }
 }
 
-
-
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).
 const nodeModulesRoot = existsSync(path.join(__dirname, 'node_modules')) ? __dirname : process.cwd();
@@ -147,7 +145,7 @@ export function init(
     const redirectUrl = pathPrefix ? `${pathPrefix}?hasError=true` : `/?hasError=true`;
 
     if (!userId) {
-      reply.redirect(redirectUrl);
+      return reply.redirect(redirectUrl);
     }
 
     return reply.redirect(`${pathPrefix}/user/${encodeURIComponent(userId)}`, 303);
