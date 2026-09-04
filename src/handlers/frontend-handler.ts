@@ -12,7 +12,7 @@ import { AppConfigService } from '../services/app-config-service';
 
 const subpath = process.env['SUBPATH'] ?? '';
 
-const config = AppConfigService.getInstance().getConfigObject(['statusApiUrl', 'debugIngressTxmaQueueUrl']);
+const config = AppConfigService.getInstance().getConfigObject(['statusApiUrl', 'debugIngressTxmaQueueUrl', 'subpath', 'stagePrefix']);
 
 const featureFlags = FeatureFlagsFromEnvironmentVariables.getInstance();
 
@@ -30,6 +30,10 @@ const proxy = awsLambdaFastify(
       interventionClient,
       messageService,
       authoriser,
+      config: {
+        ...(config.subpath && { subpath: config.subpath }),
+        ...(config.stagePrefix && { stagePrefix: config.stagePrefix }),
+      },
     },
     {
       featureFlags,
