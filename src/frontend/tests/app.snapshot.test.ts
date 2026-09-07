@@ -18,6 +18,7 @@ describe('rendered page snapshots', () => {
         interventionClient: new InterventionStub({ result: { interventions: [] } }),
         messageService: new StubMessageService(),
         authoriser: new StubAuthoriser(),
+        config: {},
       },
       {
         featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -25,6 +26,31 @@ describe('rendered page snapshots', () => {
     );
 
     const response = await server.inject({ method: 'GET', url: '/' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toMatchSnapshot();
+  });
+
+  // Goal: pin the search/landing page markup. Method: request GET / and snapshot the body.
+  // ensure that the asset path is correct
+  it('renders the index page correct when subpath and stagePrefix are set in config', async () => {
+    const server = init(
+      {
+        interventionClient: new InterventionStub({ result: { interventions: [] } }),
+        messageService: new StubMessageService(),
+        authoriser: new StubAuthoriser(),
+        config: {
+          subpath: '/interventions',
+          stagePrefix: '/v1',
+        },
+      },
+      {
+        featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
+      },
+    );
+
+    const response = await server.inject({ method: 'GET', url: '/' });
+    console.log(response.body);
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toMatchSnapshot();
@@ -56,7 +82,9 @@ describe('rendered page snapshots', () => {
         }),
         messageService: new StubMessageService(),
         authoriser: new StubAuthoriser(),
+        config: {},
       },
+
       {
         featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
       },
@@ -158,6 +186,7 @@ describe('rendered page snapshots', () => {
         interventionClient: new InterventionStub({ result: { interventions: [] } }),
         messageService: new StubMessageService(),
         authoriser: new StubAuthoriser(),
+        config: {},
       },
       {
         featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
