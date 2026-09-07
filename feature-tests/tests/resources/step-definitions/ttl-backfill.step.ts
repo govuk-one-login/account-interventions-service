@@ -7,7 +7,7 @@ import {
   putInterventionEventRecord,
 } from '../../../utils/dynamo-database-methods';
 import { invokeTtlBackfill } from '../../../utils/invoke-ttl-backfill';
-import { BackfillReport } from '../../../../src/handlers/ttl-backfill';
+import { BackfillReport, MAX_SCAN_LIMIT } from '../../../../src/handlers/ttl-backfill';
 
 const feature = await loadFeature('./tests/resources/features/TtlBackfill.feature');
 
@@ -61,11 +61,58 @@ function findSeededRow(
   };
 }
 
+/** A backfill invocation window (createdAt in ms) plus the absolute epoch-seconds ttl to write. */
+interface BackfillWindow {
+  windowStartMs: number;
+  windowEndMs: number;
+  ttl: number;
+}
+
+/**
+ * The most rows these tests will scan before giving up. The lambda scans one page per invocation
+ * and the whole table must be traversed to reach the seeded rows, so the scenarios resume until the
+ * report is complete. If the table has grown past this many rows the test cannot complete in a
+ * sensible time, and the fix is to prune the non-production table rather than raise this bound.
+ */
+const MAX_ROWS_TO_SCAN = 50_000;
+const MAX_BACKFILL_PAGES = Math.ceil(MAX_ROWS_TO_SCAN / MAX_SCAN_LIMIT);
+
+/**
+ * Drive the backfill lambda over a window to completion and return the total rows updated across
+ * all pages. Pages are issued sequentially because each resumes from the previous page's
+ * lastEvaluatedKey, so they cannot be parallelised.
+ * @param window - the createdAt window and the absolute epoch-seconds ttl to write
+ * @returns the number of rows updated across the whole window
+ */
+async function runBackfillToCompletion(window: BackfillWindow): Promise<number> {
+  let exclusiveStartKey: BackfillReport['lastEvaluatedKey'];
+  let totalUpdatedCount = 0;
+  for (let page = 0; page < MAX_BACKFILL_PAGES; page += 1) {
+    const report = await invokeTtlBackfill({
+      windowStartMs: window.windowStartMs,
+      windowEndMs: window.windowEndMs,
+      ttl: window.ttl,
+      limit: MAX_SCAN_LIMIT,
+      ...(exclusiveStartKey && { exclusiveStartKey }),
+    });
+    totalUpdatedCount += report.updatedCount;
+    if (report.complete) {
+      return totalUpdatedCount;
+    }
+    exclusiveStartKey = report.lastEvaluatedKey;
+  }
+  throw new Error(
+    `TTL backfill did not complete after scanning ${MAX_ROWS_TO_SCAN.toString()} rows ` +
+      `(${MAX_BACKFILL_PAGES.toString()} pages of ${MAX_SCAN_LIMIT.toString()}). The ` +
+      `intervention-events table is too large for this feature test to scan to completion — ` +
+      `clean up old rows in the non-production table to reduce its size, then re-run.`,
+  );
+}
+
 describeFeature(feature, ({ Scenario, BeforeEachScenario, AfterEachScenario }) => {
   let testAccountId: string;
   // Every createdAt we seed for the current scenario, so cleanup deletes exactly what it wrote.
   let seededCreatedAtValues: number[];
-  let report: BackfillReport;
 
   BeforeEachScenario(() => {
     testAccountId = generateRandomTestUserId();
@@ -83,6 +130,7 @@ describeFeature(feature, ({ Scenario, BeforeEachScenario, AfterEachScenario }) =
   Scenario('Backfills intervention-events rows that are missing a TTL', ({ Given, When, Then, And }) => {
     const firstCreatedAt = SEED_CREATED_AT_BASE;
     const secondCreatedAt = SEED_CREATED_AT_BASE + 1;
+    let updatedCount = 0;
 
     Given('two intervention-events rows exist in the seeded window with no TTL', async () => {
       // Goal: create the deterministic input for the happy path by seeding two rows in the band,
@@ -94,9 +142,10 @@ describeFeature(feature, ({ Scenario, BeforeEachScenario, AfterEachScenario }) =
     });
 
     When('I invoke the TTL backfill lambda over a window bracketing those rows', async () => {
-      // Goal: run the lambda over a window that tightly brackets only the two seeded rows by
-      // invoking it with windowStartMs/windowEndMs around SEED_CREATED_AT_BASE.
-      report = await invokeTtlBackfill({
+      // Goal: drive the lambda across the whole table to completion (it processes one scan page per
+      // invocation) over a window that tightly brackets only the two seeded rows, accumulating the
+      // rows updated so the Then can assert both seeded rows were written.
+      updatedCount = await runBackfillToCompletion({
         windowStartMs: SEED_CREATED_AT_BASE - 1,
         windowEndMs: SEED_CREATED_AT_BASE + 10,
         ttl: ARBITRARY_FUTURE_TTL,
@@ -104,9 +153,9 @@ describeFeature(feature, ({ Scenario, BeforeEachScenario, AfterEachScenario }) =
     });
 
     Then('the report is complete and reports at least two rows updated', () => {
-      // Goal: confirm the lambda finished the window and updated our rows by asserting the report.
-      expect(report.complete).toBe(true);
-      expect(report.updatedCount).toBeGreaterThanOrEqual(2);
+      // Goal: confirm the run reached and updated our rows; completeness is guaranteed because
+      // runBackfillToCompletion only returns once the report is complete (otherwise it throws).
+      expect(updatedCount).toBeGreaterThanOrEqual(2);
     });
 
     And('each of those rows now has the backfilled TTL tagged as BACKFILL', async () => {
@@ -142,9 +191,10 @@ describeFeature(feature, ({ Scenario, BeforeEachScenario, AfterEachScenario }) =
     });
 
     When('I invoke the TTL backfill lambda over a window covering that row', async () => {
-      // Goal: run the lambda over a window that does cover the row, so the only reason it stays
-      // untouched is the missing-ttl filter — not the window.
-      report = await invokeTtlBackfill({
+      // Goal: drive the lambda to completion over a window that covers the row, so the whole table
+      // is scanned and the only reason the row stays untouched is the missing-ttl filter (it
+      // already has a ttl) — not that the scan never reached it.
+      await runBackfillToCompletion({
         windowStartMs: SEED_CREATED_AT_BASE - 1,
         windowEndMs: SEED_CREATED_AT_BASE + 10,
         ttl: ARBITRARY_FUTURE_TTL,
@@ -175,9 +225,10 @@ describeFeature(feature, ({ Scenario, BeforeEachScenario, AfterEachScenario }) =
     });
 
     When('I invoke the TTL backfill lambda over a window that excludes that row', async () => {
-      // Goal: run the lambda over the tight band window that does NOT include the out-of-window
-      // row, so it must not be evaluated for update.
-      report = await invokeTtlBackfill({
+      // Goal: drive the lambda to completion over the tight band window that does NOT include the
+      // out-of-window row, so the whole table is scanned and the row is left alone because the
+      // window filter excludes it — not because the scan never reached it.
+      await runBackfillToCompletion({
         windowStartMs: SEED_CREATED_AT_BASE - 1,
         windowEndMs: SEED_CREATED_AT_BASE + 10,
         ttl: ARBITRARY_FUTURE_TTL,
