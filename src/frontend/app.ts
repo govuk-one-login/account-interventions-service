@@ -23,6 +23,7 @@ import { TicfAccountIntervention } from '../contracts/intervention-events';
 import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
 import { transitionConfig } from '../services/account-states/config';
 import { Authoriser } from './authoriser';
+import { z } from 'zod';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -66,6 +67,24 @@ function formatDate(value: string | number): string {
   );
 }
 
+const redirectContextSchema = z.object({
+  redirect: z.literal('true'),
+  redirectUrl: z.string(),
+  authCookie: z.string(),
+});
+
+export async function redirectHook(request: FastifyRequest, reply: FastifyReply): Promise<FastifyReply | undefined> {
+  const result = redirectContextSchema.safeParse(request.awsLambda?.event.requestContext.authorizer);
+
+  if (result.success) {
+    return reply
+      .status(302)
+      .header('location', result.data.redirectUrl)
+      .header('set-cookie', result.data.authCookie)
+      .send('');
+  }
+}
+
 export const generateVerifyRequest =
   (authoriser: Authoriser) => async (request: FastifyRequest, reply: FastifyReply) => {
     const authoriserResult = await authoriser.verify(request.awsLambda?.event.requestContext.authorizer, request.url);
@@ -96,6 +115,11 @@ export function init(
 
   // Parse cookies (used for flash messages)
   server.register(cookie);
+
+  // Redirect Hook MUST be registered before JWT verification.
+  // When a user isn't authenticated, FAI's authoriser signals a redirect
+  // instead of providing a JWT. Therefore this must be handled before trying to verify.
+  server.addHook('onRequest', redirectHook);
 
   // Verify the FAI-issued JWT on every request.
   // FAI's Lambda authoriser puts the signed JWT string at requestContext.authorizer.jwt,

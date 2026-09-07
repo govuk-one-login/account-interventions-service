@@ -6,6 +6,7 @@ import {
   FrontendAppDependencies,
   getDisplayState,
   flagInterventionStateChanges,
+  redirectHook,
 } from '../app';
 import { InterventionStub, InterventionName, InterventionState } from '@govuk-one-login/ais-status-sdk';
 import { StubMessageService } from '../../services/message-service';
@@ -43,6 +44,23 @@ const makeRequest = (options: { jwt?: string; url?: string } = {}): FastifyReque
 const makeReply = (): FastifyReply =>
   ({
     status: vi.fn().mockReturnThis(),
+    send: vi.fn().mockReturnThis(),
+  }) as unknown as FastifyReply;
+
+  const makeRedirectRequest = (authorizer: Record<string, unknown> = {}): FastifyRequest =>
+    ({
+      url: '/test',
+      awsLambda: {
+        event: {
+          requestContext: { authorizer },
+        },
+        context: {},
+      },
+    }) as unknown as FastifyRequest;
+
+  const makeRedirectReply = () => ({
+    status: vi.fn().mockReturnThis(),
+    header: vi.fn().mockReturnThis(),
     send: vi.fn().mockReturnThis(),
   }) as unknown as FastifyReply;
 
@@ -131,6 +149,41 @@ describe('generateVerifyRequest', () => {
     expect(reply.status).toHaveBeenCalledWith(401);
   });
 });
+
+// ---------------------------------------------------------------------------
+// redirectHook — unit tests (tests the exported hook factory directly)
+// ---------------------------------------------------------------------------
+
+describe('redirectHook', () => {
+
+    it('returns a 302 redirect when the authorizer context signals a redirect', async () => {
+      const request = makeRedirectRequest({
+        redirect: 'true',
+        redirectUrl: 'https://example.com/redirect',
+        authCookie: 'session=xyz; Path=/',
+      });
+      const reply = makeRedirectReply();
+
+      await redirectHook(request, reply);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(reply.status).toHaveBeenCalledWith(302);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(reply.header).toHaveBeenCalledWith('location', 'https://example.com/redirect');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(reply.header).toHaveBeenCalledWith('set-cookie', 'session=xyz; Path=/');
+    });
+
+    it('does not send a response when the authorizer context is not a redirect', async () => {
+      const request = makeRedirectRequest({});
+      const reply = makeRedirectReply();
+
+      await redirectHook(request, reply);
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(reply.status).not.toHaveBeenCalled();
+    });
+})
 
 // ---------------------------------------------------------------------------
 // Helper: init the server with a StubAuthoriser and a stub awsLambda decoration
