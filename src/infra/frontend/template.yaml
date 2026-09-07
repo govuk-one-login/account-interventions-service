@@ -126,12 +126,12 @@ Mappings:
     integration:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
-      FaiAuthSigningKeyArn: ''
+      FaiAuthSigningKeyArn: arn:aws:kms:eu-west-2:962503174980:key/605c5999-9dd3-4073-9bd0-23779638e3f5 # pragma: allowlist secret
       FaiAccountId: '962503174980'
     production:
       LambdaLogLevel: INFO
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables # pragma: allowlist secret
-      FaiAuthSigningKeyArn: ''
+      FaiAuthSigningKeyArn: arn:aws:kms:eu-west-2:786216885304:key/a9f22f96-581f-404c-8587-1037c85d9cc1 # pragma: allowlist secret
       FaiAccountId: '786216885304'
   FeatureFlags:
     dev:
@@ -144,10 +144,10 @@ Mappings:
       EnableAISFrontend: true
       EnableAISSendTxMA: false
     integration:
-      EnableAISFrontend: false
+      EnableAISFrontend: true
       EnableAISSendTxMA: false
     production:
-      EnableAISFrontend: false
+      EnableAISFrontend: true
       EnableAISSendTxMA: false
 
 Globals:
@@ -197,7 +197,6 @@ Resources:
 
   FrontendFunction:
     Type: AWS::Serverless::Function
-    Condition: IsDevBuildStaging
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a Lambda invoked by an API
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution limit
     Properties:
@@ -235,7 +234,6 @@ Resources:
 
   FrontendFunctionRole:
     Type: AWS::IAM::Role
-    Condition: IsDevBuildStaging
     Properties:
       RoleName: !Sub '${AWS::StackName}-FrontendFunctionRole'
       Description: !Sub 'The role assumed by ${AWS::StackName}-FrontendFunction'
@@ -264,7 +262,6 @@ Resources:
 
   FrontendFunctionManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
-    Condition: IsDevBuildStaging
     Properties:
       ManagedPolicyName: !Sub '${AWS::StackName}-FrontendFunctionPolicy'
       PolicyDocument:
@@ -310,7 +307,6 @@ Resources:
 
   FrontendFunctionLogGroup:
     Type: AWS::Logs::LogGroup
-    Condition: IsDevBuildStaging
     Properties:
       LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-FrontendFunction'
       RetentionInDays: 30
@@ -331,7 +327,6 @@ Resources:
 
   FrontendFunctionLogsSubscriptionFilterCSLS:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: IsDevBuildStaging
     Properties:
       DestinationArn: !Ref CSLSSubscriptionEndpointArn
       LogGroupName: !Ref FrontendFunctionLogGroup
@@ -349,7 +344,6 @@ Resources:
 
   FrontendFunctionCrossAccountApiGatewayPermission:
     Type: AWS::Lambda::Permission
-    Condition: IsDevBuildStaging
     Properties:
       FunctionName: !Ref FrontendFunctionAliaslive
       Action: lambda:InvokeFunction
@@ -449,7 +443,6 @@ Resources:
 
   LambdaEnvironmentVariableEncryptionKey:
     Type: AWS::KMS::Key
-    Condition: IsDevBuildStaging
     Properties:
       Description: 'KMS key used to encrypt lambda environment variables'
       EnableKeyRotation: true
@@ -485,14 +478,12 @@ Resources:
 
   LambdaEnvironmentVariableEncryptionKeyAlias:
     Type: AWS::KMS::Alias
-    Condition: IsDevBuildStaging
     Properties:
       AliasName: !Sub 'alias/${AWS::StackName}-LambdaEnvironmentVariableEncryptionKey'
       TargetKeyId: !GetAtt LambdaEnvironmentVariableEncryptionKey.Arn
 
   CloudWatchEncryptionKey:
     Type: AWS::KMS::Key
-    Condition: IsDevBuildStaging
     Properties:
       Description: 'AWS KMS key for encrypting CloudWatch logs'
       EnableKeyRotation: true
@@ -533,7 +524,6 @@ Resources:
 
   CloudWatchEncryptionKeyAlias:
     Type: AWS::KMS::Alias
-    Condition: IsDevBuildStaging
     Properties:
       AliasName: !Sub 'alias/${AWS::StackName}-CloudWatchEncryptionKey'
       TargetKeyId: !GetAtt CloudWatchEncryptionKey.Arn
