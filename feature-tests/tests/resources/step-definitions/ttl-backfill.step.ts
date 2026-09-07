@@ -7,7 +7,7 @@ import {
   putInterventionEventRecord,
 } from '../../../utils/dynamo-database-methods';
 import { invokeTtlBackfill } from '../../../utils/invoke-ttl-backfill';
-import { BackfillReport, MAX_SCAN_LIMIT } from '../../../../src/handlers/ttl-backfill';
+import { BackfillReport } from '../../../../src/handlers/ttl-backfill';
 
 const feature = await loadFeature('./tests/resources/features/TtlBackfill.feature');
 
@@ -69,13 +69,22 @@ interface BackfillWindow {
 }
 
 /**
+ * The scan page size each invocation requests. It must stay at or below the lambda's MAX_SCAN_LIMIT,
+ * which the event schema enforces. It is hard-coded rather than imported because the feature tests
+ * are deployed without the application source, so importing a runtime value from `src/` fails to
+ * resolve at run time — only types may be imported from there.
+ */
+const SCAN_PAGE_LIMIT = 1000;
+
+/**
  * The most rows these tests will scan before giving up. The lambda scans one page per invocation
  * and the whole table must be traversed to reach the seeded rows, so the scenarios resume until the
  * report is complete. If the table has grown past this many rows the test cannot complete in a
- * sensible time, and the fix is to prune the non-production table rather than raise this bound.
+ * sensible time, and the fix is to prune the non-production table rather than raise this bound. Dev
+ * is already near 50,000 rows, so this is set higher to leave headroom while that is cleaned up.
  */
-const MAX_ROWS_TO_SCAN = 50_000;
-const MAX_BACKFILL_PAGES = Math.ceil(MAX_ROWS_TO_SCAN / MAX_SCAN_LIMIT);
+const MAX_ROWS_TO_SCAN = 100_000;
+const MAX_BACKFILL_PAGES = Math.ceil(MAX_ROWS_TO_SCAN / SCAN_PAGE_LIMIT);
 
 /**
  * Drive the backfill lambda over a window to completion and return the total rows updated across
@@ -92,7 +101,7 @@ async function runBackfillToCompletion(window: BackfillWindow): Promise<number> 
       windowStartMs: window.windowStartMs,
       windowEndMs: window.windowEndMs,
       ttl: window.ttl,
-      limit: MAX_SCAN_LIMIT,
+      limit: SCAN_PAGE_LIMIT,
       ...(exclusiveStartKey && { exclusiveStartKey }),
     });
     totalUpdatedCount += report.updatedCount;
@@ -103,7 +112,7 @@ async function runBackfillToCompletion(window: BackfillWindow): Promise<number> 
   }
   throw new Error(
     `TTL backfill did not complete after scanning ${MAX_ROWS_TO_SCAN.toString()} rows ` +
-      `(${MAX_BACKFILL_PAGES.toString()} pages of ${MAX_SCAN_LIMIT.toString()}). The ` +
+      `(${MAX_BACKFILL_PAGES.toString()} pages of ${SCAN_PAGE_LIMIT.toString()}). The ` +
       `intervention-events table is too large for this feature test to scan to completion — ` +
       `clean up old rows in the non-production table to reduce its size, then re-run.`,
   );
