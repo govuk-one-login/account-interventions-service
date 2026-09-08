@@ -157,7 +157,7 @@ Mappings:
         - vpce-0df10df14d851e1c9 # Auth New Integration VPC Endpoint ID
         - vpce-0553cfc8fc1aeb970 # AMC Integration VPC Endpoint ID
         - vpce-0e594accb3d775457 # One Login Home Integration VPC Endpoint ID
-        - vpce-00ba75cffce051aee # Account Interventions Service Staging VPC Endpoint ID
+        - vpce-00ba75cffce051aee # Account Interventions Service Integration VPC Endpoint ID
       DynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables # pragma: allowlist secret
     production:
       LambdaLogLevel: INFO
