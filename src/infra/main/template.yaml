@@ -149,7 +149,7 @@ Mappings:
         - vpc-048c9133a5998efe7 # One Login Home Integration VPC ID
         - vpc-0a9e773e1f32b6697 # IPV Core Integration VPC ID
         - vpc-0037692c1a2a42713 # AMC Integration VPC ID
-        - vpc-0a2fab40be7673c7e # Account Interventions Service Staging VPC ID
+        - vpc-0a2fab40be7673c7e # Account Interventions Service Integration VPC ID
       UniqueVPCEndpointIDs:
         - vpce-068df58b11adba0c7 # Auth Old Integration VPC Endpoint ID
         - vpce-0704b783d794cea52 # Orchestration? Integration VPC Endpoint ID
