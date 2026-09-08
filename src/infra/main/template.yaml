@@ -171,7 +171,7 @@ Mappings:
         - vpc-0c94e753d20410154 # One Login Home Production VPC ID
         - vpc-0274d75007239691f # IPV Core Production VPC ID
         - vpc-0548570d4b44ad3a7 # AMC Production VPC ID
-        - vpc-072d79f1cb81bc485 # Account Interventions Service Staging VPC ID
+        - vpc-072d79f1cb81bc485 # Account Interventions Service Production VPC ID
       UniqueVPCEndpointIDs:
         - vpce-0e7b281bd24fbd378 # Auth Old Production VPC Endpoint ID
         - vpce-0dd5d6bf9c2a1eade # Orchestration? Production VPC Endpoint ID
