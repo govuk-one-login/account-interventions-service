@@ -199,6 +199,7 @@ export function init(
       interventions,
       automatedSources,
       manualSources,
+      pageTitleStart: 'Account Status',
     });
   });
 
