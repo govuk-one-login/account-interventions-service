@@ -43,6 +43,7 @@ exports[`rendered page snapshots > renders the index page 1`] = `
     
 
     
+
   
 
 
@@ -329,7 +330,7 @@ exports[`rendered page snapshots > renders the user details page with history 1`
 <html lang="en" class="govuk-template">
   <head>
     <meta charset="utf-8">
-    <title>Account Interventions Service – GOV.UK</title>
+    <title>Account Status - Account Interventions Service – GOV.UK</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#1d70b8">
 
@@ -367,6 +368,7 @@ exports[`rendered page snapshots > renders the user details page with history 1`
     
 
     
+
   
 
 
@@ -844,7 +846,7 @@ exports[`rendered page snapshots > renders the user details page with multiple i
 <html lang="en" class="govuk-template">
   <head>
     <meta charset="utf-8">
-    <title>Account Interventions Service – GOV.UK</title>
+    <title>Account Status - Account Interventions Service – GOV.UK</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#1d70b8">
 
@@ -882,6 +884,7 @@ exports[`rendered page snapshots > renders the user details page with multiple i
     
 
     
+
   
 
 
@@ -1813,7 +1816,7 @@ exports[`rendered page snapshots > renders the user details page with no interve
 <html lang="en" class="govuk-template">
   <head>
     <meta charset="utf-8">
-    <title>Account Interventions Service – GOV.UK</title>
+    <title>Account Status - Account Interventions Service – GOV.UK</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#1d70b8">
 
@@ -1851,6 +1854,7 @@ exports[`rendered page snapshots > renders the user details page with no interve
     
 
     
+
   
 
 

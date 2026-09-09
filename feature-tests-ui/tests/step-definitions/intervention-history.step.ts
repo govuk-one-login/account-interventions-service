@@ -57,6 +57,7 @@ Given('an invalid urn of {string} is used to search via the UI', async ({ page, 
 Given('I search for a user with a valid URN via the UI', async ({ page, testUserId, frontendUrl }) => {
   testUserId.value = generateRandomTestUserId();
   await page.goto(frontendUrl);
+  await expect(page).toHaveTitle('Account Interventions Service – GOV.UK');
   await page.getByRole('textbox', { name: /subject identifier/i }).fill(testUserId.value);
   await page.getByRole('button', { name: 'Submit' }).click();
 });
@@ -68,6 +69,7 @@ When('I search for the user via the UI', async ({ page, testUserId, frontendUrl 
 });
 
 Then('I should see the intervention history for the correct user', async ({ page, testUserId }) => {
+  await expect(page).toHaveTitle('Account Status - Account Interventions Service – GOV.UK');
   await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
   await expect (page.locator('.govuk-body', { hasText: testUserId.value }).first()).toBeVisible();
   await expect(page.locator('.govuk-inset-text')).toHaveCount(1);
