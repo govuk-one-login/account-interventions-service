@@ -32,10 +32,6 @@ const CONFIG_ENVIRONMENT_MAPPING = {
     envVar: 'INTERVENTION_EVENTS_TABLE_NAME',
     type: 'string' as const,
   },
-  interventionEventsBackfillTtl: {
-    envVar: 'INTERVENTION_EVENTS_BACKFILL_TTL',
-    type: 'number' as const,
-  },
   cloudWatchMetricsWorkSpace: {
     envVar: 'CLOUDWATCH_METRICS_NAMESPACE',
     type: 'string' as const,
