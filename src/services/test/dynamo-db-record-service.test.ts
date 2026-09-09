@@ -7,6 +7,17 @@ import 'aws-sdk-client-mock-vitest/extend';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 
+function getTestClient() {
+  if (process.env['TEST_DYNAMODB_LOCAL'] === 'true') {
+    console.log('We are using DynamoDB local');
+
+    return ddbMock;
+  }
+  return ddbMock;
+}
+
+
+
 const schema = z.object({
   pk1: z.string(),
   isAccountDeleted: z.boolean().optional(),
@@ -250,7 +261,11 @@ describe('DynamoDBRecordService', () => {
     });
   });
 
-  test('batchWrite', async () => {
+  test('@dynamodb-local: batchWrite', async () => {
+    console.log('HERE WE ARE HERE WE ARE HERE WE ARE HERE WE ARE f');
+
+    getTestClient();
+
     const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
 
     ddbMock.on(BatchWriteCommand).resolves({});
