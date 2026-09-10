@@ -1,17 +1,49 @@
 import z, { ZodError } from 'zod';
 import TableConfig from '../../tables/table-config';
 import { DynamoDBRecordService } from '../dynamo-db-record-service';
+import { DynamoDBClient, CreateTableCommand } from '@aws-sdk/client-dynamodb';
 import { BatchWriteCommand, DynamoDBDocumentClient, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-vitest/extend';
 
+
+const createLocalClient = async () => {
+  const localClient =
+    DynamoDBDocumentClient.from(
+      new DynamoDBClient({
+        endpoint: 'http://localhost:8000',
+        region: 'eu-west-2',
+        credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
+      }),
+    );
+
+  await localClient.send(
+    new CreateTableCommand({
+      TableName: 'test-table',
+      KeySchema: [{ AttributeName: 'pk1', KeyType: 'HASH' }],
+      AttributeDefinitions: [{ AttributeName: 'pk1', AttributeType: 'S' }],
+      BillingMode: 'PAY_PER_REQUEST',
+    }),
+  );
+
+  return localClient;
+}
+
+
+
+
 const ddbMock = mockClient(DynamoDBDocumentClient);
+const localClient =  process.env['TEST_DYNAMODB_LOCAL'] === 'true' && await createLocalClient()
+
+// let localClient: DynamoDBDocumentClient | undefined;
+// beforeAll(async () => {
+//   localClient = process.env['TEST_DYNAMODB_LOCAL'] === 'true' ?  (await createLocalClient()) : undefined; // ← reassigning a let
+// });
 
 function getTestClient() {
   if (process.env['TEST_DYNAMODB_LOCAL'] === 'true') {
     console.log('We are using DynamoDB local');
-
-    return ddbMock;
+    return localClient;
   }
   return ddbMock;
 }
@@ -30,7 +62,12 @@ const tableConfig: TableConfig<typeof schema> = {
 };
 
 beforeEach(() => {
-  ddbMock.reset();
+  if (process.env['TEST_DYNAMODB_LOCAL'] === 'true') {
+
+    console.log('We are using DynamoDB local');
+  } else {
+    ddbMock.reset();
+  }
 });
 
 describe('DynamoDBRecordService', () => {
@@ -264,7 +301,12 @@ describe('DynamoDBRecordService', () => {
   test('@dynamodb-local: batchWrite', async () => {
     console.log('HERE WE ARE HERE WE ARE HERE WE ARE HERE WE ARE f');
 
-    getTestClient();
+    const client = getTestClient();
+
+    console.log(client);
+    if (!process.env['TEST_DYNAMODB_LOCAL']) {
+      ddbMock.on(BatchWriteCommand).resolves({});
+    }
 
     const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
 
