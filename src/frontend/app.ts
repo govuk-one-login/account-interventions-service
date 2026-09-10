@@ -95,10 +95,6 @@ export interface FrontendAppConfig {
   featureFlags: FeatureFlags;
 }
 
-type IndexRequest = FastifyRequest<{
-  Querystring: { hasError: string | undefined };
-}>;
-
 export function init(
   { interventionClient, messageService, authoriser, config }: FrontendAppDependencies,
   { featureFlags }: FrontendAppConfig,
@@ -160,8 +156,11 @@ export function init(
   const pathPrefix = `${subpath}${stagePrefix}`;
   const assetPath = `${pathPrefix}/assets`;
 
-  server.get('/', async (request: IndexRequest, reply) => {
-    const hasError = request.query.hasError && request.query.hasError === 'true';
+  server.get('/', async (request, reply) => {
+    const hasError = request.cookies['flash_search_error'] === 'true';
+    if (hasError) {
+      void reply.clearCookie('flash_search_error', { path: '/' });
+    }
 
     return reply.view('index.njk', { pathPrefix, assetPath, hasError });
   });
@@ -169,10 +168,17 @@ export function init(
   // Accepts the submitted userId from the search form and redirects to the user details page.
   server.post<{ Body: { userId?: string } }>('/search', async (request, reply) => {
     const userId = request.body.userId?.trim() ?? '';
-    const redirectUrl = pathPrefix ? `${pathPrefix}?hasError=true` : `/?hasError=true`;
 
     if (!userId) {
-      return reply.redirect(redirectUrl);
+      reply.setCookie('flash_search_error', 'true', {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'strict',
+        maxAge: 60,
+      });
+
+      const redirectUrl = pathPrefix ? `${pathPrefix}/` : '/';
+      return reply.redirect(redirectUrl, 303);
     }
 
     return reply.redirect(`${pathPrefix}/user/${encodeURIComponent(userId)}`, 303);
