@@ -10,9 +10,7 @@ import { FeatureFlagsFromEnvironmentVariables } from '../services/feature-flags'
 import { NullMessageService, SqsMessageService } from '../services/message-service';
 import { AppConfigService } from '../services/app-config-service';
 
-const subpath = process.env['SUBPATH'] ?? '';
-
-const config = AppConfigService.getInstance().getConfigObject(['statusApiUrl', 'debugIngressTxmaQueueUrl']);
+const config = AppConfigService.getInstance().getConfigObject(['statusApiUrl', 'debugIngressTxmaQueueUrl', 'subpath', 'stagePrefix']);
 
 const featureFlags = FeatureFlagsFromEnvironmentVariables.getInstance();
 
@@ -30,6 +28,10 @@ const proxy = awsLambdaFastify(
       interventionClient,
       messageService,
       authoriser,
+      config: {
+        ...(config.subpath && { subpath: config.subpath }),
+        ...(config.stagePrefix && { stagePrefix: config.stagePrefix }),
+      },
     },
     {
       featureFlags,
@@ -40,8 +42,8 @@ const proxy = awsLambdaFastify(
 export const handler = (event: APIGatewayProxyEvent, context: Context) => proxy(rewriteEventPath(event), context);
 
 const rewriteEventPath = (event: APIGatewayProxyEvent): APIGatewayProxyEvent => {
-  if (subpath && event.path.startsWith(subpath)) {
-    event.path = event.path.slice(subpath.length) || '/';
+  if (config.subpath && event.path.startsWith(config.subpath)) {
+    event.path = event.path.slice(config.subpath.length) || '/';
   }
   return event;
 };

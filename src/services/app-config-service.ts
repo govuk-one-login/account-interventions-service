@@ -66,6 +66,16 @@ const CONFIG_ENVIRONMENT_MAPPING = {
     type: 'string' as const,
     optional: true,
   },
+  subpath: {
+    envVar: 'SUBPATH',
+    type: 'string' as const,
+    optional: true,
+  },
+  stagePrefix: {
+    envVar: 'STAGE_PREFIX',
+    type: 'string' as const,
+    optional: true,
+  },
 } satisfies Record<string, ConfigDefinition>;
 
 /**

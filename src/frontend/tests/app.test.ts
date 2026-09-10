@@ -209,6 +209,7 @@ describe('frontend app', () => {
         interventionClient: new InterventionStub({ result: { interventions: [] } }),
         messageService: new StubMessageService(),
         authoriser: new StubAuthoriser(),
+        config: {}
       },
       {
         featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -224,6 +225,7 @@ describe('frontend app', () => {
         interventionClient: new InterventionStub({ result: { interventions: [] } }),
         messageService: new StubMessageService(),
         authoriser: new StubAuthoriser(),
+        config: {},
       },
       {
         featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -240,6 +242,7 @@ describe('frontend app', () => {
         interventionClient: new InterventionStub({ result: { interventions: [] } }),
         messageService: new StubMessageService(),
         authoriser: new StubAuthoriser(),
+        config: {},
       },
       {
         featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -256,6 +259,7 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -277,6 +281,7 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -292,27 +297,6 @@ describe('frontend app', () => {
       expect(response.statusCode).toBe(303);
       expect(response.headers.location).toBe(`/user/${encodeURIComponent(userId)}`);
     });
-
-    it('redirects to /user/ when userId is missing from the body', async () => {
-      const server = initWithStubAuth(
-        {
-          interventionClient: new InterventionStub({ result: { interventions: [] } }),
-          messageService: new StubMessageService(),
-          authoriser: new StubAuthoriser(),
-        },
-        {
-          featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
-        },
-      );
-      const response = await server.inject({
-        method: 'POST',
-        url: '/search',
-        payload: '',
-        headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      });
-      expect(response.statusCode).toBe(303);
-      expect(response.headers.location).toBe('/user/');
-    });
   });
 
   describe('GET /user/:userId', () => {
@@ -322,6 +306,7 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] }, historyResult: { lines: [] } }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -356,6 +341,7 @@ describe('frontend app', () => {
           }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -376,6 +362,7 @@ describe('frontend app', () => {
           }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
+          config: {}
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -392,6 +379,7 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] }, historyResult: { lines: [] } }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -420,6 +408,7 @@ describe('frontend app', () => {
           interventionClient: mockClient,
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -435,6 +424,7 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -454,6 +444,7 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(successOutput),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -476,6 +467,7 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(successOutput),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -500,6 +492,7 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService,
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -522,6 +515,7 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(successOutput),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -546,6 +540,7 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] }, historyResult: { lines: [] } }),
           messageService: new StubMessageService(successOutput),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -584,6 +579,7 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -604,6 +600,7 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(successOutput),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -627,6 +624,7 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(successOutput),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -650,6 +648,7 @@ describe('frontend app', () => {
           interventionClient: new InterventionStub({ result: { interventions: [] } }),
           messageService: new StubMessageService(successOutput),
           authoriser: new StubAuthoriser(),
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -667,6 +666,95 @@ describe('frontend app', () => {
       expect(body.message).toContain('INVALID');
       expect(body.message).toContain('not a recognised intervention code');
     });
+  });
+});
+
+describe('submitted without a URN', () => {
+  it('redirects back to home page when userId is missing from the body', async () => {
+    const server = initWithStubAuth(
+      {
+        interventionClient: new InterventionStub({ result: { interventions: [] } }),
+        messageService: new StubMessageService(),
+        authoriser: new StubAuthoriser(),
+        config: {},
+      },
+      {
+        featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
+      },
+    );
+    const response = await server.inject({
+      method: 'POST',
+      url: '/search',
+      payload: '',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    });
+    expect(response.statusCode).toBe(303);
+    expect(response.headers.location).toBe('/');
+    expect(response.headers['set-cookie']).toContain('flash_search_error=true');
+  });
+
+  it('redirects back to home page when userId is missing from the body and SUBPATH/STAGE_PREFIX are set', async () => {
+    const server = initWithStubAuth(
+      {
+        interventionClient: new InterventionStub({ result: { interventions: [] } }),
+        messageService: new StubMessageService(),
+        authoriser: new StubAuthoriser(),
+        config: {
+          subpath: '/interventions',
+          stagePrefix: '/v1',
+        },
+      },
+      {
+        featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
+      },
+    );
+    const response = await server.inject({
+      method: 'POST',
+      url: '/search',
+      payload: '',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    });
+    expect(response.statusCode).toBe(303);
+    expect(response.headers.location).toBe('/interventions/v1/');
+    expect(response.headers['set-cookie']).toContain('flash_search_error=true');
+  });
+
+  it('shows the error on the first GET with the flash cookie and not on a second GET', async () => {
+    const server = initWithStubAuth(
+      {
+        interventionClient: new InterventionStub({ result: { interventions: [] } }),
+        messageService: new StubMessageService(),
+        authoriser: new StubAuthoriser(),
+        config: {},
+      },
+      {
+        featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
+      },
+    );
+
+    // POST to /search with empty userId — capture the flash cookie
+    const postResponse = await server.inject({
+      method: 'POST',
+      url: '/search',
+      payload: '',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    });
+
+    // eslint-disable-next-line unicorn/no-non-function-verb-prefix
+    const setCookieHeader = postResponse.headers['set-cookie'] as string;
+    const cookieValue = setCookieHeader.split(';', 1)[0]; // e.g. "flash_search_error=true"
+
+    // First GET with cookie — error should appear
+    const firstGet = await server.inject({
+      method: 'GET',
+      url: '/',
+      headers: { cookie: cookieValue },
+    });
+    expect(firstGet.body).toContain('Enter a valid subject identifier.');
+
+    // Second GET without cookie — error should not appear
+    const secondGet = await server.inject({ method: 'GET', url: '/' });
+    expect(secondGet.body).not.toContain('Enter a valid subject identifier.');
   });
 });
 
