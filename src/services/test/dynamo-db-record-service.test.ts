@@ -9,6 +9,9 @@ import 'aws-sdk-client-mock-vitest/extend';
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 
+
+const isDynamoDbLocal = () => process.env['TEST_DYNAMODB_LOCAL'] === 'true';
+
 const createLocalClient = async () => {
 
   ddbMock.restore();
@@ -21,7 +24,6 @@ const createLocalClient = async () => {
         credentials: { accessKeyId: 'test', secretAccessKey: 'test' },
       }),
     );
-
 
   try {
     await localClient.send(
@@ -37,27 +39,23 @@ const createLocalClient = async () => {
     console.log('Table creation error:', error);
   }
 
-
-
-
   return localClient;
 }
 
 
-const localClient =  process.env['TEST_DYNAMODB_LOCAL'] === 'true' && await createLocalClient()
+const localClient = isDynamoDbLocal() && (await createLocalClient());
 
 function getTestClient() {
-  if (process.env['TEST_DYNAMODB_LOCAL'] === 'true') {
+  if (isDynamoDbLocal()) {
     return localClient;
   }
   return ddbMock;
 }
 
-
-
 const schema = z.object({
   pk1: z.string(),
   isAccountDeleted: z.boolean().optional(),
+  resetPasswordAt: z.string().optional(),
 });
 
 const tableConfig: TableConfig<typeof schema> = {
@@ -67,7 +65,7 @@ const tableConfig: TableConfig<typeof schema> = {
 };
 
 beforeEach(() => {
-  if (process.env['TEST_DYNAMODB_LOCAL'] !== 'true') {
+  if (!isDynamoDbLocal()) {
     ddbMock.reset();
   }
 });
@@ -302,16 +300,11 @@ describe('DynamoDBRecordService', () => {
 
   test('@dynamodb-local: batchWrite', async () => {
     const client = getTestClient();
-    console.log('client is mock:', client === ddbMock);
-
-
     const service = new DynamoDBRecordService<typeof schema>(tableConfig, client as unknown as DynamoDBDocumentClient);
 
-
-    if (!process.env['TEST_DYNAMODB_LOCAL']) {
+    if (isDynamoDbLocal()) {
       ddbMock.on(BatchWriteCommand).resolves({});
     }
-
 
     const res = await service.batchWrite([
       {
@@ -319,8 +312,7 @@ describe('DynamoDBRecordService', () => {
       },
     ]);
 
-
-    if (!process.env['TEST_DYNAMODB_LOCAL']) {
+    if (isDynamoDbLocal()) {
       expect(res).toEqual({});
       expect(ddbMock).toHaveReceivedCommandWith(BatchWriteCommand, {
         RequestItems: {
@@ -336,37 +328,69 @@ describe('DynamoDBRecordService', () => {
     }
 
     // test the return result from the dynamodb
-    if (process.env['TEST_DYNAMODB_LOCAL']) {
+    if (isDynamoDbLocal()) {
       expect(res.$metadata.httpStatusCode).toBe(200);
       const results = await service.queryByPkAndValidate('value1');
       expect(results).toEqual([{ pk1: 'value1' }]);
     }
   });
 
-  test('basic update', async () => {
-    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
+  test('@dynamodb-local: basic update', async () => {
+    const client = getTestClient();
 
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, client as unknown as DynamoDBDocumentClient);
+
+    // we need to add the item in
+    // consider adding this via the getTestClient as we create the table?
+    if (isDynamoDbLocal()) {
+      await service.batchWrite([
+        {
+          pk1: '1234',
+        },
+      ]);
+    }
     await service.update('1234', {
       isAccountDeleted: true,
     });
 
-    expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
-      TableName: 'test-table',
-      Key: {
-        pk1: '1234',
-      },
-      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted',
-      ExpressionAttributeNames: {
-        '#isAccountDeleted': 'isAccountDeleted',
-      },
-      ExpressionAttributeValues: {
-        ':isAccountDeleted': true,
-      },
-    });
+    if (!isDynamoDbLocal()) {
+      expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
+        TableName: 'test-table',
+        Key: {
+          pk1: '1234',
+        },
+        UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted',
+        ExpressionAttributeNames: {
+          '#isAccountDeleted': 'isAccountDeleted',
+        },
+        ExpressionAttributeValues: {
+          ':isAccountDeleted': true,
+        },
+      });
+    }
+
+    if (isDynamoDbLocal()) {
+      const results = await service.queryByPkAndValidate('1234');
+      expect(results).toEqual([{ pk1: '1234', isAccountDeleted: true }]);
+    }
   });
 
-  test('update with ConditionExpression and RemoveKeys', async () => {
-    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
+  // note the attempt to delete the primary key is an invalid operation in DynamoDB
+  // you need to delete the entire item
+  // running this test through the dynamodb-local docker image throws an error
+  // added an extra key to the schema resetPasswordAt to remove instead of the pk
+  test('@dynamodb-local: update with ConditionExpression and RemoveKeys', async () => {
+    const client = getTestClient();
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, client as unknown as DynamoDBDocumentClient);
+
+    if (isDynamoDbLocal()) {
+      await service.batchWrite([
+        {
+          pk1: '1234',
+          resetPasswordAt: '1000',
+        },
+      ]);
+    }
 
     await service.update(
       '1234',
@@ -374,33 +398,41 @@ describe('DynamoDBRecordService', () => {
         isAccountDeleted: true,
       },
       {
-        RemoveKeys: ['pk1'],
+        RemoveKeys: ['resetPasswordAt'],
         ConditionExpression:
-          'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
+          'attribute_exists(pk1) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
         ExpressionAttributeValues: {
           ':false': false,
         },
       },
     );
 
-    expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
-      TableName: 'test-table',
-      Key: {
-        pk1: '1234',
-      },
-      UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted REMOVE pk1',
-      ExpressionAttributeNames: {
-        '#isAccountDeleted': 'isAccountDeleted',
-      },
-      ExpressionAttributeValues: {
-        ':isAccountDeleted': true,
-        ':false': false,
-      },
-      ConditionExpression:
-        'attribute_exists(pk) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
-    });
+    if (!isDynamoDbLocal()) {
+      expect(ddbMock).toHaveReceivedCommandWith(UpdateCommand, {
+        TableName: 'test-table',
+        Key: {
+          pk1: '1234',
+        },
+        UpdateExpression: 'SET #isAccountDeleted = :isAccountDeleted REMOVE resetPasswordAt',
+        ExpressionAttributeNames: {
+          '#isAccountDeleted': 'isAccountDeleted',
+        },
+        ExpressionAttributeValues: {
+          ':isAccountDeleted': true,
+          ':false': false,
+        },
+        ConditionExpression:
+          'attribute_exists(pk1) AND (attribute_not_exists(isAccountDeleted) OR isAccountDeleted = :false)',
+      });
+    }
+
+    if (isDynamoDbLocal()) {
+      const results = await service.queryByPkAndValidate('1234');
+      expect(results).toEqual([{ pk1: '1234', isAccountDeleted: true }]);
+    }
   });
 
+  // do not add to @dynamodb-local as it will never reach the actual database
   test('update with empty object', async () => {
     const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
 
