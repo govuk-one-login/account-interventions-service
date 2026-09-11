@@ -7,7 +7,12 @@ import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-vitest/extend';
 
 
+const ddbMock = mockClient(DynamoDBDocumentClient);
+
 const createLocalClient = async () => {
+
+  ddbMock.restore();
+
   const localClient =
     DynamoDBDocumentClient.from(
       new DynamoDBClient({
@@ -17,32 +22,32 @@ const createLocalClient = async () => {
       }),
     );
 
-  await localClient.send(
-    new CreateTableCommand({
-      TableName: 'test-table',
-      KeySchema: [{ AttributeName: 'pk1', KeyType: 'HASH' }],
-      AttributeDefinitions: [{ AttributeName: 'pk1', AttributeType: 'S' }],
-      BillingMode: 'PAY_PER_REQUEST',
-    }),
-  );
+
+  try {
+    await localClient.send(
+      new CreateTableCommand({
+        TableName: 'test-table',
+        KeySchema: [{ AttributeName: 'pk1', KeyType: 'HASH' }],
+        AttributeDefinitions: [{ AttributeName: 'pk1', AttributeType: 'S' }],
+        BillingMode: 'PAY_PER_REQUEST',
+      }),
+    );
+    console.log('Table created');
+  } catch (error) {
+    console.log('Table creation error:', error);
+  }
+
+
+
 
   return localClient;
 }
 
 
-
-
-const ddbMock = mockClient(DynamoDBDocumentClient);
 const localClient =  process.env['TEST_DYNAMODB_LOCAL'] === 'true' && await createLocalClient()
-
-// let localClient: DynamoDBDocumentClient | undefined;
-// beforeAll(async () => {
-//   localClient = process.env['TEST_DYNAMODB_LOCAL'] === 'true' ?  (await createLocalClient()) : undefined; // ← reassigning a let
-// });
 
 function getTestClient() {
   if (process.env['TEST_DYNAMODB_LOCAL'] === 'true') {
-    console.log('We are using DynamoDB local');
     return localClient;
   }
   return ddbMock;
@@ -62,10 +67,7 @@ const tableConfig: TableConfig<typeof schema> = {
 };
 
 beforeEach(() => {
-  if (process.env['TEST_DYNAMODB_LOCAL'] === 'true') {
-
-    console.log('We are using DynamoDB local');
-  } else {
+  if (process.env['TEST_DYNAMODB_LOCAL'] !== 'true') {
     ddbMock.reset();
   }
 });
@@ -299,18 +301,17 @@ describe('DynamoDBRecordService', () => {
   });
 
   test('@dynamodb-local: batchWrite', async () => {
-    console.log('HERE WE ARE HERE WE ARE HERE WE ARE HERE WE ARE f');
-
     const client = getTestClient();
+    console.log('client is mock:', client === ddbMock);
 
-    console.log(client);
+
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, client as unknown as DynamoDBDocumentClient);
+
+
     if (!process.env['TEST_DYNAMODB_LOCAL']) {
       ddbMock.on(BatchWriteCommand).resolves({});
     }
 
-    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
-
-    ddbMock.on(BatchWriteCommand).resolves({});
 
     const res = await service.batchWrite([
       {
@@ -318,21 +319,28 @@ describe('DynamoDBRecordService', () => {
       },
     ]);
 
-    expect(res).toEqual({});
 
-    expect(ddbMock).toHaveReceivedCommandWith(BatchWriteCommand, {
-      RequestItems: {
-        'test-table': [
-          {
-            PutRequest: {
-              Item: {
-                pk1: 'value1',
+    if (!process.env['TEST_DYNAMODB_LOCAL']) {
+      expect(res).toEqual({});
+      expect(ddbMock).toHaveReceivedCommandWith(BatchWriteCommand, {
+        RequestItems: {
+          'test-table': [
+            {
+              PutRequest: {
+                Item: { pk1: 'value1' },
               },
             },
-          },
-        ],
-      },
-    });
+          ],
+        },
+      });
+    }
+
+    // test the return result from the dynamodb
+    if (process.env['TEST_DYNAMODB_LOCAL']) {
+      expect(res.$metadata.httpStatusCode).toBe(200);
+      const results = await service.queryByPkAndValidate('value1');
+      expect(results).toEqual([{ pk1: 'value1' }]);
+    }
   });
 
   test('basic update', async () => {
