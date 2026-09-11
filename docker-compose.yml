@@ -10,6 +10,4 @@ services:
       retries: 3
     ports:
       - "8000:8000"
-    volumes:
-      - "./docker/dynamodb:/home/dynamodblocal/data"
 
