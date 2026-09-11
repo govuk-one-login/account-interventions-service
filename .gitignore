@@ -82,3 +82,6 @@ dist/
 playwright-report/
 results/
 test-results/
+
+# docker
+/docker

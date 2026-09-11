@@ -1,7 +1,7 @@
 # Set the base image.
 FROM amazon/aws-cli:latest
 RUN yum install -y gcc-c++ make && \
-    curl -sL https://rpm.nodesource.com/setup_24.x | bash - && \
+#    curl -sL https://rpm.nodesource.com/setup_24.x | bash - && \
     yum install -y nodejs
 
 WORKDIR /app
