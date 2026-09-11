@@ -71,7 +71,8 @@ beforeEach(() => {
 });
 
 describe('DynamoDBRecordService', () => {
-  test('queryByPkAndValidate', async () => {
+  test('@dynamodb-local: queryByPkAndValidate', async () => {
+    const client = getTestClient();
     ddbMock.on(QueryCommand).resolves({
       Items: [
         {
@@ -80,22 +81,33 @@ describe('DynamoDBRecordService', () => {
       ],
     });
 
-    const service = new DynamoDBRecordService<typeof schema>(tableConfig, ddbMock as unknown as DynamoDBDocumentClient);
+    const service = new DynamoDBRecordService<typeof schema>(tableConfig, client as unknown as DynamoDBDocumentClient);
 
-    const response = await service.queryByPkAndValidate('key_value_1');
+    if (isDynamoDbLocal()) {
+      await service.batchWrite([
+        {
+          pk1: 'value1',
+        },
+      ]);
+    }
 
+    const response = await service.queryByPkAndValidate('value1');
+
+    // both @dynamodb-local and ddbMock return the same result
     expect(response).toEqual([
       {
         pk1: 'value1',
       },
     ]);
 
-    expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
-      TableName: 'test-table',
-      KeyConditionExpression: '#pk = :pk',
-      ExpressionAttributeNames: { '#pk': 'pk1' },
-      ExpressionAttributeValues: { ':pk': 'key_value_1' },
-    });
+    if (!isDynamoDbLocal()) {
+      expect(ddbMock).toHaveReceivedCommandWith(QueryCommand, {
+        TableName: 'test-table',
+        KeyConditionExpression: '#pk = :pk',
+        ExpressionAttributeNames: { '#pk': 'pk1' },
+        ExpressionAttributeValues: { ':pk': 'value1' },
+      });
+    }
   });
 
   test('queryByPkAndValidate includedKeys', async () => {
@@ -302,7 +314,7 @@ describe('DynamoDBRecordService', () => {
     const client = getTestClient();
     const service = new DynamoDBRecordService<typeof schema>(tableConfig, client as unknown as DynamoDBDocumentClient);
 
-    if (isDynamoDbLocal()) {
+    if (!isDynamoDbLocal()) {
       ddbMock.on(BatchWriteCommand).resolves({});
     }
 
@@ -312,7 +324,7 @@ describe('DynamoDBRecordService', () => {
       },
     ]);
 
-    if (isDynamoDbLocal()) {
+    if (!isDynamoDbLocal()) {
       expect(res).toEqual({});
       expect(ddbMock).toHaveReceivedCommandWith(BatchWriteCommand, {
         RequestItems: {
