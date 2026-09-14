@@ -32,6 +32,7 @@ export async function getRecordFromTable(userId: string): Promise<InformationFro
     return response.Items[0] as InformationFromTable;
   } catch (error) {
     console.log('unable to get record', { error });
+    throw Error;
   }
 }
 
@@ -104,6 +105,7 @@ export async function updateItemInTable(userId: string, input: InformationFromTa
     await dbDocClient.send(update);
   } catch (error) {
     console.log('failed to update the record in the db', { error });
+    throw Error;
   }
 }
 
@@ -121,6 +123,7 @@ export async function deleteTestRecord(userId: string): Promise<void> {
     await dbDocClient.send(deleteCommand);
   } catch (error) {
     console.log('record did not delete', { error });
+    throw Error;
   }
 }
 
@@ -140,6 +143,7 @@ export async function getInterventionEventsRecordsFromTable(userId: string) {
     return response.Items;
   } catch (error) {
     console.log('unable to get record', { error });
+    throw Error;
   }
 }
 
@@ -176,6 +180,7 @@ export async function putInterventionEventRecord(item: InterventionEventRecord):
     await dbDocClient.send(putCommand);
   } catch (error) {
     console.log('unable to seed intervention event record', { error });
+    throw Error;
   }
 }
 
@@ -195,5 +200,6 @@ export async function deleteInterventionEventRecord(accountId: string, createdAt
     await dbDocClient.send(deleteCommand);
   } catch (error) {
     console.log('intervention event record did not delete', { error });
+    throw Error;
   }
 }
