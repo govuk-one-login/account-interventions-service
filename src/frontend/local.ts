@@ -75,6 +75,10 @@ init(
       $metadata: {},
     }),
     authoriser: new StubAuthoriser(),
+    config: {
+      ...(process.env['SUBPATH'] && { subpath: process.env['SUBPATH'] }),
+      ...(process.env['STAGE_PREFIX'] && { stagePrefix: process.env['STAGE_PREFIX'] }),
+    },
   },
   {
     featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),

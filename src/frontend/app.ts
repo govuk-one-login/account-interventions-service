@@ -24,7 +24,6 @@ import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
 import { transitionConfig } from '../services/account-states/config';
 import { Authoriser } from './authoriser';
 import { z } from 'zod';
-
 declare module 'fastify' {
   interface FastifyRequest {
     awsLambda?: { event: APIGatewayProxyEvent; context: Context };
@@ -34,18 +33,6 @@ declare module 'fastify' {
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).
 const nodeModulesRoot = existsSync(path.join(__dirname, 'node_modules')) ? __dirname : process.cwd();
-
-/**
- * Stage prefix for asset URLs — empty string locally, /v1 when behind API Gateway without a custom domain
- */
-const stagePrefix = normalisePathSegment(process.env['STAGE_PREFIX'] ?? '');
-
-/**
- * Subpath prefix — prepended to asset URLs so the browser requests assets through the correct API Gateway path.
- * e.g. if SUBPATH=/interventions, assets are served at /interventions/assets/* and the Lambda strips
- * the subpath prefix before routing (see frontend-handler.ts rewriteEventPath).
- */
-const subpath = normalisePathSegment(process.env['SUBPATH'] ?? '');
 
 /**
  * Source tag values - an array of values that get passed to the user-details template which are then used to
@@ -92,10 +79,16 @@ export const generateVerifyRequest =
     if (!authoriserResult.success) return reply.status(401);
   };
 
+export interface FrontEndAppConfig {
+  subpath?: string;
+  stagePrefix?: string;
+}
+
 export interface FrontendAppDependencies {
   interventionClient: InterventionClientInterface;
   messageService: MessageService;
   authoriser: Authoriser;
+  config: FrontEndAppConfig;
 }
 
 export interface FrontendAppConfig {
@@ -103,12 +96,23 @@ export interface FrontendAppConfig {
 }
 
 export function init(
-  { interventionClient, messageService, authoriser }: FrontendAppDependencies,
+  { interventionClient, messageService, authoriser, config }: FrontendAppDependencies,
   { featureFlags }: FrontendAppConfig,
 ) {
   const server = fastify();
 
   if (!featureFlags.isEnabled('aisFrontend')) return server;
+
+  /**
+   * Subpath prefix — prepended to asset URLs so the browser requests assets through the correct API Gateway path.
+   * e.g. if SUBPATH=/interventions, assets are served at /interventions/assets/* and the Lambda strips
+   * the subpath prefix before routing (see frontend-handler.ts rewriteEventPath).
+   */
+  const subpath = config.subpath ? normalisePathSegment(config.subpath) : '';
+  /**
+   * Stage prefix for asset URLs — empty string locally, /v1 when behind API Gateway without a custom domain
+   */
+  const stagePrefix = config.stagePrefix ? normalisePathSegment(config.stagePrefix) : '';
 
   // Parse URL-encoded form bodies (application/x-www-form-urlencoded)
   server.register(formbody);
@@ -152,11 +156,31 @@ export function init(
   const pathPrefix = `${subpath}${stagePrefix}`;
   const assetPath = `${pathPrefix}/assets`;
 
-  server.get('/', async (_request, reply) => reply.view('index.njk', { pathPrefix, assetPath }));
+  server.get('/', async (request, reply) => {
+    const hasError = request.cookies['flash_search_error'] === 'true';
+    if (hasError) {
+      void reply.clearCookie('flash_search_error', { path: '/' });
+    }
+
+    return reply.view('index.njk', { pathPrefix, assetPath, hasError });
+  });
 
   // Accepts the submitted userId from the search form and redirects to the user details page.
   server.post<{ Body: { userId?: string } }>('/search', async (request, reply) => {
     const userId = request.body.userId?.trim() ?? '';
+
+    if (!userId) {
+      reply.setCookie('flash_search_error', 'true', {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'strict',
+        maxAge: 60,
+      });
+
+      const redirectUrl = pathPrefix ? `${pathPrefix}/` : '/';
+      return reply.redirect(redirectUrl, 303);
+    }
+
     return reply.redirect(`${pathPrefix}/user/${encodeURIComponent(userId)}`, 303);
   });
 
