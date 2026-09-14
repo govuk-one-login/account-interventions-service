@@ -1,5 +1,5 @@
 import { InterventionEventMessage } from '../../contracts/intervention-events';
-import { EventsEnum, InterventionState, TriggerEventsEnum } from '../../data-types/constants';
+import { EventsEnum, InterventionState, TriggerEventsEnum, TtlSource } from '../../data-types/constants';
 import { InterventionName } from '../../data-types/intervention-name';
 import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
 import persistInterventionEvents, {
@@ -323,6 +323,47 @@ describe('setTtlOnInactiveEvents', () => {
     await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION], 1000);
 
     expect(appendEventsSpy).not.toHaveBeenCalled();
+  });
+
+  // Goal: a row whose only TTL was set provisionally by the backfill lambda (ttlSource = BACKFILL)
+  // must be overwritten with the real retention TTL and have the tag removed, so normal processing
+  // supersedes a provisional backfill. Method: seed one such closed-intervention row and assert the
+  // appended row carries the recomputed ttl and no ttlSource.
+  test('overwrites a backfilled TTL with the retention TTL and strips the backfill tag', async () => {
+    const service = new InMemoryInterventionEventsService([
+      {
+        eventId: 'event-1',
+        accountId: '1',
+        createdAt: 1000,
+        interventionName: InterventionName.TEMPORARY_SUSPENSION,
+        interventionState: InterventionState.SUPERSEDED,
+        interventionReason: 'reason',
+        sentAt: 900,
+        componentId: 'test',
+        ttl: 111,
+        ttlSource: TtlSource.BACKFILL,
+      },
+    ]);
+    const appendEventsSpy = vi.spyOn(service, 'appendEvents');
+
+    await setTtlOnInactiveEvents('1', service, [InterventionName.TEMPORARY_SUSPENSION], 1000);
+
+    // The appended row is asserted by exact equality: ttl is the recomputed retention value and the
+    // object has no ttlSource key. Deep equality would flag an un-stripped BACKFILL tag as an extra
+    // property, so this pins both the overwrite and the strip.
+    expect(appendEventsSpy).toHaveBeenCalledExactlyOnceWith([
+      {
+        eventId: 'event-1',
+        accountId: '1',
+        createdAt: 1000,
+        interventionName: InterventionName.TEMPORARY_SUSPENSION,
+        interventionState: InterventionState.SUPERSEDED,
+        interventionReason: 'reason',
+        sentAt: 900,
+        componentId: 'test',
+        ttl: EXPECTED_TTL,
+      },
+    ]);
   });
 
   test('does nothing when there are no events for the account', async () => {
