@@ -91,8 +91,6 @@ Conditions:
   UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, 'none']]
   UseCodeSigning: !Not [!Equals [!Ref CodeSigningConfigArn, 'none']]
   IsProd: !Or [!Equals [!Ref Environment, integration], !Equals [!Ref Environment, production]]
-  IsDevBuildStaging:
-    !Or [!Equals [!Ref Environment, dev], !Equals [!Ref Environment, build], !Equals [!Ref Environment, staging]]
 
 Mappings:
   EnvConfig:
@@ -1584,7 +1582,6 @@ Resources:
 
   ### TTL Backfill (manual invocation only; dev, build and staging) ###
   TtlBackfillFunction:
-    Condition: IsDevBuildStaging
     Type: AWS::Serverless::Function
     # checkov:skip=CKV_AWS_116: DLQ is not appropriate for a manually-invoked utility Lambda
     # checkov:skip=CKV_AWS_115: Function is not configured for function-level concurrent execution Limit
@@ -1618,7 +1615,6 @@ Resources:
           - ttl-backfill-handler.ts
 
   TtlBackfillFunctionRole:
-    Condition: IsDevBuildStaging
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub '${AWS::StackName}-TtlBackfillFunctionRole'
@@ -1648,7 +1644,6 @@ Resources:
           Value: !Ref SourceTagValue
 
   TtlBackfillFunctionManagedPolicy:
-    Condition: IsDevBuildStaging
     Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: !Sub '${AWS::StackName}-TtlBackfillFunctionPolicy'
@@ -1684,7 +1679,6 @@ Resources:
         - !Ref TtlBackfillFunctionRole
 
   TtlBackfillFunctionLogGroup:
-    Condition: IsDevBuildStaging
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${TtlBackfillFunction}'
