@@ -52,6 +52,7 @@ const HistoryLineSchema = z
     interventionCode: z.string().optional().meta({ example: '01' }),
     interventionReason: z.string().meta({ example: 'FRAUD_SUSPEND_ACCOUNT' }),
     originatingComponent: z.string().optional().meta({ example: 'CMS' }),
+    originatingComponentId: z.string().optional().meta({ example: 'CMS' }),
     originatorReferenceId: z
       .union([z.string(), z.array(z.string())])
       .optional()
