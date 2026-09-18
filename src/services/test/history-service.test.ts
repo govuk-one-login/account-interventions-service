@@ -288,6 +288,21 @@ describe('deduplicateEvents', () => {
     expect(result).toEqual([matchingInterventionEvent]);
   });
 
+  it('copies the account status events interventionCode to the matching intervention event', () => {
+    const baseEventWithCode: HistoryIdentifier = {
+      ...baseEvent,
+      interventionCode: '03',
+    };
+
+    const matchingInterventionEventWithCode: HistoryIdentifier = {
+      ...matchingInterventionEvent,
+      interventionCode: '03',
+    };
+    const result = deduplicateEvents([baseEventWithCode], [matchingInterventionEvent]);
+
+    expect(result).toEqual([matchingInterventionEventWithCode]);
+  });
+
   it('does not deduplicate when interventionName differs', () => {
     const differentNameEvent: HistoryIdentifier = {
       ...matchingInterventionEvent,
