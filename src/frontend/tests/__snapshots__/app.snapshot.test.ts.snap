@@ -5,7 +5,7 @@ exports[`rendered page snapshots > renders the index page 1`] = `
 <html lang="en" class="govuk-template">
   <head>
     <meta charset="utf-8">
-    <title>Account Interventions Service – GOV.UK</title>
+    <title>Search User Intervention History - Account Interventions Service – GOV.UK</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#1d70b8">
 
@@ -119,7 +119,7 @@ data-module="govuk-service-navigation"
         
         <main class="govuk-main-wrapper" id="main-content">
           
-  <h1 class="govuk-heading-xl">Account Interventions Service</h1>
+  <h1 class="govuk-heading-xl">Search User Intervention History</h1>
   <form method="post" action="/search">
     
 
@@ -330,7 +330,7 @@ exports[`rendered page snapshots > renders the index page correct when subpath a
 <html lang="en" class="govuk-template">
   <head>
     <meta charset="utf-8">
-    <title>Account Interventions Service – GOV.UK</title>
+    <title>Search User Intervention History - Account Interventions Service – GOV.UK</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#1d70b8">
 
@@ -444,7 +444,7 @@ data-module="govuk-service-navigation"
         
         <main class="govuk-main-wrapper" id="main-content">
           
-  <h1 class="govuk-heading-xl">Account Interventions Service</h1>
+  <h1 class="govuk-heading-xl">Search User Intervention History</h1>
   <form method="post" action="/interventions/v1/search">
     
 
