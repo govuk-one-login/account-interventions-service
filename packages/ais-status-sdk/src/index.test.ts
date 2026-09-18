@@ -166,7 +166,7 @@ describe('InterventionClient', () => {
 
       const fullEntry = makeHistoryObject({
         interventionCode: '01',
-        originatingComponent: 'CMS',
+        originatingComponentId: 'CMS',
         originatorReferenceId: 'ref-abc-123',
         requesterId: 'requester-xyz',
         transactionId: 'txn-456',
