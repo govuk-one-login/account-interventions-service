@@ -1,8 +1,14 @@
 # Set the base image.
-FROM amazon/aws-cli:latest
-RUN yum install -y gcc-c++ make && \
-#    curl -sL https://rpm.nodesource.com/setup_24.x | bash - && \
-    yum install -y nodejs
+FROM node:24
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends unzip curl && \
+    curl -fSsL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o awscliv2.zip && \
+    unzip -q awscliv2.zip && \
+    ./aws/install && \
+    rm -rf awscliv2.zip aws && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

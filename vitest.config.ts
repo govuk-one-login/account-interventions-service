@@ -10,6 +10,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    tags: [
+      {
+        name: 'dynamodb-local',
+        description: 'Tests that require a local DynamoDB Docker instance.',
+      },
+    ],
     coverage: {
       provider: 'v8',
       // Specify that all typescript files are included, so the coverage report always includes
