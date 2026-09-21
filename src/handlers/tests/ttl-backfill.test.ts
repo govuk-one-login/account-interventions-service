@@ -148,7 +148,7 @@ describe('processTtlBackfill', () => {
 
     await expect(
       processTtlBackfill(
-        { windowStartMs: 1000, windowEndMs: 2000, ttl: ARBITRARY_FUTURE_TTL, limit: 5000 },
+        { windowStartMs: 1000, windowEndMs: 2000, ttl: ARBITRARY_FUTURE_TTL, limit: 50000 },
         { service },
       ),
     ).rejects.toThrow('Invalid TTL backfill event');
@@ -159,9 +159,9 @@ describe('processTtlBackfill', () => {
   test('rejects an event missing the ttl', async () => {
     const service = new InMemoryTtlBackfillService({ keys: [], scannedCount: 0 });
 
-    await expect(
-      processTtlBackfill({ windowStartMs: 1000, windowEndMs: 2000 }, { service }),
-    ).rejects.toThrow('Invalid TTL backfill event');
+    await expect(processTtlBackfill({ windowStartMs: 1000, windowEndMs: 2000 }, { service })).rejects.toThrow(
+      'Invalid TTL backfill event',
+    );
     expect(service.lastScanParameters).toBeUndefined();
   });
 
