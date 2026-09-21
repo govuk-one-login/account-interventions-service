@@ -70,8 +70,8 @@ beforeEach(() => {
   // }
 });
 
-describe('DynamoDBRecordService', () => {
-  test('@dynamodb-local: queryByPkAndValidate', async () => {
+describe('DynamoDBRecordService', { tags: ['dynamodb-local'] }, () => {
+  test('queryByPkAndValidate', async () => {
     const client = getTestClient();
     // ddbMock.on(QueryCommand).resolves({
     //   Items: [
@@ -310,7 +310,7 @@ describe('DynamoDBRecordService', () => {
   //   });
   // });
 
-  test('@dynamodb-local: batchWrite', async () => {
+  test('batchWrite', async () => {
     const client = getTestClient();
     const service = new DynamoDBRecordService<typeof schema>(tableConfig, client as unknown as DynamoDBDocumentClient);
 
@@ -347,7 +347,7 @@ describe('DynamoDBRecordService', () => {
     }
   });
 
-  test('@dynamodb-local: basic update', async () => {
+  test('basic update', async () => {
     const client = getTestClient();
 
     const service = new DynamoDBRecordService<typeof schema>(tableConfig, client as unknown as DynamoDBDocumentClient);
@@ -391,7 +391,7 @@ describe('DynamoDBRecordService', () => {
   // you need to delete the entire item
   // running this test through the dynamodb-local docker image throws an error
   // added an extra key to the schema resetPasswordAt to remove instead of the pk
-  test('@dynamodb-local: update with ConditionExpression and RemoveKeys', async () => {
+  test('update with ConditionExpression and RemoveKeys', async () => {
     const client = getTestClient();
     const service = new DynamoDBRecordService<typeof schema>(tableConfig, client as unknown as DynamoDBDocumentClient);
 

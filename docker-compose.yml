@@ -1,12 +1,11 @@
 services:
   dynamodb-local:
-    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
     image: "amazon/dynamodb-local:latest"
     container_name: dynamodb-local
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:8000/shell/ || exit 1" ]
-      interval: 1s
+      test: ["CMD-SHELL", "curl -s -o /dev/null http://localhost:8000 || exit 1"]
+      interval: 2s
       timeout: 10s
-      retries: 3
+      retries: 5
     ports:
       - "8000:8000"
