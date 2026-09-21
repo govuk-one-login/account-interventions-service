@@ -70,7 +70,7 @@ beforeEach(() => {
   // }
 });
 
-describe('DynamoDBRecordService', { tags: ['dynamodb-local'] }, () => {
+describe.skipIf(!isDynamoDbLocal())('DynamoDBRecordService', { tags: ['dynamodb-local'] }, () => {
   test('queryByPkAndValidate', async () => {
     const client = getTestClient();
     // ddbMock.on(QueryCommand).resolves({
