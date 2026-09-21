@@ -15,7 +15,7 @@
     "test:unit": "vitest run --coverage --tags-filter='!dynamodb-local'",
     "test:unit:watch": "vitest --coverage",
     "test:unit:update-snapshots": "vitest run --update",
-    "test:unit:dynamodb-local": "TEST_DYNAMODB_LOCAL=true vitest run --tags-filter='dynamodb-local'",
+    "test:unit:dynamodb-local": "vitest run -c vitest.dynamodb.config.ts --tags-filter='dynamodb-local'",
     "test:types": "tsc --noEmit",
     "test:pact:provider": "vitest -c vitest.contract.config.ts src/contract-testing/provider/*",
     "test:pact:consumer": "vitest -c vitest.contract.config.ts src/contract-testing/consumer/*",
