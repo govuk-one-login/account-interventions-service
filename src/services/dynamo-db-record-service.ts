@@ -200,7 +200,12 @@ export class InMemoryRecordService<T extends ZodObject<ZodRawShape>> implements 
     partitionKeyValue: string,
     includedKeys: K[],
   ): Promise<Pick<z.infer<T>, K> | undefined>;
-  getByPkAndValidate(): Promise<z.infer<T> | Pick<z.infer<T>, never> | undefined> {
+  // This function has dummy arguments so we can still use `Pick<z.infer<T>, K>` in the return type.
+  // Without these, representing the return types properly is very hard.
+  getByPkAndValidate<K extends string & keyof z.infer<T>>(
+    _partitionKeyValue: string,
+    _includedKeys?: K[],
+  ): Promise<z.infer<T> | Pick<z.infer<T>, K> | undefined> {
     return Promise.resolve(this.results[0]);
   }
 
