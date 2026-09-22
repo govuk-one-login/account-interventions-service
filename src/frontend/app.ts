@@ -162,7 +162,12 @@ export function init(
       void reply.clearCookie('flash_search_error', { path: '/' });
     }
 
-    return reply.view('index.njk', { pathPrefix, assetPath, hasError });
+    return reply.view('index.njk', {
+      pathPrefix,
+      assetPath,
+      hasError,
+      pageTitleStart: "Search User's Intervention History",
+    });
   });
 
   // Accepts the submitted userId from the search form and redirects to the user details page.

@@ -9,7 +9,7 @@ import { InterventionEventKey, ScanForBackfillParameters, TtlBackfillService } f
  * The largest number of rows a single invocation may evaluate. It bounds the scan page and, with
  * the concurrency limit below, the work done per invocation so the lambda cannot run unboundedly.
  */
-export const MAX_SCAN_LIMIT = 1000;
+export const MAX_SCAN_LIMIT = 10000;
 
 /**
  * The default scan page size when the event omits `limit`. Kept small so a first exploratory run
