@@ -107,7 +107,7 @@ export function deduplicateEvents<T extends HistoryIdentifier>(accountStatusEven
     // copy it from the matching accountStatusEvent and add it to the interventionEvent
     if (match) {
       transactionIdsToRemove.add(match.transactionId);
-      if ('interventionCode' in match && !('interventionCode' in ie)) {
+      if (match.interventionCode && !ie.interventionCode) {
         return { ...ie, interventionCode: match.interventionCode };
       }
     }
