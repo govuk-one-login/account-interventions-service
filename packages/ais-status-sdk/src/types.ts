@@ -28,7 +28,7 @@ export interface HistoryLine {
   interventionState: InterventionState;
   interventionCode?: string | undefined;
   interventionReason: string;
-  originatingComponent?: string | undefined;
+  originatingComponentId?: string | undefined;
   originatorReferenceId?: string | string[] | undefined;
   requesterId?: string | undefined;
   transactionId?: string | undefined;
