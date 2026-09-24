@@ -1,6 +1,6 @@
 {
   "name": "@govuk-one-login/ais-status-sdk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "TypeScript SDK for the Account Interventions Service Status API",
   "author": "Fraud Team Neptune",
   "homepage": "https://github.com/govuk-one-login/account-interventions-service#readme",
