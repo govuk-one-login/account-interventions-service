@@ -76,7 +76,6 @@ export class HistoryService {
       interventionReason: input.reason,
       sentAt: Number(new Date(input.sentAt)),
       componentId: input.component,
-      originatingComponent: input.originatingComponent,
       originatingComponentId: input.originatingComponent,
       requesterId: input.requesterId,
       originatorReferenceId: input.originatorReferenceId,
