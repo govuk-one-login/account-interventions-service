@@ -93,24 +93,34 @@ export class HistoryService {
 
 // Deduplicate data from v1 and v2 history
 export function deduplicateEvents<T extends HistoryIdentifier>(accountStatusEvents: T[], interventionEvents: T[]): T[] {
-  const transactionIdsToRemove = new Set(
-    accountStatusEvents
-      .filter((event) =>
-        interventionEvents.some(
-          (interventionEvent) =>
-            interventionEvent.interventionName === event.interventionName &&
-            interventionEvent.interventionState === event.interventionState &&
-            interventionEvent.sentAt === event.sentAt,
-        ),
-      )
-      .map((event) => event.transactionId),
-  );
+  // Build enriched intervention events by copying interventionCode from matching account-status events
+  const transactionIdsToRemove = new Set<string | undefined>();
+
+  const enrichedInterventionEvents = interventionEvents.map((ie) => {
+    const match = accountStatusEvents.find(
+      (ase) =>
+        ase.interventionName === ie.interventionName &&
+        ase.interventionState === ie.interventionState &&
+        ase.sentAt === ie.sentAt,
+    );
+
+    // There is a problem with interventionEvents which don't have the interventionCode
+    // copy it from the matching accountStatusEvent and add it to the interventionEvent
+    if (match) {
+      transactionIdsToRemove.add(match.transactionId);
+      if (match.interventionCode && !ie.interventionCode) {
+        return { ...ie, interventionCode: match.interventionCode };
+      }
+    }
+
+    return ie;
+  });
 
   const remainingAccountStatusEvents = accountStatusEvents.filter(
     (event) => !transactionIdsToRemove.has(event.transactionId),
   );
 
-  return [...remainingAccountStatusEvents, ...interventionEvents];
+  return [...remainingAccountStatusEvents, ...enrichedInterventionEvents];
 }
 
 export interface HistoryIdentifier {
@@ -118,4 +128,5 @@ export interface HistoryIdentifier {
   interventionState: string;
   sentAt: number;
   transactionId?: string | undefined;
+  interventionCode?: string | undefined;
 }
