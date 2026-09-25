@@ -12,9 +12,12 @@
   },
   "scripts": {
     "test": "npm run test:unit",
-    "test:unit": "vitest run --coverage",
+    "test:unit": "vitest run --coverage --tags-filter='!dynamodb-local'",
     "test:unit:watch": "vitest --coverage",
     "test:unit:update-snapshots": "vitest run --update",
+    "test:unit:dynamodb-local": "vitest run -c vitest.dynamodb.config.ts --tags-filter='dynamodb-local'",
+    "dynamodb-local:start": "bash scripts/start-dynamodb-local.sh",
+    "dynamodb-local:stop": "docker rm -f dynamodb-local > /dev/null 2>&1 || true",
     "test:types": "tsc --noEmit",
     "test:pact:provider": "vitest -c vitest.contract.config.ts src/contract-testing/provider/*",
     "test:pact:consumer": "vitest -c vitest.contract.config.ts src/contract-testing/consumer/*",

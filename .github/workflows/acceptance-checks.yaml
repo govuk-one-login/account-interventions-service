@@ -58,6 +58,16 @@ jobs:
       - name: Run unit tests with coverage report
         run: npm run test:unit
 
+      - name: Start DynamoDB Local
+        run: npm run dynamodb-local:start
+
+      - name: Run DynamoDB Local tests
+        run: npm run test:unit:dynamodb-local
+
+      - name: Stop DynamoDB Local
+        if: always()
+        run: npm run dynamodb-local:stop
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@59db25f34e16620e48ab4bb9e4a5dce155cb5432 # pin@v8.0.0
         env:

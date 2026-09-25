@@ -11,7 +11,8 @@
   "testRunner_comment": "Take a look at https://stryker-mutator.io/docs/stryker-js/vitest-runner for information about the vitest plugin.",
   "coverageAnalysis": "perTest",
   "ignorePatterns": [
-    "src/contract-testing/**"
+    "src/contract-testing/**",
+    "src/**/*-docker.test.ts"
   ],
   "ignorers": [
     "logger"
