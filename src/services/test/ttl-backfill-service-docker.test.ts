@@ -30,8 +30,6 @@ const tableConfig: TableConfig<typeof schema> = {
 
 type InterventionEvent = z.infer<typeof schema>;
 
-const isDynamoDbLocal = () => process.env['TEST_DYNAMODB_LOCAL'] === 'true';
-
 const putItems = async (localClient: DynamoDBDocumentClient, amount = 1) => {
   const items = []
 
@@ -62,7 +60,7 @@ const putItems = async (localClient: DynamoDBDocumentClient, amount = 1) => {
   );
 };
 
-describe.skipIf(!isDynamoDbLocal())('DynamoDBTtlBackfillService (Docker)', { tags: ['dynamodb-local'] }, () => {
+describe('DynamoDBTtlBackfillService (Docker)', { tags: ['dynamodb-local'] }, () => {
   let localClient: DynamoDBClient;
   beforeAll(() => {
     localClient = createLocalClient();
