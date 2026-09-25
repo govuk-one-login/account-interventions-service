@@ -1,14 +1,14 @@
-  {% if not transaction.originatingComponentId and not transaction.originatingComponent %}
+  {% if not transaction.originatingComponentId %}
     {% set tagDescription = "SOURCE UNKNOWN" %}
     {% set tagColour = "grey" %}
-  {% elif transaction.originatingComponentId in automatedSources or transaction.originatingComponent in automatedSources %}
+  {% elif transaction.originatingComponentId in automatedSources %}
     {% set tagDescription = "AUTOMATED" %}
     {% set tagColour = "purple" %}
-  {% elif transaction.originatingComponentId in manualSources or transaction.originatingComponent in manualSources %}
+  {% elif transaction.originatingComponentId in manualSources %}
     {% set tagDescription = "MANUAL" %}
     {% set tagColour = "teal" %}
   {% else %}
-    {% set tagDescription = transaction.originatingComponentId if transaction.originatingComponentId else transaction.originatingComponent %}
+    {% set tagDescription = transaction.originatingComponentId %}
     {% set tagColour = "grey" %}
   {% endif %}
 
