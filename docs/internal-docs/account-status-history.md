@@ -12,7 +12,7 @@ The history field stored in the account-status table in DynamoDB is an array of 
 
 For example:
 
-123456|TICF_CRI|01|reason|CMS|12345|67890
+1695600000000|TICF_CRI|01|reason|CMS|12345|67890
 
 Note that optional fields (originating_component_id, originator_reference_id, and requester_id) are stored as empty strings when absent.
 
@@ -27,10 +27,10 @@ reprove identity) do not add new history strings - they only carry forward the e
 ## How history is appended
 The pattern for appending is as follows:
 1. Read the existing item from DynamoDB (`getAccountStateInformation`) in the [interventions-processor](../../src/handlers/interventions-processor.ts)
-1. Pass the existing history array (or an empty array if no history item exists) to `buildPartialUpdateAccountStateCommand` in [account-status](../../src/tables/account-status.ts)
+1. Pass the existing history array (or an empty array if no history item exists) to `buildPartialUpdateAccountStateCommand` via `updateUserStatus` in [account-status](../../src/tables/account-status.ts)
 1. Filter expired entries via (`extractValidHistoryItems`)
-1. Optionally append new history entries (only fraud intervention events have new history entries appended)
-1. The new entry is written via `this.recordService.update` being called from `updateUserStatus`
+1. Append new history entries where applicable (only fraud intervention events have new history entries appended)
+1. The entire history array is written via `this.recordService.update` being called from `updateUserStatus`
 
 ## When and how history is deleted
 History entries are removed by filtering on every write - there is no scheduled cleanup job and no explicit delete operation for history strings in the account-status table.
@@ -41,5 +41,7 @@ How `extractValidHistoryItems` works:
 1. Iterates each pipe-delimited history string in the historyList
 1. Parses the history string into an object
 1. Gets the sentAtMs timestamp using the history object from the above step
-1. Checks if the history item is still valid by checking `endAtMs + AppConfigService.getInstance().historyRetentionSeconds * 1000 >= currentTimestampMs` i.e. the history item is within the retention period. Pushes valid items to a new array
+1. Checks if the history item is still valid by checking `sendAtMs + AppConfigService.getInstance().historyRetentionSeconds * 1000 >= currentTimestampMs` i.e. the history item is within the retention period. Pushes valid items to a new array
 1. Returns the new array containing only the entries that passed the above check
+
+Note that historyRetentionSeconds is configured via the HISTORY_RETENTION_SECONDS variable in the [template.yaml](../../src/infra/main/template.yaml) and is currently set to 63,072,000 seconds (2 years)
