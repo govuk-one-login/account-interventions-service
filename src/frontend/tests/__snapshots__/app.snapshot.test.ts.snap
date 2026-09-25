@@ -942,16 +942,19 @@ data-module="govuk-service-navigation"
   
 
   
-<dl class="govuk-summary-list">
+
+  
+
+  
+<dl class="govuk-summary-list govuk-!-font-size-16">
 
   
   <div class="govuk-summary-list__row">
     <dt class="govuk-summary-list__key">
-      Originating Component
+      Component
     </dt>
     <dd class="govuk-summary-list__value">
-      The component id of the application in which the intervention originator, i.e., ticket, case, assessment, etc., that triggered the intervention.<br>
-                  <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originating_component_id/" class="govuk-link">View in event catalogue</a>
+      The part of the DI system that has generated the event (e.g. TICF, Auth or Identity).
     </dd>
     
   </div>
@@ -960,11 +963,34 @@ data-module="govuk-service-navigation"
   
   <div class="govuk-summary-list__row">
     <dt class="govuk-summary-list__key">
-      Originator Reference ID
+      Reason
     </dt>
     <dd class="govuk-summary-list__value">
-      The unique id of the ticket, case, risk assessment, etc., from which the intervention resulted.<br>
-                  <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originator_reference_id/" class="govuk-link">View in event catalogue</a>
+      The reason for the intervention (e.g. coercion, account-takeover etc).
+    </dd>
+    
+  </div>
+  
+
+  
+  <div class="govuk-summary-list__row">
+    <dt class="govuk-summary-list__key">
+      Code
+    </dt>
+    <dd class="govuk-summary-list__value">
+      The intervention code that has been applied to the account.
+    </dd>
+    
+  </div>
+  
+
+  
+  <div class="govuk-summary-list__row">
+    <dt class="govuk-summary-list__key">
+      Case or Risk Assessment ID
+    </dt>
+    <dd class="govuk-summary-list__value">
+      The unique ID of the case or risk assessment that led to the intervention.
     </dd>
     
   </div>
@@ -976,8 +1002,7 @@ data-module="govuk-service-navigation"
       Requester ID
     </dt>
     <dd class="govuk-summary-list__value">
-      The unique id used by the originating component to identify the user who triggered the intervention - will be a number or GUID, must not be personal identifying - must be provided if a manual intervention.<br>
-                  <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-requester_id/" class="govuk-link">View in event catalogue</a>
+      This unique ID can be used to identify the user who applied the intervention. Not populated for automated interventions.
     </dd>
     
   </div>
@@ -1912,16 +1937,19 @@ data-module="govuk-service-navigation"
   
 
   
-<dl class="govuk-summary-list">
+
+  
+
+  
+<dl class="govuk-summary-list govuk-!-font-size-16">
 
   
   <div class="govuk-summary-list__row">
     <dt class="govuk-summary-list__key">
-      Originating Component
+      Component
     </dt>
     <dd class="govuk-summary-list__value">
-      The component id of the application in which the intervention originator, i.e., ticket, case, assessment, etc., that triggered the intervention.<br>
-                  <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originating_component_id/" class="govuk-link">View in event catalogue</a>
+      The part of the DI system that has generated the event (e.g. TICF, Auth or Identity).
     </dd>
     
   </div>
@@ -1930,11 +1958,34 @@ data-module="govuk-service-navigation"
   
   <div class="govuk-summary-list__row">
     <dt class="govuk-summary-list__key">
-      Originator Reference ID
+      Reason
     </dt>
     <dd class="govuk-summary-list__value">
-      The unique id of the ticket, case, risk assessment, etc., from which the intervention resulted.<br>
-                  <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originator_reference_id/" class="govuk-link">View in event catalogue</a>
+      The reason for the intervention (e.g. coercion, account-takeover etc).
+    </dd>
+    
+  </div>
+  
+
+  
+  <div class="govuk-summary-list__row">
+    <dt class="govuk-summary-list__key">
+      Code
+    </dt>
+    <dd class="govuk-summary-list__value">
+      The intervention code that has been applied to the account.
+    </dd>
+    
+  </div>
+  
+
+  
+  <div class="govuk-summary-list__row">
+    <dt class="govuk-summary-list__key">
+      Case or Risk Assessment ID
+    </dt>
+    <dd class="govuk-summary-list__value">
+      The unique ID of the case or risk assessment that led to the intervention.
     </dd>
     
   </div>
@@ -1946,8 +1997,7 @@ data-module="govuk-service-navigation"
       Requester ID
     </dt>
     <dd class="govuk-summary-list__value">
-      The unique id used by the originating component to identify the user who triggered the intervention - will be a number or GUID, must not be personal identifying - must be provided if a manual intervention.<br>
-                  <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-requester_id/" class="govuk-link">View in event catalogue</a>
+      This unique ID can be used to identify the user who applied the intervention. Not populated for automated interventions.
     </dd>
     
   </div>
