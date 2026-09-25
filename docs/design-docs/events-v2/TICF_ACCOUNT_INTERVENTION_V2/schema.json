@@ -1,0 +1,139 @@
+{
+  "$defs": {
+    "InterventionNameEnum": {
+      "description": "Intervention names which can be applied to an account",
+      "enum": [
+        "PERMANENT_SUSPENSION",
+        "TEMPORARY_SUSPENSION",
+        "RESET_PASSWORD",
+        "REPROVE_IDENTITY"
+      ],
+      "title": "InterventionNameEnum",
+      "type": "string"
+    },
+    "InterventionCommandEnum": {
+      "description": "Intervention command indicating whether an intervention is to be added or removed from an account",
+      "enum": [
+        "ADD",
+        "REMOVE"
+      ],
+      "title": "InterventionUpdateEnum",
+      "type": "string"
+    },
+    "TicfAccountInterventionExtensions": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "interventions": {
+          "$ref": "#/$defs/TicfAccountInterventionExtensionsInterventions"
+        }
+      },
+      "title": "TicfAccountInterventionExtensions",
+      "type": "object"
+    },
+    "TicfAccountInterventionExtensionsInterventionUpdate": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/InterventionNameEnum",
+          "description": "Intervention names which can be applied to an account"
+        },
+        "command": {
+          "$ref": "#/$defs/InterventionCommandEnum",
+          "description": "Intervention command indicating whether an intervention is to be added or removed from an account"
+        }
+      },
+      "required": ["name", "command"],
+      "title": "TicfAccountInterventionExtensionsInterventionUpdate",
+      "type": "object"
+    },
+    "TicfAccountInterventionExtensionsInterventionUpdates": {
+      "description": "A list of intervention updates to apply to an account",
+      "items": {
+        "$ref": "#/$defs/TicfAccountInterventionExtensionsInterventionUpdate"
+      },
+      "title": "TicfAccountInterventionExtensionsInterventionUpdates",
+      "type": "array"
+    },
+    "TicfAccountInterventionExtensionsInterventions": {
+      "additionalProperties": false,
+      "properties": {
+        "updates": {
+          "$ref": "#/$defs/TicfAccountInterventionExtensionsInterventionUpdates",
+          "description": "a list of updates to make to the interventions on an account"
+        },
+        "intervention_reason": {
+          "description": "identifies the reason for the intervention, for example, coercion, account-takeover, and so on.\n",
+          "type": "string"
+        },
+        "originating_component_id": {
+          "description": "the component id of the application in which the intervention originator, i.e., ticket, case, assessment, etc., that triggered the intervention\n",
+          "type": "string"
+        },
+        "originator_reference_id": {
+          "description": "the unique id of the ticket, case, risk assessment, etc., from which the intervention resulted\n",
+          "type": "string"
+        },
+        "requester_id": {
+          "description": "the unique id used by the originating component to identify the user who triggered the intervention - will be a number or GUID, must not be personal identifying - MUST be provided if a manual intervention\n",
+          "type": "string"
+        }
+      },
+      "required": ["updates"],
+      "title": "TicfAccountInterventionExtensionsInterventions",
+      "type": "object"
+    },
+    "TicfAccountInterventionUser": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "user_id": {
+          "description": "This is the CommonSubjectID (i.e. the internal version of the pairwiseid) of the user in the relevant part of the system.\n",
+          "type": "string"
+        }
+      },
+      "title": "TicfAccountInterventionUser",
+      "type": "object"
+    }
+  },
+  "$id": "https://event-catalogue.internal.account.gov.uk/TICF_ACCOUNT_INTERVENTION_V2",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "additionalProperties": false,
+  "description": "Triggered when TICF CRI determines an intervention is to be logged/raised",
+  "properties": {
+    "client_id": {
+      "description": "Links the transaction to the client (Relying Party) that initiated the journey.\n",
+      "type": "string"
+    },
+    "component_id": {
+      "description": "The component part of the DI system that has generated the event.\n",
+      "type": "string"
+    },
+    "event_name": {
+      "description": "A short name, in UPPER_SNAKE format, for the event that has taken place in the system\n",
+      "type": "string"
+    },
+    "event_timestamp_ms": {
+      "description": "Records the time and date of when the event occurred. This should be a UTC timestamp and be recorded to the nearest millisecond.\n",
+      "type": "integer"
+    },
+    "extensions": {
+      "$ref": "#/$defs/TicfAccountInterventionExtensions"
+    },
+    "timestamp": {
+      "description": "Records the time and date of when the event occurred. This should be a UTC timestamp and be recorded to the nearest second.\n",
+      "type": "integer"
+    },
+    "user": {
+      "$ref": "#/$defs/TicfAccountInterventionUser"
+    }
+  },
+  "required": [
+    "timestamp",
+    "event_name",
+    "component_id",
+    "event_timestamp_ms"
+  ],
+  "title": "TICF_ACCOUNT_INTERVENTION_V2",
+  "type": "object"
+}

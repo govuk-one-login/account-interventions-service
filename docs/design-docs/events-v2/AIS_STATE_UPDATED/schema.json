@@ -1,0 +1,146 @@
+{
+  "$defs": {
+    "InterventionNameEnum": {
+      "description": "Intervention names which can be applied to an account",
+      "enum": [
+        "PERMANENT_SUSPENSION",
+        "TEMPORARY_SUSPENSION",
+        "RESET_PASSWORD",
+        "REPROVE_IDENTITY"
+      ],
+      "title": "InterventionNameEnum",
+      "type": "string"
+    },
+    "InterventionChangeEnum": {
+      "description": "Possible change values for an InterventionChange",
+      "enum": [
+        "ADD",
+        "REMOVE"
+      ],
+      "title": "InterventionChangeEnum",
+      "type": "string"
+    },
+    "AisStateUpdatedExtensions": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "intervention_state": {
+          "description": "the interventions applied to the account",
+          "items": {
+            "$ref": "#/$defs/InterventionState"
+          },
+          "type": "array"
+        },
+        "intervention_changes": {
+          "description": "the interventions changes made to the account",
+          "items": {
+            "$ref": "#/$defs/InterventionChange"
+          },
+          "type": "array"
+        },
+        "intervention_reason": {
+          "description": "identifies the reason for the intervention, for example, coercion, account-takeover, and so on.\n",
+          "type": "string"
+        },
+        "originating_component_id": {
+          "description": "the component id of the application in which the intervention originator, i.e., ticket, case, assessment, etc., that triggered the intervention\n",
+          "type": "string"
+        },
+        "originator_reference_id": {
+          "description": "the unique id of the ticket, case, risk assessment, etc., from which the intervention resulted\n",
+          "type": "string"
+        },
+        "requester_id": {
+          "description": "the unique id used by the originating component to identify the user who triggered the intervention - will be a number or GUID, must not be personal identifying - MUST be provided if a manual intervention\n",
+          "type": "string"
+        },
+        "trigger_event": {
+          "type": "string"
+        },
+        "trigger_event_id": {
+          "type": "string"
+        }
+      },
+      "title": "AisStateUpdatedExtensions",
+      "type": "object"
+    },
+    "AisStateUpdatedUser": {
+      "additionalProperties": false,
+      "description": "",
+      "properties": {
+        "user_id": {
+          "description": "This is the CommonSubjectID (i.e. the internal version of the pairwiseid) of the user in the relevant part of the system.\n",
+          "type": "string"
+        }
+      },
+      "title": "AisStateUpdatedUser",
+      "type": "object"
+    },
+    "InterventionState": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/InterventionNameEnum",
+          "description": "Intervention names which are applied to an account"
+        }
+      },
+      "title": "InterventionState",
+      "required": ["name"]
+    },
+    "InterventionChange": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/InterventionNameEnum",
+          "description": "Intervention names which are applied to an account"
+        } ,
+        "change": {
+          "$ref": "#/$defs/InterventionChangeEnum",
+          "description": "Type of change"
+        }
+      },
+      "title": "InterventionChange",
+      "required": ["name"]
+    }
+  },
+  "$id": "https://event-catalogue.internal.account.gov.uk/AIS_STATE_UPDATED",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "additionalProperties": false,
+  "description": "Account intervention applied",
+  "properties": {
+    "client_id": {
+      "description": "Links the transaction to the client (Relying Party) that initiated the journey.\n",
+      "type": "string"
+    },
+    "component_id": {
+      "description": "The component part of the DI system that has generated the event.\n",
+      "type": "string"
+    },
+    "event_name": {
+      "description": "A short name, in UPPER_SNAKE format, for the event that has taken place in the system\n",
+      "type": "string"
+    },
+    "event_timestamp_ms": {
+      "description": "Records the time and date of when the event occurred. This should be a UTC timestamp and be recorded to the nearest millisecond.\n",
+      "type": "integer"
+    },
+    "extensions": {
+      "$ref": "#/$defs/AisStateUpdatedExtensions"
+    },
+    "timestamp": {
+      "description": "Records the time and date of when the event occurred. This should be a UTC timestamp and be recorded to the nearest second.\n",
+      "type": "integer"
+    },
+    "user": {
+      "$ref": "#/$defs/AisStateUpdatedUser"
+    }
+  },
+  "required": [
+    "timestamp",
+    "event_name",
+    "component_id",
+    "event_timestamp_ms"
+  ],
+  "title": "AIS_STATE_UPDATED",
+  "type": "object"
+}
