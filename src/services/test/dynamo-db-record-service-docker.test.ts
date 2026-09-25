@@ -5,8 +5,6 @@ import { CreateTableCommand, DeleteTableCommand, DynamoDBClient } from '@aws-sdk
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import 'aws-sdk-client-mock-vitest/extend';
 
-const isDynamoDbLocal = () => process.env['TEST_DYNAMODB_LOCAL'] === 'true';
-
 
 const createLocalClient = () => DynamoDBDocumentClient.from(
     new DynamoDBClient({
@@ -28,7 +26,7 @@ const tableConfig: TableConfig<typeof schema> = {
   schema,
 };
 
-describe.skipIf(!isDynamoDbLocal())('DynamoDBRecordService (Docker)', { tags: ['dynamodb-local'] }, () => {
+describe('DynamoDBRecordService (Docker)', { tags: ['dynamodb-local'] }, () => {
 
   let localClient: DynamoDBClient;
   beforeAll(() => {

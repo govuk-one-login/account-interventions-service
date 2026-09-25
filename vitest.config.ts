@@ -14,6 +14,7 @@ export default defineConfig({
       {
         name: 'dynamodb-local',
         description: 'Tests that require a local DynamoDB Docker instance.',
+        skip: true,
       },
     ],
     coverage: {
