@@ -13,7 +13,7 @@ export default defineConfig({
     tags: [
       {
         name: 'dynamodb-local',
-        description: 'Tests that require a local DynamoDB Docker instance.',
+        description: 'Tests that require a local DynamoDB instance.',
         skip: true,
       },
     ],
