@@ -1,3 +1,6 @@
+# Set the base image.
+FROM node:24
+
 WORKDIR /app
 
 # COPY Files from src directory
