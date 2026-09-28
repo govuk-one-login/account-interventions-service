@@ -52,23 +52,38 @@
     {% endfor %}
     <h2 class="govuk-heading-m govuk-!-margin-top-7">Field descriptions</h2>
     {{ govukSummaryList({
+      classes: "govuk-!-font-size-16",
       rows: [
         {
           key: {
-            text: "Originating Component"
+            text: "Component"
           },
           value: {
-            html: 'The component id of the application in which the intervention originator, i.e., ticket, case, assessment, etc., that triggered the intervention.<br>
-            <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originating_component_id/" class="govuk-link">View in event catalogue</a>'
+            text: "The part of the DI system that has generated the event (e.g. TICF, Auth or Identity)."
           }
         },
         {
           key: {
-            text: "Originator Reference ID"
+            text: "Reason"
           },
           value: {
-            html: 'The unique id of the ticket, case, risk assessment, etc., from which the intervention resulted.<br>
-            <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-originator_reference_id/" class="govuk-link">View in event catalogue</a>'
+            text: "The reason for the intervention (e.g. coercion, account-takeover etc)."
+          }
+        },
+        {
+          key: {
+            text: "Code"
+          },
+          value: {
+            text: "The intervention code that has been applied to the account."
+          }
+        },
+        {
+          key: {
+            text: "Case or Risk Assessment ID"
+          },
+          value: {
+            text: "The unique ID of the case or risk assessment that led to the intervention."
           }
         },
         {
@@ -76,8 +91,7 @@
             text: "Requester ID"
           },
           value: {
-            html: 'The unique id used by the originating component to identify the user who triggered the intervention - will be a number or GUID, must not be personal identifying - must be provided if a manual intervention.<br>
-            <a href="https://event-catalogue.internal.account.gov.uk/attributes/extensions-intervention-requester_id/" class="govuk-link">View in event catalogue</a>'
+            text: "This unique ID can be used to identify the user who applied the intervention. Not populated for automated interventions."
           }
         }
       ]
