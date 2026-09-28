@@ -12,7 +12,7 @@
   "coverageAnalysis": "perTest",
   "ignorePatterns": [
     "src/contract-testing/**",
-    "src/**/*-docker.test.ts"
+    "src/**/dynamodb-local/**"
   ],
   "ignorers": [
     "logger"

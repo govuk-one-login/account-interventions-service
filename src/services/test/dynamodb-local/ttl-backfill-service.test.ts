@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import TableConfig from '../../tables/table-config';
-import { DynamoDBTtlBackfillService } from '../ttl-backfill-service';
+import TableConfig from '../../../tables/table-config';
+import { DynamoDBTtlBackfillService } from '../../ttl-backfill-service';
 import { BatchWriteCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { CreateTableCommand, DeleteTableCommand, DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { TtlSource } from '../../data-types/constants';
+import { TtlSource } from '../../../data-types/constants';
 
 const createLocalClient = () =>
   DynamoDBDocumentClient.from(
@@ -60,7 +60,7 @@ const putItems = async (localClient: DynamoDBDocumentClient, amount = 1) => {
   );
 };
 
-describe('DynamoDBTtlBackfillService (Docker)', { tags: ['dynamodb-local'] }, () => {
+describe('DynamoDBTtlBackfillService (dynamodb-local)', { tags: ['dynamodb-local'] }, () => {
   let localClient: DynamoDBClient;
   beforeAll(() => {
     localClient = createLocalClient();

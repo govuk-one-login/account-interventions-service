@@ -1,6 +1,6 @@
 import z from 'zod';
-import TableConfig from '../../tables/table-config';
-import { DynamoDBRecordService } from '../dynamo-db-record-service';
+import TableConfig from '../../../tables/table-config';
+import { DynamoDBRecordService } from '../../dynamo-db-record-service';
 import { CreateTableCommand, DeleteTableCommand, DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import 'aws-sdk-client-mock-vitest/extend';
@@ -26,7 +26,7 @@ const tableConfig: TableConfig<typeof schema> = {
   schema,
 };
 
-describe('DynamoDBRecordService (Docker)', { tags: ['dynamodb-local'] }, () => {
+describe('DynamoDBRecordService (dynamodb-local)', { tags: ['dynamodb-local'] }, () => {
 
   let localClient: DynamoDBClient;
   beforeAll(() => {
@@ -148,7 +148,7 @@ describe('DynamoDBRecordService (Docker)', { tags: ['dynamodb-local'] }, () => {
 
   // note the attempt to delete the primary key is an invalid operation in DynamoDB
   // you need to delete the entire item
-  // running this test through the dynamodb-local docker image throws an error
+  // running this test through dynamodb-local throws an error
   // added an extra key to the schema resetPasswordAt to remove instead of the pk
   test('update with ConditionExpression ReturnValues', async () => {
     const service = new DynamoDBRecordService<typeof schema>(tableConfig, localClient);
