@@ -57,7 +57,7 @@ Given('an invalid urn of {string} is used to search via the UI', async ({ page, 
 Given('I search for a user with a valid URN via the UI', async ({ page, testUserId, frontendUrl }) => {
   testUserId.value = generateRandomTestUserId();
   await page.goto(frontendUrl);
-  await expect(page).toHaveTitle('Account Interventions Service – GOV.UK');
+  await expect(page).toHaveTitle('Search User&#39;s Intervention History - Account Interventions Service – GOV.UK');
   await page.getByRole('textbox', { name: /subject identifier/i }).fill(testUserId.value);
   await page.getByRole('button', { name: 'Submit' }).click();
 });
@@ -90,6 +90,6 @@ Then('I should see {string} displayed for this account', async ({ page }, noInte
 });
 
 Then('I should see {string} displayed on the index page', async ({ page }, errorText: string) => {
-  await expect(page.getByRole('heading', { name: 'Account Interventions Service' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: "Search User's Intervention History" })).toBeVisible();
   await expect(page.locator('.govuk-error-message', { hasText: errorText }).first()).toBeVisible();
 });
