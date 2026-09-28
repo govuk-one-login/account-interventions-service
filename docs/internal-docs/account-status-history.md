@@ -18,11 +18,9 @@ Note that optional fields (originating_component_id, originator_reference_id, an
 
 ## When history is appended
 History strings are appended when a fraud intervention event is processed. In
-`buildPartialUpdateAccountStateCommand()`, a new string is built via `HistoryStringBuilder.getHistoryString()` and
-appended to the existing array.
+`buildPartialUpdateAccountStateCommand()`, a new string is built via `HistoryStringBuilder.getHistoryString()` and appended to the existing array.
 
-This only happens for intervention events (e.g. suspend, block). User-initiated resolution events (password reset,
-reprove identity) do not add new history strings - they only carry forward the existing valid entries. This can be seen in `buildPartialUpdateAccountStateCommand()` on lines 35 - 56, for the user initiated event types, `stringBuilder.getHistoryString(interventionEvent, eventTimestamp)` is never called, therefore no new history is added.
+This only happens for intervention events (e.g. suspend, block). User-initiated resolution events (password reset, reprove identity) do not add new history strings - they only carry forward the existing valid entries. This can be seen in `buildPartialUpdateAccountStateCommand()` on lines 35 - 56, for the user initiated event types, `stringBuilder.getHistoryString(interventionEvent, eventTimestamp)` is never called, therefore no new history is added.
 
 ## How history is appended
 The pattern for appending is as follows:
@@ -40,8 +38,8 @@ The function `extractValidHistoryItems` in [build-partial-update-state-command](
 How `extractValidHistoryItems` works:
 1. Iterates each pipe-delimited history string in the historyList
 1. Parses the history string into an object
-1. Gets the sentAtMs timestamp using the history object from the above step
+1. Gets the sendAtMs timestamp using the history object from the above step
 1. Checks if the history item is still valid by checking `sendAtMs + AppConfigService.getInstance().historyRetentionSeconds * 1000 >= currentTimestampMs` i.e. the history item is within the retention period. Pushes valid items to a new array
 1. Returns the new array containing only the entries that passed the above check
 
-Note that historyRetentionSeconds is configured via the HISTORY_RETENTION_SECONDS variable in the [template.yaml](../../src/infra/main/template.yaml) and is currently set to 63,072,000 seconds (2 years)
+Note that historyRetentionSeconds is configured via the HISTORY_RETENTION_SECONDS variable in the [template.yaml](../../src/infra/main/template.yaml)
