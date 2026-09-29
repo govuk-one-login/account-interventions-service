@@ -21,7 +21,6 @@ export class InterventionStub implements InterventionClientInterface {
   }
 
   getAccountHistory(): Promise<AccountHistory> {
-    if (this.config?.historyResult) return Promise.resolve(this.config.historyResult);
-    return Promise.resolve({ lines: [] });
+    return this.config?.historyResult ? Promise.resolve(this.config.historyResult) : Promise.resolve({ lines: [] });
   }
 }

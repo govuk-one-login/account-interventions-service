@@ -87,6 +87,7 @@ export function previousStateToInterventions(previousState?: StateDetails): Inte
   if (previousState.reproveIdentity) return [InterventionName.REPROVE_IDENTITY];
 
   if (previousState.blocked) return [InterventionName.PERMANENT_SUSPENSION];
+  // eslint-disable-next-line unicorn/prefer-ternary
   if (previousState.suspended) return [InterventionName.TEMPORARY_SUSPENSION];
 
   return [];
@@ -107,10 +108,12 @@ export function validateInterventions(
     (index) => !interventionsFromPreviousState.includes(index),
   );
 
-  if (interventionsNotInPreviousState.length > 0) {
-    logger.debug(
-      `Interventions from events not found in previous state: ${interventionsNotInPreviousState.join(', ')}`,
-    );
-    addMetric(MetricNames.INTERVENTION_MISMATCH);
+  if (interventionsNotInPreviousState.length === 0) {
+    return;
   }
+
+  logger.debug(
+    `Interventions from events not found in previous state: ${interventionsNotInPreviousState.join(', ')}`,
+  );
+  addMetric(MetricNames.INTERVENTION_MISMATCH);
 }

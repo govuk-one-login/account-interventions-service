@@ -157,16 +157,18 @@ export async function setTtlOnInactiveEvents(
       closedInterventionNames.includes(event.interventionName) &&
       (!event.ttl || event.ttlSource === TtlSource.BACKFILL),
   );
-
-  if (eventsNeedingTtl.length > 0) {
-    const updatedEvents = eventsNeedingTtl.map((event) => {
-      const updatedEvent = { ...event, ttl };
-      // The row now has a real TTL, so it is no longer a backfill row; drop the tag.
-      delete updatedEvent.ttlSource;
-      return updatedEvent;
-    });
-    await interventionEventsService.appendEvents(updatedEvents);
+  if (eventsNeedingTtl.length === 0) {
+    return;
   }
+
+  const updatedEvents = eventsNeedingTtl.map((event) => {
+    const updatedEvent = { ...event, ttl };
+    // The row now has a real TTL, so it is no longer a backfill row; drop the tag.
+    delete updatedEvent.ttlSource;
+    return updatedEvent;
+  });
+  await interventionEventsService.appendEvents(updatedEvents);
+  
 }
 
 /**

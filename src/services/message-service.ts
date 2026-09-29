@@ -73,9 +73,7 @@ export class StubMessageService implements MessageService {
   }
 
   sendBatchMessage() {
-    if (!this.batchMessageOutput) return Promise.reject(new Error('No batch message output provided to stub'));
-
-    return Promise.resolve(this.batchMessageOutput);
+    return this.batchMessageOutput ? Promise.resolve(this.batchMessageOutput) : Promise.reject(new Error('No batch message output provided to stub'));
   }
 }
 

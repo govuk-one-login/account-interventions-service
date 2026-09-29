@@ -74,18 +74,20 @@ export async function validateEventIsNotInFuture(
 ) {
   const eventTimestampInMs = event.event_timestamp_ms;
   const now = getCurrentTimestamp().milliseconds;
-  if (now < eventTimestampInMs) {
-    logger.warn('Event with timestamp in the future.', {
-      eventName: event.event_name,
-      emittedAt: new Date(eventTimestampInMs).toISOString(),
-      currentTime: new Date(now).toISOString(),
-      msInTheFuture: eventTimestampInMs - now,
-      event: eventEnum,
-    });
-    addMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
-    await sendAuditEvent('AIS_EVENT_IGNORED_IN_FUTURE', eventEnum, event, sqsClient, txmaEgressQueueUrl);
-    throw new RetryEventError('Event has timestamp that is in the future.');
+  if (!(now < eventTimestampInMs)) {
+    return;
   }
+
+  logger.warn('Event with timestamp in the future.', {
+    eventName: event.event_name,
+    emittedAt: new Date(eventTimestampInMs).toISOString(),
+    currentTime: new Date(now).toISOString(),
+    msInTheFuture: eventTimestampInMs - now,
+    event: eventEnum,
+  });
+  addMetric(MetricNames.INTERVENTION_IGNORED_IN_FUTURE);
+  await sendAuditEvent('AIS_EVENT_IGNORED_IN_FUTURE', eventEnum, event, sqsClient, txmaEgressQueueUrl);
+  throw new RetryEventError('Event has timestamp that is in the future.');
 }
 
 /**
@@ -105,16 +107,18 @@ export async function validateEventIsNotStale(
   txmaEgressQueueUrl: string,
 ) {
   const eventTimestampInMs = event.event_timestamp_ms;
-  if (!isEventAfterLastEvent(eventTimestampInMs, itemFromDB.sentAt, itemFromDB.appliedAt)) {
-    logger.warn('Event received predates last applied event for this user.');
-    addMetric(MetricNames.INTERVENTION_EVENT_STALE);
-    await sendAuditEvent('AIS_EVENT_IGNORED_STALE', intervention, event, sqsClient, txmaEgressQueueUrl, {
-      stateResult: initialState,
-      interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
-      nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
-    });
-    throw new ValidationError('Event received predates last applied event for this user.');
+  if (isEventAfterLastEvent(eventTimestampInMs, itemFromDB.sentAt, itemFromDB.appliedAt)) {
+    return;
   }
+
+  logger.warn('Event received predates last applied event for this user.');
+  addMetric(MetricNames.INTERVENTION_EVENT_STALE);
+  await sendAuditEvent('AIS_EVENT_IGNORED_STALE', intervention, event, sqsClient, txmaEgressQueueUrl, {
+    stateResult: initialState,
+    interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+    nextAllowableInterventions: AccountStateEngine.getInstance().determineNextAllowableInterventions(initialState),
+  });
+  throw new ValidationError('Event received predates last applied event for this user.');
 }
 
 /**

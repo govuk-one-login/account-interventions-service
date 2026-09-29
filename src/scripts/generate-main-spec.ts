@@ -206,12 +206,14 @@ if (schemas && parameters) {
   for (const parameter of Object.values(parameters)) {
     const reference = parameter.schema?.$ref;
     const schemaName = reference?.split('/').pop();
-    if (schemaName) {
-      parameter.schema = schemas[schemaName] as { $ref?: string; description?: string };
-      delete parameter.schema.description;
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete schemas[schemaName];
+    if (!schemaName) {
+      continue;
     }
+
+    parameter.schema = schemas[schemaName] as { $ref?: string; description?: string };
+    delete parameter.schema.description;
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete schemas[schemaName];
   }
 }
 
