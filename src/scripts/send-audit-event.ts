@@ -107,7 +107,7 @@ const { values } = parseArgs({
 const isValidEvent = (value: string | undefined): value is EventType =>
   Object.values(EventType).includes(value as EventType);
 
-// eslint-disable-next-line unicorn/prefer-top-level-await
+ 
 void (async () => {
   const queueUrl = values.queueUrl ?? 'https://sqs.eu-west-2.amazonaws.com/484907510598/ais-main-TxMAIngressQueue';
   const userId = values.userId ?? 'urn:fdc:gov.uk:2022:pgt1qOf7zW2tMCZg4V5LEu-mT-_GTSX7xqJ6RJekw9I';

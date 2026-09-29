@@ -350,6 +350,7 @@ export function getDisplayState(line: HistoryLine): string {
   ) {
     return 'COMPLETED';
   }
+  // eslint-disable-next-line unicorn/prefer-ternary
   if (
     line.interventionState === InterventionState.REMOVED &&
     (line.interventionName === InterventionName.TEMPORARY_SUSPENSION ||

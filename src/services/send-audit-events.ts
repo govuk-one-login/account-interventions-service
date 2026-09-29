@@ -174,6 +174,7 @@ function eventShouldBeIgnored(
   ingressEventName: EventsEnum,
   accountStateEngineOutput?: AccountStateEngineOutput,
 ) {
+  // eslint-disable-next-line unicorn/prefer-ternary
   if (!accountStateEngineOutput) return false;
   return (
     userLedActionList.includes(ingressEventName) &&

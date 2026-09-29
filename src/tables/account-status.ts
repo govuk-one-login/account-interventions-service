@@ -66,15 +66,11 @@ export class InMemoryAccountStatusService implements AccountStatusService {
   constructor(readonly config?: InMemoryAccountStatusServiceConfig) {}
 
   getAccountStateInformation() {
-    if (this.config?.error) return Promise.reject(this.config.error);
-
-    return Promise.resolve(this.config?.baseStatus ?? this.config?.status);
+    return this.config?.error ? Promise.reject(this.config.error) : Promise.resolve(this.config?.baseStatus ?? this.config?.status);
   }
 
   getFullAccountInformation() {
-    if (this.config?.error) return Promise.reject(this.config.error);
-
-    return Promise.resolve(this.config?.status);
+    return this.config?.error ? Promise.reject(this.config.error) : Promise.resolve(this.config?.status);
   }
 
   updateUserStatus() {
@@ -82,9 +78,7 @@ export class InMemoryAccountStatusService implements AccountStatusService {
   }
 
   updateDeleteStatus() {
-    if (this.config?.error) return Promise.reject(this.config.error);
-
-    return Promise.resolve(undefined);
+    return this.config?.error ? Promise.reject(this.config.error) : Promise.resolve(undefined);
   }
 }
 
