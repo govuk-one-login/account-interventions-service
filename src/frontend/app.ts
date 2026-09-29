@@ -76,7 +76,7 @@ export const generateVerifyRequest =
   (authoriser: Authoriser) => async (request: FastifyRequest, reply: FastifyReply) => {
     const authoriserResult = await authoriser.verify(request.awsLambda?.event.requestContext.authorizer, request.url);
 
-    if (!authoriserResult.success) return reply.status(401);
+    if (!authoriserResult.success) return reply.status(401).send();
   };
 
 export interface FrontEndAppConfig {
