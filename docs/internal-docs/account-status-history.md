@@ -12,7 +12,11 @@ The history field stored in the account-status table in DynamoDB is an array of 
 
 For example:
 
-1695600000000|TICF_CRI|01|reason|CMS|12345|67890
+With all fields populated:
+- 1695600000000|TICF_CRI|01|reason|CMS|12345|67890
+
+With optional fields empty:
+- 1695600000000|TICF_CRI|01|reason|||
 
 Note that optional fields (originating_component_id, originator_reference_id, and requester_id) are stored as empty strings when absent.
 
@@ -37,8 +41,8 @@ The function `extractValidHistoryItems` in [build-partial-update-state-command](
 
 How `extractValidHistoryItems` works:
 1. Iterates each pipe-delimited history string in the historyList
-1. Parses the history string into an object
-1. Gets the sendAtMs timestamp using the history object from the above step
+1. Parses the history string into an object with the variable name `historyObject` by passing each historyItem to the `getHistoryObject` method in [history-string-builder](../../src/commons/history-string-builder.ts). `getHistoryObject` calls `buildHistoryObject` which returns an object with the keys `sentAt`, `component`, `code`, `intervention`, `reason`, `originatingComponent`, `originatorReferenceId`, `requesterId`
+1. `sendAtMs` is then calculated using the `sentAt` time returned in `historyObject` in the above step
 1. Checks if the history item is still valid by checking `sendAtMs + AppConfigService.getInstance().historyRetentionSeconds * 1000 >= currentTimestampMs` i.e. the history item is within the retention period. Pushes valid items to a new array
 1. Returns the new array containing only the entries that passed the above check
 
