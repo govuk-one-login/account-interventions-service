@@ -8,7 +8,6 @@ import eslintPluginTsdoc from 'eslint-plugin-tsdoc';
 import globals from 'globals';
 
 export default defineConfig(
-  eslintPluginUnicorn.configs.recommended,
   {
     ignores: [
       '**/node_modules/**',
@@ -32,6 +31,7 @@ export default defineConfig(
     },
     plugins: {
       tsdoc: eslintPluginTsdoc,
+      unicorn: eslintPluginUnicorn,
     },
     rules: {
       '@typescript-eslint/no-floating-promises': ['error'],
@@ -54,18 +54,18 @@ export default defineConfig(
       'space-before-function-paren': ['error', { anonymous: 'always', named: 'never', asyncArrow: 'always' }],
       'object-curly-spacing': ['error', 'always'],
       'unicorn/filename-case': ['error', { case: 'kebabCase' }],
-      'unicorn/prevent-abbreviations': ['off'],
-      'unicorn/prefer-string-raw': ['off'],
       'unicorn/error-message': ['error'],
-      'unicorn/no-array-reduce': ['off'],
-      'unicorn/numeric-separators-style': ['off'],
+      'unicorn/throw-new-error': ['error'],
       'unicorn/prefer-logical-operator-over-ternary': ['error'],
+      'unicorn/no-useless-spread': ['error'],
       'unicorn/prefer-spread': ['error'],
-      'unicorn/prefer-ternary': ['error'],
-      'unicorn/no-unreadable-new-expression': ['off'],
-      'unicorn/consistent-boolean-name': ['off'],
-      'unicorn/consistent-class-member-order': ['off'],
-      'unicorn/name-replacements': ['off'],
+      'unicorn/no-useless-promise-resolve-reject': ['error'],
+      'unicorn/no-instanceof-builtins': ['error'],
+      'unicorn/no-useless-undefined': ['error'],
+      'unicorn/no-for-each': ['error'],
+      'unicorn/prefer-node-protocol': ['error'],
+      'unicorn/prefer-array-find': ['error'],
+      'unicorn/prefer-string-starts-ends-with': ['error'],
       'tsdoc/syntax': ['error'],
     },
   },
