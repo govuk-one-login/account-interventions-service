@@ -808,9 +808,11 @@ data-module="govuk-service-navigation"
 
   
 
+
 <h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
 
   
+      
 
       
 
@@ -1349,9 +1351,11 @@ data-module="govuk-service-navigation"
 
   
 
+
 <h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
 
   
+      
 
       
 
@@ -1475,6 +1479,7 @@ data-module="govuk-service-navigation"
 
 
     
+      
 
       
 
@@ -1579,6 +1584,7 @@ data-module="govuk-service-navigation"
 
 
     
+      
 
       
 
@@ -1702,6 +1708,17 @@ data-module="govuk-service-navigation"
 
 
     
+      
+        <div class="govuk-warning-text">
+  <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+  <strong class="govuk-warning-text__text">
+    <span class="govuk-visually-hidden">Warning</span>
+    Please note: beyond this point intervention history may be unreliable.
+  </strong>
+</div>
+
+        <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+      
 
       
 
@@ -1825,6 +1842,7 @@ data-module="govuk-service-navigation"
 
 
     
+      
 
       
 
@@ -2321,6 +2339,7 @@ data-module="govuk-service-navigation"
 
 
   
+
 
 <h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
 
