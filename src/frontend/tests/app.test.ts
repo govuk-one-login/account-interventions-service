@@ -7,6 +7,8 @@ import {
   getDisplayState,
   flagInterventionStateChanges,
   redirectHook,
+  markHistoryUncertainty,
+  getUncertaintyCutoff,
 } from '../app';
 import { InterventionStub, InterventionName, InterventionState } from '@govuk-one-login/ais-status-sdk';
 import { StubMessageService } from '../../services/message-service';
@@ -47,18 +49,19 @@ const makeReply = (): FastifyReply =>
     send: vi.fn().mockReturnThis(),
   }) as unknown as FastifyReply;
 
-  const makeRedirectRequest = (authorizer: Record<string, unknown> = {}): FastifyRequest =>
-    ({
-      url: '/test',
-      awsLambda: {
-        event: {
-          requestContext: { authorizer },
-        },
-        context: {},
+const makeRedirectRequest = (authorizer: Record<string, unknown> = {}): FastifyRequest =>
+  ({
+    url: '/test',
+    awsLambda: {
+      event: {
+        requestContext: { authorizer },
       },
-    }) as unknown as FastifyRequest;
+      context: {},
+    },
+  }) as unknown as FastifyRequest;
 
-  const makeRedirectReply = () => ({
+const makeRedirectReply = () =>
+  ({
     status: vi.fn().mockReturnThis(),
     header: vi.fn().mockReturnThis(),
     send: vi.fn().mockReturnThis(),
@@ -155,35 +158,34 @@ describe('generateVerifyRequest', () => {
 // ---------------------------------------------------------------------------
 
 describe('redirectHook', () => {
-
-    it('returns a 302 redirect when the authorizer context signals a redirect', async () => {
-      const request = makeRedirectRequest({
-        redirect: 'true',
-        redirectUrl: 'https://example.com/redirect',
-        authCookie: 'session=xyz; Path=/',
-      });
-      const reply = makeRedirectReply();
-
-      await redirectHook(request, reply);
-
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(reply.status).toHaveBeenCalledWith(302);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(reply.header).toHaveBeenCalledWith('location', 'https://example.com/redirect');
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(reply.header).toHaveBeenCalledWith('set-cookie', 'session=xyz; Path=/');
+  it('returns a 302 redirect when the authorizer context signals a redirect', async () => {
+    const request = makeRedirectRequest({
+      redirect: 'true',
+      redirectUrl: 'https://example.com/redirect',
+      authCookie: 'session=xyz; Path=/',
     });
+    const reply = makeRedirectReply();
 
-    it('does not send a response when the authorizer context is not a redirect', async () => {
-      const request = makeRedirectRequest({});
-      const reply = makeRedirectReply();
+    await redirectHook(request, reply);
 
-      await redirectHook(request, reply);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(reply.status).toHaveBeenCalledWith(302);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(reply.header).toHaveBeenCalledWith('location', 'https://example.com/redirect');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(reply.header).toHaveBeenCalledWith('set-cookie', 'session=xyz; Path=/');
+  });
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(reply.status).not.toHaveBeenCalled();
-    });
-})
+  it('does not send a response when the authorizer context is not a redirect', async () => {
+    const request = makeRedirectRequest({});
+    const reply = makeRedirectReply();
+
+    await redirectHook(request, reply);
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(reply.status).not.toHaveBeenCalled();
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Helper: init the server with a StubAuthoriser and a stub awsLambda decoration
@@ -209,7 +211,7 @@ describe('frontend app', () => {
         interventionClient: new InterventionStub({ result: { interventions: [] } }),
         messageService: new StubMessageService(),
         authoriser: new StubAuthoriser(),
-        config: {}
+        config: {},
       },
       {
         featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -362,7 +364,7 @@ describe('frontend app', () => {
           }),
           messageService: new StubMessageService(),
           authoriser: new StubAuthoriser(),
-          config: {}
+          config: {},
         },
         {
           featureFlags: new FeatureFlagsStub({ aisFrontend: true, aisSendTxMA: true }),
@@ -901,6 +903,88 @@ describe('formatHistory', () => {
         tagId: 'abc1234',
       },
     ]);
+  });
+});
+
+describe('getUncertaintyCutoff', () => {
+  const FIXED_CUTOFF = new Date(2026, 5, 10).valueOf(); // 10 July 2026
+
+  it('returns the fixed cutoff when two years ago is earlier than the fixed cutoff', () => {
+    // now = 10 July 2027 -> two years ago = 10 July 2025, which is before the fixed cutoff
+    const now = new Date(2027, 5, 10);
+    expect(getUncertaintyCutoff(now)).toEqual(FIXED_CUTOFF);
+  });
+
+  it('returns two years ago when it is more recent than the fixed cutoff', () => {
+    // now = 10 July 2030 -> two years ago = 10 July 2028, which is after the fixed cutoff
+    const now = new Date(2030, 6, 10);
+    expect(getUncertaintyCutoff(now)).toEqual(new Date(2028, 6, 10).valueOf());
+  });
+});
+
+describe('markHistoryUncertainty', () => {
+  // Build type-safe HistoryTransaction objects via formatHistory
+  // eslint-disable-next-line unicorn/consistent-function-scoping
+  const makeHistory = (sentAtValues: number[]) =>
+    formatHistory({
+      lines: sentAtValues.map((sentAt, i) => ({
+        sentAt,
+        componentId: 'TEST',
+        interventionName: InterventionName.RESET_PASSWORD,
+        interventionState: InterventionState.ACTIVE,
+        interventionReason: 'Reason',
+        interventionCode: '04',
+        originatingComponentId: 'TICF',
+        requesterId: 'interventions@digital.cabinet-office.gov.uk',
+        tagId: `tag-${i.toString()}`,
+      })),
+    });
+
+  const beforeFixedCutoff = new Date(2026, 5, 9).valueOf(); // 9 July 2026
+  const afterFixedCutoff = new Date(2026, 5, 11).valueOf(); // 11 July 2026
+
+  it('marks the first transaction that falls before the cutoff', () => {
+    // now such that fixed cutoff (10 July 2026) is used
+    const now = new Date(2027, 0, 1);
+    const history = makeHistory([afterFixedCutoff, beforeFixedCutoff]);
+
+    const result = markHistoryUncertainty(history, now);
+
+    expect((result[0] as { cutoff?: true }).cutoff).toBeUndefined();
+    expect((result[1] as { cutoff?: true }).cutoff).toBe(true);
+  });
+
+  it('does not mark any transaction when all are after the cutoff', () => {
+    const now = new Date(2027, 0, 1);
+    const history = makeHistory([afterFixedCutoff, new Date(2026, 7, 1).valueOf()]);
+
+    const result = markHistoryUncertainty(history, now);
+
+    expect(result.some((t) => (t as { cutoff?: true }).cutoff === true)).toBe(false);
+  });
+
+  it('uses the two-years-ago cutoff when it is more recent than the fixed cutoff', () => {
+    // now = 1 Jan 2030 -> two years ago = 1 Jan 2028 (more recent than fixed cutoff)
+    const now = new Date(2030, 0, 1);
+    const beforeTwoYearsAgo = new Date(2027, 11, 31).valueOf(); // 31 Dec 2027
+    const afterTwoYearsAgo = new Date(2028, 0, 2).valueOf(); // 2 Jan 2028
+    const history = makeHistory([afterTwoYearsAgo, beforeTwoYearsAgo]);
+
+    const result = markHistoryUncertainty(history, now);
+
+    expect((result[0] as { cutoff?: true }).cutoff).toBeUndefined();
+    expect((result[1] as { cutoff?: true }).cutoff).toBe(true);
+  });
+
+  it('only marks the first (most recent) transaction before the cutoff', () => {
+    const now = new Date(2027, 0, 1);
+    const history = makeHistory([afterFixedCutoff, beforeFixedCutoff, new Date(2026, 5, 1).valueOf()]);
+
+    const result = markHistoryUncertainty(history, now);
+
+    const markedCount = result.filter((t) => (t as { cutoff?: true }).cutoff === true).length;
+    expect(markedCount).toBe(1);
+    expect((result[1] as { cutoff?: true }).cutoff).toBe(true);
   });
 });
 
