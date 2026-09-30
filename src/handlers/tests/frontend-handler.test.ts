@@ -15,17 +15,12 @@ const makeEvent = (path: string): APIGatewayProxyEvent => ({
   httpMethod: 'GET',
   headers: {},
   multiValueHeaders: {},
-  // eslint-disable-next-line unicorn/no-null
   queryStringParameters: null,
-  // eslint-disable-next-line unicorn/no-null
   multiValueQueryStringParameters: null,
-  // eslint-disable-next-line unicorn/no-null
   pathParameters: null,
-  // eslint-disable-next-line unicorn/no-null
   stageVariables: null,
   requestContext: {} as APIGatewayProxyEvent['requestContext'],
   resource: '',
-  // eslint-disable-next-line unicorn/no-null
   body: null,
   isBase64Encoded: false,
 });

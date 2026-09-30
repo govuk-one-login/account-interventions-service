@@ -8,7 +8,6 @@ import { InterventionName } from '../data-types/intervention-name';
 
 const appConfig = AppConfigService.getInstance();
 
-/* eslint-disable unicorn/max-nested-calls */
 const schema = z.object({
   eventId: z.string(),
   accountId: z.string(),

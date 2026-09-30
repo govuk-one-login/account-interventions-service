@@ -14,7 +14,6 @@ const baseInterventionMessageSchema = z.object({
   }),
 });
 
-/* eslint-disable unicorn/max-nested-calls */
 const ticfAccountInterventionSchema = baseInterventionMessageSchema.safeExtend({
   event_name: z.literal(TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION),
   extensions: z.object({

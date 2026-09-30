@@ -10,7 +10,6 @@ describe('notEmpty', () => {
   });
 
   it('null', () => {
-    // eslint-disable-next-line unicorn/no-null
     expect(notEmpty(null)).toBe(false);
   });
 });

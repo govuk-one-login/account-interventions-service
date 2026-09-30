@@ -9,7 +9,6 @@ let databaseClient: DynamoDBClient | undefined;
 let databaseDocumentClient: DynamoDBDocumentClient | undefined;
 
 export function getDBClient(): DynamoDBClient {
-  // eslint-disable-next-line unicorn/no-top-level-assignment-in-function
   databaseClient ??= tracer.captureAWSv3Client(
     new DynamoDBClient({
       region: AppConfigService.getInstance().awsRegion,
@@ -21,7 +20,6 @@ export function getDBClient(): DynamoDBClient {
 }
 
 export function getDBDocumentClient(): DynamoDBDocumentClient {
-  // eslint-disable-next-line unicorn/no-top-level-assignment-in-function
   databaseDocumentClient ??= DynamoDBDocumentClient.from(getDBClient());
 
   return databaseDocumentClient;

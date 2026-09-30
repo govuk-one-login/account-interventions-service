@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/no-top-level-side-effects */
 /* eslint-disable no-empty-pattern */
 import { createBdd, test as base } from "playwright-bdd";
 import { expect } from "@playwright/test";
