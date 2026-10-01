@@ -38,7 +38,6 @@ export const V2ResponseSchema = z
 
 export type V2Response = z.infer<typeof V2ResponseSchema>;
 
-/* eslint-disable unicorn/max-nested-calls */
 const HistoryLineSchema = z
   .object({
     sentAt: z.number().int().meta({

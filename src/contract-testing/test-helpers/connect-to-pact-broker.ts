@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/prefer-top-level-await */
 import getEnvironmentOrThrow from '../../commons/get-environment-or-throw';
 
 //required to connect to PactBroker as Pact libraries don't allow testSource parameter to be passed

@@ -167,7 +167,6 @@ describe('AppConfigService', () => {
     });
 
     it('should throw an error when a url config value is not a valid HTTPS URL', () => {
-      // eslint-disable-next-line unicorn/prefer-https
       vi.stubEnv('TXMA_QUEUE_URL', 'http://not-https.com');
       const appConfig = AppConfigService.getInstance();
       expect(() => appConfig.getConfigObject(['txmaEgressQueueUrl'])).toThrow(InvalidEnvironmentVariableError);

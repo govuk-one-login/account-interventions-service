@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/no-null */
 import type { APIGatewayEvent, APIGatewayProxyEventQueryStringParameters } from 'aws-lambda';
 import logger from '../../commons/logger';
 import { addMetric } from '../../commons/metrics';

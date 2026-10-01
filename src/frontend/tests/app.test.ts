@@ -528,7 +528,6 @@ describe('frontend app', () => {
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
       });
 
-      // eslint-disable-next-line unicorn/no-non-function-verb-prefix
       const setCookie = response.headers['set-cookie'];
       const cookies = Array.isArray(setCookie) ? setCookie : [setCookie ?? ''];
       expect(cookies.some((c) => c.startsWith('flash_message_sent=true'))).toBe(true);
@@ -555,7 +554,6 @@ describe('frontend app', () => {
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
       });
 
-      // eslint-disable-next-line unicorn/no-non-function-verb-prefix
       const setCookieHeader = postResponse.headers['set-cookie'] as string;
       const cookieValue = setCookieHeader.split(';', 1)[0]; // e.g. "flash_message_sent=true"
 
@@ -740,7 +738,6 @@ describe('submitted without a URN', () => {
       headers: { 'content-type': 'application/x-www-form-urlencoded' },
     });
 
-    // eslint-disable-next-line unicorn/no-non-function-verb-prefix
     const setCookieHeader = postResponse.headers['set-cookie'] as string;
     const cookieValue = setCookieHeader.split(';', 1)[0]; // e.g. "flash_search_error=true"
 
