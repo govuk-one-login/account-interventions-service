@@ -782,11 +782,10 @@ data-module="govuk-service-navigation"
 <h2 class="govuk-heading-l">Active Interventions</h2>
 
   
+  
     
-    
-      
-    
-    
+  
+  
 
   
 <dl class="govuk-summary-list">
@@ -805,7 +804,6 @@ data-module="govuk-service-navigation"
 
 </dl>
 
-  
 
 
 
@@ -1323,11 +1321,10 @@ data-module="govuk-service-navigation"
 <h2 class="govuk-heading-l">Active Interventions</h2>
 
   
+  
     
-    
-      
-    
-    
+  
+  
 
   
 <dl class="govuk-summary-list">
@@ -1346,7 +1343,6 @@ data-module="govuk-service-navigation"
 
 </dl>
 
-  
 
 
   
