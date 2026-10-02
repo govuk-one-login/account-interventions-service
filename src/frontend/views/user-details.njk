@@ -1,6 +1,9 @@
 {% extends "base.njk" %}
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
 {% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+
+
 {% block content %}
   {{ govukBackLink({ text: "Back", href: pathPrefix + "/" }) }}
   {% if messageSent %}
@@ -13,7 +16,13 @@
   <p class="govuk-body">User ID:
     <strong>{{ userId }}</strong>
   </p>
-  {% include "user/_active-interventions.njk" %}
-  {% include "user/_history.njk" %}
-  {% include "user/_send-txma-form.njk" %}
+
+  {% if (accountHistory | length or accountStatus.interventions | length) %}
+    {% include "user/_active-interventions.njk" %}
+    {% include "user/_history.njk" %}
+    {% include "user/_send-txma-form.njk" %}
+  {% else %}
+    <h2 class="govuk-heading-l">User not found</h2>
+    <p class="govuk-body">We couldn't find any data for this user. The user associated with this URN may not exist, have been deleted, or have no intervention history. Please check the URN you entered is correct.</p>
+  {% endif %}
 {% endblock %}
