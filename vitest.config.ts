@@ -10,6 +10,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    // `dynamodb-local` tests are skipped by default so normal runs (test:unit,
+    // watch, snapshot updates, bare `vitest`) don't try to hit DynamoDB on
+    // localhost:8000. They are run via `npm run test:unit:dynamodb-local`, which
+    // uses vitest.dynamodb.config.ts to override skip. (`--tags-filter` selects
+    // tagged tests but does not un-skip them, so the override config is required.)
     tags: [
       {
         name: 'dynamodb-local',
