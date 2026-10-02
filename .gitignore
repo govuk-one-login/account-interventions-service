@@ -87,4 +87,4 @@ test-results/
 /docker
 
 # scripts
-scripts/test-output-dynamo.json
+test-output-dynamo.json
