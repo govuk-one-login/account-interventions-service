@@ -82,3 +82,9 @@ dist/
 playwright-report/
 results/
 test-results/
+
+# docker
+/docker
+
+# scripts
+test-output-dynamo.json
