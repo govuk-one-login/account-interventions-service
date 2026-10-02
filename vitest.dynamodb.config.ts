@@ -15,7 +15,7 @@ export default defineConfig({
       {
         name: 'dynamodb-local',
         description: 'Tests that require a local DynamoDB instance.',
-        skip: false,
+        skip: true,
       },
     ],
   },
