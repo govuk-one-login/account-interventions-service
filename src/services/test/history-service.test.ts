@@ -272,7 +272,6 @@ describe('deduplicateEvents', () => {
     interventionName: 'TEMPORARY_SUSPENSION',
     interventionState: 'ACTIVE',
     sentAt: 1000,
-    transactionId: 'tx-account-status',
   };
 
   const matchingInterventionEvent: HistoryIdentifier = {
@@ -353,11 +352,11 @@ describe('deduplicateEvents', () => {
       interventionName: 'REPROVE_IDENTITY',
       interventionState: 'REMOVED',
       sentAt: 5000,
-      transactionId: 'tx-other',
     };
 
     const result = deduplicateEvents([baseEvent, nonMatchingEvent], [matchingInterventionEvent]);
 
     expect(result).toEqual([nonMatchingEvent, matchingInterventionEvent]);
+    expect(result).toHaveLength(2);
   });
 });

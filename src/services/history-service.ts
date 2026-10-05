@@ -93,7 +93,7 @@ export class HistoryService {
 // Deduplicate data from v1 and v2 history
 export function deduplicateEvents<T extends HistoryIdentifier>(accountStatusEvents: T[], interventionEvents: T[]): T[] {
   // Build enriched intervention events by copying interventionCode from matching account-status events
-  const transactionIdsToRemove = new Set<string | undefined>();
+  const matchedAccountStatusEvents = new Set<T>();
 
   const enrichedInterventionEvents = interventionEvents.map((ie) => {
     const match = accountStatusEvents.find(
@@ -106,7 +106,7 @@ export function deduplicateEvents<T extends HistoryIdentifier>(accountStatusEven
     // There is a problem with interventionEvents which don't have the interventionCode
     // copy it from the matching accountStatusEvent and add it to the interventionEvent
     if (match) {
-      transactionIdsToRemove.add(match.transactionId);
+      matchedAccountStatusEvents.add(match); //match.transactionId is always undefined so add the whole match instead
       if (match.interventionCode && !ie.interventionCode) {
         return { ...ie, interventionCode: match.interventionCode };
       }
@@ -115,8 +115,9 @@ export function deduplicateEvents<T extends HistoryIdentifier>(accountStatusEven
     return ie;
   });
 
+  // now just filter out the whole match 
   const remainingAccountStatusEvents = accountStatusEvents.filter(
-    (event) => !transactionIdsToRemove.has(event.transactionId),
+    (event) => !matchedAccountStatusEvents.has(event),
   );
 
   return [...remainingAccountStatusEvents, ...enrichedInterventionEvents];
