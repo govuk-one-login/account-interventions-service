@@ -1,8 +1,16 @@
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
 {% from "components/createTagMacro.njk" import createTag %}
 <h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
 {% if accountHistory and accountHistory.length %}
   {% for transaction in accountHistory %}
+      {% if transaction.cutoff %}
+        {{ govukWarningText({
+          text: "Please note: beyond this point intervention history may be unreliable.",
+          iconFallbackText: "Warning"
+        }) }}
+        <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+      {% endif %}
 
       {% set transactionRows = [
           { key: { text: "Component" },  value: { text: transaction.componentId } },
