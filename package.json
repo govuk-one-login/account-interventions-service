@@ -115,6 +115,9 @@
     "@stoplight/spectral-cli": {
       "rollup": "2.80.0"
     },
+    "express": {
+      "proxy-addr": "^2.0.8"
+    },
     "axios": "^1.20.0",
     "brace-expansion": "^5.0.12",
     "cross-spawn": "^7.0.5",
@@ -127,7 +130,6 @@
     "underscore": "^1.13.8",
     "ws": "^8.21.0",
     "yaml": "^2.7.0",
-    "smol-toml": "^1.7.1",
-    "proxy-addr": "^2.0.8"
+    "smol-toml": "^1.7.1"
   }
 }
