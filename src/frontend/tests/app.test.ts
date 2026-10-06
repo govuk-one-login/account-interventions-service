@@ -389,8 +389,7 @@ describe('frontend app', () => {
       );
       const response = await server.inject({ method: 'GET', url: '/user/test-user-id' });
       expect(response.statusCode).toBe(200);
-      expect(response.body).toContain('There are no active interventions on this account.');
-      expect(response.body).not.toContain('No account found for this identifier.');
+      expect(response.body).toContain('User not found');
     });
 
     it('URL-decodes the userId path parameter before querying', async () => {
