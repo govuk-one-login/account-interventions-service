@@ -222,7 +222,7 @@ export function init(
       assetPath,
       accountStatus,
       userId,
-      accountHistory: formatHistory(comparedHistory),
+      accountHistory: markHistoryUncertainty(formatHistory(comparedHistory)),
       messageSent,
       aisSendTxMA: featureFlags.isEnabled('aisSendTxMA'),
       interventions,
@@ -377,3 +377,44 @@ export const formatHistory = (history: { lines: HistoryLineWithChange[] }): Hist
       return result;
     }, {}),
   ).toSorted((a, b) => b.sentAt - a.sentAt);
+
+interface UncertaintyMarker {
+  cutoff?: true;
+}
+
+/**
+ * Returns the cutoff timestamp before which intervention history is considered
+ * unreliable. This is the more recent of a fixed cutoff date (10 June 2026) or
+ * two years before `now`, so the uncertainty window never grows beyond two years.
+ */
+export function getUncertaintyCutoff(now: Date = new Date()): number {
+  // Dates are zero-indexed so June is `5`
+  const fixedCutoff = new Date(2026, 5, 10).valueOf();
+  const twoYearsAgo = new Date(now.getFullYear() - 2, now.getMonth(), now.getDate()).valueOf();
+  return Math.max(fixedCutoff, twoYearsAgo);
+}
+
+export function markHistoryUncertainty(
+  history: HistoryTransaction[],
+  now: Date = new Date(),
+): (HistoryTransaction | UncertaintyMarker)[] {
+  const cutoffDate = getUncertaintyCutoff(now);
+  let cutoffIndex: number | undefined;
+  for (const [index, transaction] of history.entries()) {
+    if (transaction.sentAt < cutoffDate) {
+      cutoffIndex = index;
+      break;
+    }
+  }
+
+  if (cutoffIndex !== undefined) {
+    const historyWithCutoffMarker = history as (HistoryTransaction | UncertaintyMarker)[];
+    historyWithCutoffMarker[cutoffIndex] = {
+      ...historyWithCutoffMarker[cutoffIndex],
+      cutoff: true,
+    };
+    return historyWithCutoffMarker;
+  }
+
+  return history;
+}
