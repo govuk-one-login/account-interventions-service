@@ -132,6 +132,7 @@ export class AppConfigService {
     const result = {} as ConfigObject<T>;
     for (const key of keys) {
       const config = CONFIG_ENVIRONMENT_MAPPING[key];
+      //eslint-disable-next-line unicorn/prefer-logical-operator-over-ternary
       const optional = 'optional' in config ? config.optional : false;
       (result as Record<string, unknown>)[key] = this.resolveConfigValue(config.envVar, config.type, optional);
     }

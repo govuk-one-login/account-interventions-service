@@ -12,7 +12,7 @@
   {% endif %}
 {% endset %}
 
-{% block pageTitle %}{{ pageTitleText | trim }}{% endblock %}
+{% block pageTitle %}{{ pageTitleText | trim | safe }}{% endblock %}
 {% block head %}
   <link rel="stylesheet" href="{{ assetPath }}/govuk-frontend.min.css"/>
 <style>

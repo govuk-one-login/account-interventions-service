@@ -272,7 +272,6 @@ describe('deduplicateEvents', () => {
     interventionName: 'TEMPORARY_SUSPENSION',
     interventionState: 'ACTIVE',
     sentAt: 1000,
-    transactionId: 'tx-account-status',
   };
 
   const matchingInterventionEvent: HistoryIdentifier = {
@@ -353,11 +352,41 @@ describe('deduplicateEvents', () => {
       interventionName: 'REPROVE_IDENTITY',
       interventionState: 'REMOVED',
       sentAt: 5000,
-      transactionId: 'tx-other',
     };
 
     const result = deduplicateEvents([baseEvent, nonMatchingEvent], [matchingInterventionEvent]);
 
     expect(result).toEqual([nonMatchingEvent, matchingInterventionEvent]);
+    expect(result).toHaveLength(2);
   });
+
+  it('does not remove records that only exist in the account-status table', () => {
+    // Simulate scenario where there is an intervention event in the account-status table
+    // that pre-dates the existence of the intervention-events table followed then by an event
+    // that exists in both tables
+    const accountStatusOnlyEvent: HistoryIdentifier = {
+      interventionName: 'PERMANENT_SUSPENSION',
+      interventionState: 'ACTIVE',
+      sentAt: 5000,
+    };
+
+    const matchingAccStatusEvent: HistoryIdentifier = {
+      interventionName: 'PERMANENT_SUSPENSION',
+      interventionState: 'REMOVED',
+      sentAt: 6000,
+    };
+
+    const matchingInterventionEvent: HistoryIdentifier = {
+      interventionName: 'PERMANENT_SUSPENSION',
+      interventionState: 'REMOVED',
+      sentAt: 6000,
+      transactionId: 'some-id-here'
+    };
+
+    const result = deduplicateEvents([accountStatusOnlyEvent, matchingAccStatusEvent], [matchingInterventionEvent]);
+    expect(result).toContainEqual(expect.objectContaining(accountStatusOnlyEvent));
+    expect(result).not.toContain(matchingAccStatusEvent);
+    expect(result).toEqual([accountStatusOnlyEvent, matchingInterventionEvent]);
+    expect(result).toHaveLength(2);
+  })
 });
