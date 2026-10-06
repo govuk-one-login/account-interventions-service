@@ -777,8 +777,8 @@ data-module="govuk-service-navigation"
     <strong>test-user-id</strong>
   </p>
 
-
-
+  
+    
 <h2 class="govuk-heading-l">Active Interventions</h2>
 
   
@@ -806,11 +806,13 @@ data-module="govuk-service-navigation"
 
 
 
+    
 
 
 <h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
 
   
+      
 
       
 
@@ -1012,7 +1014,7 @@ data-module="govuk-service-navigation"
 
 
 
-  
+    
 
 
   <h2 class="govuk-heading-m">Send Intervention</h2>
@@ -1069,6 +1071,7 @@ data-module="govuk-service-navigation"
   </form>
 
 
+  
 
         </main>
         
@@ -1317,7 +1320,9 @@ data-module="govuk-service-navigation"
   <p class="govuk-body">User ID:
     <strong>test-user-id</strong>
   </p>
+
   
+    
 <h2 class="govuk-heading-l">Active Interventions</h2>
 
   
@@ -1345,11 +1350,13 @@ data-module="govuk-service-navigation"
 
 
 
-  
+    
+
 
 <h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
 
   
+      
 
       
 
@@ -1473,6 +1480,7 @@ data-module="govuk-service-navigation"
 
 
     
+      
 
       
 
@@ -1577,6 +1585,7 @@ data-module="govuk-service-navigation"
 
 
     
+      
 
       
 
@@ -1700,7 +1709,7 @@ data-module="govuk-service-navigation"
 
 
     
-
+      
         <div class="govuk-warning-text">
   <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
   <strong class="govuk-warning-text__text">
@@ -1710,14 +1719,17 @@ data-module="govuk-service-navigation"
 </div>
 
         <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+      
 
+      
 
-
-
-
-
-
-
+      
+        
+        
+          
+            
+              
+            
             
           
         
@@ -1831,6 +1843,7 @@ data-module="govuk-service-navigation"
 
 
     
+      
 
       
 
@@ -2013,7 +2026,7 @@ data-module="govuk-service-navigation"
 
 
 
-  
+    
 
 
   <h2 class="govuk-heading-m">Send Intervention</h2>
@@ -2070,6 +2083,7 @@ data-module="govuk-service-navigation"
   </form>
 
 
+  
 
         </main>
         
@@ -2318,79 +2332,11 @@ data-module="govuk-service-navigation"
   <p class="govuk-body">User ID:
     <strong>test-user-id</strong>
   </p>
-  
-<h2 class="govuk-heading-l">Active Interventions</h2>
 
   
-    <p class="govuk-body">There are no active interventions on this account.</p>
+    <h2 class="govuk-heading-l">User not found</h2>
+    <p class="govuk-body">We couldn't find any data for this user. The user associated with this URN may not exist, have been deleted, or have no intervention history. Please check the URN you entered is correct.</p>
   
-
-
-  
-
-
-<h2 class="govuk-heading-l govuk-!-margin-top-8">History</h2>
-
-  <p class="govuk-body-s">No history available for this account.</p>
-
-
-  
-
-
-  <h2 class="govuk-heading-m">Send Intervention</h2>
-  <form method="post" action="/send">
-    <input type="hidden" name="userId" value="test-user-id"/> 
-
-
-<div class="govuk-form-group">
-  <label class="govuk-label" for="intervention-code">
-    Intervention type
-  </label>
-
-
-
-  <select class="govuk-select" id="intervention-code" name="interventionCode">
-  
-    
-    <option value="01">01 - FRAUD_SUSPEND_ACCOUNT</option>
-    
-  
-    
-    <option value="02">02 - FRAUD_UNSUSPEND_ACCOUNT</option>
-    
-  
-    
-    <option value="03">03 - FRAUD_BLOCK_ACCOUNT</option>
-    
-  
-    
-    <option value="04">04 - FRAUD_FORCED_USER_PASSWORD_RESET</option>
-    
-  
-    
-    <option value="05">05 - FRAUD_FORCED_USER_IDENTITY_REVERIFICATION</option>
-    
-  
-    
-    <option value="06">06 - FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION</option>
-    
-  
-    
-    <option value="07">07 - FRAUD_UNBLOCK_ACCOUNT</option>
-    
-  
-  </select>
-
-</div>
-
-    
-<button type="submit" class="govuk-button" data-module="govuk-button">
-  Send TxMA Message
-</button>
-
-  </form>
-
-
 
         </main>
         
