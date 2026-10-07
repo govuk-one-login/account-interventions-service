@@ -55,10 +55,10 @@ $ npm test
 
 ### Run DynamoDB Local tests
 
-The tests in `src/services/test/dynamodb-local` run our DynamoDB code against DynamoDB docker container.
-These are tagged `dynamodb-local` and are skipped when `npm test` is run
+The tests in `src/services/test/dynamodb-local` are designed to run against a local DynamoDB docker container.
+These are tagged `dynamodb-local` and are skipped by default by our test config
 
-To run them
+To run these tests run the following commands in a terminal:
 
 ```sh
 npm run dynamodb-local:start
@@ -66,11 +66,6 @@ npm run test:unit:dynamodb-local
 npm run dynamodb-local:stop
 ```
 Note that `--tags-filter` only selects tagged tests, it does not un-skip them, which is why the separate config file is needed.
-
-
-#### CI
-
-These tests run as part of the `Build & Test` workflow (`.github/workflows/acceptance-checks.yaml`), which starts DynamoDB Local before the test step and stops it afterwards.
 
 ### Run mutation tests
 
