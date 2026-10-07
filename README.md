@@ -53,6 +53,20 @@ To fully test the application, try the test command below
 $ npm test
 ```
 
+### Run DynamoDB Local tests
+
+The tests in `src/services/test/dynamodb-local` are designed to run against a local DynamoDB docker container.
+These are tagged `dynamodb-local` and are skipped by default by our test config
+
+To run these tests run the following commands in a terminal:
+
+```sh
+npm run dynamodb-local:start
+npm run test:unit:dynamodb-local
+npm run dynamodb-local:stop
+```
+Note that `--tags-filter` only selects tagged tests, it does not un-skip them, which is why the separate config file is needed.
+
 ### Run mutation tests
 
 We have [Stryker](https://stryker-mutator.io/) installed on the project for [mutation testing](https://en.wikipedia.org/wiki/Mutation_testing). You can run Stryker via npm script:
