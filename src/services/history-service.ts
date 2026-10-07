@@ -92,10 +92,10 @@ export class HistoryService {
 
 // Deduplicate data from v1 and v2 history
 export function deduplicateEvents<T extends HistoryIdentifier>(accountStatusEvents: T[], interventionEvents: T[]): T[] {
-  // Track matched account-status events by object reference. We cannot use transactionId
-  // because account-status events (parsed from legacy history strings) don't have one —
-  // only intervention-events table records do.
-  const matchedAccountStatusEvents = new Set<T>();
+  // A single history code expands into multiple account-status events sharing
+  // a tagId. When any one matches an intervention event, remove the entire
+  // group — otherwise the unmatched siblings appear as a duplicate transaction.
+  const matchedTagIds = new Set<string>();
 
   // Build enriched intervention events by copying interventionCode from matching account-status events
   const enrichedInterventionEvents = interventionEvents.map((ie) => {
@@ -109,7 +109,7 @@ export function deduplicateEvents<T extends HistoryIdentifier>(accountStatusEven
     // There is a problem with interventionEvents which don't have the interventionCode
     // copy it from the matching accountStatusEvent and add it to the interventionEvent
     if (match) {
-      matchedAccountStatusEvents.add(match);
+      matchedTagIds.add(match.tagId);
       if (match.interventionCode && !ie.interventionCode) {
         return { ...ie, interventionCode: match.interventionCode };
       }
@@ -118,11 +118,11 @@ export function deduplicateEvents<T extends HistoryIdentifier>(accountStatusEven
     return ie;
   });
 
-  // Remove only the specific matched account-status events, keeping any that
+  // Remove only the specific matched tagId's, keeping any that
   // exist solely in the account-status table (e.g. events predating the
   // intervention-events table).
   const remainingAccountStatusEvents = accountStatusEvents.filter(
-    (event) => !matchedAccountStatusEvents.has(event),
+    (event) => !matchedTagIds.has(event.tagId),
   );
 
   return [...remainingAccountStatusEvents, ...enrichedInterventionEvents];
@@ -132,6 +132,7 @@ export interface HistoryIdentifier {
   interventionName: string;
   interventionState: string;
   sentAt: number;
+  tagId: string;
   transactionId?: string | undefined;
   interventionCode?: string | undefined;
 }
