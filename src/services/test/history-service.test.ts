@@ -371,21 +371,21 @@ describe('deduplicateEvents', () => {
       sentAt: 1000,
       tagId: 'account-status-tag',
     };
-  
+
     const resetPasswordRemoved: HistoryIdentifier = {
       interventionName: 'RESET_PASSWORD',
       interventionState: 'REMOVED',
       sentAt: 1000,
       tagId: 'account-status-tag',
     };
-  
+
     const reproveIdentityRemoved: HistoryIdentifier = {
       interventionName: 'REPROVE_IDENTITY',
       interventionState: 'REMOVED',
       sentAt: 1000,
       tagId: 'account-status-tag',
     };
-  
+
     // intervention-events table event
     const interventionEvent: HistoryIdentifier = {
       interventionName: 'TEMPORARY_SUSPENSION',
@@ -394,12 +394,12 @@ describe('deduplicateEvents', () => {
       transactionId: 'tx-1',
       tagId: 'intervention-tag',
     };
-  
+
     const result = deduplicateEvents(
       [suspendActive, resetPasswordRemoved, reproveIdentityRemoved],
       [interventionEvent],
     );
-  
+
     expect(result).toEqual([interventionEvent]);
     expect(result).toHaveLength(1);
   });
@@ -412,14 +412,14 @@ describe('deduplicateEvents', () => {
       sentAt: 1000,
       tagId: 'old-tag',
     };
-  
+
     const oldResetRemoved: HistoryIdentifier = {
       interventionName: 'RESET_PASSWORD',
       interventionState: 'REMOVED',
       sentAt: 1000,
       tagId: 'old-tag',
     };
-  
+
     // Newer event that exists in both tables
     const newerSuspend: HistoryIdentifier = {
       interventionName: 'TEMPORARY_SUSPENSION',
@@ -427,14 +427,14 @@ describe('deduplicateEvents', () => {
       sentAt: 2000,
       tagId: 'newer-account-status-tag',
     };
-  
+
     const newerResetRemoved: HistoryIdentifier = {
       interventionName: 'RESET_PASSWORD',
       interventionState: 'REMOVED',
       sentAt: 2000,
       tagId: 'newer-account-status-tag',
     };
-  
+
     // Event in intervention-events table
     const newerInterventionEvent: HistoryIdentifier = {
       interventionName: 'TEMPORARY_SUSPENSION',
@@ -443,12 +443,12 @@ describe('deduplicateEvents', () => {
       transactionId: 'tx-2',
       tagId: 'intervention-tag',
     };
-  
+
     const result = deduplicateEvents(
       [oldSuspend, oldResetRemoved, newerSuspend, newerResetRemoved],
       [newerInterventionEvent],
     );
-  
+
     // Old group kept, newer group removed in favour of intervention event
     expect(result).toEqual([oldSuspend, oldResetRemoved, newerInterventionEvent]);
     expect(result).toHaveLength(3);

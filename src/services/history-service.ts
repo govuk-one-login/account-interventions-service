@@ -118,7 +118,7 @@ export function deduplicateEvents<T extends HistoryIdentifier>(accountStatusEven
     return ie;
   });
 
-  // Remove only the specific matched tagId's, keeping any that
+  // Remove all events with matched tagId's, keeping any that
   // exist solely in the account-status table (e.g. events predating the
   // intervention-events table).
   const remainingAccountStatusEvents = accountStatusEvents.filter(
