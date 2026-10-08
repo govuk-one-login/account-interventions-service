@@ -272,6 +272,7 @@ describe('deduplicateEvents', () => {
     interventionName: 'TEMPORARY_SUSPENSION',
     interventionState: 'ACTIVE',
     sentAt: 1000,
+    tagId: 'tag-1'
   };
 
   const matchingInterventionEvent: HistoryIdentifier = {
@@ -279,6 +280,7 @@ describe('deduplicateEvents', () => {
     interventionState: 'ACTIVE',
     sentAt: 1000,
     transactionId: 'tx-intervention',
+    tagId: 'tag-2'
   };
 
   it('removes the account status event when all fields match an intervention event', () => {
@@ -352,6 +354,7 @@ describe('deduplicateEvents', () => {
       interventionName: 'REPROVE_IDENTITY',
       interventionState: 'REMOVED',
       sentAt: 5000,
+      tagId: 'tag-3'
     };
 
     const result = deduplicateEvents([baseEvent, nonMatchingEvent], [matchingInterventionEvent]);
@@ -360,33 +363,94 @@ describe('deduplicateEvents', () => {
     expect(result).toHaveLength(2);
   });
 
-  it('does not remove records that only exist in the account-status table', () => {
-    // Simulate scenario where there is an intervention event in the account-status table
-    // that pre-dates the existence of the intervention-events table followed then by an event
-    // that exists in both tables
-    const accountStatusOnlyEvent: HistoryIdentifier = {
-      interventionName: 'PERMANENT_SUSPENSION',
+  it('removes all account-status events sharing a tagId when one matches an intervention event', () => {
+    // account-status table events
+    const suspendActive: HistoryIdentifier = {
+      interventionName: 'TEMPORARY_SUSPENSION',
       interventionState: 'ACTIVE',
-      sentAt: 5000,
+      sentAt: 1000,
+      tagId: 'account-status-tag',
     };
 
-    const matchingAccStatusEvent: HistoryIdentifier = {
-      interventionName: 'PERMANENT_SUSPENSION',
+    const resetPasswordRemoved: HistoryIdentifier = {
+      interventionName: 'RESET_PASSWORD',
       interventionState: 'REMOVED',
-      sentAt: 6000,
+      sentAt: 1000,
+      tagId: 'account-status-tag',
     };
 
-    const matchingInterventionEvent: HistoryIdentifier = {
-      interventionName: 'PERMANENT_SUSPENSION',
+    const reproveIdentityRemoved: HistoryIdentifier = {
+      interventionName: 'REPROVE_IDENTITY',
       interventionState: 'REMOVED',
-      sentAt: 6000,
-      transactionId: 'some-id-here'
+      sentAt: 1000,
+      tagId: 'account-status-tag',
     };
 
-    const result = deduplicateEvents([accountStatusOnlyEvent, matchingAccStatusEvent], [matchingInterventionEvent]);
-    expect(result).toContainEqual(expect.objectContaining(accountStatusOnlyEvent));
-    expect(result).not.toContain(matchingAccStatusEvent);
-    expect(result).toEqual([accountStatusOnlyEvent, matchingInterventionEvent]);
-    expect(result).toHaveLength(2);
-  })
+    // intervention-events table event
+    const interventionEvent: HistoryIdentifier = {
+      interventionName: 'TEMPORARY_SUSPENSION',
+      interventionState: 'ACTIVE',
+      sentAt: 1000,
+      transactionId: 'tx-1',
+      tagId: 'intervention-tag',
+    };
+
+    const result = deduplicateEvents(
+      [suspendActive, resetPasswordRemoved, reproveIdentityRemoved],
+      [interventionEvent],
+    );
+
+    expect(result).toEqual([interventionEvent]);
+    expect(result).toHaveLength(1);
+  });
+
+  it('removes a matched account-status group while keeping an unmatched group', () => {
+    // Old event that only exists in account-status table
+    const oldSuspend: HistoryIdentifier = {
+      interventionName: 'TEMPORARY_SUSPENSION',
+      interventionState: 'ACTIVE',
+      sentAt: 1000,
+      tagId: 'old-tag',
+    };
+
+    const oldResetRemoved: HistoryIdentifier = {
+      interventionName: 'RESET_PASSWORD',
+      interventionState: 'REMOVED',
+      sentAt: 1000,
+      tagId: 'old-tag',
+    };
+
+    // Newer event that exists in both tables
+    const newerSuspend: HistoryIdentifier = {
+      interventionName: 'TEMPORARY_SUSPENSION',
+      interventionState: 'ACTIVE',
+      sentAt: 2000,
+      tagId: 'newer-account-status-tag',
+    };
+
+    const newerResetRemoved: HistoryIdentifier = {
+      interventionName: 'RESET_PASSWORD',
+      interventionState: 'REMOVED',
+      sentAt: 2000,
+      tagId: 'newer-account-status-tag',
+    };
+
+    // Event in intervention-events table
+    const newerInterventionEvent: HistoryIdentifier = {
+      interventionName: 'TEMPORARY_SUSPENSION',
+      interventionState: 'ACTIVE',
+      sentAt: 2000,
+      transactionId: 'tx-2',
+      tagId: 'intervention-tag',
+    };
+
+    const result = deduplicateEvents(
+      [oldSuspend, oldResetRemoved, newerSuspend, newerResetRemoved],
+      [newerInterventionEvent],
+    );
+
+    // Old group kept, newer group removed in favour of intervention event
+    expect(result).toEqual([oldSuspend, oldResetRemoved, newerInterventionEvent]);
+    expect(result).toHaveLength(3);
+  });
 });
