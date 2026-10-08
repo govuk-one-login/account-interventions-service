@@ -67,6 +67,7 @@ export default defineConfig(
       'unicorn/prefer-array-find': ['error'],
       'unicorn/prefer-string-starts-ends-with': ['error'],
       'tsdoc/syntax': ['error'],
+      '@typescript-eslint/no-unsafe-enum-assignment': ['off']
     },
   },
   {
