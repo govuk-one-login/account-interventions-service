@@ -1,4 +1,4 @@
-import { HistoryStringBuilder } from '../history-string-builder';
+import { HistoryStringBuilder } from '../history-string-builder.mts';
 import { TriggerEventsEnum } from '../../data-types/constants';
 import { TicfAccountIntervention } from '../../contracts/intervention-events';
 

@@ -3,7 +3,7 @@ import {
   updateAccountStateCountMetricAfterDeletion,
   publishTimeToResolveMetrics,
 } from '../metrics-helper';
-import { addMetric } from '../metrics';
+import { addMetric } from '../metrics.mts';
 import { EventsEnum } from '../../data-types/constants';
 
 vi.mock('@aws-lambda-powertools/logger');

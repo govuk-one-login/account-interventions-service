@@ -1,6 +1,6 @@
 import type { APIGatewayEvent, APIGatewayProxyEventQueryStringParameters } from 'aws-lambda';
-import logger from '../../commons/logger';
-import { addMetric } from '../../commons/metrics';
+import logger from '../../commons/logger.mts';
+import { addMetric } from '../../commons/metrics.mts';
 import jestOpenAPI from 'jest-openapi';
 import { InMemoryInterventionEventsService } from '../../tables/intervention-events';
 import { InterventionState } from '../../data-types/constants';
@@ -10,7 +10,7 @@ import { retrieveStatus } from '../status-retriever';
 
 jestOpenAPI(`${__dirname}/../../specs/main.yaml`);
 
-vi.mock('../../commons/logger.ts');
+vi.mock('../../commons/logger.mts');
 vi.mock('../../commons/metrics');
 
 const testEvent: APIGatewayEvent = {

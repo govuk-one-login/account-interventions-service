@@ -9,7 +9,7 @@ rmSync(outdir, { recursive: true, force: true });
 
 // Bundle the Lambda handler
 await esbuild.build({
-  entryPoints: ['src/handlers/frontend-handler.ts'],
+  entryPoints: ['src/handlers/frontend-handler.mts'],
   bundle: true,
   platform: 'node',
   target: 'es2022',

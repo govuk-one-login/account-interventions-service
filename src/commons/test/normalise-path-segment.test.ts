@@ -1,4 +1,4 @@
-import { normalisePathSegment } from '../utils/normalise-path-segment';
+import { normalisePathSegment } from '../utils/normalise-path-segment.mts';
 
 describe('normalisePathSegment', () => {
   it.each([

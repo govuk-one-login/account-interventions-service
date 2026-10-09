@@ -2,9 +2,9 @@
 
 import { InterventionName, InterventionStub } from '@govuk-one-login/ais-status-sdk';
 import { FeatureFlagsStub } from '../services/feature-flags';
-import { init } from './app';
-import { InterventionState } from '../../packages/ais-status-sdk/src/types';
-import { StubMessageService } from '../services/message-service';
+import { init } from './app.mts';
+import { InterventionState } from '../../packages/ais-status-sdk/src/types.ts';
+import { StubMessageService } from '../services/message-service.mts';
 import { StubAuthoriser } from './authoriser';
 
 init(

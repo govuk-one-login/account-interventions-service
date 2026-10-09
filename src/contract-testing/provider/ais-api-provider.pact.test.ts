@@ -4,7 +4,7 @@ import { closeServer, setupServer } from '../test-helpers/mock-server';
 import { Verifier, VerifierOptions } from '@pact-foundation/pact';
 import { AISInterventionTypes } from '../../data-types/constants';
 import { StateDetails } from '../../data-types/interfaces';
-import getEnvironmentOrThrow from '../../commons/get-environment-or-throw';
+import getEnvironmentOrThrow from '../../commons/get-environment-or-throw.mts';
 import { DynamoDBDocumentClient, NativeAttributeValue, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { InterventionName } from '../../data-types/intervention-name';
 import { InterventionState } from '../../data-types/constants';

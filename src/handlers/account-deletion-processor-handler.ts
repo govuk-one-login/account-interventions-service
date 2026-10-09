@@ -1,6 +1,6 @@
 /* istanbul ignore start -- production only */
 
-import logger from '../commons/logger';
+import logger from '../commons/logger.mts';
 import type { Context, SQSEvent } from 'aws-lambda';
 import { getPersistentAccountStatusService } from '../tables/account-status';
 import { processAccountDeletion } from './account-deletion-processor';

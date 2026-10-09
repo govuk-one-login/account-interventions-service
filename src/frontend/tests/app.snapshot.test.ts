@@ -1,7 +1,7 @@
-import { init } from '../app';
+import { init } from '../app.mts';
 import { InterventionStub, InterventionName, InterventionState } from '@govuk-one-login/ais-status-sdk';
 import { StubAuthoriser } from '../authoriser';
-import { StubMessageService } from '../../services/message-service';
+import { StubMessageService } from '../../services/message-service.mts';
 import { FeatureFlagsStub } from '../../services/feature-flags';
 
 vi.mock('@aws-lambda-powertools/logger');

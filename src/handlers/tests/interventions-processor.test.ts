@@ -1,9 +1,9 @@
 import { Mock } from 'vitest';
-import logger from '../../commons/logger';
+import logger from '../../commons/logger.mts';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
-import { addMetric } from '../../commons/metrics';
-import { AccountStateEngine } from '../../services/account-states/account-state-engine';
-import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
+import { addMetric } from '../../commons/metrics.mts';
+import { AccountStateEngine } from '../../services/account-states/account-state-engine.mts';
+import { getCurrentTimestamp } from '../../commons/get-current-timestamp.mts';
 import { TooManyRecordsError } from '../../data-types/errors';
 import { EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { sendAuditEvent } from '../../services/send-audit-events';

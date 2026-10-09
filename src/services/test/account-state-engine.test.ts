@@ -1,4 +1,4 @@
-import { AccountStateEngine, areAccountStatesTheSame, compareStrings } from '../account-states/account-state-engine';
+import { AccountStateEngine, areAccountStatesTheSame, compareStrings } from '../account-states/account-state-engine.mts';
 import {
   AISInterventionTypes,
   Codes,
@@ -7,9 +7,9 @@ import {
   PossibleAccountStatus,
 } from '../../data-types/constants';
 import { StateEngineConfigError, StateTransitionError } from '../../data-types/errors';
-import { addMetric } from '../../commons/metrics';
+import { addMetric } from '../../commons/metrics.mts';
 import { StateDetails, TransitionConfigInterface } from '../../data-types/interfaces';
-import logger from '../../commons/logger';
+import logger from '../../commons/logger.mts';
 
 const accountStateEngine = AccountStateEngine.getInstance();
 const accountIsSuspended = {

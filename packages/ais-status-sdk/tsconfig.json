@@ -3,6 +3,7 @@
   "compilerOptions": {
     "lib": ["es2022", "dom"],
     "target": "es2022",
+    "module": "NodeNext",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -12,8 +13,10 @@
     "noUnusedParameters": true,
     "resolveJsonModule": true,
     "declaration": true,
-    "rootDir": "../.."
+    "rootDir": "../..",
+    "allowImportingTsExtensions": true
   },
-  "include": ["src/index.ts", "../../src/data-types/api-schemas-v2.ts", "../../src/data-types/intervention-name.ts"],
+  "include": [
+    "src/index.mts", "../../src/data-types/api-schemas-v2.ts", "../../src/data-types/intervention-name.ts"],
   "exclude": ["dist"]
 }

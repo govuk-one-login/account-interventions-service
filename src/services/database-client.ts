@@ -1,5 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import tracer from '../commons/tracer';
+import tracer from '../commons/tracer.mts';
 import { AppConfigService } from './app-config-service';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';

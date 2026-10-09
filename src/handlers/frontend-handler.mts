@@ -2,12 +2,12 @@
 
 import awsLambdaFastify from '@fastify/aws-lambda';
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
-import { init } from '../frontend/app';
-import logger from '../commons/logger';
+import { init } from '../frontend/app.mts';
+import logger from '../commons/logger.mts';
 import { InterventionClient } from '@govuk-one-login/ais-status-sdk';
 import { Authoriser, JwtAuthoriser, StubAuthoriser } from '../frontend/authoriser';
 import { FeatureFlagsFromEnvironmentVariables } from '../services/feature-flags';
-import { NullMessageService, SqsMessageService } from '../services/message-service';
+import { NullMessageService, SqsMessageService } from '../services/message-service.mts';
 import { AppConfigService } from '../services/app-config-service';
 
 const config = AppConfigService.getInstance().getConfigObject(['statusApiUrl', 'debugIngressTxmaQueueUrl', 'subpath', 'stagePrefix']);

@@ -7,7 +7,7 @@ RUN yum install -y gcc-c++ make && \
 WORKDIR /app
 
 # COPY Files from src directory
-COPY package.json package-lock.json tsconfig.json vitest.config.ts /
+COPY package.json package-lock.json tsconfig.json vitest.config.mts /
 RUN npm ci
 
 COPY tests/ /tests

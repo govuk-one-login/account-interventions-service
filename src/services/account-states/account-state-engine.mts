@@ -1,4 +1,4 @@
-import { transitionConfig } from './config';
+import { transitionConfig } from './config.mts';
 import { AccountStateEngineOutput, StateDetails } from '../../data-types/interfaces';
 import {
   AISInterventionTypes,
@@ -10,8 +10,8 @@ import {
   userLedActionList,
 } from '../../data-types/constants';
 import { StateEngineConfigError, StateTransitionError } from '../../data-types/errors';
-import logger from '../../commons/logger';
-import { addMetric } from '../../commons/metrics';
+import logger from '../../commons/logger.mts';
+import { addMetric } from '../../commons/metrics.mts';
 
 export class AccountStateEngine {
   private static readonly configuration = transitionConfig;

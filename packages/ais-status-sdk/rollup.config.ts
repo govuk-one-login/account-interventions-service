@@ -3,7 +3,7 @@ import json from '@rollup/plugin-json';
 import dts from 'rollup-plugin-dts';
 import { defineConfig, type RollupOptions } from 'rollup';
 
-const input = 'src/index.ts';
+const input = 'src/index.mts';
 
 const jsTs = (outDir: string) =>
   typescript({

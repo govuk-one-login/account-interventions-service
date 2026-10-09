@@ -1,6 +1,6 @@
 import path from 'node:path';
 import pact from '@pact-foundation/pact-cli';
-import getEnvironmentOrThrow from '../../commons/get-environment-or-throw';
+import getEnvironmentOrThrow from '../../commons/get-environment-or-throw.mts';
 
 const publishPact = async () => {
   console.log('STARTING PUBLISH PACT');

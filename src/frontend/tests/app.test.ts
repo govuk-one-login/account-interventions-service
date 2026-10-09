@@ -2,16 +2,17 @@ import {
   formatHistory,
   init,
   generateVerifyRequest,
-  FrontendAppConfig,
-  FrontendAppDependencies,
   getDisplayState,
   flagInterventionStateChanges,
   redirectHook,
   markHistoryUncertainty,
   getUncertaintyCutoff,
-} from '../app';
+  FrontendAppConfig,
+  FrontendAppDependencies,
+} from '../app.mts';
+
 import { InterventionStub, InterventionName, InterventionState } from '@govuk-one-login/ais-status-sdk';
-import { StubMessageService } from '../../services/message-service';
+import { StubMessageService } from '../../services/message-service.mts';
 import type { SendMessageCommandOutput } from '@aws-sdk/client-sqs';
 import { FeatureFlagsStub } from '../../services/feature-flags';
 import { JwtAuthoriser, StubAuthoriser } from '../authoriser';

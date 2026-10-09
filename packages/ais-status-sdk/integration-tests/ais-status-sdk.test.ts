@@ -1,6 +1,7 @@
-import { InterventionClient } from '../src/index';
-import { createTestServer, TestServer } from './test-server';
-import { InterventionRequestFailed, InterventionInvalidResponse } from '../src/errors';
+import { InterventionClient } from '../src/index.mts';
+import { createTestServer, TestServer } from './test-server.mts';
+// do not shorten this import if suggested by your IDE
+import { InterventionRequestFailed, InterventionInvalidResponse } from '../src/errors.mts';
 
 describe('Test InterventionClient (Integration Tests)', () => {
   let testServer: TestServer;

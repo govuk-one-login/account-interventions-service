@@ -1,7 +1,7 @@
 import { Mock } from 'vitest';
-import { StubMessageService } from '../../services/message-service';
+import { StubMessageService } from '../../services/message-service.mts';
 import { Metrics } from '@aws-lambda-powertools/metrics';
-import logger from '../../commons/logger';
+import logger from '../../commons/logger.mts';
 import { processTxmaEvents } from '../txma-processor';
 
 vi.mock('@aws-lambda-powertools/metrics');

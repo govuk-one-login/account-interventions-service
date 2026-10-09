@@ -7,9 +7,9 @@ import {
   SendMessageBatchCommandOutput,
   SendMessageBatchRequestEntry,
 } from '@aws-sdk/client-sqs';
-import tracer from '../commons/tracer';
-import getEnvironmentOrThrow from '../commons/get-environment-or-throw';
-import logger from '../commons/logger';
+import tracer from '../commons/tracer.mts';
+import getEnvironmentOrThrow from '../commons/get-environment-or-throw.mts';
+import logger from '../commons/logger.mts';
 
 export function createSqsClient() {
   const region = getEnvironmentOrThrow('AWS_REGION');

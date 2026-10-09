@@ -1,6 +1,6 @@
-import logger from './logger';
+import logger from './logger.mts';
 import Ajv2019 from 'ajv/dist/2019';
-import { addMetric } from './metrics';
+import { addMetric } from './metrics.mts';
 import { MetricNames } from '../data-types/constants';
 import {
   TICF_ACCOUNT_INTERVENTIONSchema,

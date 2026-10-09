@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util';
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
-import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp.mts';
 
 enum EventType {
   TICF_ACCOUNT_INTERVENTION = 'TICF_ACCOUNT_INTERVENTION',

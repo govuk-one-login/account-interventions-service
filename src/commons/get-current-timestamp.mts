@@ -1,4 +1,4 @@
-import { CurrentTimeDescriptor } from '../data-types/interfaces';
+import type { CurrentTimeDescriptor } from '../data-types/interfaces.ts';
 
 /**
  * A function for calculating and returning an object containing the current timestamp.

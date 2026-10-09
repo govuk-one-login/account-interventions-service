@@ -1,10 +1,10 @@
 import type { APIGatewayEvent, APIGatewayProxyEventHeaders, APIGatewayProxyResult } from 'aws-lambda';
-import logger from '../commons/logger';
-import { addMetric, metric } from '../commons/metrics';
+import logger from '../commons/logger.mts';
+import { addMetric, metric } from '../commons/metrics.mts';
 import { MetricNames, AISInterventionTypes } from '../data-types/constants';
 import { HistoryObject } from '../data-types/interfaces';
-import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-import { HistoryStringBuilder } from '../commons/history-string-builder';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp.mts';
+import { HistoryStringBuilder } from '../commons/history-string-builder.mts';
 import getActiveInterventions from '../services/active-interventions-service';
 import { InterventionEventsService } from '../tables/intervention-events';
 import { UserIdParameterSchema, V1QuerySchema } from '../data-types/api-parameters';

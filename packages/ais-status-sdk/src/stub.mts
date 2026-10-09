@@ -1,4 +1,4 @@
-import { AccountHistory, AccountStatus, InterventionClientInterface, InterventionName } from './types';
+import { AccountHistory, AccountStatus, InterventionClientInterface, InterventionName } from './types.ts';
 
 export interface InterventionStubConfig {
   result?: AccountStatus;

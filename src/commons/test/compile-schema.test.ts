@@ -1,6 +1,6 @@
-import logger from '../logger';
+import logger from '../logger.mts';
 import { compileSchema } from '../compile-schema';
-import { metric } from '../metrics';
+import { metric } from '../metrics.mts';
 
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('@aws-lambda-powertools/metrics');

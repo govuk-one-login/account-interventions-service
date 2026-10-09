@@ -6,12 +6,12 @@ import {
   validateIfIdentityAcquired,
   attemptToParseJson,
 } from '../validate-event';
-import logger from '../../commons/logger';
-import { addMetric } from '../../commons/metrics';
+import logger from '../../commons/logger.mts';
+import { addMetric } from '../../commons/metrics.mts';
 import { ValidationError } from '../../data-types/errors';
 import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { sendAuditEvent } from '../send-audit-events';
-import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
+import { getCurrentTimestamp } from '../../commons/get-current-timestamp.mts';
 import { TICF_ACCOUNT_INTERVENTION } from '@govuk-one-login/event-catalogue/TICF_ACCOUNT_INTERVENTION';
 import { SQSClient } from '@aws-sdk/client-sqs';
 

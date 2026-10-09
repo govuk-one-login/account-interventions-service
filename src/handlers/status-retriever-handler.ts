@@ -1,7 +1,7 @@
 /* istanbul ignore start -- production only */
 
 import type { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
-import logger from '../commons/logger';
+import logger from '../commons/logger.mts';
 import { getPersistentInterventionEventsService, NullInterventionEventsService } from '../tables/intervention-events';
 import { getPersistentAccountStatusService } from '../tables/account-status';
 import { retrieveStatus } from './status-retriever';

@@ -4,7 +4,7 @@ import path from 'node:path';
 export default defineConfig({
   resolve: {
     alias: {
-      '@govuk-one-login/ais-status-sdk': path.resolve(__dirname, 'packages/ais-status-sdk/src/index.ts'),
+      '@govuk-one-login/ais-status-sdk': path.resolve(__dirname, 'packages/ais-status-sdk/src/index.mts'),
     },
   },
   test: {
@@ -13,7 +13,7 @@ export default defineConfig({
     // `dynamodb-local` tests are skipped by default so normal runs (test:unit,
     // watch, snapshot updates, bare `vitest`) don't try to hit DynamoDB on
     // localhost:8000. They are run via `npm run test:unit:dynamodb-local`, which
-    // uses vitest.dynamodb.config.ts to override skip. (`--tags-filter` selects
+    // uses vitest.dynamodb.config.mts to override skip. (`--tags-filter` selects
     // tagged tests but does not un-skip them, so the override config is required.)
     tags: [
       {

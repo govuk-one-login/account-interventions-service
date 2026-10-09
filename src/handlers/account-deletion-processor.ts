@@ -1,11 +1,11 @@
-import logger from '../commons/logger';
+import logger from '../commons/logger.mts';
 import Ajv2019 from 'ajv/dist/2019';
 import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
-import { addMetric, metric } from '../commons/metrics';
+import { addMetric, metric } from '../commons/metrics.mts';
 import { accountDeleteMessageSchema } from '../contracts/account-delete-message';
 import { prettifyError } from 'zod';
-import jsonSafeParse from '../commons/json-safe-parse';
+import jsonSafeParse from '../commons/json-safe-parse.mts';
 import { AUTH_DELETE_ACCOUNTSchema } from '@govuk-one-login/event-catalogue-schemas';
 import { addEventMetadataToSchema } from '../commons/compile-schema';
 import { AccountStatusService } from '../tables/account-status';

@@ -1,5 +1,5 @@
 import { StateDetails } from '../data-types/interfaces';
-import { addMetric } from './metrics';
+import { addMetric } from './metrics.mts';
 import { EventsEnum, MetricNames, noMetadata } from '../data-types/constants';
 
 /**

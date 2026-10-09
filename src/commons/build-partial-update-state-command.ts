@@ -1,7 +1,7 @@
 import { StateDetails } from '../data-types/interfaces';
 import { AISInterventionTypes, EventsEnum, MetricNames } from '../data-types/constants';
-import { addMetric } from './metrics';
-import { HistoryStringBuilder } from './history-string-builder';
+import { addMetric } from './metrics.mts';
+import { HistoryStringBuilder } from './history-string-builder.mts';
 import { AppConfigService } from '../services/app-config-service';
 import { InterventionEventMessage } from '../contracts/intervention-events';
 import { AccountStatus } from '../tables/account-status';

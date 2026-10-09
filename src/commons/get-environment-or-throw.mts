@@ -1,4 +1,4 @@
-import logger from './logger';
+import logger from './logger.mts';
 
 const getEnvironmentOrThrow = (name: string) => {
   const value = process.env[name];

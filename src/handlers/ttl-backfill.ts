@@ -1,7 +1,7 @@
 import { z, prettifyError } from 'zod';
-import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-import logger from '../commons/logger';
-import { addMetric, metric } from '../commons/metrics';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp.mts';
+import logger from '../commons/logger.mts';
+import { addMetric, metric } from '../commons/metrics.mts';
 import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
 import { InterventionEventKey, ScanForBackfillParameters, TtlBackfillService } from '../services/ttl-backfill-service';
 

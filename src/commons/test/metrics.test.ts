@@ -1,5 +1,5 @@
 import { Mock } from 'vitest';
-import { addMetric } from '../metrics';
+import { addMetric } from '../metrics.mts';
 import { Metrics } from '@aws-lambda-powertools/metrics';
 
 vi.mock('@aws-lambda-powertools/metrics');
