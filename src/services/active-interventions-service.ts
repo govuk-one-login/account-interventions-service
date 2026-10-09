@@ -1,6 +1,6 @@
-import logger from '../commons/logger';
+import logger from '../commons/logger.mts';
 import { InterventionState, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
-import { addMetric } from '../commons/metrics';
+import { addMetric } from '../commons/metrics.mts';
 import { StateDetails } from '../data-types/interfaces';
 import { InterventionEventsService } from '../tables/intervention-events';
 import { InterventionName } from '../data-types/intervention-name';

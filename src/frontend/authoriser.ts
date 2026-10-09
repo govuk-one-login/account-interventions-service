@@ -1,4 +1,4 @@
-import logger from '../commons/logger';
+import logger from '../commons/logger.mts';
 import { JwtVerifierInterface, KmsJwtVerifier } from '../services/jwt-verifier';
 import { JWTPayload } from 'jose';
 import z from 'zod';

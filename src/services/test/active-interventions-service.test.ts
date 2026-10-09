@@ -1,5 +1,5 @@
 import { InterventionState } from '../../data-types/constants';
-import logger from '../../commons/logger';
+import logger from '../../commons/logger.mts';
 import {
   filterEventStreamToActive,
   previousStateToInterventions,

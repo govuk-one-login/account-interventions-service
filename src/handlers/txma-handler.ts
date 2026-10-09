@@ -1,11 +1,11 @@
 /* istanbul ignore start -- production only. File also added to sonar.coverage.exclusions in sonar-project.properties */
 
 import { SQSEvent, Context } from 'aws-lambda';
-import logger from '../commons/logger';
+import logger from '../commons/logger.mts';
 import { processTxmaEvents } from './txma-processor';
-import { createSqsClient, SqsMessageService } from '../services/message-service';
+import { createSqsClient, SqsMessageService } from '../services/message-service.mts';
 import { SQSClient } from '@aws-sdk/client-sqs';
-import getEnvironmentOrThrow from '../commons/get-environment-or-throw';
+import getEnvironmentOrThrow from '../commons/get-environment-or-throw.mts';
 
 const generateSqsMessageService = (queueName: string, client: SQSClient) =>
   new SqsMessageService(getEnvironmentOrThrow(queueName), {

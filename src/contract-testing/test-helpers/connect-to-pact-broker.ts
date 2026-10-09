@@ -1,4 +1,4 @@
-import getEnvironmentOrThrow from '../../commons/get-environment-or-throw';
+import getEnvironmentOrThrow from '../../commons/get-environment-or-throw.mts';
 
 //required to connect to PactBroker as Pact libraries don't allow testSource parameter to be passed
 async function connectToPactBroker(pact_url: string, pact_user: string, pact_password: string): Promise<number> {

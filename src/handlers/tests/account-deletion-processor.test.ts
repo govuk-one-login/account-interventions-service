@@ -1,5 +1,5 @@
 import { Mock } from 'vitest';
-import logger from '../../commons/logger';
+import logger from '../../commons/logger.mts';
 import 'aws-sdk-client-mock-vitest/extend';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { Metrics } from '@aws-lambda-powertools/metrics';

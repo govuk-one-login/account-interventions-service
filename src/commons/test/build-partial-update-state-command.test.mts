@@ -1,7 +1,7 @@
 import { StateDetails } from '../../data-types/interfaces';
 import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
 import { buildPartialUpdateAccountStateCommand } from '../build-partial-update-state-command';
-import { addMetric } from '../metrics';
+import { addMetric } from '../metrics.mts';
 import {
   AuthPasswordResetSuccessful,
   IpvAccountInterventionEnd,

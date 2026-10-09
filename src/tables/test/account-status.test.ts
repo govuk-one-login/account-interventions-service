@@ -4,7 +4,7 @@ import { DynamoDBRecordService, InMemoryRecordService } from '../../services/dyn
 import { accountStatusTableConfig, PersistentAccountStatusService } from '../account-status';
 import { DynamoDBDocumentClient, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import 'aws-sdk-client-mock-vitest/extend';
-import { getCurrentTimestamp } from '../../commons/get-current-timestamp';
+import { getCurrentTimestamp } from '../../commons/get-current-timestamp.mts';
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
 
 beforeEach(() => {

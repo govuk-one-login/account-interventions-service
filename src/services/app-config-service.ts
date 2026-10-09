@@ -1,5 +1,5 @@
 import { InvalidEnvironmentVariableError } from '../data-types/errors';
-import logger from '../commons/logger';
+import logger from '../commons/logger.mts';
 import { LOGS_PREFIX_INVALID_CONFIG } from '../data-types/constants';
 
 interface ConfigDefinition {

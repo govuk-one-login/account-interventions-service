@@ -1,7 +1,7 @@
 import { SendMessageCommand, SendMessageCommandOutput, SQSClient } from '@aws-sdk/client-sqs';
 import { AccountStateEngineOutput, TxMAEgressEvent, TxMAEgressInterventionEventName } from '../data-types/interfaces';
-import logger from '../commons/logger';
-import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import logger from '../commons/logger.mts';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp.mts';
 import {
   ActiveStateActions,
   COMPONENT_ID,
@@ -11,8 +11,8 @@ import {
   TriggerEventsEnum,
   userLedActionList,
 } from '../data-types/constants';
-import { addMetric } from '../commons/metrics';
-import { transitionConfig } from './account-states/config';
+import { addMetric } from '../commons/metrics.mts';
+import { transitionConfig } from './account-states/config.mts';
 import { AisEventIgnoredStaleBasicExtensions, AisEventIgnoredStaleExtensions } from '../events/ais-event-ignored-stale';
 import { InterventionEventMessage } from '../contracts/intervention-events';
 

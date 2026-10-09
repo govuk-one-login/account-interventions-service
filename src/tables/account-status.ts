@@ -3,14 +3,14 @@ import { getDBDocumentClient } from '../services/database-client';
 import { DynamoDBRecordService, RecordService } from '../services/dynamo-db-record-service';
 import TableConfig from './table-config';
 import { AppConfigService } from '../services/app-config-service';
-import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp.mts';
 import { UpdateCommandOutput } from '@aws-sdk/lib-dynamodb';
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
 import { AccountStateEngineOutput, CurrentTimeDescriptor } from '../data-types/interfaces';
 import { InterventionEventMessage } from '../contracts/intervention-events';
 import { LOGS_PREFIX_SENSITIVE_INFO } from '../data-types/constants';
 import { buildPartialUpdateAccountStateCommand } from '../commons/build-partial-update-state-command';
-import logger from '../commons/logger';
+import logger from '../commons/logger.mts';
 
 const appConfig = AppConfigService.getInstance();
 

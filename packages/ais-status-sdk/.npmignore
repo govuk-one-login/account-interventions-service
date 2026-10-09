@@ -1,7 +1,7 @@
 src/
 *.test.ts
 tsconfig*.json
-vitest.config.ts
+vitest.config.mts
 coverage/
-rollup.config.ts
-vitest.config.ts
+rollup.config.mts
+vitest.config.mts

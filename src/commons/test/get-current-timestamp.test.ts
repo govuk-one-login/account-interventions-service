@@ -1,4 +1,4 @@
-import { getCurrentTimestamp } from '../get-current-timestamp';
+import { getCurrentTimestamp } from '../get-current-timestamp.mts';
 
 describe('currentTimestampInSeconds', () => {
   beforeEach(() => {

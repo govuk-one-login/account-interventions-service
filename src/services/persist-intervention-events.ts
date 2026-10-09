@@ -1,5 +1,5 @@
-import { getCurrentTimestamp } from '../commons/get-current-timestamp';
-import logger from '../commons/logger';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp.mts';
+import logger from '../commons/logger.mts';
 import { InterventionEventMessage } from '../contracts/intervention-events';
 import { EventsEnum, InterventionState, LOGS_PREFIX_SENSITIVE_INFO, TtlSource } from '../data-types/constants';
 import { StateDetails } from '../data-types/interfaces';

@@ -1,7 +1,7 @@
 import { TicfAccountIntervention } from '../contracts/intervention-events';
 import { HistoryStringParts, expectedHistoryStringLength, isCode } from '../data-types/constants';
 import { HistoryObject } from '../data-types/interfaces';
-import { AccountStateEngine } from '../services/account-states/account-state-engine';
+import { AccountStateEngine } from '../services/account-states/account-state-engine.mts';
 
 /**
  * Class to provide utility methods to build a history string from the provided components

@@ -1,6 +1,6 @@
 import { SQSBatchItemFailure, SQSBatchResponse, SQSEvent, SQSRecord } from 'aws-lambda';
-import logger from '../commons/logger';
-import { addMetric, metric } from '../commons/metrics';
+import logger from '../commons/logger.mts';
+import { addMetric, metric } from '../commons/metrics.mts';
 import {
   AISInterventionTypes,
   EventsEnum,
@@ -18,8 +18,8 @@ import {
   validateEventIsNotStale,
   validateIfIdentityAcquired,
 } from '../services/validate-event';
-import { AccountStateEngine } from '../services/account-states/account-state-engine';
-import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { AccountStateEngine } from '../services/account-states/account-state-engine.mts';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp.mts';
 import { sendAuditEvent } from '../services/send-audit-events';
 import { publishTimeToResolveMetrics, updateAccountStateCountMetric } from '../commons/metrics-helper';
 import { InterventionEventMessage } from '../contracts/intervention-events';

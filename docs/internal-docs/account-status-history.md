@@ -41,7 +41,7 @@ The function `extractValidHistoryItems` in [build-partial-update-state-command](
 
 How `extractValidHistoryItems` works:
 1. Iterates each pipe-delimited history string in the historyList
-1. Parses the history string into an object with the variable name `historyObject` by passing each historyItem to the `getHistoryObject` method in [history-string-builder](../../src/commons/history-string-builder.ts). `getHistoryObject` calls `buildHistoryObject` which returns an object with the keys `sentAt`, `component`, `code`, `intervention`, `reason`, `originatingComponent`, `originatorReferenceId`, `requesterId`
+1. Parses the history string into an object with the variable name `historyObject` by passing each historyItem to the `getHistoryObject` method in [history-string-builder](../../src/commons/history-string-builder.mts). `getHistoryObject` calls `buildHistoryObject` which returns an object with the keys `sentAt`, `component`, `code`, `intervention`, `reason`, `originatingComponent`, `originatorReferenceId`, `requesterId`
 1. `sendAtMs` is then calculated using the `sentAt` time returned in `historyObject` in the above step
 1. Checks if the history item is still valid by checking `sendAtMs + AppConfigService.getInstance().historyRetentionSeconds * 1000 >= currentTimestampMs` i.e. the history item is within the retention period. Pushes valid items to a new array
 1. Returns the new array containing only the entries that passed the above check

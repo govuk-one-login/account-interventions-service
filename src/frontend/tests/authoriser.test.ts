@@ -1,6 +1,6 @@
 import { JwtAuthoriser, type AuthoriserContext } from '../authoriser';
 import { type JwtVerifierInterface, type FaiJwtPayload, Role } from '../../services/jwt-verifier';
-import logger from '../../commons/logger';
+import logger from '../../commons/logger.mts';
 
 vi.mock('@aws-lambda-powertools/logger');
 

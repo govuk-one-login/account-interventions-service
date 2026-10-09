@@ -1,13 +1,13 @@
 /* istanbul ignore start -- production only. File also added to sonar.coverage.exclusions in sonar-project.properties */
 
 import { Context, SQSBatchResponse, SQSEvent } from 'aws-lambda';
-import logger from '../commons/logger';
+import logger from '../commons/logger.mts';
 import { getPersistentInterventionEventsService, NullInterventionEventsService } from '../tables/intervention-events';
 import { getPersistentAccountStatusService } from '../tables/account-status';
 import { processInterventions } from './interventions-processor';
-import { AccountStateEngine } from '../services/account-states/account-state-engine';
+import { AccountStateEngine } from '../services/account-states/account-state-engine.mts';
 import { AppConfigService } from '../services/app-config-service';
-import tracer from '../commons/tracer';
+import tracer from '../commons/tracer.mts';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { SQSClient } from '@aws-sdk/client-sqs';
 import { FeatureFlagsFromEnvironmentVariables } from '../services/feature-flags';

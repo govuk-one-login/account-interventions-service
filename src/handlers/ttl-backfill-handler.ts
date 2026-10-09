@@ -1,7 +1,7 @@
 /* v8 ignore start -- production-only Lambda wiring; the behaviour lives in ./ttl-backfill and is unit tested there, while this wiring is covered by post-merge feature tests per ADR 007 */
 
 import { Context } from 'aws-lambda';
-import logger from '../commons/logger';
+import logger from '../commons/logger.mts';
 import { getDBDocumentClient } from '../services/database-client';
 import { interventionEventsTableConfig } from '../tables/intervention-events';
 import { DynamoDBTtlBackfillService } from '../services/ttl-backfill-service';

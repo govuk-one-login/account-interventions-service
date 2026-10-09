@@ -10,8 +10,8 @@ import {
   State,
   TriggerEventsEnum,
 } from '../../data-types/constants';
-import { addMetric } from '../../commons/metrics';
-import logger from '../../commons/logger';
+import { addMetric } from '../../commons/metrics.mts';
+import logger from '../../commons/logger.mts';
 import 'aws-sdk-client-mock-vitest/extend';
 
 vi.mock('@aws-lambda-powertools/logger');

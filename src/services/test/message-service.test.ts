@@ -1,4 +1,4 @@
-import { MissingQueueUrl, SqsMessageService, StubMessageService } from '../message-service';
+import { MissingQueueUrl, SqsMessageService, StubMessageService } from '../message-service.mts';
 import {
   SQSClient,
   SendMessageCommand,

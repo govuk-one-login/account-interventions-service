@@ -1,14 +1,14 @@
 import { randomUUID } from 'node:crypto';
-import { HistoryStringBuilder } from '../commons/history-string-builder';
-import logger from '../commons/logger';
-import { addMetric } from '../commons/metrics';
+import { HistoryStringBuilder } from '../commons/history-string-builder.mts';
+import logger from '../commons/logger.mts';
+import { addMetric } from '../commons/metrics.mts';
 import { HistoryLine, V2HistoryResponse } from '../data-types/api-schemas-v2';
 import { MetricNames } from '../data-types/constants';
 import { HistoryObject } from '../data-types/interfaces';
 import { AccountStatusService } from '../tables/account-status';
 import { InterventionEventsService } from '../tables/intervention-events';
 import notEmpty from '../utils/not-empty';
-import { transitionConfig } from './account-states/config';
+import { transitionConfig } from './account-states/config.mts';
 import { config } from './persist-intervention-events';
 
 export class HistoryService {

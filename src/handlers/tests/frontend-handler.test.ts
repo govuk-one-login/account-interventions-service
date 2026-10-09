@@ -121,7 +121,7 @@ describe('frontend-handler', () => {
   describe('proxy initialisation', () => {
     it('initialises the proxy by calling awsLambdaFastify with the result of init()', async () => {
       const awsLambdaFastify = await import('@fastify/aws-lambda');
-      const app = await import('../../frontend/app');
+      const app = await import('../../frontend/app.mts');
 
       const fakeServer = {};
       vi.mocked(app.init).mockReturnValue(fakeServer as ReturnType<typeof app.init>);

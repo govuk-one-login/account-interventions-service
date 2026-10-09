@@ -4,7 +4,7 @@ import { InterventionInvalidResponse } from './errors';
 import type { HistoryLine } from './types';
 import { InterventionName, InterventionState } from './types';
 import { ZodError } from 'zod';
-import { version } from '../package.json';
+import packageJsonData from '../package.json' with { type: 'json' };
 
 const mockFetch = vi.fn<typeof fetch>();
 vi.stubGlobal('fetch', mockFetch);
@@ -31,6 +31,8 @@ function makeHistoryObject(overrides: Partial<HistoryLine> = {}): HistoryLine {
 }
 
 describe('InterventionClient', () => {
+
+  const { version } = packageJsonData;
   const baseUrl = 'https://example.com';
 
   beforeEach(() => {

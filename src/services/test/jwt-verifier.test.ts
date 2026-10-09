@@ -1,7 +1,7 @@
 import { KMSClient } from '@aws-sdk/client-kms';
 import { exportSPKI, exportPKCS8, generateKeyPair, SignJWT } from 'jose';
 import { KmsJwtVerifier, Role, type FaiJwtPayload } from '../jwt-verifier';
-import logger from '../../commons/logger';
+import logger from '../../commons/logger.mts';
 
 vi.mock('@aws-lambda-powertools/logger');
 

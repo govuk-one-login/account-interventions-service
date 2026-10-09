@@ -1,9 +1,9 @@
 import { SQSEvent } from 'aws-lambda';
-import logger from '../commons/logger';
-import { addMetric, metric } from '../commons/metrics';
+import logger from '../commons/logger.mts';
+import { addMetric, metric } from '../commons/metrics.mts';
 import { MetricNames } from '../data-types/constants';
-import jsonSafeParse from '../commons/json-safe-parse';
-import { MessageService } from '../services/message-service';
+import jsonSafeParse from '../commons/json-safe-parse.mts';
+import { MessageService } from '../services/message-service.mts';
 
 export interface Config {
   interventionMessageService: MessageService;

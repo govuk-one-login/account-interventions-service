@@ -1,14 +1,14 @@
 import { DynamoDBStateResult, StateDetails } from '../data-types/interfaces';
-import logger from '../commons/logger';
-import { addMetric } from '../commons/metrics';
+import logger from '../commons/logger.mts';
+import { addMetric } from '../commons/metrics.mts';
 import { AISInterventionTypes, EventsEnum, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants';
 import { RetryEventError, ValidationError } from '../data-types/errors';
 import { compileSchema } from '../commons/compile-schema';
 import { EventCatalogueCombinedSchema } from '../data-types/event-catalogue-combined-schema';
-import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp.mts';
 import { sendAuditEvent } from './send-audit-events';
-import { AccountStateEngine } from './account-states/account-state-engine';
-import jsonSafeParse from '../commons/json-safe-parse';
+import { AccountStateEngine } from './account-states/account-state-engine.mts';
+import jsonSafeParse from '../commons/json-safe-parse.mts';
 import { InterventionEventMessage, interventionMessageSchema } from '../contracts/intervention-events';
 import { SQSClient } from '@aws-sdk/client-sqs';
 

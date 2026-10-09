@@ -6,33 +6,38 @@ import nunjucks from 'nunjucks';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
 import {
-  AccountHistory,
-  HistoryLine,
-  InterventionClientInterface,
+  type AccountHistory,
+  type HistoryLine,
+  type InterventionClientInterface,
   InterventionName,
   InterventionState,
 } from '@govuk-one-login/ais-status-sdk';
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { FeatureFlags } from '../services/feature-flags';
 import cookie from '@fastify/cookie';
-import { MessageService } from '../services/message-service';
-import { getCurrentTimestamp } from '../commons/get-current-timestamp';
+import { MessageService } from '../services/message-service.mts';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp.mts';
 import { isCode, TriggerEventsEnum } from '../data-types/constants';
 import { randomUUID } from 'node:crypto';
 import { TicfAccountIntervention } from '../contracts/intervention-events';
-import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
-import { transitionConfig } from '../services/account-states/config';
+import { normalisePathSegment } from '../commons/utils/normalise-path-segment.mts';
+import { transitionConfig } from '../services/account-states/config.mts';
 import { Authoriser } from './authoriser';
 import { z } from 'zod';
+import { fileURLToPath } from 'node:url';
 declare module 'fastify' {
   interface FastifyRequest {
     awsLambda?: { event: APIGatewayProxyEvent; context: Context };
   }
 }
 
+const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
+const __dirname = path.dirname(__filename);
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).
 const nodeModulesRoot = existsSync(path.join(__dirname, 'node_modules')) ? __dirname : process.cwd();
+
+
 
 /**
  * Source tag values - an array of values that get passed to the user-details template which are then used to

@@ -16,7 +16,7 @@ export default defineConfig(
       '**/.aws-sam/**',
       '.stryker-tmp/*',
       '**/dist/**',
-      '**/rollup.config.ts',
+      '**/rollup.config.mts',
     ],
   },
   {

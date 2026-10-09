@@ -2,8 +2,8 @@
 istanbul ignore: not production
 */
 // Stryker disable all: Not used in production
-import getEnvironmentOrThrow from '../commons/get-environment-or-throw';
-import logger from '../commons/logger';
+import getEnvironmentOrThrow from '../commons/get-environment-or-throw.mts';
+import logger from '../commons/logger.mts';
 
 export interface CustomEvent {
   userId?: string;

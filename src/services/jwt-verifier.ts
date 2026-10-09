@@ -1,7 +1,7 @@
 import { KMSClient, GetPublicKeyCommand } from '@aws-sdk/client-kms';
 import { importSPKI, jwtVerify, type JWTPayload } from 'jose';
-import logger from '../commons/logger';
-import getEnvironmentOrThrow from '../commons/get-environment-or-throw';
+import logger from '../commons/logger.mts';
+import getEnvironmentOrThrow from '../commons/get-environment-or-throw.mts';
 import { createPublicKey } from 'node:crypto';
 
 export enum Role {
