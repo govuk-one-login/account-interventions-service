@@ -54,4 +54,4 @@ npm test
 
 ## Stub
 
-A stub is available for testing purposes at [src/stub.ts](src/stub.ts).
+A stub is available for testing purposes at [src/stub.mts](src/stub.mts).

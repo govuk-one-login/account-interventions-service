@@ -16,11 +16,11 @@ export default defineConfig(
       '**/.aws-sam/**',
       '.stryker-tmp/*',
       '**/dist/**',
-      '**/rollup.config.mts',
+      '**/rollup.config.ts',
     ],
   },
   {
-    files: ['**/*.ts'],
+    files: ['**/*.ts', '**/*.mts'],
     extends: [eslint.configs.recommended, tseslint.configs.strictTypeChecked, tseslint.configs.stylisticTypeChecked],
     languageOptions: {
       globals: globals.builtin,

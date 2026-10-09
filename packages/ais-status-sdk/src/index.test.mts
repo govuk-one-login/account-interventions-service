@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { InterventionClient } from './index';
-import { InterventionInvalidResponse } from './errors';
+import { InterventionClient } from './index.mts';
+import { InterventionInvalidResponse } from './errors.mts';
 import type { HistoryLine } from './types';
 import { InterventionName, InterventionState } from './types';
 import { ZodError } from 'zod';

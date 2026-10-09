@@ -111,7 +111,7 @@ export function init(
   /**
    * Subpath prefix — prepended to asset URLs so the browser requests assets through the correct API Gateway path.
    * e.g. if SUBPATH=/interventions, assets are served at /interventions/assets/* and the Lambda strips
-   * the subpath prefix before routing (see frontend-handler.ts rewriteEventPath).
+   * the subpath prefix before routing (see frontend-handler.mts rewriteEventPath).
    */
   const subpath = config.subpath ? normalisePathSegment(config.subpath) : '';
   /**

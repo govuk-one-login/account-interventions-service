@@ -7,8 +7,8 @@ import {
   redirectHook,
   markHistoryUncertainty,
   getUncertaintyCutoff,
-  type FrontendAppConfig,
-  type FrontendAppDependencies,
+  FrontendAppConfig,
+  FrontendAppDependencies,
 } from '../app.mts';
 
 import { InterventionStub, InterventionName, InterventionState } from '@govuk-one-login/ais-status-sdk';

@@ -30,7 +30,7 @@
     "types": ["node", "vitest/globals"],
     "rewriteRelativeImportExtensions": true,
     "paths": {
-      "@govuk-one-login/ais-status-sdk": ["./packages/ais-status-sdk/src/index.ts"]
+      "@govuk-one-login/ais-status-sdk": ["./packages/ais-status-sdk/src/index.mts"]
     }
   },
   "exclude": ["feature-tests", "coverage", "**/dist", "**/rollup.config.ts", "feature-tests-ui"]

@@ -4,7 +4,7 @@ import path from 'node:path';
 export default defineConfig({
   resolve: {
     alias: {
-      '@govuk-one-login/ais-status-sdk': path.resolve(__dirname, 'packages/ais-status-sdk/src/index.ts'),
+      '@govuk-one-login/ais-status-sdk': path.resolve(__dirname, 'packages/ais-status-sdk/src/index.mts'),
     },
   },
   test: {

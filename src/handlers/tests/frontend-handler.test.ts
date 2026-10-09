@@ -50,7 +50,7 @@ describe('frontend-handler', () => {
 
   describe('when SUBPATH is not set', () => {
     it('passes the event path through unchanged', async () => {
-      const { handler } = await import('../frontend-handler');
+      const { handler } = await import('../frontend-handler.mts');
       const event = makeEvent('/some/path');
 
       await handler(event, mockContext);
@@ -61,7 +61,7 @@ describe('frontend-handler', () => {
     });
 
     it('passes the context through to the proxy unchanged', async () => {
-      const { handler } = await import('../frontend-handler');
+      const { handler } = await import('../frontend-handler.mts');
       const event = makeEvent('/');
 
       await handler(event, mockContext);
@@ -99,7 +99,7 @@ describe('frontend-handler', () => {
         expectedPath: '-v2/page',
       },
     ])('$description', async ({ inputPath, expectedPath }) => {
-      const { handler } = await import('../frontend-handler');
+      const { handler } = await import('../frontend-handler.mts');
       const event = makeEvent(inputPath);
 
       await handler(event, mockContext);
@@ -109,7 +109,7 @@ describe('frontend-handler', () => {
     });
 
     it('passes the context through to the proxy unchanged', async () => {
-      const { handler } = await import('../frontend-handler');
+      const { handler } = await import('../frontend-handler.mts');
       const event = makeEvent('/interventions/');
 
       await handler(event, mockContext);
@@ -126,7 +126,7 @@ describe('frontend-handler', () => {
       const fakeServer = {};
       vi.mocked(app.init).mockReturnValue(fakeServer as ReturnType<typeof app.init>);
 
-      await import('../frontend-handler');
+      await import('../frontend-handler.mts');
 
       expect(app.init).toHaveBeenCalledOnce();
       expect(awsLambdaFastify.default).toHaveBeenCalledWith(fakeServer);
@@ -138,7 +138,7 @@ describe('frontend-handler', () => {
       const expectedResponse = { statusCode: 200, body: 'OK', headers: {}, isBase64Encoded: false };
       mockProxy.mockResolvedValue(expectedResponse);
 
-      const { handler } = await import('../frontend-handler');
+      const { handler } = await import('../frontend-handler.mts');
       const result = await handler(makeEvent('/'), mockContext);
 
       expect(result).toBe(expectedResponse);
