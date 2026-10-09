@@ -3,9 +3,11 @@ import {
   V2HistoryResponseSchema,
   V2ResponseSchema,
   type V2Response,
-} from '../../../src/data-types/api-schemas-v2';
-import { version } from '../package.json';
-import type { AccountHistory, AccountStatus, InterventionClientConfig, InterventionClientInterface } from './types';
+} from '../../../src/data-types/api-schemas-v2.ts';
+
+import packageJsonData from '../package.json' with { type: 'json' };
+
+import type { AccountHistory, AccountStatus, InterventionClientConfig, InterventionClientInterface } from './types.ts';
 export type {
   AccountStatus,
   InterventionClientConfig,
@@ -13,12 +15,14 @@ export type {
   Intervention,
   AccountHistory,
   HistoryLine,
-} from './types';
-export { InterventionName, InterventionState } from './types';
-import { InterventionInvalidResponse, InterventionMissingBaseUrl, InterventionRequestFailed } from './errors';
+} from './types.ts';
+export { InterventionName, InterventionState } from './types.ts';
+import { InterventionInvalidResponse, InterventionMissingBaseUrl, InterventionRequestFailed } from './errors.mts';
 import { ZodSafeParseError } from 'zod';
-export type { InterventionInvalidResponse, InterventionRequestFailed, InterventionMissingBaseUrl } from './errors';
-export { InterventionStub } from './stub';
+export type { InterventionInvalidResponse, InterventionRequestFailed, InterventionMissingBaseUrl } from './errors.mts';
+export { InterventionStub } from './stub.mts';
+
+const { version } = packageJsonData;
 
 export class InterventionClient implements InterventionClientInterface {
   private readonly baseUrl: string;
