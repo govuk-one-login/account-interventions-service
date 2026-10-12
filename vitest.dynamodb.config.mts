@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config';
-import baseConfig from './vitest.config';
+import baseConfig from './vitest.config.mts';
 
 // Runs the dynamodb-local tests only (`npm run test:unit:dynamodb-local`).
 // Overrides the tag's skip from the base config so these tests actually run.
