@@ -1,6 +1,6 @@
-import { TicfAccountIntervention } from '../contracts/intervention-events';
-import { HistoryStringParts, expectedHistoryStringLength, isCode } from '../data-types/constants';
-import { HistoryObject } from '../data-types/interfaces';
+import { TicfAccountIntervention } from '../contracts/intervention-events.mts';
+import { HistoryStringParts, expectedHistoryStringLength, isCode } from '../data-types/constants.ts';
+import type { HistoryObject } from '../data-types/interfaces.ts';
 import { AccountStateEngine } from '../services/account-states/account-state-engine.mts';
 
 /**

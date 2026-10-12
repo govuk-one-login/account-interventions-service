@@ -1,6 +1,6 @@
 import { AIS_EVENT_TRANSITION_APPLIED } from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_APPLIED';
-import { EventsEnum, AISInterventionTypes, PossibleAccountStatus, Codes } from './constants';
-import { AIS_EVENT_IGNORED_STALE } from '../events/ais-event-ignored-stale';
+import { EventsEnum, AISInterventionTypes, PossibleAccountStatus, Codes } from './constants.ts';
+import { AIS_EVENT_IGNORED_STALE } from '../events/ais-event-ignored-stale.mts';
 import { AIS_EVENT_TRANSITION_IGNORED } from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_IGNORED';
 import { AUTH_DELETE_ACCOUNT } from '@govuk-one-login/event-catalogue/AUTH_DELETE_ACCOUNT';
 

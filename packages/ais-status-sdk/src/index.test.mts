@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { InterventionClient } from './index.mts';
 import { InterventionInvalidResponse } from './errors.mts';
-import type { HistoryLine } from './types';
-import { InterventionName, InterventionState } from './types';
+import type { HistoryLine } from './types.ts';
+import { InterventionName, InterventionState } from './types.ts';
 import { ZodError } from 'zod';
 import packageJsonData from '../package.json' with { type: 'json' };
 

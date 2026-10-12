@@ -1,0 +1,172 @@
+import {
+  updateAccountStateCountMetric,
+  updateAccountStateCountMetricAfterDeletion,
+  publishTimeToResolveMetrics,
+} from '../metrics-helper.mts';
+import { addMetric } from '../metrics.mts';
+import { EventsEnum } from '../../data-types/constants.ts';
+
+vi.mock('@aws-lambda-powertools/logger');
+vi.mock('../../commons/metrics');
+const accountIsSuspended = {
+  blocked: false,
+  suspended: true,
+  resetPassword: false,
+  reproveIdentity: false,
+};
+const accountNeedsPswReset = {
+  blocked: false,
+  suspended: true,
+  resetPassword: true,
+  reproveIdentity: false,
+};
+const accountNeedsIdReset = {
+  blocked: false,
+  suspended: true,
+  resetPassword: false,
+  reproveIdentity: true,
+};
+const accountIsOkay = {
+  blocked: false,
+  suspended: false,
+  resetPassword: false,
+  reproveIdentity: false,
+};
+
+const accountIsBlocked = {
+  blocked: true,
+  suspended: false,
+  resetPassword: false,
+  reproveIdentity: false,
+};
+describe('update-account-state-metrics', () => {
+  describe('updateAccountStateMetric', () => {
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+    it('should increment ACCOUNTS_BLOCKED', () => {
+      updateAccountStateCountMetric(accountIsOkay, accountIsBlocked);
+      expect(addMetric).toHaveBeenCalledWith('ACCOUNTS_BLOCKED', [], 1);
+    });
+    it('should increment ACCOUNTS_SUSPENDED', () => {
+      updateAccountStateCountMetric(accountIsOkay, accountIsSuspended);
+      expect(addMetric).toHaveBeenCalledWith('ACCOUNTS_SUSPENDED', [], 1);
+    });
+    it('should decrement ACCOUNTS_SUSPENDED and increment ACCOUNTS_BLOCKED', () => {
+      updateAccountStateCountMetric(accountIsSuspended, accountIsBlocked);
+      expect(addMetric).toHaveBeenCalledWith('ACCOUNTS_SUSPENDED', [], -1);
+    });
+    it('should decrement ACCOUNTS_BLOCKED', () => {
+      updateAccountStateCountMetric(accountIsBlocked, accountIsOkay);
+      expect(addMetric).toHaveBeenCalledWith('ACCOUNTS_BLOCKED', [], -1);
+    });
+    it('should decrement ACCOUNTS_SUSPENDED', () => {
+      updateAccountStateCountMetric(accountIsSuspended, accountIsOkay);
+      expect(addMetric).toHaveBeenCalledWith('ACCOUNTS_SUSPENDED', [], -1);
+    });
+    it('should not decrement/increment either metric', () => {
+      updateAccountStateCountMetric(accountIsSuspended, accountNeedsPswReset);
+      expect(addMetric).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('updateAccountStateCountMetricAfterDeletion', () => {
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+    it('should decrement ACCOUNTS_BLOCKED', () => {
+      updateAccountStateCountMetricAfterDeletion({ blocked: true, suspended: false });
+      expect(addMetric).toHaveBeenCalledWith('ACCOUNTS_BLOCKED', [], -1);
+    });
+    it('should decrement ACCOUNTS_SUSPENDED', () => {
+      updateAccountStateCountMetricAfterDeletion({ blocked: false, suspended: true });
+      expect(addMetric).toHaveBeenCalledWith('ACCOUNTS_SUSPENDED', [], -1);
+    });
+    it('should not decrement either metric', () => {
+      updateAccountStateCountMetricAfterDeletion({ blocked: false, suspended: false });
+      expect(addMetric).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('publishTimeToResolveMetrics', () => {
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    describe('should publish TimeToResolve metric', () => {
+      it('when an account becomes unsuspended', () => {
+        publishTimeToResolveMetrics(accountIsSuspended, accountIsOkay, 1000, 11000, EventsEnum.FRAUD_UNSUSPEND_ACCOUNT);
+        expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'suspension' });
+        expect(addMetric).toHaveBeenCalledTimes(1);
+      });
+
+      it('when an account becomes unsuspended because a password has been reset successfully', () => {
+        publishTimeToResolveMetrics(
+          accountNeedsPswReset,
+          accountIsOkay,
+          1000,
+          11000,
+          EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+        );
+        expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'suspension' });
+        expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'resetPassword' });
+        expect(addMetric).toHaveBeenCalledTimes(2);
+      });
+
+      it('when an account stays suspended even after password has been reset successfully', () => {
+        publishTimeToResolveMetrics(
+          accountNeedsPswReset,
+          accountIsSuspended,
+          1000,
+          11000,
+          EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+        );
+        expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'resetPassword' });
+        expect(addMetric).toHaveBeenCalledTimes(1);
+      });
+
+      it('when an account becomes unsuspended because an identity has been reset successfully', () => {
+        publishTimeToResolveMetrics(
+          accountNeedsIdReset,
+          accountIsOkay,
+          1000,
+          11000,
+          EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
+        );
+        expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'suspension' });
+        expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'reproveIdentity' });
+        expect(addMetric).toHaveBeenCalledTimes(2);
+      });
+
+      it('when an account stays suspended even after identity has been reset successfully', () => {
+        publishTimeToResolveMetrics(
+          accountNeedsIdReset,
+          accountIsSuspended,
+          1000,
+          11000,
+          EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
+        );
+        expect(addMetric).toHaveBeenCalledWith('TIME_TO_RESOLVE', [], 10, { type: 'reproveIdentity' });
+        expect(addMetric).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('should NOT publish a TimeToResolve metric', () => {
+      it('when an account stays suspended', () => {
+        publishTimeToResolveMetrics(
+          accountIsSuspended,
+          accountIsSuspended,
+          1000,
+          11000,
+          EventsEnum.FRAUD_SUSPEND_ACCOUNT,
+        );
+        expect(addMetric).not.toHaveBeenCalled();
+      });
+
+      it('for when an account becomes suspended', () => {
+        publishTimeToResolveMetrics(accountIsOkay, accountIsSuspended, 1000, 11000, EventsEnum.FRAUD_SUSPEND_ACCOUNT);
+        expect(addMetric).not.toHaveBeenCalled();
+      });
+    });
+  });
+});

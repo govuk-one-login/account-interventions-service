@@ -1,4 +1,4 @@
-import { Codes, isCode } from './constants';
+import { Codes, isCode } from './constants.ts';
 
 describe('isCode', () => {
   it('Valid code', () => {

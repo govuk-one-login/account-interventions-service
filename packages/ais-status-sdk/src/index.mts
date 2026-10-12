@@ -3,7 +3,7 @@ import {
   V2HistoryResponseSchema,
   V2ResponseSchema,
   type V2Response,
-} from '../../../src/data-types/api-schemas-v2.ts';
+} from '../../../src/data-types/api-schemas-v2.mts';
 
 import packageJsonData from '../package.json' with { type: 'json' };
 

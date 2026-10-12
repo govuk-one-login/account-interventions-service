@@ -1,12 +1,12 @@
-import { StateDetails } from '../../data-types/interfaces';
-import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants';
-import { buildPartialUpdateAccountStateCommand } from '../build-partial-update-state-command';
+import { StateDetails } from '../../data-types/interfaces.ts';
+import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants.ts';
+import { buildPartialUpdateAccountStateCommand } from '../build-partial-update-state-command.mts';
 import { addMetric } from '../metrics.mts';
 import {
   AuthPasswordResetSuccessful,
   IpvAccountInterventionEnd,
   TicfAccountIntervention,
-} from '../../contracts/intervention-events';
+} from '../../contracts/intervention-events.mts';
 
 vi.mock('@aws-lambda-powertools/logger');
 vi.mock('../../commons/metrics');

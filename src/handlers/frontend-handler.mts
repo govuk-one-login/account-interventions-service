@@ -5,10 +5,10 @@ import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { init } from '../frontend/app.mts';
 import logger from '../commons/logger.mts';
 import { InterventionClient } from '@govuk-one-login/ais-status-sdk';
-import { Authoriser, JwtAuthoriser, StubAuthoriser } from '../frontend/authoriser';
-import { FeatureFlagsFromEnvironmentVariables } from '../services/feature-flags';
+import { Authoriser, JwtAuthoriser, StubAuthoriser } from '../frontend/authoriser.mts';
+import { FeatureFlagsFromEnvironmentVariables } from '../services/feature-flags.mts';
 import { NullMessageService, SqsMessageService } from '../services/message-service.mts';
-import { AppConfigService } from '../services/app-config-service';
+import { AppConfigService } from '../services/app-config-service.mts';
 
 const config = AppConfigService.getInstance().getConfigObject(['statusApiUrl', 'debugIngressTxmaQueueUrl', 'subpath', 'stagePrefix']);
 

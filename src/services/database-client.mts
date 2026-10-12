@@ -1,0 +1,26 @@
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import tracer from '../commons/tracer.mts';
+import { AppConfigService } from './app-config-service.mts';
+import { NodeHttpHandler } from '@smithy/node-http-handler';
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+export { DynamoDBClient as DbClient } from '@aws-sdk/client-dynamodb';
+
+let databaseClient: DynamoDBClient | undefined;
+let databaseDocumentClient: DynamoDBDocumentClient | undefined;
+
+export function getDBClient(): DynamoDBClient {
+  databaseClient ??= tracer.captureAWSv3Client(
+    new DynamoDBClient({
+      region: AppConfigService.getInstance().awsRegion,
+      maxAttempts: 2,
+      requestHandler: new NodeHttpHandler({ requestTimeout: 5000 }),
+    }),
+  );
+  return databaseClient;
+}
+
+export function getDBDocumentClient(): DynamoDBDocumentClient {
+  databaseDocumentClient ??= DynamoDBDocumentClient.from(getDBClient());
+
+  return databaseDocumentClient;
+}

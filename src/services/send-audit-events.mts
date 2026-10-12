@@ -1,0 +1,193 @@
+import { SendMessageCommand, SendMessageCommandOutput, SQSClient } from '@aws-sdk/client-sqs';
+import {
+  AccountStateEngineOutput,
+  TxMAEgressEvent,
+  TxMAEgressInterventionEventName,
+} from '../data-types/interfaces.ts';
+import logger from '../commons/logger.mts';
+import { getCurrentTimestamp } from '../commons/get-current-timestamp.mts';
+import {
+  ActiveStateActions,
+  COMPONENT_ID,
+  EventsEnum,
+  MetricNames,
+  State,
+  TriggerEventsEnum,
+  userLedActionList,
+} from '../data-types/constants.ts';
+import { addMetric } from '../commons/metrics.mts';
+import { transitionConfig } from './account-states/config.mts';
+import {
+  AisEventIgnoredStaleBasicExtensions,
+  AisEventIgnoredStaleExtensions,
+} from '../events/ais-event-ignored-stale.mts';
+import { InterventionEventMessage } from '../contracts/intervention-events.mts';
+
+/**
+ * Function that sends Audit Events to the TxMA Egress queue.
+ * @param egressEventName - The event name used for sending off the event to identify the action taken.
+ * @param ingressEventName - The name of the event as an EventsEnum
+ * @param ingressTxMAEvent - The original event from TxMA
+ * @param accountStateEngineOutput - Current state after applying intervention
+ * @returns - Response from sending the message to the Queue.
+ */
+export async function sendAuditEvent(
+  egressEventName: TxMAEgressInterventionEventName,
+  ingressEventName: EventsEnum,
+  ingressTxMAEvent: InterventionEventMessage,
+  client: SQSClient,
+  queueUrl: string,
+  accountStateEngineOutput?: AccountStateEngineOutput,
+): Promise<SendMessageCommandOutput | undefined> {
+  logger.debug('sendAuditEvent function.');
+
+  if (eventShouldBeIgnored(egressEventName, ingressEventName, accountStateEngineOutput)) return;
+
+  const timestamp = getCurrentTimestamp();
+
+  const txmaEvent: TxMAEgressEvent = {
+    timestamp: timestamp.seconds,
+    event_timestamp_ms: timestamp.milliseconds,
+    component_id: COMPONENT_ID,
+    event_name: egressEventName,
+    user: {
+      user_id: ingressTxMAEvent.user.user_id,
+    },
+    extensions: buildExtensions(ingressTxMAEvent, ingressEventName, egressEventName, accountStateEngineOutput),
+  };
+
+  const input = { MessageBody: JSON.stringify(txmaEvent), QueueUrl: queueUrl };
+
+  try {
+    logger.debug('Attempting to send TxMA event to the queue.');
+    const response = await client.send(new SendMessageCommand(input));
+    addMetric(MetricNames.PUBLISHED_EVENT_TO_TXMA);
+    return response;
+  } catch (error) {
+    addMetric(MetricNames.ERROR_PUBLISHING_EVENT_TO_TXMA);
+    logger.error('An error happened while trying to send the audit event to the TxMA queue.', { error: error });
+  }
+}
+
+/**
+ * Helper function to build extension object based on the type of event
+ * @param txMAIngressEvent - Original event received from TxMA
+ * @param ingressEventName - Event name as an EventEnum
+ * @param stateEngineOutput - Final state after intervention was/ was not applied
+ * @param egressEventName - The name of the TxMA event name
+ * @returns - TxMAEgressExtensions object
+ */
+function buildExtensions(
+  txMAIngressEvent: InterventionEventMessage,
+  ingressEventName: EventsEnum,
+  egressEventName: TxMAEgressInterventionEventName,
+  stateEngineOutput: AccountStateEngineOutput | undefined,
+): AisEventIgnoredStaleExtensions | AisEventIgnoredStaleBasicExtensions {
+  if (stateEngineOutput) {
+    return {
+      trigger_event: txMAIngressEvent.event_name,
+      trigger_event_id: txMAIngressEvent.event_id,
+      ...(txMAIngressEvent.event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION &&
+        txMAIngressEvent.extensions.intervention),
+      description: userLedActionList.includes(ingressEventName)
+        ? 'USER_LED_ACTION'
+        : stateEngineOutput.interventionName,
+      allowable_interventions: stateEngineOutput.nextAllowableInterventions.filter(
+        (intervention) => transitionConfig.edges[intervention].interventionName,
+      ),
+      ...buildAdditionalAttributes(stateEngineOutput, egressEventName),
+    };
+  }
+  return {
+    trigger_event: txMAIngressEvent.event_name,
+    trigger_event_id: txMAIngressEvent.event_id,
+    ...(txMAIngressEvent.event_name === TriggerEventsEnum.TICF_ACCOUNT_INTERVENTION &&
+      txMAIngressEvent.extensions.intervention),
+  };
+}
+
+/**
+ * Helper function to build state and action attributes of the extension object based on the final state
+ * @param stateEngineOutput - Final state after intervention was/ was not applied
+ * @param egressEventName - The name of the TxMA event name
+ * @returns - an object having state and action as attributes
+ */
+function buildAdditionalAttributes(
+  stateEngineOutput: AccountStateEngineOutput,
+  egressEventName: TxMAEgressInterventionEventName,
+): { state: State | undefined; action: ActiveStateActions | undefined } {
+  if (egressEventName === 'AIS_EVENT_IGNORED_ACCOUNT_DELETED')
+    return {
+      state: State.DELETED,
+      action: undefined,
+    };
+
+  if (stateEngineOutput.stateResult.blocked)
+    return {
+      state: State.PERMANENTLY_SUSPENDED,
+      action: undefined,
+    };
+
+  if (!stateEngineOutput.stateResult.suspended) {
+    return {
+      state: State.ACTIVE,
+      action: undefined,
+    };
+  }
+
+  if (stateEngineOutput.stateResult.resetPassword && !stateEngineOutput.stateResult.reproveIdentity) {
+    return {
+      state: State.ACTIVE,
+      action: ActiveStateActions.RESET_PASSWORD,
+    };
+  }
+
+  if (!stateEngineOutput.stateResult.resetPassword && stateEngineOutput.stateResult.reproveIdentity) {
+    return {
+      state: State.ACTIVE,
+      action: ActiveStateActions.REPROVE_IDENTITY,
+    };
+  }
+
+  if (stateEngineOutput.stateResult.resetPassword && stateEngineOutput.stateResult.reproveIdentity) {
+    return {
+      state: State.ACTIVE,
+      action: ActiveStateActions.RESET_PASSWORD_AND_REPROVE_IDENTITY,
+    };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (stateEngineOutput.stateResult.suspended) {
+    return {
+      state: State.SUSPENDED,
+      action: undefined,
+    };
+  }
+
+  return {
+    state: undefined,
+    action: undefined,
+  };
+}
+
+/**
+ * Function to check if an event should be sent to TxMA
+ * @param egressEventName - Name of the event to be published to TxMA
+ * @param ingressEventName - Name of the original event
+ * @param accountStateEngineOutput - optional parameter containing the output from the State Engine
+ */
+function eventShouldBeIgnored(
+  egressEventName: TxMAEgressInterventionEventName,
+  ingressEventName: EventsEnum,
+  accountStateEngineOutput?: AccountStateEngineOutput,
+) {
+  if (!accountStateEngineOutput) return false;
+  return (
+    userLedActionList.includes(ingressEventName) &&
+    !accountStateEngineOutput.stateResult.suspended &&
+    !accountStateEngineOutput.stateResult.blocked &&
+    !accountStateEngineOutput.stateResult.reproveIdentity &&
+    !accountStateEngineOutput.stateResult.resetPassword &&
+    egressEventName === 'AIS_EVENT_TRANSITION_IGNORED'
+  );
+}

@@ -1,4 +1,4 @@
-import { AppConfigService } from '../services/app-config-service';
+import { AppConfigService } from '../services/app-config-service.mts';
 import { Metrics, MetricUnit } from '@aws-lambda-powertools/metrics';
 
 const namespace = AppConfigService.getInstance().cloudWatchMetricsWorkSpace;

@@ -1,0 +1,713 @@
+import { AccountStateEngine, areAccountStatesTheSame, compareStrings } from '../account-states/account-state-engine.mts';
+import {
+  AISInterventionTypes,
+  Codes,
+  EventsEnum,
+  MetricNames,
+  PossibleAccountStatus,
+} from '../../data-types/constants.ts';
+import { StateEngineConfigError, StateTransitionError } from '../../data-types/errors.mts';
+import { addMetric } from '../../commons/metrics.mts';
+import { StateDetails, TransitionConfigInterface } from '../../data-types/interfaces.ts';
+import logger from '../../commons/logger.mts';
+
+const accountStateEngine = AccountStateEngine.getInstance();
+const accountIsSuspended = {
+  blocked: false,
+  suspended: true,
+  resetPassword: false,
+  reproveIdentity: false,
+};
+const accountNeedsPswReset = {
+  blocked: false,
+  suspended: true,
+  resetPassword: true,
+  reproveIdentity: false,
+};
+const accountIsOkay = {
+  blocked: false,
+  suspended: false,
+  resetPassword: false,
+  reproveIdentity: false,
+};
+const accountNeedsIDReset = {
+  blocked: false,
+  suspended: true,
+  resetPassword: false,
+  reproveIdentity: true,
+};
+const accountNeedsIDResetAdnPswReset = {
+  blocked: false,
+  suspended: true,
+  resetPassword: true,
+  reproveIdentity: true,
+};
+const accountIsBlocked = {
+  blocked: true,
+  suspended: false,
+  resetPassword: false,
+  reproveIdentity: false,
+};
+const blockAccountUpdate = {
+  stateResult: {
+    blocked: true,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
+  },
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
+  nextAllowableInterventions: ['07'],
+};
+const suspendAccountUpdate = {
+  stateResult: {
+    blocked: false,
+    suspended: true,
+    resetPassword: false,
+    reproveIdentity: false,
+  },
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_SUSPENDED,
+  nextAllowableInterventions: ['02', '03', '04', '05', '06'],
+};
+const passwordResetRequiredUpdate = {
+  stateResult: {
+    blocked: false,
+    suspended: true,
+    resetPassword: true,
+    reproveIdentity: false,
+  },
+  interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET,
+  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '94'],
+};
+const idResetRequiredUpdate = {
+  stateResult: {
+    blocked: false,
+    suspended: true,
+    resetPassword: false,
+    reproveIdentity: true,
+  },
+  interventionName: AISInterventionTypes.AIS_FORCED_USER_IDENTITY_VERIFY,
+  nextAllowableInterventions: ['01', '02', '03', '04', '06', '91'],
+};
+const pswAndIdResetRequiredUpdate = {
+  stateResult: {
+    blocked: false,
+    suspended: true,
+    resetPassword: true,
+    reproveIdentity: true,
+  },
+  interventionName: AISInterventionTypes.AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY,
+  nextAllowableInterventions: ['01', '02', '03', '04', '05', '92', '93', '95'],
+};
+const unsuspendAccountUpdate = {
+  stateResult: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
+  },
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_UNSUSPENDED,
+  nextAllowableInterventions: ['01', '03', '04', '05', '06'],
+};
+const unblockAccountUpdate = {
+  stateResult: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
+  },
+  interventionName: AISInterventionTypes.AIS_ACCOUNT_UNBLOCKED,
+  nextAllowableInterventions: ['01', '03', '04', '05', '06'],
+};
+const pswResetSuccessfulUpdateUnsuspended = {
+  stateResult: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
+  },
+  nextAllowableInterventions: ['01', '03', '04', '05', '06'],
+};
+const pswResetSuccessfulUpdateSuspended = {
+  stateResult: {
+    blocked: false,
+    suspended: true,
+    resetPassword: false,
+    reproveIdentity: true,
+  },
+  nextAllowableInterventions: ['01', '02', '03', '04', '06', '91'],
+};
+const idResetSuccessfulUpdateUnsuspended = {
+  stateResult: {
+    blocked: false,
+    suspended: false,
+    resetPassword: false,
+    reproveIdentity: false,
+  },
+  nextAllowableInterventions: ['01', '03', '04', '05', '06'],
+};
+const idResetSuccessfulUpdateSuspended = {
+  stateResult: {
+    blocked: false,
+    suspended: true,
+    resetPassword: true,
+    reproveIdentity: false,
+  },
+  nextAllowableInterventions: ['01', '02', '03', '05', '06', '90', '94'],
+};
+
+const interventionName: string | undefined = undefined;
+
+vi.mock('@aws-lambda-powertools/logger');
+vi.mock('../../commons/metrics');
+
+describe('account-state-service', () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1234567890);
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+  describe('Successful state transitions', () => {
+    describe('from no intervention', () => {
+      it.each([
+        [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay, blockAccountUpdate],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountIsOkay, suspendAccountUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsOkay, passwordResetRequiredUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsOkay, idResetRequiredUpdate],
+        [
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+          accountIsOkay,
+          pswAndIdResetRequiredUpdate,
+        ],
+      ])('%p', (intervention, retrievedAccountState, command) => {
+        const partialCommand = accountStateEngine.applyEventTransition(
+          intervention,
+          retrievedAccountState,
+          interventionName,
+        );
+        expect(partialCommand).toEqual(command);
+      });
+    });
+
+    describe('from unsuspended', () => {
+      it.each([
+        [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay, blockAccountUpdate],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountIsOkay, suspendAccountUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsOkay, passwordResetRequiredUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsOkay, idResetRequiredUpdate],
+        [
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+          accountIsOkay,
+          pswAndIdResetRequiredUpdate,
+        ],
+      ])('%p', (intervention, retrievedAccountState, command) => {
+        const partialCommand = accountStateEngine.applyEventTransition(
+          intervention,
+          retrievedAccountState,
+          interventionName,
+        );
+        expect(partialCommand).toEqual(command);
+      });
+    });
+
+    describe('from suspended no user action', () => {
+      it.each([
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsSuspended, unsuspendAccountUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsSuspended, passwordResetRequiredUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsSuspended, idResetRequiredUpdate],
+        [
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+          accountIsSuspended,
+          pswAndIdResetRequiredUpdate,
+        ],
+        [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsSuspended, blockAccountUpdate],
+      ])('%p', (intervention, retrievedAccountState, command) => {
+        const partialCommand = accountStateEngine.applyEventTransition(
+          intervention,
+          retrievedAccountState,
+          interventionName,
+        );
+        expect(addMetric).not.toHaveBeenCalled();
+        expect(partialCommand).toEqual(command);
+      });
+    });
+
+    describe('from suspended psw reset required', () => {
+      it.each([
+        [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountNeedsPswReset, blockAccountUpdate],
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsPswReset, unsuspendAccountUpdate],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsPswReset, suspendAccountUpdate],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountNeedsPswReset, pswResetSuccessfulUpdateUnsuspended],
+        [
+          EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
+          accountNeedsPswReset,
+          pswResetSuccessfulUpdateUnsuspended,
+        ],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountNeedsPswReset, idResetRequiredUpdate],
+        [
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+          accountNeedsPswReset,
+          pswAndIdResetRequiredUpdate,
+        ],
+      ])('%p', (intervention, retrievedAccountState, command) => {
+        const partialCommand = accountStateEngine.applyEventTransition(
+          intervention,
+          retrievedAccountState,
+          interventionName,
+        );
+        expect(partialCommand).toEqual(command);
+      });
+    });
+
+    describe('from suspended id reset required', () => {
+      it.each([
+        [
+          EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION,
+          accountNeedsIDReset,
+          pswAndIdResetRequiredUpdate,
+        ],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountNeedsIDReset, passwordResetRequiredUpdate],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsIDReset, suspendAccountUpdate],
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsIDReset, unsuspendAccountUpdate],
+        [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountNeedsIDReset, idResetSuccessfulUpdateUnsuspended],
+        [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountNeedsIDReset, blockAccountUpdate],
+      ])('%p', (intervention, retrievedAccountState, command) => {
+        const partialCommand = accountStateEngine.applyEventTransition(
+          intervention,
+          retrievedAccountState,
+          interventionName,
+        );
+        expect(partialCommand).toEqual(command);
+      });
+    });
+
+    describe('from suspended psw & id reset required', () => {
+      it.each([
+        [EventsEnum.FRAUD_BLOCK_ACCOUNT, accountNeedsIDResetAdnPswReset, blockAccountUpdate],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountNeedsIDResetAdnPswReset, idResetRequiredUpdate],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountNeedsIDResetAdnPswReset, pswResetSuccessfulUpdateSuspended],
+        [
+          EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
+          accountNeedsIDResetAdnPswReset,
+          pswResetSuccessfulUpdateSuspended,
+        ],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountNeedsIDResetAdnPswReset, passwordResetRequiredUpdate],
+        [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountNeedsIDResetAdnPswReset, idResetSuccessfulUpdateSuspended],
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountNeedsIDResetAdnPswReset, unsuspendAccountUpdate],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountNeedsIDResetAdnPswReset, suspendAccountUpdate],
+      ])('%p', (intervention, retrievedAccountState, command) => {
+        const partialCommand = accountStateEngine.applyEventTransition(
+          intervention,
+          retrievedAccountState,
+          interventionName,
+        );
+        expect(partialCommand).toEqual(command);
+      });
+    });
+
+    describe('from blocked', () => {
+      it.each([[EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsBlocked, unblockAccountUpdate]])(
+        '%p',
+        (intervention, retrievedAccountState, command) => {
+          const partialCommand = accountStateEngine.applyEventTransition(
+            intervention,
+            retrievedAccountState,
+            interventionName,
+          );
+          expect(partialCommand).toEqual(command);
+        },
+      );
+    });
+  });
+
+  describe('Get intervention enum from code', () => {
+    it('should return the expected account state given a valid code', () => {
+      const expectedState = EventsEnum.FRAUD_BLOCK_ACCOUNT;
+      expect(accountStateEngine.getInterventionEnumFromCode(Codes.C03)).toEqual(expectedState);
+    });
+    it('should throw a configuration error if code cannot be found in current configurations', () => {
+      expect(() => accountStateEngine.getInterventionEnumFromCode('111')).toThrow(
+        new StateEngineConfigError('code: 111 is not found in current configuration'),
+      );
+    });
+  });
+
+  describe('Unsuccessful state transitions', () => {
+    describe('received intervention is not allowed on current account state', () => {
+      beforeEach(() => {
+        vi.resetAllMocks();
+      });
+      it.each([
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsOkay],
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT, accountIsOkay],
+        [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountIsOkay],
+      ])(
+        'when is %p applied on account state: %p it should throw a StateTransitionError',
+        (intervention, retrievedAccountState) => {
+          expect(() =>
+            accountStateEngine.applyEventTransition(intervention, retrievedAccountState, interventionName),
+          ).toThrow(
+            new StateTransitionError(
+              `${intervention} is not allowed from current state. Current state: (empty)`,
+              intervention,
+              {
+                nextAllowableInterventions: [Codes.C01, Codes.C03, Codes.C04, Codes.C05, Codes.C06],
+                stateResult: retrievedAccountState,
+                interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+              },
+            ),
+          );
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          expect(logger.error).not.toHaveBeenCalled();
+          expect(addMetric).not.toHaveBeenCalled();
+        },
+      );
+
+      it.each([
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsOkay, [Codes.C01, Codes.C03, Codes.C04, Codes.C05, Codes.C06]],
+        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsOkay, [Codes.C01, Codes.C03, Codes.C04, Codes.C05, Codes.C06]],
+
+        [EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsSuspended, [Codes.C02, Codes.C03, Codes.C04, Codes.C05, Codes.C06]],
+        [
+          EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+          accountIsSuspended,
+          [Codes.C02, Codes.C03, Codes.C04, Codes.C05, Codes.C06],
+        ],
+        [
+          EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
+          accountIsSuspended,
+          [Codes.C02, Codes.C03, Codes.C04, Codes.C05, Codes.C06],
+        ],
+        [
+          EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
+          accountIsSuspended,
+          [Codes.C02, Codes.C03, Codes.C04, Codes.C05, Codes.C06],
+        ],
+
+        [
+          EventsEnum.FRAUD_UNBLOCK_ACCOUNT,
+          accountNeedsPswReset,
+          [Codes.C01, Codes.C02, Codes.C03, Codes.C05, Codes.C06, Codes.C90, Codes.C94],
+        ],
+        [
+          EventsEnum.IPV_ACCOUNT_INTERVENTION_END,
+          accountNeedsPswReset,
+          [Codes.C01, Codes.C02, Codes.C03, Codes.C05, Codes.C06, Codes.C90, Codes.C94],
+        ],
+
+        [
+          EventsEnum.FRAUD_UNBLOCK_ACCOUNT,
+          accountNeedsIDReset,
+          [Codes.C01, Codes.C02, Codes.C03, Codes.C04, Codes.C06, Codes.C91],
+        ],
+        [
+          EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL,
+          accountNeedsIDReset,
+          [Codes.C01, Codes.C02, Codes.C03, Codes.C04, Codes.C06, Codes.C91],
+        ],
+        [
+          EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL_FOR_TEST_CLIENT,
+          accountNeedsIDReset,
+          [Codes.C01, Codes.C02, Codes.C03, Codes.C04, Codes.C06, Codes.C91],
+        ],
+
+        [
+          EventsEnum.FRAUD_UNBLOCK_ACCOUNT,
+          accountNeedsIDResetAdnPswReset,
+          [Codes.C01, Codes.C02, Codes.C03, Codes.C04, Codes.C05, Codes.C92, Codes.C93, Codes.C95],
+        ],
+
+        [EventsEnum.AUTH_PASSWORD_RESET_SUCCESSFUL, accountIsBlocked, [Codes.C07]],
+        [EventsEnum.IPV_ACCOUNT_INTERVENTION_END, accountIsBlocked, [Codes.C07]],
+        [EventsEnum.FRAUD_UNSUSPEND_ACCOUNT, accountIsBlocked, [Codes.C07]],
+        [EventsEnum.FRAUD_SUSPEND_ACCOUNT, accountIsBlocked, [Codes.C07]],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET, accountIsBlocked, [Codes.C07]],
+        [EventsEnum.FRAUD_FORCED_USER_IDENTITY_REVERIFICATION, accountIsBlocked, [Codes.C07]],
+        [EventsEnum.FRAUD_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_REVERIFICATION, accountIsBlocked, [Codes.C07]],
+      ])(
+        'when is %p applied on account state: %p it should throw StateTransitionError and add a STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED metric',
+        (intervention, retrievedAccountState, expectedAllowable) => {
+          expect(() =>
+            accountStateEngine.applyEventTransition(intervention, retrievedAccountState, interventionName),
+          ).toThrow(
+            new StateTransitionError(
+              `${intervention} is not allowed from current state. Current state: (empty)`,
+              intervention,
+              {
+                nextAllowableInterventions: expectedAllowable,
+                stateResult: retrievedAccountState,
+                interventionName: AISInterventionTypes.AIS_NO_INTERVENTION,
+              },
+            ),
+          );
+          // eslint-disable-next-line @typescript-eslint/unbound-method
+          expect(logger.error).toHaveBeenCalledWith({
+            message: `${intervention} is not allowed from current state. Current state: (empty)`,
+          });
+          expect(addMetric).toHaveBeenLastCalledWith(MetricNames.STATE_TRANSITION_NOT_ALLOWED_OR_IGNORED);
+        },
+      );
+    });
+    describe('current state account could not be found in current config', () => {
+      it('should throw if an unexpected account state is received', () => {
+        const unexpectedAccountState = {
+          blocked: true,
+          suspended: true,
+          reproveIdentity: true,
+          resetPassword: true,
+        };
+        expect(() =>
+          accountStateEngine.applyEventTransition(
+            EventsEnum.FRAUD_BLOCK_ACCOUNT,
+            unexpectedAccountState,
+            interventionName,
+          ),
+        ).toThrow(new StateEngineConfigError('Account state does not exists in current configuration.'));
+        expect(addMetric).toHaveBeenLastCalledWith(MetricNames.STATE_NOT_FOUND_IN_CURRENT_CONFIG);
+      });
+    });
+  });
+
+  describe('Configuration errors', () => {
+    it('should throw when given code cannot be found in configuration', () => {
+      expect(() => accountStateEngine.getInterventionEnumFromCode('111')).toThrow(
+        new StateEngineConfigError('code: 111 is not found in current configuration'),
+      );
+      expect(addMetric).toHaveBeenLastCalledWith(MetricNames.INTERVENTION_CODE_NOT_FOUND_IN_CONFIG);
+    });
+    it('should throw when the computed state is the same as the current state', () => {
+      const invalidConfig: TransitionConfigInterface = {
+        nodes: {
+          AccountIsOkay: {
+            blocked: false,
+            suspended: false,
+            resetPassword: false,
+            reproveIdentity: false,
+          },
+          AccountIsBlocked: {
+            blocked: false,
+            suspended: false,
+            resetPassword: false,
+            reproveIdentity: false,
+          },
+        } as Record<PossibleAccountStatus, StateDetails>,
+        adjacency: {
+          AccountIsOkay: [Codes.C01],
+        } as Record<PossibleAccountStatus, Codes[] | undefined>,
+        edges: {
+          '01': {
+            to: PossibleAccountStatus.AccountIsBlocked,
+            name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
+            interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
+          },
+        } as Record<
+          Codes,
+          {
+            to: PossibleAccountStatus;
+            name: EventsEnum;
+            interventionName?: AISInterventionTypes;
+          }
+        >,
+      };
+      Object.defineProperty(AccountStateEngine, 'configuration', {
+        writable: true,
+        value: invalidConfig,
+      });
+
+      const expectedError = new StateEngineConfigError(
+        'Computed new state is the same as the current state. Current state: (empty); Event: FRAUD_BLOCK_ACCOUNT',
+      );
+
+      expect(() =>
+        accountStateEngine.applyEventTransition(EventsEnum.FRAUD_BLOCK_ACCOUNT, accountIsOkay, interventionName),
+      ).toThrow(expectedError);
+      expect(addMetric).toHaveBeenLastCalledWith(MetricNames.TRANSITION_SAME_AS_CURRENT_STATE);
+    });
+
+    it('should throw when there are no configured transition for a given state', () => {
+      const invalidConfig: TransitionConfigInterface = {
+        nodes: {
+          AccountIsOkay: {
+            blocked: false,
+            suspended: false,
+            resetPassword: false,
+            reproveIdentity: false,
+          },
+          AccountIsBlocked: {
+            blocked: false,
+            suspended: false,
+            resetPassword: false,
+            reproveIdentity: false,
+          },
+        } as Record<PossibleAccountStatus, StateDetails>,
+        adjacency: {
+          AccountIsOkay: [Codes.C01],
+        } as Record<PossibleAccountStatus, Codes[] | undefined>,
+        edges: {
+          '01': {
+            to: PossibleAccountStatus.AccountIsBlocked,
+            name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
+            interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
+          },
+        } as Record<
+          Codes,
+          {
+            to: PossibleAccountStatus;
+            name: EventsEnum;
+            interventionName?: AISInterventionTypes;
+          }
+        >,
+      };
+      Object.defineProperty(AccountStateEngine, 'configuration', {
+        writable: true,
+        value: invalidConfig,
+      });
+
+      expect(() =>
+        accountStateEngine.applyEventTransition(EventsEnum.FRAUD_UNBLOCK_ACCOUNT, accountIsBlocked, interventionName),
+      ).toThrow(
+        new StateEngineConfigError(
+          'There are no allowed transitions from state AccountIsBlocked in current configurations',
+        ),
+      );
+      expect(addMetric).toHaveBeenLastCalledWith(MetricNames.NO_TRANSITIONS_FOUND_IN_CONFIG);
+    });
+
+    it('should throw when the the configuration object fails validation because not all nodes have an adjacency list', () => {
+      const invalidConfig: TransitionConfigInterface = {
+        nodes: {
+          AccountIsOkay: {
+            blocked: false,
+            suspended: false,
+            resetPassword: false,
+            reproveIdentity: false,
+          },
+          AccountIsBlocked: {
+            blocked: false,
+            suspended: false,
+            resetPassword: false,
+            reproveIdentity: false,
+          },
+        } as Record<PossibleAccountStatus, StateDetails>,
+        adjacency: {
+          AccountIsOkay: [Codes.C01],
+        } as Record<PossibleAccountStatus, Codes[] | undefined>,
+        edges: {
+          '01': {
+            to: PossibleAccountStatus.AccountIsOkay,
+            name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
+            interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
+          },
+        } as Record<
+          Codes,
+          {
+            to: PossibleAccountStatus;
+            name: EventsEnum;
+            interventionName?: AISInterventionTypes;
+          }
+        >,
+      };
+      Object.defineProperties(AccountStateEngine, {
+        instance: {
+          writable: true,
+          value: undefined,
+        },
+        configuration: {
+          writable: true,
+          value: invalidConfig,
+        },
+      });
+
+      expect(() => AccountStateEngine.getInstance()).toThrow(
+        new StateEngineConfigError('Invalid state engine configuration detected. Adjacency mismatch'),
+      );
+      expect(addMetric).toHaveBeenLastCalledWith(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION);
+    });
+    it('should throw when the the configuration object fails validation because at least one edge points to a non-existing node', () => {
+      const invalidConfig: TransitionConfigInterface = {
+        nodes: {
+          AccountIsOkay: {
+            blocked: false,
+            suspended: false,
+            resetPassword: false,
+            reproveIdentity: false,
+          },
+          AccountIsBlocked: {
+            blocked: false,
+            suspended: false,
+            resetPassword: false,
+            reproveIdentity: false,
+          },
+        } as Record<PossibleAccountStatus, StateDetails>,
+        adjacency: {
+          AccountIsOkay: [Codes.C01],
+          AccountIsBlocked: [Codes.C01],
+        } as Record<PossibleAccountStatus, Codes[] | undefined>,
+        edges: {
+          '01': {
+            to: 'AccountIsNotOkay' as PossibleAccountStatus,
+            name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
+            interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,
+          },
+        } as Record<
+          Codes,
+          {
+            to: PossibleAccountStatus;
+            name: EventsEnum;
+            interventionName?: AISInterventionTypes;
+          }
+        >,
+      };
+      Object.defineProperties(AccountStateEngine, {
+        instance: {
+          writable: true,
+          value: undefined,
+        },
+        configuration: {
+          writable: true,
+          value: invalidConfig,
+        },
+      });
+
+      expect(() => AccountStateEngine.getInstance()).toThrow(
+        new StateEngineConfigError('Invalid state engine configuration detected. Edge mismatch'),
+      );
+      expect(addMetric).toHaveBeenLastCalledWith(MetricNames.INVALID_STATE_ENGINE_CONFIGURATION);
+    });
+  });
+
+  describe('Helper functions', () => {
+    it('should return true if two states are the same, false otherwise', () => {
+      const aState = {
+        blocked: false,
+        suspended: true,
+        resetPassword: true,
+        reproveIdentity: true,
+      };
+      const theSameState = {
+        blocked: false,
+        suspended: true,
+        resetPassword: true,
+        reproveIdentity: true,
+      };
+      const aDifferentState = {
+        blocked: true,
+        suspended: true,
+        resetPassword: true,
+        reproveIdentity: true,
+      };
+      expect(areAccountStatesTheSame(aState, theSameState)).toEqual(true);
+      expect(areAccountStatesTheSame(aState, aDifferentState)).toEqual(false);
+    });
+    it('should return -1 if a string comes before another alphabetically, 1 if opposite is true, 0 if they are equal', () => {
+      const stringOne = 'aString';
+      const stringTwo = 'bString';
+      const stringThree = 'bString';
+      expect(compareStrings(stringOne, stringTwo)).toEqual(-1);
+      expect(compareStrings(stringTwo, stringOne)).toEqual(1);
+      expect(compareStrings(stringTwo, stringThree)).toEqual(0);
+    });
+  });
+});

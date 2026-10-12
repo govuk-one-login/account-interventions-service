@@ -1,5 +1,5 @@
-import { EventsEnum, AISInterventionTypes, PossibleAccountStatus, Codes } from '../../data-types/constants';
-import { TransitionConfigInterface } from '../../data-types/interfaces';
+import { EventsEnum, AISInterventionTypes, PossibleAccountStatus, Codes } from '../../data-types/constants.ts';
+import { TransitionConfigInterface } from '../../data-types/interfaces.ts';
 
 /**
  * Graph like configuration object for Account State Engine class

@@ -1,5 +1,5 @@
 import { transitionConfig } from './config.mts';
-import { AccountStateEngineOutput, StateDetails } from '../../data-types/interfaces';
+import { AccountStateEngineOutput, StateDetails } from '../../data-types/interfaces.ts';
 import {
   AISInterventionTypes,
   Codes,
@@ -8,8 +8,8 @@ import {
   MetricNames,
   PossibleAccountStatus,
   userLedActionList,
-} from '../../data-types/constants';
-import { StateEngineConfigError, StateTransitionError } from '../../data-types/errors';
+} from '../../data-types/constants.ts';
+import { StateEngineConfigError, StateTransitionError } from '../../data-types/errors.mts';
 import logger from '../../commons/logger.mts';
 import { addMetric } from '../../commons/metrics.mts';
 

@@ -1,9 +1,9 @@
 import { Mock } from 'vitest';
 import logger from '../../commons/logger.mts';
 import { Metrics } from '@aws-lambda-powertools/metrics';
-import { MetricNames } from '../../data-types/constants';
-import { DEFAULT_SCAN_LIMIT, processTtlBackfill, UPDATE_CONCURRENCY } from '../ttl-backfill';
-import { InMemoryTtlBackfillService, InterventionEventKey } from '../../services/ttl-backfill-service';
+import { MetricNames } from '../../data-types/constants.ts';
+import { DEFAULT_SCAN_LIMIT, processTtlBackfill, UPDATE_CONCURRENCY } from '../ttl-backfill.mts';
+import { InMemoryTtlBackfillService, InterventionEventKey } from '../../services/ttl-backfill-service.mts';
 
 vi.mock('../../commons/logger');
 vi.mock('@aws-lambda-powertools/metrics');

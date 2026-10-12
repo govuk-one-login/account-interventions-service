@@ -28,8 +28,8 @@ This only happens for intervention events (e.g. suspend, block). User-initiated 
 
 ## How history is appended
 The pattern for appending is as follows:
-1. Read the existing item from DynamoDB (`getAccountStateInformation`) in the [interventions-processor](../../src/handlers/interventions-processor.ts)
-1. Pass the existing history array (or an empty array if no history item exists) to `buildPartialUpdateAccountStateCommand` via `updateUserStatus` in [account-status](../../src/tables/account-status.ts)
+1. Read the existing item from DynamoDB (`getAccountStateInformation`) in the [interventions-processor](../../src/handlers/interventions-processor.mts)
+1. Pass the existing history array (or an empty array if no history item exists) to `buildPartialUpdateAccountStateCommand` via `updateUserStatus` in [account-status](../../src/tables/account-status.mts)
 1. Filter expired entries via (`extractValidHistoryItems`)
 1. Append new history entries where applicable (only fraud intervention events have new history entries appended)
 1. The entire history array is written via `this.recordService.update` being called from `updateUserStatus`
@@ -37,7 +37,7 @@ The pattern for appending is as follows:
 ## When and how history is deleted
 History entries are removed by filtering on every write - there is no scheduled cleanup job and no explicit delete operation for history strings in the account-status table.
 
-The function `extractValidHistoryItems` in [build-partial-update-state-command](../../src/commons/build-partial-update-state-command.ts) runs every time any event is processed - this can be seen in the `buildPartialUpdateAccountStateCommand` function in the same file.
+The function `extractValidHistoryItems` in [build-partial-update-state-command](../../src/commons/build-partial-update-state-command.mts) runs every time any event is processed - this can be seen in the `buildPartialUpdateAccountStateCommand` function in the same file.
 
 How `extractValidHistoryItems` works:
 1. Iterates each pipe-delimited history string in the historyList

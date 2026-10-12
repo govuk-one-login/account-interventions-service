@@ -1,11 +1,11 @@
 /* istanbul ignore file -- only use to run locally */
 
 import { InterventionName, InterventionStub } from '@govuk-one-login/ais-status-sdk';
-import { FeatureFlagsStub } from '../services/feature-flags';
+import { FeatureFlagsStub } from '../services/feature-flags.mts';
 import { init } from './app.mts';
 import { InterventionState } from '../../packages/ais-status-sdk/src/types.ts';
 import { StubMessageService } from '../services/message-service.mts';
-import { StubAuthoriser } from './authoriser';
+import { StubAuthoriser } from './authoriser.mts';
 
 init(
   {

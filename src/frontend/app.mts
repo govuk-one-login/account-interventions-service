@@ -13,16 +13,16 @@ import {
   InterventionState,
 } from '@govuk-one-login/ais-status-sdk';
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
-import { FeatureFlags } from '../services/feature-flags';
+import { FeatureFlags } from '../services/feature-flags.mts';
 import cookie from '@fastify/cookie';
 import { MessageService } from '../services/message-service.mts';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp.mts';
-import { isCode, TriggerEventsEnum } from '../data-types/constants';
+import { isCode, TriggerEventsEnum } from '../data-types/constants.ts';
 import { randomUUID } from 'node:crypto';
-import { TicfAccountIntervention } from '../contracts/intervention-events';
+import { TicfAccountIntervention } from '../contracts/intervention-events.mts';
 import { normalisePathSegment } from '../commons/utils/normalise-path-segment.mts';
 import { transitionConfig } from '../services/account-states/config.mts';
-import { Authoriser } from './authoriser';
+import { Authoriser } from './authoriser.mts';
 import { z } from 'zod';
 import { fileURLToPath } from 'node:url';
 declare module 'fastify' {

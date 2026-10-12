@@ -286,7 +286,7 @@ Resources:
         Target: 'es2022'
         Sourcemap: false
         EntryPoints:
-          - interventions-processor-handler.ts
+          - interventions-processor-handler.mts
 
   InterventionsProcessorFunctionInvokePermission:
     DependsOn: InterventionsProcessorFunctionAliaslive
@@ -511,7 +511,7 @@ Resources:
         Target: 'es2022'
         Sourcemap: false
         EntryPoints:
-          - txma-handler.ts
+          - txma-handler.mts
 
   TxmaEventHandlerFunctionInvokePermission:
     DependsOn: TxmaEventHandlerFunctionAliaslive
@@ -728,7 +728,7 @@ Resources:
         Target: 'es2022'
         Sourcemap: false
         EntryPoints:
-          - account-deletion-processor-handler.ts
+          - account-deletion-processor-handler.mts
 
   AccountDeletionProcessorFunctionRole:
     Type: AWS::IAM::Role
@@ -1364,7 +1364,7 @@ Resources:
         Target: 'es2022'
         Sourcemap: false
         EntryPoints:
-          - status-retriever-handler.ts
+          - status-retriever-handler.mts
 
   StatusRetrieverFunctionRole:
     Type: AWS::IAM::Role
@@ -1510,7 +1510,7 @@ Resources:
         Target: 'es2022'
         Sourcemap: false
         EntryPoints:
-          - invoke-private-api.ts
+          - invoke-private-api.mts
 
   InvokePrivateAPIGatewayFunctionRole:
     Condition: IsInternal
@@ -1612,7 +1612,7 @@ Resources:
         Target: 'es2022'
         Sourcemap: false
         EntryPoints:
-          - ttl-backfill-handler.ts
+          - ttl-backfill-handler.mts
 
   TtlBackfillFunctionRole:
     Type: AWS::IAM::Role

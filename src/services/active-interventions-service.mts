@@ -1,0 +1,116 @@
+import logger from '../commons/logger.mts';
+import { InterventionState, LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants.ts';
+import { addMetric } from '../commons/metrics.mts';
+import { StateDetails } from '../data-types/interfaces.ts';
+import { InterventionEventsService } from '../tables/intervention-events.mts';
+import { InterventionName } from '../data-types/intervention-name.ts';
+
+/**
+ * Get a list of currently active interventions on an account
+ * Gets list from intervention-events table where available and suplements with status from account-status table where required.
+ *
+ * @param accountId - the id of the user whose account is been intervened on
+ * @param interventionEventsService - service to fetch intervention events
+ * @param previousState - 4 boolean state from account status table
+ */
+async function getActiveInterventions(
+  accountId: string,
+  interventionEventsService: InterventionEventsService,
+  previousState: StateDetails | undefined,
+): Promise<InterventionName[]> {
+  const interventionsFromEvents = await getActiveInterventionsFromEvents(accountId, interventionEventsService);
+
+  const interventionsFromPreviousState = previousStateToInterventions(previousState);
+
+  validateInterventions(interventionsFromEvents, interventionsFromPreviousState);
+
+  return combineSets(interventionsFromEvents, interventionsFromPreviousState);
+}
+
+export default getActiveInterventions;
+
+/**
+ * Get a set of the currently active interventions on an account
+ * @param accountId - the id of the user whose account is been intervened on
+ * @param interventionEventsService - service to fetch intervention events
+ */
+async function getActiveInterventionsFromEvents(
+  accountId: string,
+  interventionEventsService: InterventionEventsService,
+): Promise<Set<InterventionName>> {
+  const existingInterventionEvents = await fetchExistingInterventionEvents(accountId, interventionEventsService);
+
+  return filterEventStreamToActive(existingInterventionEvents);
+}
+
+interface InterventionEventStream {
+  interventionState: InterventionState;
+  interventionName: InterventionName;
+}
+
+export const filterEventStreamToActive = (eventStream: InterventionEventStream[]): Set<InterventionName> =>
+  eventStream.reduce((result, event) => {
+    if (event.interventionState === InterventionState.ACTIVE) return result.add(event.interventionName);
+
+    if (event.interventionState !== InterventionState.IGNORED) result.delete(event.interventionName);
+
+    return result;
+  }, new Set<InterventionName>());
+
+/**
+ * Fetch all the intervention events for a given accountId
+ * @param accountId - the id of the user whose account is been intervened
+ */
+async function fetchExistingInterventionEvents(
+  accountId: string,
+  interventionEventsService: InterventionEventsService,
+) {
+  const existingInterventionEvents = await interventionEventsService.fetchEventsForAccount(accountId);
+  logger.debug(
+    `${LOGS_PREFIX_SENSITIVE_INFO} Fetched existingInterventionEvents ${JSON.stringify(existingInterventionEvents)}`,
+  );
+
+  return existingInterventionEvents;
+}
+
+/**
+ * Map the state from the account status table to a list of intervention names
+ * @param previousState - Previous state from the account status table
+ * @returns
+ */
+export function previousStateToInterventions(previousState?: StateDetails): InterventionName[] {
+  if (!previousState) return [];
+
+  if (previousState.resetPassword && previousState.reproveIdentity)
+    return [InterventionName.RESET_PASSWORD, InterventionName.REPROVE_IDENTITY];
+  if (previousState.resetPassword) return [InterventionName.RESET_PASSWORD];
+  if (previousState.reproveIdentity) return [InterventionName.REPROVE_IDENTITY];
+
+  if (previousState.blocked) return [InterventionName.PERMANENT_SUSPENSION];
+  if (previousState.suspended) return [InterventionName.TEMPORARY_SUSPENSION];
+
+  return [];
+}
+
+const combineSets = <T,>(set1: Set<T> | T[], set2: Set<T> | T[]) => [...new Set([...set1, ...set2])];
+
+/**
+ * Raise a metric if there are any interventions from the interventions table that don't match those expected from the account status table
+ * @param interventionsFromEvents - set of intervention names from intervention events table
+ * @param interventionsFromPreviousState - intervention names generated from the current state in the account status table
+ */
+export function validateInterventions(
+  interventionsFromEvents: Set<InterventionName>,
+  interventionsFromPreviousState: InterventionName[],
+) {
+  const interventionsNotInPreviousState = [...interventionsFromEvents].filter(
+    (index) => !interventionsFromPreviousState.includes(index),
+  );
+
+  if (interventionsNotInPreviousState.length > 0) {
+    logger.debug(
+      `Interventions from events not found in previous state: ${interventionsNotInPreviousState.join(', ')}`,
+    );
+    addMetric(MetricNames.INTERVENTION_MISMATCH);
+  }
+}
