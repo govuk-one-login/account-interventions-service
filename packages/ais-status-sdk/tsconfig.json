@@ -17,6 +17,7 @@
     "allowImportingTsExtensions": true
   },
   "include": [
-    "src/index.mts", "../../src/data-types/api-schemas-v2.ts", "../../src/data-types/intervention-name.ts"],
+    "src/index.mts",
+    "../../src/data-types/api-schemas-v2.mts", "../../src/data-types/intervention-name.ts"],
   "exclude": ["dist"]
 }

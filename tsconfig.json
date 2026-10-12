@@ -10,7 +10,7 @@
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
     "allowImportingTsExtensions": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "NodeNext",
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "exactOptionalPropertyTypes": true,
@@ -28,7 +28,7 @@
     "rootDir": "",
     "ignoreDeprecations": "6.0",
     "types": ["node", "vitest/globals"],
-    "rewriteRelativeImportExtensions": true,
+    "rewriteRelativeImportExtensions": false,
     "paths": {
       "@govuk-one-login/ais-status-sdk": ["./packages/ais-status-sdk/src/index.mts"]
     }
