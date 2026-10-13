@@ -1,9 +1,11 @@
 import { Matchers, MessageConsumerPact, synchronousBodyHandler } from '@pact-foundation/pact';
-import { term } from '@pact-foundation/pact/src/dsl/matchers.ts';
-import { boolean, number, string } from '@pact-foundation/pact/src/v3/matchers.ts';
+// the pact-foundation compiled .js files (with sibling .d.ts for types), there's no .ts source at all in node_modules.
+// The correct extension for these imports is .js, not .ts.
+import { term } from '@pact-foundation/pact/src/dsl/matchers.js';
+import { boolean, number, string } from '@pact-foundation/pact/src/v3/matchers.js';
+import { AnyJson } from '@pact-foundation/pact/src/common/jsonTypes.js';
 import { validateEventAgainstSchema } from '../../services/validate-event.mts';
 import path from 'node:path';
-import { AnyJson } from '@pact-foundation/pact/src/common/jsonTypes.ts';
 const { like } = Matchers;
 
 describe('TxMA & AIS - Contract Testing - Consumer', () => {

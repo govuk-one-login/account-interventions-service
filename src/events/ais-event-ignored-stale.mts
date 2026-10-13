@@ -1,4 +1,12 @@
-import { InterventionStateEnum } from '@govuk-one-login/event-catalogue/AIS_EVENT_TRANSITION_APPLIED';
+import type { Events } from '@govuk-one-login/event-catalogue';
+
+// using .mts forces NodeNext module resolution, which requires every
+// imported subpath to be explicitly declared in a package's exports map — and since
+// @govuk-one-login/event-catalogue has no exports
+// InterventionStateEnum isn't exposed via the package's root Events type (it's a sibling
+// export in AIS_EVENT_TRANSITION_APPLIED.d.ts, not nested under the event itself), so it's
+// derived from the `state` field on the event's extensions instead of a deep subpath import.
+type InterventionStateEnum = NonNullable<NonNullable<Events['AIS_EVENT_TRANSITION_APPLIED']['extensions']>['state']>;
 
 /**
  * AIS Event Ignored Stale

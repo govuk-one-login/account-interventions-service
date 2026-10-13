@@ -1,5 +1,5 @@
 import logger from '../commons/logger.mts';
-import Ajv2019 from 'ajv/dist/2019';
+import * as Ajv2019Module from 'ajv/dist/2019.js';
 import { LOGS_PREFIX_SENSITIVE_INFO, MetricNames } from '../data-types/constants.ts';
 import type { SQSEvent, SQSRecord } from 'aws-lambda';
 import { addMetric, metric } from '../commons/metrics.mts';
@@ -9,6 +9,22 @@ import jsonSafeParse from '../commons/json-safe-parse.mts';
 import { AUTH_DELETE_ACCOUNTSchema } from '@govuk-one-login/event-catalogue-schemas';
 import { addEventMetadataToSchema } from '../commons/compile-schema.mts';
 import { AccountStatusService } from '../tables/account-status.mts';
+
+interface AjvValidateFunction {
+  (data: unknown): boolean;
+  errors?: unknown;
+}
+
+interface AjvInstance {
+  compile(schema: object): AjvValidateFunction;
+}
+
+// ajv's Ajv2019 default export isn't typed as constructable under NodeNext
+// module resolution (a known TypeScript limitation with CJS default exports
+// — see github.com/microsoft/TypeScript/issues/49189 and #52086). The
+// constructor is asserted to a minimal local interface covering only the
+// methods this file actually uses, rather than fighting ajv's own types.
+const Ajv2019 = Ajv2019Module.default as unknown as new (opts?: { allErrors?: boolean }) => AjvInstance;
 
 const ajv2019 = new Ajv2019({ allErrors: true });
 

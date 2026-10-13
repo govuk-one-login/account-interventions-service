@@ -1,7 +1,7 @@
 import type { APIGatewayEvent, APIGatewayProxyEventQueryStringParameters } from 'aws-lambda';
 import logger from '../../commons/logger.mts';
 import { addMetric } from '../../commons/metrics.mts';
-import jestOpenAPI from 'jest-openapi';
+import * as jestOpenAPIModule from 'jest-openapi';
 import { InMemoryInterventionEventsService } from '../../tables/intervention-events.mts';
 import { InterventionState } from '../../data-types/constants.ts';
 import { InterventionName } from '../../data-types/intervention-name.ts';
@@ -12,6 +12,11 @@ import path from 'node:path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// jest-openapi's default export isn't typed as callable under NodeNext
+// module resolution (a known TypeScript limitation with CJS default exports
+// — see github.com/microsoft/TypeScript/issues/49189 and #52086).
+const jestOpenAPI = jestOpenAPIModule.default as unknown as (filepathOrObject: string) => void;
 
 jestOpenAPI(`${__dirname}/../../specs/main.yaml`);
 

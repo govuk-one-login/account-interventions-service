@@ -12,8 +12,10 @@ import { ValidationError } from '../../data-types/errors.mts';
 import { AISInterventionTypes, EventsEnum, MetricNames, TriggerEventsEnum } from '../../data-types/constants.ts';
 import { sendAuditEvent } from '../send-audit-events.mts';
 import { getCurrentTimestamp } from '../../commons/get-current-timestamp.mts';
-import { TICF_ACCOUNT_INTERVENTION } from '@govuk-one-login/event-catalogue/TICF_ACCOUNT_INTERVENTION';
+import type { Events } from '@govuk-one-login/event-catalogue';
 import { SQSClient } from '@aws-sdk/client-sqs';
+
+type TICF_ACCOUNT_INTERVENTION = Events['TICF_ACCOUNT_INTERVENTION'];
 
 vi.mock('../../commons/metrics');
 vi.mock('@aws-lambda-powertools/logger');
