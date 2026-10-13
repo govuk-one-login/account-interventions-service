@@ -24,11 +24,15 @@ import { normalisePathSegment } from '../commons/utils/normalise-path-segment';
 import { transitionConfig } from '../services/account-states/config';
 import { Authoriser } from './authoriser';
 import { z } from 'zod';
+import { fileURLToPath } from 'node:url';
 declare module 'fastify' {
   interface FastifyRequest {
     awsLambda?: { event: APIGatewayProxyEvent; context: Context };
   }
 }
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // In Lambda (bundled), node_modules is co-located with the handler in __dirname.
 // In local dev (tsx from project root), node_modules is at the project root (process.cwd()).

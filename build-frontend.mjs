@@ -15,10 +15,18 @@ await esbuild.build({
   target: 'es2022',
   format: 'esm',
   outExtension: { '.js': '.mjs' },
-  external: ['@aws-sdk/*', '@smithy/*', '@aws-lambda-powertools/*', 'node:*'],
+  external: ['@aws-sdk/*', 'node:*'],
   outdir,
   minify: true,
   sourcemap: false,
+  // Bundled CJS dependencies (e.g. @aws-lambda-powertools/*) still call require()
+  // internally for Node built-ins. ESM has no require(), so esbuild's own shim for
+  // this throws "Dynamic require of ... is not supported" at runtime. This banner
+  // reintroduces a working require() via node:module's createRequire, scoped to
+  // this file, so those internal calls resolve correctly.
+  banner: {
+    js: "import { createRequire as __createRequire } from 'node:module'; const require = __createRequire(import.meta.url);",
+  },
 });
 
 // Copy nunjucks view templates

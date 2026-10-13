@@ -291,7 +291,6 @@ Resources:
         External:
           - '@aws-sdk/*'
           - '@smithy/*'
-          - '@aws-lambda-powertools/*'
           - 'node:*'
         EntryPoints:
           - interventions-processor-handler.ts
@@ -524,7 +523,6 @@ Resources:
         External:
           - '@aws-sdk/*'
           - '@smithy/*'
-          - '@aws-lambda-powertools/*'
           - 'node:*'
         EntryPoints:
           - txma-handler.ts
@@ -749,7 +747,6 @@ Resources:
         External:
           - '@aws-sdk/*'
           - '@smithy/*'
-          - '@aws-lambda-powertools/*'
           - 'node:*'
         EntryPoints:
           - account-deletion-processor-handler.ts
@@ -1393,7 +1390,6 @@ Resources:
         External:
           - '@aws-sdk/*'
           - '@smithy/*'
-          - '@aws-lambda-powertools/*'
           - 'node:*'
         EntryPoints:
           - status-retriever-handler.ts
@@ -1547,7 +1543,6 @@ Resources:
         External:
           - '@aws-sdk/*'
           - '@smithy/*'
-          - '@aws-lambda-powertools/*'
           - 'node:*'
         EntryPoints:
           - invoke-private-api.ts
@@ -1657,7 +1652,6 @@ Resources:
         External:
           - '@aws-sdk/*'
           - '@smithy/*'
-          - '@aws-lambda-powertools/*'
           - 'node:*'
         EntryPoints:
           - ttl-backfill-handler.ts
