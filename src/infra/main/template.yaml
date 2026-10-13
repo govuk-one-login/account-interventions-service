@@ -284,7 +284,15 @@ Resources:
       BuildProperties:
         Minify: true
         Target: 'es2022'
+        Format: esm
+        OutExtension:
+          - .js=.mjs
         Sourcemap: false
+        External:
+          - '@aws-sdk/*'
+          - '@smithy/*'
+          - '@aws-lambda-powertools/*'
+          - 'node:*'
         EntryPoints:
           - interventions-processor-handler.ts
 
@@ -509,7 +517,15 @@ Resources:
       BuildProperties:
         Minify: true
         Target: 'es2022'
+        Format: esm
+        OutExtension:
+          - .js=.mjs
         Sourcemap: false
+        External:
+          - '@aws-sdk/*'
+          - '@smithy/*'
+          - '@aws-lambda-powertools/*'
+          - 'node:*'
         EntryPoints:
           - txma-handler.ts
 
@@ -726,7 +742,15 @@ Resources:
       BuildProperties:
         Minify: true
         Target: 'es2022'
+        Format: esm
+        OutExtension:
+          - .js=.mjs
         Sourcemap: false
+        External:
+          - '@aws-sdk/*'
+          - '@smithy/*'
+          - '@aws-lambda-powertools/*'
+          - 'node:*'
         EntryPoints:
           - account-deletion-processor-handler.ts
 
@@ -1362,7 +1386,15 @@ Resources:
       BuildProperties:
         Minify: true
         Target: 'es2022'
+        Format: esm
+        OutExtension:
+          - .js=.mjs
         Sourcemap: false
+        External:
+          - '@aws-sdk/*'
+          - '@smithy/*'
+          - '@aws-lambda-powertools/*'
+          - 'node:*'
         EntryPoints:
           - status-retriever-handler.ts
 
@@ -1508,7 +1540,15 @@ Resources:
       BuildProperties:
         Minify: true
         Target: 'es2022'
+        Format: esm
+        OutExtension:
+          - .js=.mjs
         Sourcemap: false
+        External:
+          - '@aws-sdk/*'
+          - '@smithy/*'
+          - '@aws-lambda-powertools/*'
+          - 'node:*'
         EntryPoints:
           - invoke-private-api.ts
 
@@ -1610,7 +1650,15 @@ Resources:
       BuildProperties:
         Minify: true
         Target: 'es2022'
+        Format: esm
+        OutExtension:
+          - .js=.mjs
         Sourcemap: false
+        External:
+          - '@aws-sdk/*'
+          - '@smithy/*'
+          - '@aws-lambda-powertools/*'
+          - 'node:*'
         EntryPoints:
           - ttl-backfill-handler.ts
 
