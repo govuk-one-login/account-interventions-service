@@ -290,7 +290,6 @@ Resources:
         Sourcemap: false
         External:
           - '@aws-sdk/*'
-          - '@smithy/*'
           - 'node:*'
         EntryPoints:
           - interventions-processor-handler.ts
@@ -522,7 +521,6 @@ Resources:
         Sourcemap: false
         External:
           - '@aws-sdk/*'
-          - '@smithy/*'
           - 'node:*'
         EntryPoints:
           - txma-handler.ts
@@ -746,7 +744,6 @@ Resources:
         Sourcemap: false
         External:
           - '@aws-sdk/*'
-          - '@smithy/*'
           - 'node:*'
         EntryPoints:
           - account-deletion-processor-handler.ts
@@ -1389,7 +1386,6 @@ Resources:
         Sourcemap: false
         External:
           - '@aws-sdk/*'
-          - '@smithy/*'
           - 'node:*'
         EntryPoints:
           - status-retriever-handler.ts
@@ -1542,7 +1538,6 @@ Resources:
         Sourcemap: false
         External:
           - '@aws-sdk/*'
-          - '@smithy/*'
           - 'node:*'
         EntryPoints:
           - invoke-private-api.ts
@@ -1651,7 +1646,6 @@ Resources:
         Sourcemap: false
         External:
           - '@aws-sdk/*'
-          - '@smithy/*'
           - 'node:*'
         EntryPoints:
           - ttl-backfill-handler.ts
