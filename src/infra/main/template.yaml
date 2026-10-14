@@ -285,7 +285,6 @@ Resources:
         Minify: true
         Target: 'es2022'
         Format: esm
-        MainFields: module,main
         OutExtension:
           - .js=.mjs
         Sourcemap: false
@@ -517,7 +516,6 @@ Resources:
         Minify: true
         Target: 'es2022'
         Format: esm
-        MainFields: module,main
         OutExtension:
           - .js=.mjs
         Sourcemap: false
@@ -741,7 +739,6 @@ Resources:
         Minify: true
         Target: 'es2022'
         Format: esm
-        MainFields: module,main
         OutExtension:
           - .js=.mjs
         Sourcemap: false
@@ -1384,7 +1381,6 @@ Resources:
         Minify: true
         Target: 'es2022'
         Format: esm
-        MainFields: module,main
         OutExtension:
           - .js=.mjs
         Sourcemap: false
@@ -1537,7 +1533,6 @@ Resources:
         Minify: true
         Target: 'es2022'
         Format: esm
-        MainFields: module,main
         OutExtension:
           - .js=.mjs
         Sourcemap: false
@@ -1646,7 +1641,6 @@ Resources:
         Minify: true
         Target: 'es2022'
         Format: esm
-        MainFields: module,main
         OutExtension:
           - .js=.mjs
         Sourcemap: false
