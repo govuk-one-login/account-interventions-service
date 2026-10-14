@@ -19,7 +19,7 @@ enum InterventionCode {
 }
 
 const isValidInterventionCode = (value: string | undefined): value is InterventionCode =>
-  Object.values(InterventionCode).includes(value as InterventionCode);
+  (Object.values(InterventionCode) as string[]).includes(value as string);
 
 function getEventByName(eventName: EventType, userId: string, interventionCode: InterventionCode) {
   const currentTime = getCurrentTimestamp();
@@ -105,7 +105,7 @@ const { values } = parseArgs({
 });
 
 const isValidEvent = (value: string | undefined): value is EventType =>
-  Object.values(EventType).includes(value as EventType);
+  (Object.values(EventType) as string[]).includes(value as string);
 
 void (async () => {
   const queueUrl = values.queueUrl ?? 'https://sqs.eu-west-2.amazonaws.com/484907510598/ais-main-TxMAIngressQueue';

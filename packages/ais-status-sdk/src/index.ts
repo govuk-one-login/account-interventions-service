@@ -89,6 +89,12 @@ export class InterventionClient implements InterventionClientInterface {
   async getAccountHistory(userId: string): Promise<AccountHistory> {
     const result = await this.fetchAccountHistory(userId);
 
+    // HistoryLine types interventionName/interventionState as strict enums.
+    // The response is validated by V2HistoryResponseSchema (z.enum), which
+    // throws InterventionInvalidResponse on any non-member value, so the
+    // runtime value is guaranteed to be a valid enum member here. The rule
+    // cannot see through the Zod-inferred string typing.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment
     return result;
   }
 }

@@ -647,6 +647,10 @@ describe('account-state-service', () => {
         } as Record<PossibleAccountStatus, Codes[] | undefined>,
         edges: {
           '01': {
+            // Intentionally invalid: 'AccountIsNotOkay' is not a member of
+            // PossibleAccountStatus. This fixture builds a deliberately broken
+            // config to assert the engine throws on an edge/node mismatch.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment
             to: 'AccountIsNotOkay' as PossibleAccountStatus,
             name: EventsEnum.FRAUD_BLOCK_ACCOUNT,
             interventionName: AISInterventionTypes.AIS_ACCOUNT_BLOCKED,

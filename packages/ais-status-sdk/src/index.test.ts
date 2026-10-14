@@ -239,6 +239,8 @@ describe('InterventionClient', () => {
     it('throws InterventionInvalidResponse when a history entry has an invalid interventionName', async () => {
       const client = new InterventionClient(baseUrl);
 
+      // Intentionally invalid value to exercise the invalid-response path.
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment
       const invalidEntry = makeHistoryObject({ interventionName: 'NOT_A_VALID_INTERVENTION' as InterventionName });
       mockFetch.mockResolvedValue(mockResponse({ lines: [invalidEntry] }));
 
@@ -248,6 +250,8 @@ describe('InterventionClient', () => {
     it('throws InterventionInvalidResponse when a history entry has an invalid interventionState', async () => {
       const client = new InterventionClient(baseUrl);
 
+      // Intentionally invalid value to exercise the invalid-response path.
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment
       const invalidEntry = makeHistoryObject({ interventionState: 'NOT_A_VALID_STATE' as InterventionState });
       mockFetch.mockResolvedValue(mockResponse({ lines: [invalidEntry] }));
 

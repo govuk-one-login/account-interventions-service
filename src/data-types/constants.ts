@@ -80,6 +80,9 @@ export enum AISInterventionTypes {
   AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY = 'AIS_FORCED_USER_PASSWORD_RESET_AND_IDENTITY_VERIFY', //pragma: allowlist secret
 }
 
+export const isAISInterventionType = (value: string | undefined): value is AISInterventionTypes =>
+  value !== undefined && (Object.values(AISInterventionTypes) as string[]).includes(value);
+
 export enum ActiveStateActions {
   RESET_PASSWORD = 'reset_password', //pragma: allowlist secret
   REPROVE_IDENTITY = 'reprove_identity',
@@ -138,7 +141,7 @@ export enum Codes {
   C95 = '95',
 }
 
-export const isCode = (value: string): value is Codes => Object.values(Codes).includes(value as Codes);
+export const isCode = (value: string): value is Codes => (Object.values(Codes) as string[]).includes(value);
 
 export enum InterventionState {
   ACTIVE = 'ACTIVE',

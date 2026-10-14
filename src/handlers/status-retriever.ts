@@ -1,7 +1,7 @@
 import type { APIGatewayEvent, APIGatewayProxyEventHeaders, APIGatewayProxyResult } from 'aws-lambda';
 import logger from '../commons/logger';
 import { addMetric, metric } from '../commons/metrics';
-import { MetricNames, AISInterventionTypes } from '../data-types/constants';
+import { MetricNames, AISInterventionTypes, isAISInterventionType } from '../data-types/constants';
 import { HistoryObject } from '../data-types/interfaces';
 import { getCurrentTimestamp } from '../commons/get-current-timestamp';
 import { HistoryStringBuilder } from '../commons/history-string-builder';
@@ -159,7 +159,9 @@ function transformResponseFromDynamoDatabase(item: Partial<AccountStatus>): V1Re
       updatedAt: item.updatedAt ?? currentTimestampMs,
       appliedAt: item.appliedAt ?? currentTimestampMs,
       sentAt: item.sentAt ?? currentTimestampMs,
-      description: (item.intervention as AISInterventionTypes | undefined) ?? AISInterventionTypes.AIS_NO_INTERVENTION,
+      description: isAISInterventionType(item.intervention)
+        ? item.intervention
+        : AISInterventionTypes.AIS_NO_INTERVENTION,
       reprovedIdentityAt: item.reprovedIdentityAt,
       resetPasswordAt: item.resetPasswordAt,
       accountDeletedAt: item.deletedAt,

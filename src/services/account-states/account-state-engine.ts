@@ -107,6 +107,10 @@ export class AccountStateEngine {
    */
   private findAccountStateName(state: StateDetails): PossibleAccountStatus {
     for (const [key, node] of Object.entries(transitionConfig.nodes)) {
+      // Object.entries widens the key to `string`; the keys of `nodes` are
+      // typed as PossibleAccountStatus (Record<PossibleAccountStatus, StateDetails>),
+      // so this assertion is safe and unavoidable with Object.entries.
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment
       if (areAccountStatesTheSame(node, state)) return key as PossibleAccountStatus;
     }
     throw buildConfigError(
