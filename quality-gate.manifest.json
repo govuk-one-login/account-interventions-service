@@ -89,6 +89,20 @@
           ],
           "file": ".github/workflows/code-quality.yaml",
           "path": "$.jobs.run-pre-commit"
+        },
+        {
+          "phase": "pre-upload",
+          "provider": "GitHub",
+          "checks": [
+            {
+              "name": "unit"
+            },
+            {
+              "name": "unit test coverage"
+            }
+          ],
+          "file": ".github/workflows/acceptance-checks.yaml",
+          "path": "$.jobs.acceptance-checks"
         }
       ],
       "notApplicable": [
