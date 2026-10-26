@@ -923,7 +923,6 @@ describe('getUncertaintyCutoff', () => {
 
 describe('markHistoryUncertainty', () => {
   // Build type-safe HistoryTransaction objects via formatHistory
-  // eslint-disable-next-line unicorn/consistent-function-scoping
   const makeHistory = (sentAtValues: number[]) =>
     formatHistory({
       lines: sentAtValues.map((sentAt, i) => ({
