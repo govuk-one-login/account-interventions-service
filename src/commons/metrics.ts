@@ -38,5 +38,6 @@ export function addMetric(
  */
 function checkIfAnyMetricToPublish() {
   const emfOutput = metric.serializeMetrics();
+  //eslint-disable-next-line unicorn/prefer-logical-operator-over-ternary
   return emfOutput._aws.CloudWatchMetrics[0] ? emfOutput._aws.CloudWatchMetrics[0].Metrics.length > 0 : false;
 }
