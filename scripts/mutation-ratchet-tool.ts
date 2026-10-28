@@ -1,8 +1,7 @@
-/* eslint-disable unicorn/text-encoding-identifier-case */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable unicorn/prefer-node-protocol */
-/* eslint-disable @typescript-eslint/no-require-imports */
 
 import { writeFileSync, readFileSync } from 'fs';
 import { Command } from 'commander';
