@@ -11,7 +11,7 @@ on:
       - src/**
       - package.json
       - package-lock.json
-      - stryker-ci.config.json
+      - stryker.config.json
       - .stryker/**
       - .node-version
       - .github/workflows/mutation-tests.yaml

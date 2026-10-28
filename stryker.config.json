@@ -7,6 +7,19 @@
     "clear-text",
     "progress"
   ],
+  "clearTextReporter": {
+    "allowColor": true,
+    "allowEmojis": true,
+    "logTests": false,
+    "maxTestsToLog": 3,
+    "reportTests": false,
+    "reportMutants": true,
+    "reportScoreTable": true,
+    "skipFull": false
+  },
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
+  },
   "testRunner": "vitest",
   "testRunner_comment": "Take a look at https://stryker-mutator.io/docs/stryker-js/vitest-runner for information about the vitest plugin.",
   "coverageAnalysis": "perTest",
