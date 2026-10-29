@@ -1,4 +1,4 @@
-/* istanbul ignore start -- production only. File also added to sonar.coverage.exclusions in sonar-project.properties */
+/* v8 ignore start -- production only. File also added to sonar.coverage.exclusions in sonar-project.properties */
 
 import { SQSEvent, Context } from 'aws-lambda';
 import logger from '../commons/logger';
@@ -25,4 +25,4 @@ export async function handler(event: SQSEvent, context: Context): Promise<void> 
   });
 }
 
-/* istanbul ignore stop */
+/* v8 ignore stop */
