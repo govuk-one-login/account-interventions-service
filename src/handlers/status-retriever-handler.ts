@@ -1,4 +1,4 @@
-/* istanbul ignore start -- production only */
+/* v8 ignore start -- production only */
 
 import type { Context, APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda';
 import logger from '../commons/logger';
@@ -30,4 +30,4 @@ export async function handle(event: APIGatewayEvent, context: Context): Promise<
   return retrieveStatus(event, accountStatusService, interventionEventsService);
 }
 
-/* istanbul ignore stop */
+/* v8 ignore stop */
