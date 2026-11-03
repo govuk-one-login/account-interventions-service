@@ -80,7 +80,7 @@
     "@nx/eslint": "^23.3.0",
     "@nx/eslint-plugin": "^23.3.0",
     "@nx/js": "^23.3.0",
-    "@nx/node": "^23.3.0",
+    "@nx/node": "^24.0.2",
     "@nx/workspace": "^23.0.1",
     "@pact-foundation/pact": "^17.1.4",
     "@pact-foundation/pact-cli": "^16.1.6",
