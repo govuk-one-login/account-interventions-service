@@ -1,4 +1,4 @@
-/* istanbul ignore start -- production only */
+/* v8 ignore start -- production only */
 
 import logger from '../commons/logger';
 import type { Context, SQSEvent } from 'aws-lambda';
@@ -21,4 +21,4 @@ export async function handler(
   await processAccountDeletion(event, accountStatusService)
 }
 
-/* istanbul ignore stop */
+/* v8 ignore stop */

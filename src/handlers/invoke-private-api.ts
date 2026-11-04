@@ -1,6 +1,4 @@
-/*
-istanbul ignore: not production
-*/
+/* v8 ignore start -- not production */
 // Stryker disable all: Not used in production
 import getEnvironmentOrThrow from '../commons/get-environment-or-throw';
 import logger from '../commons/logger';
@@ -71,3 +69,4 @@ function validateConfig(environmentVariable: string): string {
   }
   return value;
 }
+/* v8 ignore stop */

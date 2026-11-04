@@ -1,4 +1,4 @@
-/* istanbul ignore file -- only use to run locally */
+/* v8 ignore file -- only use to run locally */
 
 import { InterventionName, InterventionStub } from '@govuk-one-login/ais-status-sdk';
 import { FeatureFlagsStub } from '../services/feature-flags';
