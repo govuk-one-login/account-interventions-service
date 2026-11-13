@@ -77,7 +77,7 @@
     "@aws-sdk/client-sts": "^3.1152.0",
     "@eslint/js": "^10.0.1",
     "@govuk-one-login/event-catalogue": "^44.0.22",
-    "@nx/eslint": "^23.3.0",
+    "@nx/eslint": "^24.0.4",
     "@nx/eslint-plugin": "^24.0.2",
     "@nx/js": "^24.0.4",
     "@nx/node": "^24.0.2",
