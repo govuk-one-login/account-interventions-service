@@ -12,9 +12,9 @@
     "test": "npx bddgen && npx playwright test"
   },
   "devDependencies": {
-    "@aws-sdk/client-sqs": "^3.1161.0",
-    "@playwright/test": "^1.64.1",
-    "dotenv": "^18.0.9",
+    "@aws-sdk/client-sqs": "^3.1164.0",
+    "@playwright/test": "^1.65.0",
+    "dotenv": "^18.0.10",
     "playwright-bdd": "^9.2.1",
     "typescript": "^7.0.2"
   }
